@@ -9,6 +9,7 @@ from subprocess import PIPE, Popen
 from typing import Optional, List, Dict
 import os
 from .exceptions import *
+from .util import SolverResult
 
 """
 Partially modified from https://github.com/trailofbits/manticore
@@ -163,6 +164,7 @@ class SMTLIBSolver:
         Build a smtlib solver instance.
         This is implemented using an external solver (via a subprocess).
         """
+        # print(solver_command)
         self._smtlib = SmtlibProc(solver_command, debug)
 
         self._smtlib.start()
@@ -179,8 +181,14 @@ class SMTLIBSolver:
 
         logger.debug("Check took %s seconds (%s)", time.time() - start, status)
 
-        if status in ("sat", "unsat", "unknown"):
-            return status
+        # if status in ("sat", "unsat", "unknown"):
+        #    return status
+        if status == "unsat":
+            return SolverResult.UNSAT
+        elif status == "sat":
+            return SolverResult.SAT
+        elif status == "unknown":
+            return SolverResult.UNKNOWN
         else:
             raise SolverError(status)
             # return False
@@ -198,8 +206,14 @@ class SMTLIBSolver:
 
         logger.debug("Check took %s seconds (%s)", time.time() - start, status)
 
-        if status in ("sat", "unsat", "unknown"):
-            return status
+        # if status in ("sat", "unsat", "unknown"):
+        #    return status
+        if status == "unsat":
+            return SolverResult.UNSAT
+        elif status == "sat":
+            return SolverResult.SAT
+        elif status == "unknown":
+            return SolverResult.UNKNOWN
         else:
             raise SolverError(status)
             # return False
@@ -219,8 +233,14 @@ class SMTLIBSolver:
 
         logger.debug("Check took %s seconds (%s)", time.time() - start, status)
 
-        if status in ("sat", "unsat", "unknown"):
-            return status
+        # if status in ("sat", "unsat", "unknown"):
+        #    return status
+        if status == "unsat":
+            return SolverResult.UNSAT
+        elif status == "sat":
+            return SolverResult.SAT
+        elif status == "unknown":
+            return SolverResult.UNKNOWN
         else:
             raise SolverError(status)
             # return False
@@ -238,8 +258,14 @@ class SMTLIBSolver:
 
         logger.debug("Check took %s seconds (%s)", time.time() - start, status)
 
-        if status in ("sat", "unsat", "unknown"):
-            return status
+        # if status in ("sat", "unsat", "unknown"):
+        #    return status
+        if status == "unsat":
+            return SolverResult.UNSAT
+        elif status == "sat":
+            return SolverResult.SAT
+        elif status == "unknown":
+            return SolverResult.UNKNOWN
         else:
             raise SolverError(status)
             # return False

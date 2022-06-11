@@ -11,6 +11,7 @@ thread pool
 process pool
 """
 
+
 def generate_data():
     return [random.randint(-100, 100) for _ in range(100)]
 
@@ -19,12 +20,12 @@ def sample_boolean_models(data):
     return random.sample(data, 20)
 
 
-def boolean_solve(data, sample_number, pool, bool_term_queue):
+def boolean_solve(data, sample_number, pool, termination_signal):
     start = time.perf_counter()
     if random.random() < 0.01:
         # The Boolean Abstraction is UNSAT
         print("Boolean solver success")
-        bool_term_queue.put(True)
+        termination_signal.put(True)
         return []  # ?
 
     # Sample n Boolean models (specified by sample_number)
@@ -43,21 +44,21 @@ def boolean_solve(data, sample_number, pool, bool_term_queue):
     return boolean_models
 
 
-def check_theory_consistency(model, theory_term_queue):
+def check_theory_consistency(model, termination_signal):
     # the Boolean model is T-consistency
     # (thus, original formula is satisfiable)
     if sum(model) >= 1000:
         print("Theory solver success")
-        theory_term_queue.put(True)
+        termination_signal.put(True)
 
     return random.randint(0, 2)
 
 
-def theory_solve(models, pool, theory_term_queue):
+def theory_solve(models, pool, termination_signal):
     start = time.perf_counter()
     results = []
     for i in range(len(models)):
-        result = pool.apply_async(check_theory_consistency, (models[i], theory_term_queue,))  # 异步并行计算
+        result = pool.apply_async(check_theory_consistency, (models[i], termination_signal,))  # 异步并行计算
         results.append(result)
 
     theory_res = []
@@ -75,34 +76,31 @@ def main():
     boolean_abs = formula  # FIXME: should compute the Boolean abstraction
 
     sample_number = 10  # number of sampled Boolean models per round
-    bool_term_queue = multiprocessing.Manager().Queue()  # flag for termination
-    theory_term_queue = multiprocessing.Manager().Queue()  # flag for termination
+    termination_signal = multiprocessing.Manager().Queue()  # flag for termination
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
 
     tried_number = 0
+
     while True:
-        print("PHASE 1 (Boolean reasoning)...")
-        boolean_models = boolean_solve(boolean_abs, sample_number, pool, bool_term_queue)
-
-        print("PHASE 2 (Theory reasoning)...")
-        theory_res = theory_solve(boolean_models, pool, theory_term_queue)
-
-        # boolean_solve and theory_solve call pool.apply_async
-        # So, the tasks in phase 2 may not be finished when calling this?
-        if not (bool_term_queue.empty() and theory_term_queue.empty()):
+        if not termination_signal.empty():
             print("Either bool and theory solver success!")
             break
+
+        print("PHASE 1 (Boolean reasoning)...")
+        boolean_models = boolean_solve(boolean_abs, sample_number, pool, termination_signal)
+
+        print("PHASE 2 (Theory reasoning)...")
+        theory_res = theory_solve(boolean_models, pool, termination_signal)
 
         # TODO: theory_res should refine boolean_abs
 
         tried_number += 1
-        if tried_number >= 100:
+        if tried_number >= 200:
             print("tried more than 100 times")
             break
 
     pool.close()
     pool.join()
-    # print("Tried times: ", tried_number)
 
 
 if __name__ == '__main__':

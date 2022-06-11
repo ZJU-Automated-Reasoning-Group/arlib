@@ -29,9 +29,6 @@ class PySATSolver:
     def check_sat(self):
         return self._solver.solve()
 
-    def check_sat_assuming(self, assumptions: List[int]):
-        return
-
     def add_clause(self, clause: List[int]):
         self._solver.add_clause(clause)
 

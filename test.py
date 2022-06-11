@@ -23,5 +23,5 @@ def process_folder(path):
 
 if __name__ == '__main__':
     # test()
-    simple_cdclt("/Users/prism/Work/logicbox/pdsmt/benchmakrs/nl.smt2")
+    simple_cdclt("/Users/prism/Work/pdsmt/benchmakrs/simple.smt2")
     # process_folder("/Users/prism/Work/eldarica-bin/tests/z3test/")
