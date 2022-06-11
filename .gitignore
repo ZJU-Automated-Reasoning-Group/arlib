@@ -6,6 +6,7 @@ pdsmt/test/.pytest_cache
 venv
 .DS_Store
 *__pycache__/
+.pytest_cache
 
 # Directories, log, ..
 callgrind.out.*
