@@ -2,8 +2,12 @@
 import z3
 from .smtlib_solver import SMTLIBSolver
 from .config import m_smt_solver_bin
-from .util import SolverResult, convert_value, RE_GET_EXPR_VALUE_ALL
+from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
 import re
+import logging
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class FormulaManager(object):
@@ -25,22 +29,10 @@ class FormulaManager(object):
         self.bool2atom = {}  # p0 -> a + -1*b == 0
         self.num2bool = {}  # 1 -> p0
         self.bool_vars = []
-
-    def get_atom(self, bool: str):
-        """
-        TODO:
-            + better to use numeric number as the "common language" between th and bool solvers
-               because we need to interact with the DIMACS world
-            + tseitin-cnf may introduce additional Boolean vars, which do not correspond to
-                theory atoms?
-        """
-        return self.bool2atom[bool]
+        # self.aux_bool_vars = [] # created by tseitin-cnf
 
     def debug(self):
-        print(self.bool2atom)
-        # print(self.boolean_sig)
-        # print(self.theory_sig)
-        print(self.num2bool)
+        print("Bool to Atom: ", self.bool2atom)
 
 
 class SMTPreprocess(object):
@@ -51,11 +43,12 @@ class SMTPreprocess(object):
 
     def __init__(self):
         self.index = 0
+        self.solved = False
 
     def abstract_atom(self, atom2bool, atom) -> z3.ExprRef:
         if atom in atom2bool:
             return atom2bool[atom]
-        p = z3.Bool("pp%d" % self.index)
+        p = z3.Bool("p@%d" % self.index)
         self.index += 1
         atom2bool[atom] = p
         return p
@@ -71,23 +64,34 @@ class SMTPreprocess(object):
     def abstract_clauses(self, atom2bool, clauses):
         return [self.abstract_clause(atom2bool, clause) for clause in clauses]
 
-    def from_smt2_file(self, filename: str) -> FormulaManager:
+    def from_smt2_string(self, smt2string: str) -> FormulaManager:
         fml_manager = FormulaManager()  #
 
-        fml = z3.And(z3.parse_smt2_file(filename))
+        # fml = z3.And(z3.parse_smt2_file(filename))
+        fml = z3.And(z3.parse_smt2_string(smt2string))
+        # clauses = z3.Then('simplify', 'solve-eqs', 'tseitin-cnf')(fml)
         clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
+
+        after_simp = clauses.as_expr()
+        if z3.is_false(after_simp) or z3.is_true(after_simp):
+            self.solved = True
+            return None, None, None
+
         abs = {}
         boolean_abs = z3.And(self.abstract_clauses(abs, clauses))
-        theory_init_fml = z3.And([p == abs[p] for p in abs])
 
         s = z3.Solver()  # a container for collecting variable signatures
-        s.add(fml)
+        s.add(after_simp)
         s.add(boolean_abs)
+
+        # from z3.z3util import get_vars # this API could be slow (I have experience..)
+        # get_vars(z3.And(s.assertions()))
+
         # FIXME: currently, the theory solver also uses the Boolean variables
         for line in s.sexpr().split("\n"):
             if line.startswith("(as"):
                 break
-            elif "pp" in line:
+            elif "p@" in line:
                 fml_manager.boolean_sig.append(line)
             fml_manager.theory_sig.append(line)
 
@@ -99,9 +103,8 @@ class SMTPreprocess(object):
             bool_var_id += 1
             fml_manager.bool_vars.append(bool_name)
 
-        # print(abs)
-        # print(clauses)
-        # fml_manager.debug()
+        # theory_init_fmls = [(p == abs[p]).sexpr() for p in abs]
+        theory_init_fml = z3.And([p == abs[p] for p in abs])
         return fml_manager, boolean_abs.sexpr(), theory_init_fml.sexpr()
 
 
@@ -111,11 +114,14 @@ class TheorySolver():
         self.fml_manager = manager
         self.bin_solver = None
         self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+        # self.debug = True
+        # self.assertions = []
 
     def add(self, smt2string):
         self.bin_solver.assert_assertions(smt2string)
 
     def check_sat(self):
+        logger.warning("Theory solver working...")
         return self.bin_solver.check_sat()
 
     def check_sat_assuming(self, assumptions):
@@ -124,15 +130,17 @@ class TheorySolver():
           - Some SMT solvers do not support the interface
           - We may use push/pop to simulate the behavior, or even build a solver from scratch.
         """
+        logger.warning("Theory solver working...")
         return self.bin_solver.check_sat_assuming(assumptions)
 
     def get_unsat_core(self):
-        print(self.bin_solver.get_unsat_core())
+        return self.bin_solver.get_unsat_core()
 
 
 class BooleanSolver():
 
     def __init__(self, manager: FormulaManager):
+        # TODO: seems fml_manger is not useful
         self.fml_manager = manager
         self.bin_solver = None
         self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
@@ -141,6 +149,7 @@ class BooleanSolver():
         self.bin_solver.assert_assertions(smt2string)
 
     def check_sat(self):
+        logger.warning("Boolean solver working...")
         return self.bin_solver.check_sat()
 
     def get_cube_from_model(self):
@@ -149,71 +158,60 @@ class BooleanSolver():
         """
         raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars)
         tuples_model = re.findall(RE_GET_EXPR_VALUE_ALL, raw_model)
-        # e.g., [('pp0', 'true'), ('pp1', 'false')]
+        # e.g., [('p@0', 'true'), ('p@1', 'false')]
         return [pair[0] if pair[1].startswith("t") else \
                     "(not {})".format(pair[0]) for pair in tuples_model]
 
 
-def simple_cdclt(filename):
+def simple_cdclt(smt2string: str):
     # prop_solver.add(abstract_clauses(abs, clauses))
     # theory_solver.add([p == abs[p] for p in abs])
-    fml_manager, boolean_abs, theory_cnt = SMTPreprocess().from_smt2_file(filename)
+    preprocessor = SMTPreprocess()
+    fml_manager, boolean_abs, theory_cnt = preprocessor.from_smt2_string(smt2string)
+
+    logger.warning("Finish preprocessing")
+
+    if preprocessor.solved:
+        print("Solved by the preprocessor")
+        return
 
     bool_solver = BooleanSolver(fml_manager)
     init_bool_fml = " (set-logic QF_FD)" + " ".join(fml_manager.boolean_sig) + "(assert {})".format(boolean_abs)
     bool_solver.add(init_bool_fml)
 
     theory_solver = TheorySolver(fml_manager)
-    init_theory_fml = " (set-logic ALL)" + " ".join(fml_manager.theory_sig) + "(assert {})".format(theory_cnt)
+    init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
+                      + " ".join(fml_manager.theory_sig) + "(assert {})".format(theory_cnt)
+
     theory_solver.add(init_theory_fml)
 
+    logger.warning("Finish initializing bool and theory solvers")
+
     while True:
-        is_sat = bool_solver.check_sat()
-        if SolverResult.SAT == is_sat:
-            assumptions = bool_solver.get_cube_from_model()
-            if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
-                # TODO: use the naive "blocking formula" or use unsat core to refine
-                #   If unsat_core is enabled, the solver might be slower
-                blocking_clauses = "(assert (not (and " + " ".join(assumptions) + ")))\n"
-                bool_solver.add(blocking_clauses)
-            else:
-                print("sat")
-                break
-        else:
-            print("unsat")
-            break
-
-
-"""
-    start = time.time()
-    with multiprocessing.Manager() as manager:
-        result_queue = multiprocessing.Queue()
-        blocking_clause_queue = multiprocessing.Queue()
-        prop_model_queue = multiprocessing.Queue()
-        print("workers: ", multiprocessing.cpu_count())
-
-        for _ in range(multiprocessing.cpu_count()):
-            g_process_queue.append(multiprocessing.Process(target=solver_worker_api,
-                                                           args=(thsolver_smt2sting,
-                                                                 ppsolver_smt2sting,
-                                                                 bool_vars,
-                                                                 blocking_clause_queue,
-                                                                 prop_model_queue,
-                                                                 result_queue
-                                                                 )))
-        # Start all
-        for p in g_process_queue:
-            p.start()
-
         try:
-            # Wait at most 300 seconds for a return
-            result = result_queue.get(timeout=600)
-        except multiprocessing.queues.Empty:
-            result = "unknown"
-        for p in g_process_queue:
-            p.terminate()
+            is_sat = bool_solver.check_sat()
+            if SolverResult.SAT == is_sat:
+                assumptions = bool_solver.get_cube_from_model()
+                # print(assumptions)
+                if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
+                    # E.g., (p @ 1(not p @ 2)(not p @ 9))
+                    core = theory_solver.get_unsat_core()[1:-1]
+                    blocking_clauses_core = "(assert (not (and {} )))\n".format(core)
+                    # print(blocking_clauses_core)
+                    # the following line uses the naive "blocking formula"
+                    # blocking_clauses_assumptions = "(assert (not (and " + " ".join(assumptions) + ")))\n"
+                    # print(blocking_clauses_assumptions)
 
-        print(result)
-
-    print(time.time() - start)
-"""
+                    bool_solver.add(blocking_clauses_core)
+                else:
+                    print("SAT (theory solver success)!")
+                    break
+            else:
+                print("UNSAT (boolean solver success)!")
+                break
+        except Exception as ex:
+            print(ex)
+            print(smt2string)
+            # print("\n".join(theory_solver.assertions))
+            exit(0)
+            break
