@@ -1,5 +1,5 @@
 from z3 import *
-from pdsmt.formula_manager import simple_cdclt
+from pdsmt.formula_manager import simple_cdclt, boolean_abstraction
 
 
 def test():
@@ -47,7 +47,8 @@ def string_test():
  (and (or $x23 $x23 $x94 $x51 $x66) (or $x66 $x37 $x94 $x51 $x62 $x10 $x63 $x23) (or $x10 $x37 $x23 $x94 $x63 $x51 $x66 $x23) (or $x23 $x23 $x37 $x66 $x10 $x62) (or $x10 $x63 $x23 $x94) (or $x62 $x23 $x63 $x66 $x23 $x94 $x37) (or $x10 $x63 $x37 $x51) $x94 (or $x23 $x63 $x10 $x37)))))))))))
 (check-sat)
     """
-    simple_cdclt(fml)
+    print(simple_cdclt(fml))
+    # print(boolean_abstraction(fml))
 
 
 if __name__ == '__main__':

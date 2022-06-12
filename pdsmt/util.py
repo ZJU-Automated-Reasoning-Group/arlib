@@ -9,10 +9,15 @@ class SolverResult(Enum):
     SAT = 1
     ERROR = 2
 
-class ApproximationType(Enum):
-    OVER_APPROX = 0
-    UNDER_APPRO = 1
-    EXACT = 2
+
+class InitAbstractionStrategy(Enum):
+    """
+    First, perform simplification and CNF transformation
+    Then, build a Boolean abstraction
+    """
+    ATOM = -1 # the traditional way: map each atom to a Boolean variable
+    CLAUSE = 0 # map each clause to a Boolean variable
+    RAND_CUBE = 1 # construct a set of random cubes? (not clear yet)
 
 
 class ParallelMode(Enum):

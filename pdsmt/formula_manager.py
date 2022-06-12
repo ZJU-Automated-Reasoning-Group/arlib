@@ -1,49 +1,72 @@
 # coding: utf-8
 import z3
 from .smtlib_solver import SMTLIBSolver
-from .config import m_smt_solver_bin
-from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
+from .config import m_smt_solver_bin, m_init_abstraction
+from .util import SolverResult, RE_GET_EXPR_VALUE_ALL, InitAbstractionStrategy
 import re
 import logging
 
-logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
+"""
+    Consider the function from_smt2_string,
+    After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
+    the object clauses is of the following form
+        [Or(...), Or(...), Or(...), ...]
+    but not the usual "CNF" form (which is our initial goal)
+        [[...], [...], [...]]
+  
+    If using m_init_abstraction = InitAbstractionStrategy.CLAUSE, 
+    the  "Boolean abstraction" actually maps each clause to a Boolean variable, 
+      but not each atom!!!
+"""
 
-class FormulaManager(object):
-    """
-    Formula manger used by theory solvers and Boolean solvers
-    NOTICE
-    + The initial Boolean abstraction
-    + The mapping between Booleans vars and theory atoms
-    + The mapping Booleans and some numeric numbers (?)
 
-    TODO:
-    - Complex clause sharing among different managers
-    """
+class BooleanFormulaManager(object):
 
     def __init__(self):
-        self.boolean_sig = []
-        self.theory_sig = []
+        self.smt2_signature = []  # s-expression of the signature
+        self.smt2_init_cnt = ""  # initial constraints in SMT2 string
 
-        self.bool2atom = {}  # p0 -> a + -1*b == 0
-        self.num2bool = {}  # 1 -> p0
-        self.bool_vars = []
-        # self.aux_bool_vars = [] # created by tseitin-cnf
+        self.numeric_clauses = []  # initial constraints in numerical clauses
+        self.bool_vars_name = []
+        self.num2vars = {}
 
-    def debug(self):
-        print("Bool to Atom: ", self.bool2atom)
+
+class TheoryFormulaManager(object):
+
+    def __init__(self):
+        self.smt2_signature = []  # variables
+        self.smt2_init_cnt = ""
+
+
+def extract_literals_square(clauses):
+    """
+    After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
+    the object clauses is of the following form
+        [Or(...), Or(...), Or(...), ...]
+    but not the usual "CNF" form (which is our initial goal)
+        [[...], [...], [...]]
+    Thus, this function aims to build such a CNF
+    """
+    res = []
+    for cls in clauses:
+        if z3.is_or(cls):
+            tmp_cls = []
+            for lit in cls.children():
+                tmp_cls.append(lit)
+            res.append(tmp_cls)
+        else:
+            res.append([cls])
+    return res
 
 
 class SMTPreprocess(object):
-    """
-    FormulaManager does not have any dependence on Z3.
-    But to build a manager object, we may use Z3 (as in this class)
-    """
 
     def __init__(self):
         self.index = 0
-        self.solved = False
+        self.status = SolverResult.UNKNOWN
+        self.bool_clauses = None  # clauses of the initial Boolean abstraction
 
     def abstract_atom(self, atom2bool, atom) -> z3.ExprRef:
         if atom in atom2bool:
@@ -64,64 +87,75 @@ class SMTPreprocess(object):
     def abstract_clauses(self, atom2bool, clauses):
         return [self.abstract_clause(atom2bool, clause) for clause in clauses]
 
-    def from_smt2_string(self, smt2string: str) -> FormulaManager:
-        fml_manager = FormulaManager()  #
-
+    def from_smt2_string(self, smt2string: str):
+        """
+        FIXME: this is ugly
+        """
         # fml = z3.And(z3.parse_smt2_file(filename))
         fml = z3.And(z3.parse_smt2_string(smt2string))
         # clauses = z3.Then('simplify', 'solve-eqs', 'tseitin-cnf')(fml)
         clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
 
         after_simp = clauses.as_expr()
-        if z3.is_false(after_simp) or z3.is_true(after_simp):
-            self.solved = True
-            return None, None, None
+        if z3.is_false(after_simp):
+            self.status = SolverResult.UNSAT
+        elif z3.is_true(after_simp):
+            self.status = SolverResult.SAT
+
+        if self.status != SolverResult.UNKNOWN:
+            return None, None
+
+        bool_manager = BooleanFormulaManager()
+        th_manager = TheoryFormulaManager()
+
+        if m_init_abstraction == InitAbstractionStrategy.ATOM:
+            clauses = extract_literals_square(clauses[0])
+            # print(clauses)
 
         abs = {}
-        boolean_abs = z3.And(self.abstract_clauses(abs, clauses))
+        self.bool_clauses = self.abstract_clauses(abs, clauses)
 
         s = z3.Solver()  # a container for collecting variable signatures
         s.add(after_simp)
-        s.add(boolean_abs)
-
-        # from z3.z3util import get_vars # this API could be slow (I have experience..)
-        # get_vars(z3.And(s.assertions()))
+        s.add(z3.And(self.bool_clauses))
 
         # FIXME: currently, the theory solver also uses the Boolean variables
         for line in s.sexpr().split("\n"):
             if line.startswith("(as"):
                 break
             elif "p@" in line:
-                fml_manager.boolean_sig.append(line)
-            fml_manager.theory_sig.append(line)
+                bool_manager.smt2_signature.append(line)
+            th_manager.smt2_signature.append(line)
 
         bool_var_id = 0
         for atom in abs:
             bool_name = str(abs[atom])
-            fml_manager.bool2atom[bool_name] = atom.sexpr()
-            fml_manager.num2bool[bool_var_id] = bool_name
+            bool_manager.num2vars[bool_var_id] = bool_name
+            bool_manager.bool_vars_name.append(bool_name)
             bool_var_id += 1
-            fml_manager.bool_vars.append(bool_name)
 
-        # theory_init_fmls = [(p == abs[p]).sexpr() for p in abs]
         theory_init_fml = z3.And([p == abs[p] for p in abs])
-        return fml_manager, boolean_abs.sexpr(), theory_init_fml.sexpr()
+
+        bool_manager.smt2_init_cnt = z3.And(self.bool_clauses).sexpr()
+        th_manager.smt2_init_cnt = theory_init_fml.sexpr()
+
+        return bool_manager, th_manager
 
 
-class TheorySolver():
+class TheorySolver(object):
 
-    def __init__(self, manager: FormulaManager):
+    def __init__(self, manager: TheoryFormulaManager):
         self.fml_manager = manager
-        self.bin_solver = None
         self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
-        # self.debug = True
-        # self.assertions = []
+
+    def __del__(self):
+        self.bin_solver.stop()
 
     def add(self, smt2string):
         self.bin_solver.assert_assertions(smt2string)
 
     def check_sat(self):
-        logger.warning("Theory solver working...")
+        logger.debug("Theory solver working...")
         return self.bin_solver.check_sat()
 
     def check_sat_assuming(self, assumptions):
@@ -130,62 +164,71 @@ class TheorySolver():
           - Some SMT solvers do not support the interface
           - We may use push/pop to simulate the behavior, or even build a solver from scratch.
         """
-        logger.warning("Theory solver working...")
+        logger.debug("Theory solver working...")
         return self.bin_solver.check_sat_assuming(assumptions)
 
     def get_unsat_core(self):
         return self.bin_solver.get_unsat_core()
 
 
-class BooleanSolver():
+class SMTLibBoolSolver():
 
-    def __init__(self, manager: FormulaManager):
-        # TODO: seems fml_manger is not useful
+    def __init__(self, manager: BooleanFormulaManager):
         self.fml_manager = manager
         self.bin_solver = None
         self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+
+    def __del__(self):
+        self.bin_solver.stop()
 
     def add(self, smt2string):
         self.bin_solver.assert_assertions(smt2string)
 
     def check_sat(self):
-        logger.warning("Boolean solver working...")
+        logger.debug("Boolean solver working...")
         return self.bin_solver.check_sat()
 
     def get_cube_from_model(self):
         """
         get a model and build a cube from it.
         """
-        raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars)
+        raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars_name)
         tuples_model = re.findall(RE_GET_EXPR_VALUE_ALL, raw_model)
         # e.g., [('p@0', 'true'), ('p@1', 'false')]
         return [pair[0] if pair[1].startswith("t") else \
                     "(not {})".format(pair[0]) for pair in tuples_model]
 
 
-def simple_cdclt(smt2string: str):
-    # prop_solver.add(abstract_clauses(abs, clauses))
-    # theory_solver.add([p == abs[p] for p in abs])
+def boolean_abstraction(smt2string: str):
     preprocessor = SMTPreprocess()
-    fml_manager, boolean_abs, theory_cnt = preprocessor.from_smt2_string(smt2string)
+    preprocessor.from_smt2_string(smt2string)
+    if preprocessor.status != SolverResult.UNKNOWN:
+        return preprocessor.status
+    return preprocessor.bool_clauses
 
-    logger.warning("Finish preprocessing")
 
-    if preprocessor.solved:
-        print("Solved by the preprocessor")
-        return
+def simple_cdclt(smt2string: str):
+    preprocessor = SMTPreprocess()
+    bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
 
-    bool_solver = BooleanSolver(fml_manager)
-    init_bool_fml = " (set-logic QF_FD)" + " ".join(fml_manager.boolean_sig) + "(assert {})".format(boolean_abs)
+    logger.debug("Finish preprocessing")
+
+    if preprocessor.status != SolverResult.UNKNOWN:
+        logger.debug("Solved by the preprocessor")
+        return preprocessor.status
+
+    bool_solver = SMTLibBoolSolver(bool_manager)
+    init_bool_fml = " (set-logic QF_FD)" + " ".join(bool_manager.smt2_signature) \
+                    + "(assert {})".format(bool_manager.smt2_init_cnt)
     bool_solver.add(init_bool_fml)
 
-    theory_solver = TheorySolver(fml_manager)
+    theory_solver = TheorySolver(th_manager)
     init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
-                      + " ".join(fml_manager.theory_sig) + "(assert {})".format(theory_cnt)
+                      + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
     theory_solver.add(init_theory_fml)
 
-    logger.warning("Finish initializing bool and theory solvers")
+    logger.debug("Finish initializing bool and theory solvers")
 
     while True:
         try:
@@ -197,21 +240,19 @@ def simple_cdclt(smt2string: str):
                     # E.g., (p @ 1(not p @ 2)(not p @ 9))
                     core = theory_solver.get_unsat_core()[1:-1]
                     blocking_clauses_core = "(assert (not (and {} )))\n".format(core)
-                    # print(blocking_clauses_core)
                     # the following line uses the naive "blocking formula"
                     # blocking_clauses_assumptions = "(assert (not (and " + " ".join(assumptions) + ")))\n"
                     # print(blocking_clauses_assumptions)
-
+                    # FIXME: the following line restricts the type of the bool_solver
                     bool_solver.add(blocking_clauses_core)
                 else:
-                    print("SAT (theory solver success)!")
-                    break
+                    # print("SAT (theory solver success)!")
+                    return SolverResult.SAT
             else:
-                print("UNSAT (boolean solver success)!")
-                break
+                # print("UNSAT (boolean solver success)!")
+                return SolverResult.UNSAT
         except Exception as ex:
             print(ex)
             print(smt2string)
             # print("\n".join(theory_solver.assertions))
             exit(0)
-            break

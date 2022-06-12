@@ -6,19 +6,11 @@ from pysat.formula import CNF
 import random
 
 """
-Boolean-level reasoning
-
-- Satisfiability checking
-- Simplification
-- (Parallel) Uniform sampling
+Wrappers for PySAT
 """
 
 
 class PySATSolver:
-    """
-    Wrappers for PySAT
-    """
-
     def __init__(self, name="cadical"):
         """
         Build a smtlib solver instance.
@@ -39,9 +31,6 @@ class PySATSolver:
     def add_clauses_from_string(self, cnfstr: str):
         cnf = CNF(from_string=cnfstr)
         print(cnf.clauses)
-
-    def get_expr_values(self, expressions: List[int]):
-        return
 
 
 def test():
@@ -77,3 +66,6 @@ def test_cnf():
         print(solver.solve(), 'outcome by {0}'.format(solver_name))
         for i in solver.enum_models():
             print(i)
+
+
+test_cnf()
