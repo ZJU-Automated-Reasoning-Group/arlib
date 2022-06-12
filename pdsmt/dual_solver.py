@@ -14,5 +14,4 @@ Dual propagation and implicants for CDCL(T):
 
 
 def enumerate_unsat_cores():
-
     return 0

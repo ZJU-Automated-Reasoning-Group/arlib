@@ -1,7 +1,7 @@
 # coding: utf-8
 from pdsmt.tests.formula_generator import FormulaGenerator
 from z3 import *
-from pdsmt.formula_manager import simple_cdclt, boolean_abstraction
+from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
 import logging
 from typing import List
 

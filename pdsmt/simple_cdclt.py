@@ -1,0 +1,127 @@
+# coding: utf-8
+import z3
+from .smtlib_solver import SMTLIBSolver
+from .config import m_smt_solver_bin
+from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
+from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
+from .preprocessing import SMTPreprocess
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class SMTLibTheorySolver(object):
+
+    def __init__(self, manager: TheoryFormulaManager):
+        self.fml_manager = manager
+        self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+
+    def __del__(self):
+        self.bin_solver.stop()
+
+    def add(self, smt2string):
+        self.bin_solver.assert_assertions(smt2string)
+
+    def check_sat(self):
+        logger.debug("Theory solver working...")
+        return self.bin_solver.check_sat()
+
+    def check_sat_assuming(self, assumptions):
+        """
+        This is just an abstract interface
+          - Some SMT solvers do not support the interface
+          - We may use push/pop to simulate the behavior, or even build a solver from scratch.
+        """
+        logger.debug("Theory solver working...")
+        return self.bin_solver.check_sat_assuming(assumptions)
+
+    def get_unsat_core(self):
+        return self.bin_solver.get_unsat_core()
+
+
+class SMTLibBoolSolver():
+
+    def __init__(self, manager: BooleanFormulaManager):
+        self.fml_manager = manager
+        self.bin_solver = None
+        self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+
+    def __del__(self):
+        self.bin_solver.stop()
+
+    def add(self, smt2string):
+        self.bin_solver.assert_assertions(smt2string)
+
+    def check_sat(self):
+        logger.debug("Boolean solver working...")
+        return self.bin_solver.check_sat()
+
+    def get_cube_from_model(self):
+        """
+        get a model and build a cube from it.
+        """
+        raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars_name)
+        tuples_model = re.findall(RE_GET_EXPR_VALUE_ALL, raw_model)
+        # e.g., [('p@0', 'true'), ('p@1', 'false')]
+        return [pair[0] if pair[1].startswith("t") else \
+                    "(not {})".format(pair[0]) for pair in tuples_model]
+
+
+def boolean_abstraction(smt2string: str):
+    preprocessor = SMTPreprocess()
+    preprocessor.from_smt2_string(smt2string)
+    if preprocessor.status != SolverResult.UNKNOWN:
+        return preprocessor.status
+    return preprocessor.bool_clauses
+
+
+def simple_cdclt(smt2string: str):
+    preprocessor = SMTPreprocess()
+    bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
+
+    logger.debug("Finish preprocessing")
+
+    if preprocessor.status != SolverResult.UNKNOWN:
+        logger.debug("Solved by the preprocessor")
+        return preprocessor.status
+
+    bool_solver = SMTLibBoolSolver(bool_manager)
+    init_bool_fml = " (set-logic QF_FD)" + " ".join(bool_manager.smt2_signature) \
+                    + "(assert {})".format(bool_manager.smt2_init_cnt)
+    bool_solver.add(init_bool_fml)
+
+    theory_solver = SMTLibTheorySolver(th_manager)
+    init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
+                      + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
+
+    theory_solver.add(init_theory_fml)
+
+    logger.debug("Finish initializing bool and theory solvers")
+
+    while True:
+        try:
+            is_sat = bool_solver.check_sat()
+            if SolverResult.SAT == is_sat:
+                assumptions = bool_solver.get_cube_from_model()
+                # print(assumptions)
+                if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
+                    # E.g., (p @ 1(not p @ 2)(not p @ 9))
+                    core = theory_solver.get_unsat_core()[1:-1]
+                    blocking_clauses_core = "(assert (not (and {} )))\n".format(core)
+                    # the following line uses the naive "blocking formula"
+                    # blocking_clauses_assumptions = "(assert (not (and " + " ".join(assumptions) + ")))\n"
+                    # print(blocking_clauses_assumptions)
+                    # FIXME: the following line restricts the type of the bool_solver
+                    bool_solver.add(blocking_clauses_core)
+                else:
+                    # print("SAT (theory solver success)!")
+                    return SolverResult.SAT
+            else:
+                # print("UNSAT (boolean solver success)!")
+                return SolverResult.UNSAT
+        except Exception as ex:
+            print(ex)
+            print(smt2string)
+            # print("\n".join(theory_solver.assertions))
+            exit(0)

@@ -1,5 +1,5 @@
 from z3 import *
-from pdsmt.formula_manager import simple_cdclt, boolean_abstraction
+from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
 
 
 def test():
