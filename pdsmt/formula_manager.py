@@ -41,17 +41,3 @@ class TheoryFormulaManager(object):
     def __init__(self):
         self.smt2_signature = []  # variables
         self.smt2_init_cnt = ""
-
-
-def test():
-    import random
-    cores = []
-    for _ in range(1000):
-        core_len = random.randint(2, 8)
-        cores.append([random.randint(-10, 10) for _ in range(core_len)])
-    # print(cores)
-    print(len(cores))
-    new_cores = merge_unsat_cores(cores)
-    print(len(new_cores))
-
-test()

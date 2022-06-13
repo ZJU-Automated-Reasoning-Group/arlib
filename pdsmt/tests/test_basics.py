@@ -1,7 +1,7 @@
 # coding: utf-8
 import pytest
 
-from . import TestCase, main
+from .import TestCase, main
 
 
 class TestBasics(TestCase):
