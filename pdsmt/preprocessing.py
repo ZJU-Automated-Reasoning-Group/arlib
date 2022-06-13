@@ -43,7 +43,7 @@ def extract_literals_square(clauses: List) -> List[List]:
 class SMTPreprocess(object):
 
     def __init__(self):
-        self.index = 0
+        self.index = 1
         self.status = SolverResult.UNKNOWN
         self.bool_clauses = None  # clauses of the initial Boolean abstraction
 
@@ -125,7 +125,7 @@ class SMTPreprocess(object):
             th_manager.smt2_signature.append(line)
 
         # initialize some mappings
-        bool_var_id = 0
+        bool_var_id = 1
         for atom in abs:
             bool_var = str(abs[atom])
             bool_manager.num2vars[bool_var_id] = bool_var

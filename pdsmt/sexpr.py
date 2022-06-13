@@ -36,7 +36,7 @@ def tokenize(chars: str) -> list:
     return chars.replace('(', ' ( ').replace(')', ' ) ').replace('" "', 'space').split()
 
 
-def parse(program: str) -> Expr:
+def parse_sexpr(program: str) -> Expr:
     """Read an S-expression from a string."""
     return read_from_tokens(tokenize(program))
 

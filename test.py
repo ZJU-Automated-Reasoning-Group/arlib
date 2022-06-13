@@ -1,6 +1,7 @@
+import logging
 from z3 import *
 from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
-
+from pdsmt.parallel_cdclt import parallel_cdclt
 
 def test():
     x, y, z = z3.BitVecs("x y z", 16)
@@ -29,6 +30,7 @@ def process_folder(path):
 
 
 def string_test():
+    logging.basicConfig(level=logging.DEBUG)
     fml = """
     (set-info :status unknown)
 (declare-fun x () Int)
@@ -47,7 +49,8 @@ def string_test():
  (and (or $x23 $x23 $x94 $x51 $x66) (or $x66 $x37 $x94 $x51 $x62 $x10 $x63 $x23) (or $x10 $x37 $x23 $x94 $x63 $x51 $x66 $x23) (or $x23 $x23 $x37 $x66 $x10 $x62) (or $x10 $x63 $x23 $x94) (or $x62 $x23 $x63 $x66 $x23 $x94 $x37) (or $x10 $x63 $x37 $x51) $x94 (or $x23 $x63 $x10 $x37)))))))))))
 (check-sat)
     """
-    print(simple_cdclt(fml))
+    # print(simple_cdclt(fml))
+    print(parallel_cdclt(fml))
     # print(boolean_abstraction(fml))
 
 

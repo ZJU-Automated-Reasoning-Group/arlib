@@ -24,7 +24,7 @@ sat_solvers = ['cadical',
                'minisat-gh']
 
 
-class PySATSolver:
+class PySATSolver(object):
     def __init__(self, solver="cadical"):
         self._solver = Solver(name=solver)
 
@@ -39,21 +39,23 @@ class PySATSolver:
             self._solver.add_clause(cls)
 
     def add_cnf(self, cnf: CNF):
-        for cls in cnf.clauses:
-            self._solver.add_clause(cls)
+        self._solver.append_formula(cnf.clauses, no_return=False)
+        # for cls in cnf.clauses:
+        #    self._solver.add_clause(cls)
 
     def enumerate_models(self, to_enum: int):
-        computed = 0
+        results = []
         for i, model in enumerate(self._solver.enum_models(), 1):
-            print('v {0} 0'.format(' '.join(['{0}{1}'.format('+' if v > 0 else '', v) for v in model])))
-
-            computed = i
+            results.append(model)
+            # print('v {0} 0'.format(' '.join(['{0}{1}'.format('+' if v > 0 else '', v) for v in model])))
+            print("i-th model: ", i)
             if i == to_enum:
                 break
+        return results
 
-        # some final statistics
-        print('c nof models: {0}'.format(computed))
-        print('c accum time: {0:.2f}s'.format(self._solver.time()))
+    def get_model(self):
+        return self._solver.get_model()
+
 
 
 def test_pysat():

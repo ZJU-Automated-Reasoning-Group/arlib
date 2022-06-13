@@ -69,7 +69,7 @@ def gen_cnf_fml():
 
 
 def test_sat():
-    for _ in range(10):
+    for _ in range(50):
         clauses = gen_cnf_fml()
         if len(clauses) == 0:
             continue
@@ -83,15 +83,16 @@ def test_sat():
 
 
 def test_smt():
-    for _ in range(22):
+    for _ in range(20):
         w, x, y, z = Ints("w x y z")
         fg = FormulaGenerator([w, x, y, z])
         smt2string = fg.generate_formula_as_str()
-        res = simple_cdclt(smt2string)
+        res_z3sat = simple_cdclt(smt2string)
+        print(res_z3sat)
         # res = boolean_abstraction(smt2string)
-        print(res)
     print("Finished!")
 
 
 if __name__ == "__main__":
-    test_sat()
+    # test_sat()
+    test_smt()

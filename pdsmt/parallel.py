@@ -7,8 +7,7 @@ import os
 import random
 
 """
-thread pool
-process pool
+This is for practice.
 """
 
 

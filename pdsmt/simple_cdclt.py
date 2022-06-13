@@ -1,46 +1,24 @@
 # coding: utf-8
-import z3
+import re
+import logging
 from .smtlib_solver import SMTLIBSolver
 from .config import m_smt_solver_bin
 from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
-from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
+from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
-import re
-import logging
+from .theory import SMTLibTheorySolver
 
 logger = logging.getLogger(__name__)
 
 
-class SMTLibTheorySolver(object):
-
-    def __init__(self, manager: TheoryFormulaManager):
-        self.fml_manager = manager
-        self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
-
-    def __del__(self):
-        self.bin_solver.stop()
-
-    def add(self, smt2string):
-        self.bin_solver.assert_assertions(smt2string)
-
-    def check_sat(self):
-        logger.debug("Theory solver working...")
-        return self.bin_solver.check_sat()
-
-    def check_sat_assuming(self, assumptions):
-        """
-        This is just an abstract interface
-          - Some SMT solvers do not support the interface
-          - We may use push/pop to simulate the behavior, or even build a solver from scratch.
-        """
-        logger.debug("Theory solver working...")
-        return self.bin_solver.check_sat_assuming(assumptions)
-
-    def get_unsat_core(self):
-        return self.bin_solver.get_unsat_core()
-
-
 class SMTLibBoolSolver():
+    """
+    This implementation is brittle. Particularly, it uses an SMT solver to
+    solve Boolean formulas, making the interaction both convenient (in terms of unsat cores)
+    and a bit inconvenient (the Boolean engine needs to track more info?)
+
+    TODO: I think it might also be useful to call a SAT solver via "smtlib_solver"?
+    """
 
     def __init__(self, manager: BooleanFormulaManager):
         self.fml_manager = manager
@@ -91,7 +69,7 @@ def simple_cdclt(smt2string: str):
                     + "(assert {})".format(bool_manager.smt2_init_cnt)
     bool_solver.add(init_bool_fml)
 
-    theory_solver = SMTLibTheorySolver(th_manager)
+    theory_solver = SMTLibTheorySolver()
     init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
                       + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
