@@ -4,6 +4,7 @@ from typing import List
 from pysat.solvers import Solver, SolverNames
 from pysat.formula import CNF
 import random
+
 """
 Wrappers for PySAT
 """

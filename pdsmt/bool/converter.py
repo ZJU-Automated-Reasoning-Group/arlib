@@ -29,5 +29,6 @@ def test():
     dnf = [[-1, -2, 4], [1, -4], [2, -4], [3, 5], [-3, -5]]
     print(tseitin(dnf))
 
+
 if __name__ == "__main__":
     test()
