@@ -103,7 +103,8 @@ def parallel_cdclt(smt2string: str):
             result = SolverResult.UNSAT
             break
 
-        bool_models = bool_solver.enumerate_models(to_enum=sample_number)
+        # FIXME: should we identify the distinguish aux. vars introduced by tseitin' transformation?
+        bool_models = bool_solver.sample_models(to_enum=sample_number)
 
         print("bool models: ", bool_models)
 

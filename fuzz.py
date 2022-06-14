@@ -78,7 +78,10 @@ def test_sat():
         s.add_clauses(clauses)
         if s.check_sat():
             print("SAT")
-            s.enumerate_models(10)
+            models = s.sample_models(10)
+            reduced = s.reduce_models(models)
+            print(models)
+            print(reduced)
             # break
 
 
@@ -94,5 +97,5 @@ def test_smt():
 
 
 if __name__ == "__main__":
-    # test_sat()
-    test_smt()
+    test_sat()
+    # test_smt()

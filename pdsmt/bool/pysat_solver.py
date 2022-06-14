@@ -4,7 +4,6 @@ from typing import List
 from pysat.solvers import Solver, SolverNames
 from pysat.formula import CNF
 import random
-
 """
 Wrappers for PySAT
 """
@@ -26,48 +25,75 @@ sat_solvers = ['cadical',
 
 class PySATSolver(object):
     def __init__(self, solver="cadical"):
-        self._solver = Solver(name=solver)
+        self.solver = Solver(name=solver)
+        self.clauses = []
 
     def check_sat(self):
-        return self._solver.solve()
+        return self.solver.solve()
 
     def add_clause(self, clause: List[int]):
-        self._solver.add_clause(clause)
+        self.solver.add_clause(clause)
+        self.clauses.append(clause)
 
     def add_clauses(self, clauses: List[List]):
         for cls in clauses:
-            self._solver.add_clause(cls)
+            self.solver.add_clause(cls)
+            self.clauses.append(cls)
 
     def add_cnf(self, cnf: CNF):
-        self._solver.append_formula(cnf.clauses, no_return=False)
-        # for cls in cnf.clauses:
-        #    self._solver.add_clause(cls)
+        # self.solver.append_formula(cnf.clauses, no_return=False)
+        for cls in cnf.clauses:
+            self.solver.add_clause(cls)
+            self.clauses.append(cls)
 
-    def enumerate_models(self, to_enum: int):
+    def sample_models(self, to_enum: int):
         results = []
-        for i, model in enumerate(self._solver.enum_models(), 1):
+        for i, model in enumerate(self.solver.enum_models(), 1):
             results.append(model)
-            # print('v {0} 0'.format(' '.join(['{0}{1}'.format('+' if v > 0 else '', v) for v in model])))
-            print("i-th model: ", i)
             if i == to_enum:
                 break
+
         return results
 
-    def get_model(self):
-        return self._solver.get_model()
+    def reduce_models(self, models: List[List]):
+        """
+        http://fmv.jku.at/papers/NiemetzPreinerBiere-FMCAD14.pdf
+        Consider a Boolean formula P. The model of P (given by a SAT solver) is not necessarily minimal.
+        In other words, the SAT solver may assign truth assignments to literals irrelevant to truth of P.
 
+        Suppose we have a model M of P. To extract a smaller assignment, one trick is to encode the
+        negation of P in a separate dual SAT solver.
+
+        We can pass M as an assumption to the dual SAT solver. (check-sat-assuming M).
+        All assumptions inconsistent with -P (called the failed assumptions),
+        are input assignments sufficient to falsify -P, hence sufficient to satisfy P.
+
+        Related work
+          - https://arxiv.org/pdf/2110.12924.pdf
+        """
+        pos = CNF(from_clauses=self.clauses)
+        neg = pos.negate()
+        # print(neg.clauses) print(neg.auxvars)
+        reduced_models = []
+        aux_sol = Solver(name="cadical", bootstrap_with=neg)
+        for m in models:
+            assert not aux_sol.solve(m)
+            reduced_models.append(aux_sol.get_core())
+        return reduced_models
+
+    def get_model(self):
+        return self.solver.get_model()
 
 
 def test_pysat():
-    cnf = CNF(from_clauses=[[1, 2], [-1, 2], [2]])
+    cnf = CNF(from_clauses=[[1, 3], [-1, 2, -4], [2, 4]])
     # solver_name = random.choice(sat_solvers)
     s1 = PySATSolver()
     s1.add_cnf(cnf)
-    # s1.add_clause([-1, 2])
-    # s1.add_clause([-2, 3])
-    # s1.add_clause([-3, 4])
-    print(s1.check_sat())
-    s1.enumerate_models(10)
+    models = s1.sample_models(10)
+    print(models)
+    # many reduced models are duplicate
+    print(s1.reduce_models(models))
 
 
 if __name__ == "__main__":

@@ -48,6 +48,7 @@ class SMTPreprocess(object):
         self.bool_clauses = None  # clauses of the initial Boolean abstraction
 
     def abstract_atom(self, atom2bool, atom) -> z3.ExprRef:
+        # FIXME: should we identify the distinguish aux. vars introduced by tseitin' transformation?
         if atom in atom2bool:
             return atom2bool[atom]
         p = z3.Bool("p@%d" % self.index)
