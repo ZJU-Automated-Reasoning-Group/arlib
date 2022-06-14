@@ -1,7 +1,4 @@
 # coding: utf-8
-"""
-Playing with sexpr
-"""
 
 # Being explicit about Types
 Symbol = str
@@ -13,7 +10,7 @@ Expr = (Atom, List)
 
 def input_to_list(string: str) -> [str]:
     """
-    Parse a .sl file into a list of S-Expressions.
+    Parse a string into a list of S-Expressions.
     """
     n: int = 0
     result: [str] = []
@@ -71,8 +68,11 @@ def atom(token: str) -> Atom:
 
 
 class ResultParser:
+    """
+    parse
+    """
 
-    def __init__(self, inputs: str):
+    def __init__(self):
         return
 
     def to_sexpr_misc(self, lines: [str]):
@@ -87,18 +87,12 @@ class ResultParser:
                 for e in self.to_sexpr_misc(element):
                     res.append(e)
             else:
-                if isinstance(element, int) and self.to_real:
-                    element = str(element) + ".0"
                 res.append(str(element))
         res.append(")")
         return res
 
     def to_sexpr(self, lines: [str]):
         return " ".join(self.to_sexpr_misc(lines))
-
-
-def test_parser():
-    return
 
 
 if __name__ == '__main__':

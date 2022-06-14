@@ -3,9 +3,14 @@ import logging
 import itertools
 from typing import List
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
+# TODO: currently, I only remove redundant ones in the unsat cores.
+#  Actually, our goal is to build blocking clauses from the unsat cores.
+#   (e.g., let "1 and 2 and 4" be a core, the blocking clause should be "-1 or -2 or -4"
+#  So, another strategy is to build the blocking clauses first, and then use
+#  the simplifier in bool.cnfsimplifier (which has many features)
 def merge_unsat_cores(cores: List):
     """
     Remove subsumed and redundant cores
@@ -19,7 +24,6 @@ def merge_unsat_cores(cores: List):
     - [-1, 2] subsumes [-1, 2, 3]?
 
     """
-    # TODO: currently, I only remove redundant ones
     cores.sort()
     return list(cores for cores, _ in itertools.groupby(cores))
 
@@ -37,7 +41,6 @@ class BooleanFormulaManager(object):
 
 
 class TheoryFormulaManager(object):
-
     def __init__(self):
         self.smt2_signature = []  # variables
         self.smt2_init_cnt = ""
