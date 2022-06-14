@@ -4,7 +4,19 @@ Public subclasses of Exception
 """
 
 
-class TheorySolverSuccess(Exception):
+class SMTSuccess(Exception):
+    pass
+
+
+class TheorySolverSuccess(SMTSuccess):
+    pass
+
+
+class BoolSolverSuccess(SMTSuccess):
+    pass
+
+
+class SimplifierSuccess(SMTSuccess):
     pass
 
 

@@ -9,8 +9,6 @@ from z3 import *
 from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
 from pdsmt.parallel_cdclt import parallel_cdclt
 from pdsmt.bool.pysat_solver import PySATSolver
-from pdsmt.bool.cnfsimplifier import simplify_numeric_clauses
-
 
 def terminate(process, is_timeout):
     if process.poll() is None:
@@ -57,11 +55,6 @@ def gen_cnf_fml():
     return res
 
 
-def test_cnf():
-    clauses = [[1, 3], [-1, 2, -4], [2, 4], [4]]
-    print(simplify_numeric_clauses(clauses))
-
-
 def test_sat():
     for _ in range(50):
         clauses = gen_cnf_fml()
@@ -93,6 +86,5 @@ def test_smt():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    # test_cnf()
     # test_sat()
     test_smt()
