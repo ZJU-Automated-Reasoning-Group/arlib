@@ -1,11 +1,14 @@
 # coding: utf-8
 import logging
 from pysmt.logics import AUTO
-# from pysmt.oracles import get_logic
-# from pysmt.shortcuts import EqualsOrIff
-from pysmt.shortcuts import Solver, Portfolio, get_model
-from pysmt.shortcuts import Symbol, Bool, And, Not
-from pysmt.typing import INT, REAL
+from pysmt.shortcuts import Solver, get_unsat_core
+from pysmt.smtlib.parser import SmtLibParser
+from pysmt.smtlib.script import smtlibscript_from_formula
+try:  # for Python2
+    from cStringIO import StringIO
+except ImportError:  # for Python3
+    from io import StringIO
+
 
 """
 Wrappers for PySMT
@@ -20,13 +23,16 @@ class PySMTTheorySolver(object):
         self.solver = Solver()
 
     def add(self, smt2string):
-        raise NotImplementedError
+        parser = SmtLibParser()
+        script = parser.get_script(StringIO(smt2string))
+        fml = script.get_last_formula()
+        self.solver.add_assertion(fml)
 
     def check_sat(self):
-        raise NotImplementedError
+        return self.solver.solve()
 
     def check_sat_assuming(self, assumptions):
         raise NotImplementedError
 
     def get_unsat_core(self):
-        raise NotImplementedError
+        return self.solver.get_unsat_core()

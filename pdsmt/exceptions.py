@@ -4,6 +4,10 @@ Public subclasses of Exception
 """
 
 
+class TheorySolverSuccess(Exception):
+    pass
+
+
 class SMTError(Exception):
     pass
 
@@ -13,10 +17,6 @@ class ExecutorError(SMTError):
 
 
 class SmtlibError(SMTError):
-    pass
-
-
-class Z3NotFoundError(SmtlibError):
     pass
 
 

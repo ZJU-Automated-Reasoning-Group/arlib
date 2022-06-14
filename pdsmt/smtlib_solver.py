@@ -317,15 +317,11 @@ class SMTLIBSolver:
         self._smtlib.stop()
 
 
+
 class SmtlibPortfolio:
-    """
-    TO be tested
-    """
 
     def __init__(self, solvers: List[str], debug: bool = False):
-        """Single smtlib interactive process
-        :param debug: log all messaging
-        """
+        # Single smtlib interactive process
         self._procs: Dict[str, SmtlibProc] = {}
         self._solvers: List[str] = solvers
         self._debug = debug
@@ -411,9 +407,6 @@ class SmtlibPortfolio:
 
 
 class PortfolioSolver(SMTLIBSolver):
-    """
-    TO be tested
-    """
 
     def __init__(self):
         super().__init__()
@@ -430,7 +423,7 @@ class PortfolioSolver(SMTLIBSolver):
         self.ncores = len(solvers)
 
     def _reset(self, constraints: Optional[str] = None) -> None:
-        """Auxiliary method to reset the smtlib external solver to initial defaults"""
+        # Auxiliary method to reset the smtlib external solver to initial defaults
         self._smtlib.stop()  # does not do anything if already stopped
         self._smtlib.start()
 

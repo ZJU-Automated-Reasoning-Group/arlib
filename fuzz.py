@@ -4,15 +4,12 @@ import random
 import subprocess
 from threading import Timer
 import logging
-
 from pdsmt.tests.formula_generator import FormulaGenerator
 from z3 import *
 from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
+from pdsmt.parallel_cdclt import parallel_cdclt
 from pdsmt.bool.pysat_solver import PySATSolver
 from pdsmt.bool.cnfsimplifier import simplify_numeric_clauses
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 def terminate(process, is_timeout):
@@ -31,19 +28,9 @@ def gen_cnf_fml():
       but pysat does not like 0
     """
     generator = os.getcwd() + '/pdsmt/tests/fuzzsat.py'
-    cmd = ['python3', generator]
-    cmd.append('-i')
-    cmd.append(str(random.randint(1, 10)))
-    cmd.append('-I')
-    cmd.append(str(random.randint(11, 50)))
-    cmd.append('-p')
-    cmd.append(str(random.randint(2, 10)))
-    cmd.append('-P')
-    cmd.append(str(random.randint(11, 30)))
-    cmd.append('-l')
-    cmd.append(str(random.randint(2, 10)))
-    cmd.append('-L')
-    cmd.append(str(random.randint(11, 30)))
+    cmd = ['python3', generator, '-i', str(random.randint(1, 10)), '-I', str(random.randint(11, 50)), '-p',
+           str(random.randint(2, 10)), '-P', str(random.randint(11, 30)), '-l', str(random.randint(2, 10)), '-L',
+           str(random.randint(11, 30))]
 
     logging.debug("Enter constraint generation")
     logging.debug(cmd)
@@ -93,17 +80,19 @@ def test_sat():
 
 
 def test_smt():
-    for _ in range(20):
-        w, x, y, z = Ints("w x y z")
+    for _ in range(33):
+        w, x, y, z = Reals("w x y z")
         fg = FormulaGenerator([w, x, y, z])
         smt2string = fg.generate_formula_as_str()
-        res_z3sat = simple_cdclt(smt2string)
-        print(res_z3sat)
+        # res = simple_cdclt(smt2string)
+        res = parallel_cdclt(smt2string)
+        print(res)
         # res = boolean_abstraction(smt2string)
     print("Finished!")
 
 
 if __name__ == "__main__":
-    test_cnf()
+    logging.basicConfig(level=logging.DEBUG)
+    # test_cnf()
     # test_sat()
-    # test_smt()
+    test_smt()

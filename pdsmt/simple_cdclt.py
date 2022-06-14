@@ -6,7 +6,7 @@ from .config import m_smt_solver_bin
 from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
-from .theory import SMTLibTheorySolver
+from .theory import SMTLibTheorySolver, PySMTTheorySolver
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +70,14 @@ def simple_cdclt(smt2string: str):
     bool_solver.add(init_bool_fml)
 
     theory_solver = SMTLibTheorySolver()
-    init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
+    # theory_solver = PySMTTheorySolver()
+
+    # " (set-logic ALL) " +  ....
+    init_theory_fml = " (set-option :produce-unsat-cores true) " \
                       + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
     theory_solver.add(init_theory_fml)
+    # print(theory_solver.check_sat())
 
     logger.debug("Finish initializing bool and theory solvers")
 

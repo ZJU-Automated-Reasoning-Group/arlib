@@ -2,32 +2,40 @@
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
-
+import signal
+import os
 from .util import SolverResult
 from .preprocessing import SMTPreprocess
 from .sexpr import parse_sexpr
 from .theory import SMTLibTheorySolver
 from .bool import PySATSolver
+from .exceptions import TheorySolverSuccess
 
 logger = logging.getLogger(__name__)
 
 
-def check_theory_consistency(init_theory_fml, assumptions, term_signal):
+def check_theory_consistency(init_theory_fml, assumptions):
+    """
+    Check T-consistency
+    :param init_theory_fml:
+    :param assumptions: a list of Boolean variables
+    :return: unsat core if T-inconsistency
+    """
     theory_solver = SMTLibTheorySolver()
     theory_solver.add(init_theory_fml)
     if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
         core = theory_solver.get_unsat_core()
         return core
     else:
-        term_signal.put(True)
-        return ""  # empty core indicates SAT?
+        raise TheorySolverSuccess()
+    # return ""  # empty core indicates SAT?
 
 
-def theory_solve(init_theory_fml, all_assumptions, pool, term_signal):
+def theory_solve(init_theory_fml, all_assumptions, pool):
     results = []
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
-                                  (init_theory_fml, all_assumptions[i], term_signal,))
+                                  (init_theory_fml, all_assumptions[i],))
         results.append(result)
 
     raw_unsat_cores = []
@@ -69,6 +77,7 @@ def process_pysat_models(bool_models, bool_manager):
     return all_assumptions
 
 
+
 def parallel_cdclt(smt2string: str):
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
@@ -79,7 +88,7 @@ def parallel_cdclt(smt2string: str):
         logger.debug("Solved by the preprocessor")
         return preprocessor.status
 
-    term_signal = multiprocessing.Manager().Queue()  # flag for termination
+    # term_signal = multiprocessing.Manager().Queue()  # flag for termination
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
 
     bool_solver = PySATSolver()
@@ -90,38 +99,37 @@ def parallel_cdclt(smt2string: str):
 
     logger.debug("Finish initializing bool solvers")
 
-    result = None
+    result = SolverResult.UNKNOWN
     sample_number = 5
 
-    while True:
-        if not term_signal.empty():
-            print("Either bool and theory solver success!")
-            break
+    try:
+        while True:
+            is_sat = bool_solver.check_sat()
+            if not is_sat:
+                result = SolverResult.UNSAT
+                break
+            # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
+            bool_models = bool_solver.sample_models(to_enum=sample_number)
+            # print("bool models: ", bool_models)
 
-        is_sat = bool_solver.check_sat()
-        if not is_sat:
-            result = SolverResult.UNSAT
-            break
+            all_assumptions = process_pysat_models(bool_models, bool_manager)
+            raw_unsat_cores = theory_solve(init_theory_fml, all_assumptions, pool)
 
-        # FIXME: should we identify the distinguish aux. vars introduced by tseitin' transformation?
-        bool_models = bool_solver.sample_models(to_enum=sample_number)
+            if len(raw_unsat_cores) == 0:
+                result = SolverResult.SAT
+                break
 
-        print("bool models: ", bool_models)
+            logger.debug("raw unsat cores: {}".format(raw_unsat_cores))
+            blocking_clauses = []
+            for core in raw_unsat_cores:
+                blocking_clauses.append(parse_raw_unsat_core(core, bool_manager))
 
-        all_assumptions = process_pysat_models(bool_models, bool_manager)
-        raw_unsat_cores = theory_solve(init_theory_fml, all_assumptions, pool, term_signal)
+            #print("blocking clauses: ", blocking_clauses)
+            bool_solver.add_clauses(blocking_clauses)
 
-        if len(raw_unsat_cores) == 0:
-            result = SolverResult.SAT
-            break
-
-        print("raw unsat cores: ", raw_unsat_cores)
-        blocking_clauses = []
-        for core in raw_unsat_cores:
-            blocking_clauses.append(parse_raw_unsat_core(core))
-
-        print("blocking clauses: ", blocking_clauses)
-        bool_solver.add_clauses(blocking_clauses)
+    except TheorySolverSuccess:
+        # print("Theory solver success!")
+        result = SolverResult.SAT
 
     pool.close()
     pool.join()

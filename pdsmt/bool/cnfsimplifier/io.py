@@ -1,6 +1,4 @@
 # coding: utf-8
-from os import path
-import os
 from .variable import Variable
 from .cnf import Cnf
 from .clause import Clause
