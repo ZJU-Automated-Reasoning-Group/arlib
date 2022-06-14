@@ -10,10 +10,21 @@ class Cnf:
     def get_clauses(self):
         """
         Return clause list
-        :complexity: O(1)
         :return: clause list
         """
         return self.clause_list
+
+    def get_numeric_clauses(self):
+        """
+        :return: clauses
+        """
+        res = []
+        for cls in self.clause_list:
+            tmp = []
+            for var in cls.variable_list:
+                tmp.append(var.variable_value)
+            res.append(tmp)
+        return res
 
     def get_number_of_literals(self):
         """
@@ -58,16 +69,6 @@ class Cnf:
             raise Exception("Expected type Clause, and got %s" % type(clause))
 
         self.clause_list.append(clause)
-
-    def get_cnf_string(self, with_zero=False):
-        """
-        :return: cnf string
-        """
-        if with_zero:
-            clauses_string_list = [clause.get_clause_string(with_zero) for clause in self.clause_list]
-        else:
-            clauses_string_list = [clause.get_clause_string() for clause in self.clause_list]
-        return '\n'.join(clauses_string_list)
 
     def tautology_elimination(self):
         """

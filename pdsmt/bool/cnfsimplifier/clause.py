@@ -1,7 +1,6 @@
 # coding: utf-8
 import uuid
 from .variable import Variable
-from .cnf import Cnf
 
 
 def create_id():
@@ -58,18 +57,6 @@ class Clause:
         :return: boolean
         """
         return -variable_added.variable_value in self.literals_set
-
-    def get_clause_string(self, with_zero=False):
-        """
-        get a string with all literals
-        :return: string with all literals separated by spaces
-        """
-        lt = [var.original_string for var in self.variable_list]
-
-        if with_zero:
-            lt += ['0']
-
-        return ' '.join(lt)
 
     def add_literal(self, lit: Variable):
         """
@@ -147,7 +134,7 @@ class Clause:
 
     def is_sub_clause_of(self, other_clause):
         """
-        checks wheater a clause is a subclause of the other one
+        checks whether a clause is a subclause of the other one
         :complexity: O(n) where n is the number of literal present on this class
         :param other_clause: the other clause
         :return: boolean
@@ -159,9 +146,9 @@ class Clause:
 
     def has_literal(self, lit: Variable):
         """
-        Checkes whether a literal objesct is present on a clause
+        Checks whether a literal object is present on a clause
         :complexity: O(1)
-        :param lit: literal obejesct of class Variable
+        :param lit: literal object of class Variable
         :return: boolean
         """
         return self.is_literal_value_present(lit.variable_value)
@@ -233,7 +220,7 @@ class Clause:
                     return True
         return False
 
-    def hla(self, f: "Cnf") -> "Clause":
+    def hla(self, f):
         """
         # todo: test
         Hidden Literal Addition HLA(F,C)
@@ -262,7 +249,7 @@ class Clause:
 
         return c_hla
 
-    def ala(self, f: "Cnf") -> "Clause":
+    def ala(self, f):
         """
         # todo: test
         Asymmetric Literal Addition ALA(F,C)

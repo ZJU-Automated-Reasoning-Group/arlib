@@ -1,12 +1,11 @@
 # coding: utf-8
-from .cnf import Cnf
 
 """
 Conjunctive Normal Form expression simplifier that preserves satisfiability
 """
 
 
-def tautoly(cnf: Cnf):
+def tautoly(cnf):
     cnf = cnf.tautology_elimination()
     return cnf
 
