@@ -1,4 +1,19 @@
 # coding: utf-8
+"""
+Partially modified from https://github.com/trailofbits/manticore
+
+TODO: allow the user to select different modes
+1. Use the same process to first accept the whole formula, and then accept multiple (check-sat-assuming) commands?
+2. Every time, create a new process the solve each individual instance (including formulas and check-sat-assuming)
+
+
+TODO: we need to consider three "incremental mode"
+1. Every time build new assertions
+   - build new solver process + new assertions?
+   - reuse the solver process, but use `reset` command? (it seems that `reset` can affect the tactic)
+2. Use push/pop
+3. Use assumption literal
+"""
 
 import fcntl
 import logging
@@ -12,23 +27,6 @@ from typing import Optional, List, Dict
 from .exceptions import *
 from .util import SolverResult
 
-"""
-Partially modified from https://github.com/trailofbits/manticore
-
-TODO: allow the user to select different modes 
-1. Use the same process to first accept the whole formula, and then accept multiple (check-sat-assuming) commands?
-2. Every time, create a new process the solve each individual instance (including formulas and check-sat-assuming)
-
-
-TODO: we need to consider three "incremental mode"
-1. Every time build new assertions
-   - build new solver process + new assertions?
-   - reuse the solver process, but use `reset` command? (it seems that `reset` can affect the tactic)
-2. Use push/pop
-3. Use assumption literal
-
-
-"""
 logger = logging.getLogger(__name__)
 
 

@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class SMTLibTheorySolver(object):
+    """
+    Use smtlib_solver class to interact with a binary solver
+    """
 
     def __init__(self):
         self.bin_solver = SMTLIBSolver(m_smt_solver_bin)

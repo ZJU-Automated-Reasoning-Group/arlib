@@ -5,36 +5,54 @@ Public subclasses of Exception
 
 
 class SMTSuccess(Exception):
-    pass
+    """
+    Flag for good state
+    """
 
 
 class TheorySolverSuccess(SMTSuccess):
-    pass
+    """
+    The theory solver checks T-consistency successfully
+    """
 
 
 class BoolSolverSuccess(SMTSuccess):
-    pass
+    """
+    TBD
+    """
 
 
 class SimplifierSuccess(SMTSuccess):
-    pass
+    """
+    TBD
+    """
 
 
 class SMTError(Exception):
-    pass
+    """
+    TBD
+    """
 
 
 class ExecutorError(SMTError):
-    pass
+    """
+    TBD
+    """
 
 
 class SmtlibError(SMTError):
-    pass
+    """
+    TBD
+    """
 
 
 class SolverError(SmtlibError):
-    pass
+    """
+    TBD
+    """
 
 
 class SolverUnknown(SolverError):
-    pass
+    """
+    TBD
+    """

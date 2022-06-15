@@ -1,23 +1,17 @@
 # coding: utf-8
 # import time
 import signal
-import psutil
 import sys
 import os
 import logging
+import psutil
 
 
 def setup_logging(args):
-    logging.CHAT = 25
-    logging.addLevelName(logging.CHAT, "CHAT")
-    logging.chat = lambda msg, *args, **kwargs: logging.log(
-        logging.CHAT, msg, *args, **kwargs)
-    logging.TRACE = 5
-    logging.addLevelName(logging.TRACE, "TRACE")
-    logging.trace = lambda msg, *args, **kwargs: logging.log(
-        logging.TRACE, msg, *args, **kwargs)
-    logging.basicConfig(format='[ddSMT %(levelname)s] %(message)s')
-    verbositymap = {
+    """
+    Initialize logging level
+    """
+    verbosity_map = {
         -2: logging.ERROR,
         -1: logging.WARN,
         0: logging.CHAT,
@@ -26,8 +20,7 @@ def setup_logging(args):
         3: logging.TRACE,
     }
     verbosity = args.verbosity
-    logging.getLogger().setLevel(
-        level=verbositymap.get(verbosity, logging.DEBUG))
+    logging.getLogger().setLevel(level=verbosity_map.get(verbosity))
 
 
 def signal_handler(sig, frame):

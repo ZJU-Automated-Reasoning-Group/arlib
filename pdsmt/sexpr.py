@@ -93,7 +93,3 @@ class ResultParser:
 
     def to_sexpr(self, lines: [str]):
         return " ".join(self.to_sexpr_misc(lines))
-
-
-if __name__ == '__main__':
-    test_parser()

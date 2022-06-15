@@ -25,12 +25,14 @@ def check_theory_consistency(init_theory_fml, assumptions):
     if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
         core = theory_solver.get_unsat_core()
         return core
-    else:
-        raise TheorySolverSuccess()
+    raise TheorySolverSuccess()
     # return ""  # empty core indicates SAT?
 
 
 def theory_solve(init_theory_fml, all_assumptions, pool):
+    """
+    Call theory solvers
+    """
     results = []
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
@@ -48,6 +50,10 @@ def theory_solve(init_theory_fml, all_assumptions, pool):
 
 
 def parse_raw_unsat_core(core: str, bool_manager):
+    """
+    Given a unsat core in string,
+    build a numerical clause
+    """
     parsed_core = parse_sexpr(core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
@@ -77,6 +83,9 @@ def process_pysat_models(bool_models, bool_manager):
 
 
 def parallel_cdclt(smt2string: str):
+    """
+    The entrance
+    """
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
 

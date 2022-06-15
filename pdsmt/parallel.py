@@ -1,11 +1,13 @@
+"""
+This is for practice.
+"""
+
+
 import multiprocessing
 import random
 import time
 from multiprocessing import cpu_count
 
-"""
-This is for practice.
-"""
 
 
 def generate_data():

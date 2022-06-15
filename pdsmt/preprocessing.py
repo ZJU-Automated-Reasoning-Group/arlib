@@ -1,12 +1,4 @@
 # coding: utf-8
-from typing import List
-
-import z3
-
-from .config import m_init_abstraction
-from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
-from .util import SolverResult, InitAbstractionStrategy
-
 """
     Consider the function SMTPreprocess.from_smt2_string,
     After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
@@ -15,10 +7,15 @@ from .util import SolverResult, InitAbstractionStrategy
     but not the usual "CNF" form (which is our initial goal)
         [[...], [...], [...]]
 
-    If using m_init_abstraction = InitAbstractionStrategy.CLAUSE, 
-    the  "Boolean abstraction" actually maps each clause to a Boolean variable, 
+    If using m_init_abstraction = InitAbstractionStrategy.CLAUSE,
+    the  "Boolean abstraction" actually maps each clause to a Boolean variable,
       but not each atom!!!
 """
+from typing import List
+import z3
+from .config import m_init_abstraction
+from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
+from .util import SolverResult, InitAbstractionStrategy
 
 
 def extract_literals_square(clauses: List) -> List[List]:
@@ -43,6 +40,9 @@ def extract_literals_square(clauses: List) -> List[List]:
 
 
 class SMTPreprocess(object):
+    """
+    Perform basic simplifications and convert to CNF
+    """
 
     def __init__(self):
         self.index = 1
@@ -50,6 +50,9 @@ class SMTPreprocess(object):
         self.bool_clauses = None  # clauses of the initial Boolean abstraction
 
     def abstract_atom(self, atom2bool, atom) -> z3.ExprRef:
+        """
+        Map an atom to a Boolean variable
+        """
         # FIXME: should we identify the distinguish aux. vars introduced by tseitin' transformation?
         if atom in atom2bool:
             return atom2bool[atom]
@@ -59,6 +62,9 @@ class SMTPreprocess(object):
         return p
 
     def abstract_lit(self, atom2bool, lit) -> z3.ExprRef:
+        """
+        Abstract a literal
+        """
         if z3.is_not(lit):
             return z3.Not(self.abstract_atom(atom2bool, lit.arg(0)))
         return self.abstract_atom(atom2bool, lit)
@@ -89,7 +95,7 @@ class SMTPreprocess(object):
                 if z3.is_not(cls):
                     cls.append(-bool_manager.vars2num[str(cls.children()[0])])
                 else:
-                    cls.append(bool_manager.vars2num[str(lit)])
+                    cls.append(bool_manager.vars2num[str(cls)])
 
     def from_smt2_string(self, smt2string: str):
         # fml = z3.And(z3.parse_smt2_file(filename))
@@ -123,7 +129,7 @@ class SMTPreprocess(object):
         for line in s.sexpr().split("\n"):
             if line.startswith("(as"):
                 break
-            elif "p@" in line:
+            if "p@" in line:
                 bool_manager.smt2_signature.append(line)
             th_manager.smt2_signature.append(line)
 
