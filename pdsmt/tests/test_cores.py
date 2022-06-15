@@ -1,8 +1,7 @@
 # coding: utf-8
-import pytest
 
-from . import TestCase, main
 from pdsmt.formula_manager import merge_unsat_cores
+from . import TestCase, main
 
 
 class TestUnsatCore(TestCase):

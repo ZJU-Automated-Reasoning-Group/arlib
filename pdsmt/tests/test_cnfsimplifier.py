@@ -1,8 +1,6 @@
 # coding: utf-8
-import pytest
-from ..bool.cnfsimplifier import simplify_numeric_clauses
-
-from . import TestCase, main
+from pdsmt.bool.cnfsimplifier import simplify_numeric_clauses
+from pdsmt.tests import TestCase, main
 
 
 class TestCNFSimplifier(TestCase):

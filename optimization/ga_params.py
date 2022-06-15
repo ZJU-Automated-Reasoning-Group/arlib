@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-import collections
 import random
 import re
 import subprocess
-import sys
 import time
 
 from collections import namedtuple, OrderedDict
-from itertools import takewhile
 
 Param = namedtuple('Param', ['key', 'value', 'ttype'])
 

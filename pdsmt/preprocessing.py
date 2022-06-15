@@ -1,9 +1,11 @@
 # coding: utf-8
 from typing import List
+
 import z3
-from .util import SolverResult, InitAbstractionStrategy
-from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
+
 from .config import m_init_abstraction
+from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
+from .util import SolverResult, InitAbstractionStrategy
 
 """
     Consider the function SMTPreprocess.from_smt2_string,

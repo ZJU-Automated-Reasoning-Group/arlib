@@ -1,14 +1,13 @@
 # coding: utf-8
 import logging
-from pysmt.logics import AUTO
-from pysmt.shortcuts import Solver, get_unsat_core
+
+from pysmt.shortcuts import Solver
 from pysmt.smtlib.parser import SmtLibParser
-from pysmt.smtlib.script import smtlibscript_from_formula
+
 try:  # for Python2
     from cStringIO import StringIO
 except ImportError:  # for Python3
     from io import StringIO
-
 
 """
 Wrappers for PySMT

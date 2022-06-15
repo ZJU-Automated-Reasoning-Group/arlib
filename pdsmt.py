@@ -1,7 +1,8 @@
 # coding: utf-8
 # import time
-import psutil
 import signal
+
+import psutil
 from z3 import *
 
 """
@@ -20,8 +21,8 @@ def signal_handler(sig, frame):
 
 
 def solve_smt_file(filename: str, prover="all"):
-
     return
+
 
 if __name__ == "__main__":
     import argparse

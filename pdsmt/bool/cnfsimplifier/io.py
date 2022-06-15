@@ -1,7 +1,7 @@
 # coding: utf-8
-from .variable import Variable
-from .cnf import Cnf
 from .clause import Clause
+from .cnf import Cnf
+from .variable import Variable
 
 
 class NumericClausesReader:

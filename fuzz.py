@@ -1,14 +1,15 @@
 # coding: utf-8
-from typing import List
+import logging
 import random
 import subprocess
 from threading import Timer
-import logging
-from pdsmt.tests.formula_generator import FormulaGenerator
+
 from z3 import *
-from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
-from pdsmt.parallel_cdclt import parallel_cdclt
+
 from pdsmt.bool.pysat_solver import PySATSolver
+from pdsmt.parallel_cdclt import parallel_cdclt
+from pdsmt.tests.formula_generator import FormulaGenerator
+
 
 def terminate(process, is_timeout):
     if process.poll() is None:
@@ -86,5 +87,5 @@ def test_smt():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    # test_sat()
-    test_smt()
+    test_sat()
+    # test_smt()

@@ -26,8 +26,8 @@ produces the result:
     - Theory-aware branching
 """
 
-import logging
 from typing import List
+
 import z3
 
 
@@ -37,7 +37,7 @@ class ConsequenceFinder(object):
     def __init__(self):
         self.solver = z3.Solver()
 
-    def add(self, exp):
+    def add(self, exp: z3.BoolRef):
         self.solver.add(exp)
 
     def get_consequences(self, set_a: List[z3.BoolRef], set_b: List[z3.BoolRef]):

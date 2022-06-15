@@ -3,8 +3,8 @@
 Simple portfolio (this servers as a baseline technique)
 """
 import argparse
-import multiprocessing
 import logging
+import multiprocessing
 # import random
 # import signal
 import subprocess

@@ -1,8 +1,10 @@
 import logging
 import time
-from z3 import *
-from pdsmt.simple_cdclt import simple_cdclt, boolean_abstraction
-from pdsmt.parallel_cdclt import parallel_cdclt
+
+import z3
+
+from pdsmt.simple_cdclt import simple_cdclt
+
 
 def test():
     x, y, z = z3.BitVecs("x y z", 16)

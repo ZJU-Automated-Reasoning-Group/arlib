@@ -2,14 +2,13 @@
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
-import signal
-import os
-from .util import SolverResult
+
+from .bool import PySATSolver
+from .exceptions import TheorySolverSuccess
 from .preprocessing import SMTPreprocess
 from .sexpr import parse_sexpr
 from .theory import SMTLibTheorySolver
-from .bool import PySATSolver
-from .exceptions import TheorySolverSuccess
+from .util import SolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +76,6 @@ def process_pysat_models(bool_models, bool_manager):
     return all_assumptions
 
 
-
 def parallel_cdclt(smt2string: str):
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
@@ -124,7 +122,7 @@ def parallel_cdclt(smt2string: str):
             for core in raw_unsat_cores:
                 blocking_clauses.append(parse_raw_unsat_core(core, bool_manager))
 
-            #print("blocking clauses: ", blocking_clauses)
+            # print("blocking clauses: ", blocking_clauses)
             bool_solver.add_clauses(blocking_clauses)
 
     except TheorySolverSuccess:

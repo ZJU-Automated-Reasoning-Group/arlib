@@ -1,9 +1,10 @@
 # coding: utf-8
 from __future__ import print_function
+
 from typing import List
-from pysat.solvers import Solver, SolverNames
+
 from pysat.formula import CNF
-import random
+from pysat.solvers import Solver
 
 """
 Wrappers for PySAT

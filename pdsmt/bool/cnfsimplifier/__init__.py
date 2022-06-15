@@ -1,5 +1,5 @@
-from .simplifier import *
 from .io import NumericClausesReader
+from .simplifier import *
 
 
 def simplify_numeric_clauses(clauses):

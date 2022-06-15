@@ -1,10 +1,7 @@
-import time
 import multiprocessing
-from multiprocessing import cpu_count
-import pickle
-import argparse
-import os
 import random
+import time
+from multiprocessing import cpu_count
 
 """
 This is for practice.

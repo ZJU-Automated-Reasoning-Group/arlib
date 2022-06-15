@@ -1,8 +1,7 @@
 # import argparse
 import random
-import string
+
 from z3 import *
-import sys
 
 """
 Randomly generate a formula (used for testing algorithms)

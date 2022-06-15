@@ -1,10 +1,9 @@
 # Copyright 2022 rainoftime
 
-import signal
-import sys
-
 import getopt
 import random
+import signal
+import sys
 
 VAR = 0
 AND = 1

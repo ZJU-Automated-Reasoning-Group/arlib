@@ -1,7 +1,8 @@
 # coding: utf-8
 import logging
-from ..smtlib_solver import SMTLIBSolver
+
 from ..config import m_smt_solver_bin
+from ..smtlib_solver import SMTLIBSolver
 
 logger = logging.getLogger(__name__)
 

@@ -2,12 +2,13 @@
 
 import fcntl
 import logging
+import os
 import shlex
 import time
 from random import shuffle
 from subprocess import PIPE, Popen
 from typing import Optional, List, Dict
-import os
+
 from .exceptions import *
 from .util import SolverResult
 
@@ -315,7 +316,6 @@ class SMTLIBSolver:
 
     def stop(self):
         self._smtlib.stop()
-
 
 
 class SmtlibPortfolio:

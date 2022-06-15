@@ -5,9 +5,8 @@ import os
 import random
 import subprocess
 import time
-import z3
 
-from collections import namedtuple
+import z3
 
 
 class Param:

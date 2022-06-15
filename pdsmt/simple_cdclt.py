@@ -1,12 +1,13 @@
 # coding: utf-8
-import re
 import logging
-from .smtlib_solver import SMTLIBSolver
+import re
+
 from .config import m_smt_solver_bin
-from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
-from .theory import SMTLibTheorySolver, PySMTTheorySolver
+from .smtlib_solver import SMTLIBSolver
+from .theory import SMTLibTheorySolver
+from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
 
 logger = logging.getLogger(__name__)
 
