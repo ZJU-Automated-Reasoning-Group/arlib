@@ -1,6 +1,7 @@
 # coding: utf-8
 """
-Partially modified from https://github.com/trailofbits/manticore
+Partially modified from Manticore
+https://github.com/trailofbits/manticore/blob/0101bde3ab5eed23a913ed9896d6331adcb32203/manticore/core/smtlib/solver.py
 
 TODO: allow the user to select different modes
 1. Use the same process to first accept the whole formula, and then accept multiple (check-sat-assuming) commands?
@@ -320,7 +321,10 @@ class SMTLIBSolver:
 class SmtlibPortfolio:
 
     def __init__(self, solvers: List[str], debug: bool = False):
-        # Single smtlib interactive process
+        """Single smtlib interactive process
+        :param command: the shell command to execute
+        :param debug: log all messaging
+        """
         self._procs: Dict[str, SmtlibProc] = {}
         self._solvers: List[str] = solvers
         self._debug = debug
@@ -405,20 +409,15 @@ class SmtlibPortfolio:
         # do nothing
 
 
-class PortfolioSolver(SMTLIBSolver):
+class SMTLIBPortfolioSolver(SMTLIBSolver):
 
-    def __init__(self):
-        super().__init__()
-        solvers = ["z3"]
-
+    def __init__(self, solvers: List[str]):
+        assert len(solvers) > 0
         logger.info("Creating portfolio with solvers: " + ",".join(solvers))
         assert len(solvers) > 0
-        multiple_check: bool = True
         debug: bool = False
 
         self._smtlib: SmtlibPortfolio = SmtlibPortfolio(solvers, debug)
-        self._multiple_check = multiple_check
-
         self.ncores = len(solvers)
 
     def _reset(self, constraints: Optional[str] = None) -> None:

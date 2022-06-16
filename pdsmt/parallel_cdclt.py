@@ -1,15 +1,15 @@
 # coding: utf-8
 import logging
-from typing import List
 import multiprocessing
 from multiprocessing import cpu_count
+from typing import List
 
 from .bool import PySATSolver
 from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
+from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
 from .theory import SMTLibTheorySolver
 from .utils import SolverResult, parse_sexpr_string
-from .formula_manager import BooleanFormulaManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,8 @@ def check_theory_consistency(init_theory_fml: str, assumptions: List[str]):
 def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
     """Call theory solvers"""
     results = []
-    # TODO: this is not good?
+    # TODO: If len(all_assumptions) == 1, then there is only one model to check.
+    #   For such cases, we may use a portfolio mode (TBD)
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
                                   (init_theory_fml, all_assumptions[i],))
