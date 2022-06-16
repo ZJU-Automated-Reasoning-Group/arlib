@@ -1,25 +1,27 @@
 # coding: utf-8
 import logging
+from typing import List
 import multiprocessing
 from multiprocessing import cpu_count
 
 from .bool import PySATSolver
-from .exceptions import TheorySolverSuccess
+from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from .preprocessing import SMTPreprocess
-from .sexpr import parse_sexpr
 from .theory import SMTLibTheorySolver
-from .utils import SolverResult
+from .utils import SolverResult, parse_sexpr_string
+from .formula_manager import BooleanFormulaManager
 
 logger = logging.getLogger(__name__)
 
 
-def check_theory_consistency(init_theory_fml, assumptions):
+def check_theory_consistency(init_theory_fml: str, assumptions: List[str]):
     """
     Check T-consistency
     :param init_theory_fml:
     :param assumptions: a list of Boolean variables
     :return: unsat core if T-inconsistency
     """
+    logger.debug("One theory worker starts!")
     theory_solver = SMTLibTheorySolver()
     theory_solver.add(init_theory_fml)
     if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
@@ -29,7 +31,7 @@ def check_theory_consistency(init_theory_fml, assumptions):
     # return ""  # empty core indicates SAT?
 
 
-def theory_solve(init_theory_fml, all_assumptions, pool):
+def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
     """Call theory solvers"""
     results = []
     # TODO: this is not good?
@@ -48,12 +50,12 @@ def theory_solve(init_theory_fml, all_assumptions, pool):
     return raw_unsat_cores
 
 
-def parse_raw_unsat_core(core: str, bool_manager):
+def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
     """
     Given a unsat core in string,
     build a numerical clause
     """
-    parsed_core = parse_sexpr(core)
+    parsed_core = parse_sexpr_string(core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
     blocking_clauses_core = []  # map the core to a numerical clause
@@ -67,7 +69,7 @@ def parse_raw_unsat_core(core: str, bool_manager):
     return blocking_clauses_core
 
 
-def process_pysat_models(bool_models, bool_manager):
+def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager):
     all_assumptions = []
     for model in bool_models:
         assumptions = []
@@ -81,7 +83,7 @@ def process_pysat_models(bool_models, bool_manager):
     return all_assumptions
 
 
-def parallel_cdclt(smt2string: str, theory="ALL"):
+def parallel_cdclt(smt2string: str, logic: str):
     """The entrance"""
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
@@ -98,14 +100,12 @@ def parallel_cdclt(smt2string: str, theory="ALL"):
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
 
-    init_theory_fml = " (set-logic {}) ".format(theory) + " (set-option :produce-unsat-cores true) " \
+    init_theory_fml = " (set-logic {}) ".format(logic) + " (set-option :produce-unsat-cores true) " \
                       + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
     logger.debug("Finish initializing bool solvers")
 
-    result = SolverResult.UNKNOWN
     sample_number = 5
-
     try:
         while True:
             is_sat = bool_solver.check_sat()
@@ -115,7 +115,6 @@ def parallel_cdclt(smt2string: str, theory="ALL"):
             # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
             logger.debug("Boolean Abstraction is SAT")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
-            # print("bool models: ", bool_models)
             logger.debug("Finish Sampling Boolean models")
 
             all_assumptions = process_pysat_models(bool_models, bool_manager)
@@ -134,8 +133,13 @@ def parallel_cdclt(smt2string: str, theory="ALL"):
             bool_solver.add_clauses(blocking_clauses)
 
     except TheorySolverSuccess:
-        # print("Theory solver success!")
         result = SolverResult.SAT
+    except SMTLIBSolverError as ex:
+        print(ex)
+        result = SolverResult.ERROR
+    except PySMTSolverError as ex:
+        print(ex)
+        result = SolverResult.ERROR
 
     pool.close()
     pool.join()

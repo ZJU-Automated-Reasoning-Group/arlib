@@ -29,6 +29,7 @@ class PySATSolver(object):
     def __init__(self, solver="cadical"):
         self.solver = Solver(name=solver)
         self.clauses = []
+        self.reduce_samples = True
 
     def check_sat(self):
         return self.solver.solve()
@@ -54,8 +55,14 @@ class PySATSolver(object):
             results.append(model)
             if i == to_enum:
                 break
-
-        return results
+        if not self.reduce_samples:
+            # do not reduce the sampled models
+            return results
+        reduced_models = self.reduce_models(results)
+        # TODO: remove redundant ones in the reduced models?
+        # print("original: ", results)
+        # print("reduced: ", reduced)
+        return reduced_models
 
     def reduce_models(self, models: List[List]):
         """

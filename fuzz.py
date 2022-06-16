@@ -79,7 +79,7 @@ def test_smt():
         fg = FormulaGenerator([w, x, y, z])
         smt2string = fg.generate_formula_as_str()
         # res = simple_cdclt(smt2string)
-        res = parallel_cdclt(smt2string)
+        res = parallel_cdclt(smt2string, logic="ALL")
         print(res)
         # res = boolean_abstraction(smt2string)
     print("Finished!")

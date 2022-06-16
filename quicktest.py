@@ -28,20 +28,23 @@ def string_test():
     """
     #with Profiler(True):
     # print(simple_cdclt(fml))
-    print(parallel_cdclt(fml))
+    print(parallel_cdclt(fml, logic="ALL"))
     # print(boolean_abstraction(fml))
 
 
-def process_file(filename):
+def process_file(filename: str, logic: str):
     with open(filename, "r") as f:
         smt2string = f.read()
         # simple_cdclt(smt2string)
-        res = parallel_cdclt(smt2string)
+        res = parallel_cdclt(smt2string, logic=logic)
         print(res)
 
 
 if __name__ == '__main__':
     # string_test()
     logging.basicConfig(level=logging.DEBUG)
-    string_test()
-    # process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/unsat/cut_lemma_01_005.smt2")
+    # string_test()
+    # FIXME: the preprocessor creates a function named "bvsdiv_i", which cannot be recognized by z3??
+    process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_4615.smt2", "QF_BV")
+
+

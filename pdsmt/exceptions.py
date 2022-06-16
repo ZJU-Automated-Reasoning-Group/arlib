@@ -34,25 +34,13 @@ class SMTError(Exception):
     """
 
 
-class ExecutorError(SMTError):
+class PySMTSolverError(SMTError):
     """
     TBD
     """
 
 
-class SmtlibError(SMTError):
-    """
-    TBD
-    """
-
-
-class SolverError(SmtlibError):
-    """
-    TBD
-    """
-
-
-class SolverUnknown(SolverError):
+class SMTLIBSolverError(SMTError):
     """
     TBD
     """

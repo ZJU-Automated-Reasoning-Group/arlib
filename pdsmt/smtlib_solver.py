@@ -24,7 +24,7 @@ from random import shuffle
 from subprocess import PIPE, Popen
 from typing import Optional, List, Dict
 
-from .exceptions import *
+from .exceptions import SMTLIBSolverError
 from .utils import SolverResult
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,8 @@ class SmtlibProc:
                 continue
 
             # this verifies if the response from the solver is complete (it has balanced brackets)
-            # TODO: the results of some special queries might not be s-expression (e.g., it can be multiple e-expressions)
+            # TODO: the results of some special queries might not be s-expression
+            #  (e.g., it can be multiple e-expressions)
             lparen, rparen = map(sum, zip(*((c == "(", c == ")") for c in buf)))
             if lparen == rparen and buf != "":
                 break
@@ -141,7 +142,7 @@ class SmtlibProc:
         self._last_buf = ""
 
         if "(error" in buf or "Fatal" in buf:
-            raise Exception(f"Solver error: {buf}")
+            raise SMTLIBSolverError(f"Solver error: {buf}")
 
         if self._debug:
             logger.debug("<%s", buf)
@@ -189,7 +190,7 @@ class SMTLIBSolver:
         elif status == "unknown":
             return SolverResult.UNKNOWN
         else:
-            raise SolverError(status)
+            raise SMTLIBSolverError(status)
             # return False
 
     def check_sat_assuming(self, assumptions: List[str]):
@@ -214,7 +215,7 @@ class SMTLIBSolver:
         elif status == "unknown":
             return SolverResult.UNKNOWN
         else:
-            raise SolverError(status)
+            raise SMTLIBSolverError(status)
             # return False
 
     def check_sat_with_pushpop_scope(self, new_assertions: str):
@@ -241,7 +242,7 @@ class SMTLIBSolver:
         elif status == "unknown":
             return SolverResult.UNKNOWN
         else:
-            raise SolverError(status)
+            raise SMTLIBSolverError(status)
             # return False
 
     def check_sat_from_scratch(self, whole_fml: str):
@@ -266,7 +267,7 @@ class SMTLIBSolver:
         elif status == "unknown":
             return SolverResult.UNKNOWN
         else:
-            raise SolverError(status)
+            raise SMTLIBSolverError(status)
             # return False
 
     def assert_assertions(self, assertions: str):

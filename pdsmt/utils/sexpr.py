@@ -31,7 +31,7 @@ def tokenize(chars: str) -> list:
     return chars.replace('(', ' ( ').replace(')', ' ) ').replace('" "', 'space').split()
 
 
-def parse_sexpr(program: str) -> Expr:
+def parse_sexpr_string(program: str) -> Expr:
     """Read an S-expression from a string."""
     return read_from_tokens(tokenize(program))
 
@@ -67,9 +67,8 @@ def atom(token: str) -> Atom:
 
 class ResultParser:
     """
-    parse
+    parse what？
     """
-
     def __init__(self):
         return
 

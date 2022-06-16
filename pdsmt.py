@@ -1,27 +1,25 @@
 # coding: utf-8
+# pylint: disable=too-few-public-methods
 # import time
-import signal
-import sys
 import os
-import logging
+import signal
 import psutil
-from pdsmt.simple_cdclt import simple_cdclt
 from pdsmt.parallel_cdclt import parallel_cdclt
-from pdsmt.profiler import Profiler, render_profiles
 
 
 def signal_handler(sig, frame):
     """Captures the shutdown signals and cleans up all child processes of this process."""
+    print("handling signals")
     parent = psutil.Process(os.getpid())
     for child in parent.children(recursive=True):
         child.kill()
 
 
-def process_file(filename):
+def process_file(filename, logic):
     with open(filename, "r") as f:
         smt2string = f.read()
         # simple_cdclt(smt2string)
-        ret = parallel_cdclt(smt2string, theory="QF_NRA")
+        ret = parallel_cdclt(smt2string, logic=logic)
         print(ret)
 
 
@@ -33,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('--timeout', dest='timeout', default=8, type=int, help="timeout")
     parser.add_argument('--workers', dest='workers', default=4, type=int, help="workers")
     parser.add_argument('--verbose', dest='verbosity', default=1, type=int, help="verbosity")
+    parser.add_argument('--logic', dest='logic', default='ALL', type=str, help="logic to use")
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
     args = parser.parse_args()
 
@@ -42,4 +41,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGABRT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    process_file(args.infile)
+    process_file(args.infile, args.logic)
