@@ -25,7 +25,7 @@ from subprocess import PIPE, Popen
 from typing import Optional, List, Dict
 
 from .exceptions import *
-from .util import SolverResult
+from .utils import SolverResult
 
 logger = logging.getLogger(__name__)
 

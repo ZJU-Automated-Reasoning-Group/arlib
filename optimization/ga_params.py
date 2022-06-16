@@ -24,11 +24,11 @@ SymbolTable = {
 
 
 def random_bool(rand):
-    return "true" if rand.random() < 0.5 else "false";
+    return "true" if rand.random() < 0.5 else "false"
 
 
 def random_double(rand):
-    return rand.uniform(0.0, 100.0);
+    return rand.uniform(0.0, 100.0)
 
 
 def random_uint(rand):
@@ -158,8 +158,8 @@ class GA:
         self._retained.extend(self._new[:self._retain_size])
 
         while len(self._population) < self._population_size:
-            i1 = self._rand.randint(0, len(self._new) - 1);
-            i2 = self._rand.randint(0, len(self._new) - 1);
+            i1 = self._rand.randint(0, len(self._new) - 1)
+            i2 = self._rand.randint(0, len(self._new) - 1)
             if i1 == i2: continue
             if self._new[i1].fitness == 4294967295 or self._new[i2].fitness == 4294967295: continue
             self._population.append(

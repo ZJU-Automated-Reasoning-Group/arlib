@@ -7,7 +7,7 @@ from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
 from .smtlib_solver import SMTLIBSolver
 from .theory import SMTLibTheorySolver
-from .util import SolverResult, RE_GET_EXPR_VALUE_ALL
+from .utils import SolverResult, RE_GET_EXPR_VALUE_ALL
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,7 @@ class SMTLibBoolSolver():
         return self.bin_solver.check_sat()
 
     def get_cube_from_model(self):
-        """
-        get a model and build a cube from it.
-        """
+        """get a model and build a cube from it."""
         raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars_name)
         tuples_model = re.findall(RE_GET_EXPR_VALUE_ALL, raw_model)
         # e.g., [('p@0', 'true'), ('p@1', 'false')]

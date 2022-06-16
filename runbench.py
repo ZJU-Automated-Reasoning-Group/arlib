@@ -5,10 +5,6 @@ from threading import Timer
 
 # import zlib
 
-"""
-Run benchmarks
-"""
-
 
 def find_smt2_files(path):
     flist = []  # path to smtlib2 files
@@ -33,9 +29,7 @@ def terminate(process, is_timeout):
 
 
 def solve_with_bin_solver(cmd, timeout=5):
-    """
-    cmd should be a complete cmd
-    """
+    """cmd should be a complete cmd"""
     # ret = "unknown"
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -47,30 +41,28 @@ def solve_with_bin_solver(cmd, timeout=5):
     p.stdout.close()
     timer.cancel()
     if is_timeout[0]:
-        return out
-        # return "timeout"
+        return "timeout"
     return out
 
 
 def solve_dir(path):
     # cmd = ["/Users/prism/Work/cvc5/build/bin/cvc5", "-q"]
-    cmd = ["python3", "/Users/prism/Work/logicbox/pdsmt/pdsmt.py", "--prover", "par", "--file"]
-    cmd2 = ["python3", "/Users/prism/Work/logicbox/pdsmt/pdsmt.py", "--prover", "seq", "--file"]
+    cmd = ["python3", "/Users/prism/Work/pdsmt/pdsmt.py"]
     files = find_smt2_files(path)
     # results = {}
-    # print(len(files))
+    print(len(files))
+    processed = 1
     for file in files:
         print("Solving: ", file)
 
         cmd.append(file)
-        out = solve_with_bin_solver(cmd, 5)
+        print(cmd)
+        out = solve_with_bin_solver(cmd, 10)
         print(out)
         cmd.pop()
-
-        # cmd2.append(file)
-        # out2 = solve_with_bin_solver(cmd2, 5)
-        # print(out2)
-        # cmd2.pop()
+        processed += 1
+        if processed >= 50:
+            break
 
 
-solve_dir("/Users/prism/Work/logicbox/pdsmt/benchmarks")
+solve_dir("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV")

@@ -9,7 +9,6 @@ import time
 from multiprocessing import cpu_count
 
 
-
 def generate_data():
     return [random.randint(-100, 100) for _ in range(100)]
 

@@ -15,7 +15,7 @@ from typing import List
 import z3
 from .config import m_init_abstraction
 from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
-from .util import SolverResult, InitAbstractionStrategy
+from .utils import SolverResult, InitAbstractionStrategy
 
 
 def extract_literals_square(clauses: List) -> List[List]:
@@ -50,9 +50,7 @@ class SMTPreprocess(object):
         self.bool_clauses = None  # clauses of the initial Boolean abstraction
 
     def abstract_atom(self, atom2bool, atom) -> z3.ExprRef:
-        """
-        Map an atom to a Boolean variable
-        """
+        """Map a theory atom to a Boolean variable"""
         # FIXME: should we identify the distinguish aux. vars introduced by tseitin' transformation?
         if atom in atom2bool:
             return atom2bool[atom]
@@ -62,9 +60,7 @@ class SMTPreprocess(object):
         return p
 
     def abstract_lit(self, atom2bool, lit) -> z3.ExprRef:
-        """
-        Abstract a literal
-        """
+        """Abstract a literal"""
         if z3.is_not(lit):
             return z3.Not(self.abstract_atom(atom2bool, lit.arg(0)))
         return self.abstract_atom(atom2bool, lit)
@@ -76,9 +72,7 @@ class SMTPreprocess(object):
         return [self.abstract_clause(atom2bool, clause) for clause in clauses]
 
     def build_numeric_clauses(self, bool_manager):
-        """
-        TODO: improve performance?
-        """
+        """TODO: improve performance?"""
         # assert m_init_abstraction == InitAbstractionStrategy.ATOM
         # print(self.bool_clauses)
         for cls in self.bool_clauses:
@@ -100,8 +94,8 @@ class SMTPreprocess(object):
     def from_smt2_string(self, smt2string: str):
         # fml = z3.And(z3.parse_smt2_file(filename))
         fml = z3.And(z3.parse_smt2_string(smt2string))
-        # clauses = z3.Then('simplify', 'solve-eqs', 'tseitin-cnf')(fml)
-        clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
+        clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
+        # clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
 
         after_simp = clauses.as_expr()
         if z3.is_false(after_simp):

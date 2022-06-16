@@ -1,35 +1,9 @@
 import logging
 import time
-
 import z3
-
 from pdsmt.simple_cdclt import simple_cdclt
-
-
-def test():
-    x, y, z = z3.BitVecs("x y z", 16)
-    fml = z3.And(z3.Or(x > 10, x == 1), z3.Or(x == 5, x == 6))
-    s = z3.Solver()
-    s.add(fml)
-    print(s.to_smt2())
-
-
-def process_file(filename):
-    with open(filename, "r") as f:
-        smt2string = f.read()
-        simple_cdclt(smt2string)
-
-
-def process_folder(path):
-    import os
-    file_list = []  # path to smtlib2 files
-    for root, dirs, files in os.walk(path):
-        for fname in files:
-            if os.path.splitext(fname)[1] == '.smt2':
-                file_list.append(os.path.join(root, fname))
-    print("num files: ", len(file_list))
-    for file in file_list:
-        process_file(file)
+from pdsmt.parallel_cdclt import parallel_cdclt
+from pdsmt.profiler import Profiler, render_profiles
 
 
 def string_test():
@@ -52,14 +26,22 @@ def string_test():
  (and (or $x23 $x23 $x94 $x51 $x66) (or $x66 $x37 $x94 $x51 $x62 $x10 $x63 $x23) (or $x10 $x37 $x23 $x94 $x63 $x51 $x66 $x23) (or $x23 $x23 $x37 $x66 $x10 $x62) (or $x10 $x63 $x23 $x94) (or $x62 $x23 $x63 $x66 $x23 $x94 $x37) (or $x10 $x63 $x37 $x51) $x94 (or $x23 $x63 $x10 $x37)))))))))))
 (check-sat)
     """
-    print(simple_cdclt(fml))
-    # print(parallel_cdclt(fml))
+    #with Profiler(True):
+    # print(simple_cdclt(fml))
+    print(parallel_cdclt(fml))
     # print(boolean_abstraction(fml))
 
 
+def process_file(filename):
+    with open(filename, "r") as f:
+        smt2string = f.read()
+        # simple_cdclt(smt2string)
+        res = parallel_cdclt(smt2string)
+        print(res)
+
+
 if __name__ == '__main__':
-    start = time.time()
+    # string_test()
+    logging.basicConfig(level=logging.DEBUG)
     string_test()
-    print(time.time() - start)
-    # process_file("/Users/prism/Work/pdsmt/benchmakrs/simple.smt2")
-    # process_folder("/Users/prism/Work/eldarica-bin/tests/z3test/")
+    # process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/unsat/cut_lemma_01_005.smt2")

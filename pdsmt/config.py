@@ -1,5 +1,5 @@
 # coding: utf-8
-from .util import ParallelMode, TheorySolverRefinementStrategy, \
+from .utils import ParallelMode, TheorySolverRefinementStrategy, \
     TheorySolverIncrementalType, BooleanSamplerStrategy, InitAbstractionStrategy
 
 m_parallel_mode = ParallelMode.USE_MULIT_PROCESSING

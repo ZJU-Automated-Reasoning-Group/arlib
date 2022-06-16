@@ -8,7 +8,7 @@ from .exceptions import TheorySolverSuccess
 from .preprocessing import SMTPreprocess
 from .sexpr import parse_sexpr
 from .theory import SMTLibTheorySolver
-from .util import SolverResult
+from .utils import SolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,9 @@ def check_theory_consistency(init_theory_fml, assumptions):
 
 
 def theory_solve(init_theory_fml, all_assumptions, pool):
-    """
-    Call theory solvers
-    """
+    """Call theory solvers"""
     results = []
+    # TODO: this is not good?
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
                                   (init_theory_fml, all_assumptions[i],))
@@ -82,10 +81,8 @@ def process_pysat_models(bool_models, bool_manager):
     return all_assumptions
 
 
-def parallel_cdclt(smt2string: str):
-    """
-    The entrance
-    """
+def parallel_cdclt(smt2string: str, theory="ALL"):
+    """The entrance"""
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
 
@@ -101,7 +98,7 @@ def parallel_cdclt(smt2string: str):
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
 
-    init_theory_fml = " (set-logic ALL) " + " (set-option :produce-unsat-cores true) " \
+    init_theory_fml = " (set-logic {}) ".format(theory) + " (set-option :produce-unsat-cores true) " \
                       + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
     logger.debug("Finish initializing bool solvers")
@@ -116,8 +113,10 @@ def parallel_cdclt(smt2string: str):
                 result = SolverResult.UNSAT
                 break
             # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
+            logger.debug("Boolean Abstraction is SAT")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
             # print("bool models: ", bool_models)
+            logger.debug("Finish Sampling Boolean models")
 
             all_assumptions = process_pysat_models(bool_models, bool_manager)
             raw_unsat_cores = theory_solve(init_theory_fml, all_assumptions, pool)

@@ -9,9 +9,7 @@ Expr = (Atom, List)
 
 
 def input_to_list(string: str) -> [str]:
-    """
-    Parse a string into a list of S-Expressions.
-    """
+    """Parse a string into a list of S-Expressions."""
     n: int = 0
     result: [str] = []
     s: str = ""

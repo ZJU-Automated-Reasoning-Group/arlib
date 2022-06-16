@@ -157,7 +157,7 @@ class GA:
     _rand.seed()
 
     def __init__(self):
-        self._population = [TacticSeq.random().mutate() for i in range(self._population_size)]
+        self._population = [TacticSeq.random().mutate() for _ in range(self._population_size)]
         self._new = []
         self._retained = []
 
@@ -191,8 +191,8 @@ class GA:
         self._retained.extend(self._new[:self._retain_size])
 
         while len(self._population) < self._population_size:
-            i1 = self._rand.randint(0, len(self._new) - 1);
-            i2 = self._rand.randint(0, len(self._new) - 1);
+            i1 = self._rand.randint(0, len(self._new) - 1)
+            i2 = self._rand.randint(0, len(self._new) - 1)
             if i1 == i2:
                 continue
             elif self._new[i1].fitness == 4294967295 or self._new[i2].fitness == 4294967295:

@@ -1,3 +1,5 @@
+tmp.py
+*.prof
 .DS_Store
 pdsmt/test/.pytest_cache
 *.qdimacs
