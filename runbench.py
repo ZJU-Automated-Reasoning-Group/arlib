@@ -19,7 +19,6 @@ def find_smt2_files(path):
 def terminate(process, is_timeout):
     if process.poll() is None:
         try:
-            # print("timeout!")
             process.terminate()
             # process.kill()
             is_timeout[0] = True
@@ -33,37 +32,38 @@ def solve_with_bin_solver(cmd, timeout=5):
     """cmd should be a complete cmd"""
     # ret = "unknown"
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
     is_timeout = [False]
     timer = Timer(timeout, terminate, args=[p, is_timeout])
-    timer.start()
-
-    res_out = []
-    for line in iter(p.stdout.readline, "b"):
-        if line:
-            tmp = str(line.decode('UTF-8'))
-            res_out.append(tmp)
-            print(tmp)
-        if p.poll() is None:
-            break
-    out = ' '.join(res_out)
-
-    # NOTE: the following two lines may lead to strange resource leak
-    # out = p.stdout.readlines()
-    # out = ' '.join([str(element.decode('UTF-8')) for element in out])
-    p.stdout.close()
-    timer.cancel()
-    if is_timeout[0]:
-        return "timeout"
-    return out
+    try:
+        timer.start()
+        #"""
+        res_out = []
+        for line in iter(p.stdout.readline, "b"):
+            if line:
+                tmp = str(line.decode('UTF-8'))
+                res_out.append(tmp)
+            if p.poll() is None:
+                break
+        out = ' '.join(res_out)
+        #"""
+        # NOTE: the following two lines may lead to strange resource leak
+        # out = p.stdout.readlines()
+        # out = ' '.join([str(element.decode('UTF-8')) for element in out])
+        p.stdout.close()
+        timer.cancel()
+        if is_timeout[0]:
+            return "timeout"
+        return out
+    except Exception as ex:
+        p.stdout.close()
+        timer.cancel()
+        print(ex)
+        return "error"
 
 
 def solve_file(filename: str, logic: str):
     # cmd = ["/Users/prism/Work/cvc5/build/bin/cvc5", "-q"]
-    cmd = ["python3", "/Users/prism/Work/pdsmt/pdsmt.py"]
-    cmd.append("--logic")
-    cmd.append(logic)
-    cmd.append(filename)
+    cmd = ["python3", "/Users/prism/Work/pdsmt/pdsmt.py", "--logic", logic, filename]
     out = solve_with_bin_solver(cmd, 10)
     print(out)
 
@@ -83,8 +83,8 @@ def solve_dir(path: str, logic: str):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/sat/unbd-sage13.smt2", "QF_LIA")
-    # solve_dir("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV", "QF_BV")
+    # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/sat/unbd-sage13.smt2", "QF_LIA")
+    solve_dir("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA", "QF_NRA")
     # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_1987.smt2", "QF_BV")
 
 """

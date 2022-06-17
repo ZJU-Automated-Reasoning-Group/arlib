@@ -1,10 +1,14 @@
 # coding: utf-8
 from __future__ import print_function
-
+import logging
 from typing import List
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
+
+
+logger = logging.getLogger(__name__)
+
 
 """
 Wrappers for PySAT
@@ -55,10 +59,12 @@ class PySATSolver(object):
             results.append(model)
             if i == to_enum:
                 break
+        logger.debug("Sampled models: {}".format(results))
         if not self.reduce_samples:
             # do not reduce the sampled models
             return results
         reduced_models = self.reduce_models(results)
+        logger.debug("Reduced models: {}".format(reduced_models))
         # TODO: remove redundant ones in the reduced models?
         # print("original: ", results)
         # print("reduced: ", reduced)

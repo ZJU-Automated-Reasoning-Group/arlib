@@ -88,7 +88,6 @@ class Cnf:
     def hidden_tautology_elimination(self):
         """
         Simplify CNF by removing all clauses that are hidden tautology
-
         :complexity: O( (c*l)^2 )
         :return: a new CNF without hidden tautological clauses
         """
@@ -117,7 +116,6 @@ class Cnf:
     def asymmetric_tautology_elimination(self):
         """
         Simplify CNF by removing all clauses that are asymmetric tautology
-
         :complexity: O( c^2 * l^2 * 2^l )
         :return: a new CNF without asymmetric tautological clauses
         """
@@ -177,7 +175,6 @@ class Cnf:
     def hidden_blocked_clause_elimination(self):
         """
         Simplify CNF by removing all clauses that are hidden blocked
-
         :complexity: O( (c*l)^2 )
         :return: a new CNF without hidden blocked clauses
         """
@@ -207,7 +204,6 @@ class Cnf:
     def asymmetric_blocked_clause_elimination(self):
         """
         Simplify CNF by removing all clauses that are asymmetric blocked
-
         :complexity: O( c^2 * l^2 * 2^l )
         :return: a new CNF without asymmetric blocked clauses
         """
@@ -237,9 +233,7 @@ class Cnf:
     def subsumption_elimination(self):
         """
         Simplify CNF by removing all clauses that are subsumed
-
         :complexity: O(  )
-
         :return: a new CNF without subsumed clauses
         """
 

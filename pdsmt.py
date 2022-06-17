@@ -4,23 +4,30 @@
 import os
 import signal
 import psutil
+
+
 from pdsmt.parallel_cdclt import parallel_cdclt
+
+g_smt2_file = None
+# g_process_pool = []
 
 
 def signal_handler(sig, frame):
     """Captures the shutdown signals and cleans up all child processes of this process."""
-    print("handling signals")
+    # print("handling signals")
+    g_smt2_file.close()
     parent = psutil.Process(os.getpid())
     for child in parent.children(recursive=True):
         child.kill()
 
 
 def process_file(filename, logic):
-    with open(filename, "r") as f:
-        smt2string = f.read()
-        # simple_cdclt(smt2string)
-        ret = parallel_cdclt(smt2string, logic=logic)
-        print(ret)
+    global g_smt2_file, g_process_pool
+    g_smt2_file = open(filename, "r")
+    smt2string = g_smt2_file.read()
+    # simple_cdclt(smt2string)
+    ret = parallel_cdclt(smt2string, logic)
+    print(ret)
 
 
 if __name__ == "__main__":
@@ -35,10 +42,11 @@ if __name__ == "__main__":
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
     args = parser.parse_args()
 
-    # Registers signal handler so we can kill all of our child processes.
     signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGQUIT, signal_handler)
-    signal.signal(signal.SIGABRT, signal_handler)
+    # signal.signal(signal.SIGQUIT, signal_handler)
+    # signal.signal(signal.SIGABRT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
+    # signal.signal(signal.SIGKILL, signal_handler)
 
+    # Registers signal handler so we can kill all of our child processes.
     process_file(args.infile, args.logic)

@@ -45,6 +45,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # string_test()
     # FIXME: the preprocessor creates a function named "bvsdiv_i", which cannot be recognized by z3??
-    process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_4615.smt2", "QF_BV")
+    # process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_4615.smt2", "QF_BV")
+    process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA/unsat/sqrt-1mcosq-8-chunk-0203.smt2", "QF_NRA")
 
 

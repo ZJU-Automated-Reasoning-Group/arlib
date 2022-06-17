@@ -4,7 +4,7 @@ import multiprocessing
 from multiprocessing import cpu_count
 from typing import List
 
-from .bool import PySATSolver
+from .bool import PySATSolver, simplify_numeric_clauses
 from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
@@ -13,9 +13,15 @@ from .utils import SolverResult, parse_sexpr_string
 
 logger = logging.getLogger(__name__)
 
+"""
+# Some options to be configured
+"""
+m_simplify_blocking_clauses = True
+
 
 def check_theory_consistency(init_theory_fml: str, assumptions: List[str]):
     """
+    TODO: this function should be able to take a set of assumptions?
     Check T-consistency
     :param init_theory_fml:
     :param assumptions: a list of Boolean variables
@@ -36,6 +42,7 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
     results = []
     # TODO: If len(all_assumptions) == 1, then there is only one model to check.
     #   For such cases, we may use a portfolio mode (TBD)
+    #
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
                                   (init_theory_fml, all_assumptions[i],))
@@ -52,10 +59,7 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
 
 
 def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
-    """
-    Given a unsat core in string,
-    build a numerical clause
-    """
+    """ Given a unsat core in string, build a numerical clause """
     parsed_core = parse_sexpr_string(core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
@@ -67,7 +71,13 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
         else:
             blocking_clauses_core.append(-bool_manager.vars2num[ele])
 
-    return blocking_clauses_core
+    # TODO: simplify the blocking clauses
+    logger.debug("Blocking clauses from core: {}".format(blocking_clauses_core))
+    if not m_simplify_blocking_clauses:
+        return blocking_clauses_core
+    simplified_clauses_core = simplify_numeric_clauses(blocking_clauses_core)
+    logger.debug("Simplified blocking clauses: {}".format(simplified_clauses_core))
+    return simplified_clauses_core
 
 
 def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager):
@@ -95,7 +105,6 @@ def parallel_cdclt(smt2string: str, logic: str):
         logger.debug("Solved by the preprocessor")
         return preprocessor.status
 
-    # term_signal = multiprocessing.Manager().Queue()  # flag for termination
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
 
     bool_solver = PySATSolver()
@@ -125,12 +134,10 @@ def parallel_cdclt(smt2string: str, logic: str):
                 result = SolverResult.SAT
                 break
 
-            logger.debug("raw unsat cores: {}".format(raw_unsat_cores))
+            logger.debug("Raw unsat cores: {}".format(raw_unsat_cores))
             blocking_clauses = []
             for core in raw_unsat_cores:
                 blocking_clauses.append(parse_raw_unsat_core(core, bool_manager))
-
-            # print("blocking clauses: ", blocking_clauses)
             bool_solver.add_clauses(blocking_clauses)
 
     except TheorySolverSuccess:
@@ -141,6 +148,8 @@ def parallel_cdclt(smt2string: str, logic: str):
     except PySMTSolverError as ex:
         print(ex)
         result = SolverResult.ERROR
+    # except Exception as ex:
+    #    result = SolverResult.ERROR
 
     pool.close()
     pool.join()

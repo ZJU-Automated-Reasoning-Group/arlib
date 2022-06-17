@@ -1,5 +1,5 @@
 # coding: utf-8
-from pdsmt.bool.cnfsimplifier import simplify_numeric_clauses
+from pdsmt.bool import simplify_numeric_clauses
 from pdsmt.tests import TestCase, main
 
 
