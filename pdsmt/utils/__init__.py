@@ -11,4 +11,3 @@ TheorySolverIncrementalType = TheorySolverIncrementalType
 TheorySolverRefinementStrategy = TheorySolverRefinementStrategy
 BooleanSamplerStrategy = BooleanSamplerStrategy
 RE_GET_EXPR_VALUE_ALL = RE_GET_EXPR_VALUE_ALL
-

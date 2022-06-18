@@ -94,8 +94,8 @@ class SMTPreprocess(object):
     def from_smt2_string(self, smt2string: str):
         # fml = z3.And(z3.parse_smt2_file(filename))
         fml = z3.And(z3.parse_smt2_string(smt2string))
+        # clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
         clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
-        # clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
         after_simp = clauses.as_expr()
         if z3.is_false(after_simp):
             self.status = SolverResult.UNSAT

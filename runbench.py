@@ -3,6 +3,8 @@ import os
 import subprocess
 from threading import Timer
 import logging
+
+
 # import zlib
 
 
@@ -28,24 +30,26 @@ def terminate(process, is_timeout):
             pass
 
 
-def solve_with_bin_solver(cmd, timeout=5):
+def solve_with_bin_solver(cmd, timeout):
     """cmd should be a complete cmd"""
     # ret = "unknown"
+    print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout = [False]
     timer = Timer(timeout, terminate, args=[p, is_timeout])
     try:
         timer.start()
-        #"""
+        # """
         res_out = []
         for line in iter(p.stdout.readline, "b"):
             if line:
                 tmp = str(line.decode('UTF-8'))
                 res_out.append(tmp)
+                print(tmp)
             if p.poll() is None:
                 break
         out = ' '.join(res_out)
-        #"""
+        # """
         # NOTE: the following two lines may lead to strange resource leak
         # out = p.stdout.readlines()
         # out = ' '.join([str(element.decode('UTF-8')) for element in out])
@@ -82,10 +86,10 @@ def solve_dir(path: str, logic: str):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
     # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/sat/unbd-sage13.smt2", "QF_LIA")
     solve_dir("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA", "QF_NRA")
-    # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_1987.smt2", "QF_BV")
+    # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA/unsat/exp-problem-10-3-weak-chunk-0095.smt2", "QF_NRA")
 
 """
 FIXME:

@@ -1,7 +1,6 @@
 # coding: utf-8
 import logging
 from typing import List
-from ..config import m_smt_solver_bin
 from ..smtlib_solver import SMTLIBSolver, SMTLIBPortfolioSolver
 
 logger = logging.getLogger(__name__)
@@ -12,8 +11,8 @@ class SMTLibTheorySolver(object):
     Use smtlib_solver class to interact with a binary solver
     """
 
-    def __init__(self):
-        self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+    def __init__(self, solver_bin):
+        self.bin_solver = SMTLIBSolver(solver_bin)
 
     def __del__(self):
         self.bin_solver.stop()
@@ -47,8 +46,8 @@ class SMTLibPortfolioTheorySolver(object):
     TODO: test this
     """
 
-    def __init__(self):
-        solvers = [m_smt_solver_bin, m_smt_solver_bin + " smt.arith.solver=2"]
+    def __init__(self, solver_bin):
+        solvers = [solver_bin, solver_bin + " smt.arith.solver=2"]
         self.bin_solvers = SMTLIBPortfolioSolver(solvers)
 
     def __del__(self):

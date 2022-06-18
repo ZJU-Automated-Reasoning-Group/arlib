@@ -116,6 +116,19 @@ class TacticSeq:
         self.storage = map(lambda t: t.mutate(), self.storage)
         return self
 
+    def to_z3_tactic(self):
+        """
+        TODO:
+        Build a Tactic object from self.storage, such as the one below
+        t2 = AndThen(With('simplify', blast_distinct=False, elim_and=True, flat=False, hoist_mul=True, local_ctx=False,
+                  pull_cheap_ite=True, push_ite_bv=False, som=False),
+             Tactic('elim-uncnstr'),
+             Tactic('purify-arith'),
+             Tactic('smt'))
+        """
+        for i in self.storage:
+            print(i)
+
     def dump(self, fname):
         with open(fname, "w") as ffile:
             json.dump(self.storage, ffile, cls=CustomJsonEncoder, indent=2)
@@ -141,7 +154,7 @@ DEVNULL = open(os.devnull, "w")
 
 
 def run_tests():
-    cmd = "timeout 8s ./run-tests --gtest_output='xml:test_results.xml' --gtest_color=yes --gtest_filter=Necla/*"
+    cmd = "timeout 8s ./run-tests *"
     start = time.time()
     ret = subprocess.call(cmd.split(), stdout=DEVNULL, stderr=DEVNULL)
     end = time.time()
@@ -218,4 +231,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print(TacticSeq.random().to_string())
+    # main()

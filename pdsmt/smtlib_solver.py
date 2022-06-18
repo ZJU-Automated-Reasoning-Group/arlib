@@ -172,9 +172,7 @@ class SMTLIBSolver:
         # run solver specific initializations
 
     def check_sat(self):
-        """
-        check sat
-        """
+        """check sat"""
         start = time.time()
         self._smtlib.send(f"(check-sat)")
         status = self._smtlib.recv()  # is this correct?
@@ -199,6 +197,7 @@ class SMTLIBSolver:
         :param assumptions: a list of assumption literal
         FIXME: implement and test; figure out what should "assumptions" look like
         """
+        logger.debug("Start checking")
         start = time.time()
         all_expressions_str = " ".join(assumptions)
         self._smtlib.send(f"(check-sat-assuming ({all_expressions_str}))")

@@ -5,10 +5,11 @@ import os
 import signal
 import psutil
 
-
 from pdsmt.parallel_cdclt import parallel_cdclt
 
 g_smt2_file = None
+
+
 # g_process_pool = []
 
 
@@ -43,10 +44,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, signal_handler)
-    # signal.signal(signal.SIGQUIT, signal_handler)
-    # signal.signal(signal.SIGABRT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    # signal.signal(signal.SIGKILL, signal_handler)
 
     # Registers signal handler so we can kill all of our child processes.
     process_file(args.infile, args.logic)

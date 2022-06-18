@@ -3,17 +3,17 @@ import logging
 import z3
 from z3.z3util import get_vars
 
-
 logger = logging.getLogger(__name__)
+
+"""
+A simple CEAGR-style approach for solving exists x. forall y. phi(x, y)
+It can also be understood as a "two-player game"
+x is the set of template variables (introduced by the template)
+y is the set of "program variables" (used in the original VC)
+"""
 
 
 def efsmt_solve_aux(y, phi, maxloops=None):
-    """
-    A simple CEAGR-style approach for solving exists x. forall y. phi(x, y)
-    It can also be understood as a "two-player game"
-    x is the set of template variables (introduced by the template)
-    y is the set of "program variables" (used in the original VC)
-    """
     x = [item for item in get_vars(phi) if item not in y]
     esolver = z3.SolverFor("QF_LRA")
     fsolver = z3.SolverFor("QF_LRA")

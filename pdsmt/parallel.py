@@ -2,7 +2,6 @@
 This is for practice.
 """
 
-
 import multiprocessing
 import random
 import time

@@ -6,9 +6,7 @@ from typing import List
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
-
 logger = logging.getLogger(__name__)
-
 
 """
 Wrappers for PySAT

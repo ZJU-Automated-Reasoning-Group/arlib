@@ -51,6 +51,7 @@ class TheoryFormulaManager(object):
     """
     TBD
     """
+
     def __init__(self):
         self.smt2_signature = []  # variables
         self.smt2_init_cnt = ""

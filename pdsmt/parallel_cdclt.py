@@ -3,6 +3,7 @@ import logging
 import multiprocessing
 from multiprocessing import cpu_count
 from typing import List
+import random
 
 from .bool import PySATSolver, simplify_numeric_clauses
 from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
@@ -10,25 +11,30 @@ from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
 from .theory import SMTLibTheorySolver
 from .utils import SolverResult, parse_sexpr_string
+from .config import m_smt_solver_bin
 
 logger = logging.getLogger(__name__)
 
 """
-# Some options to be configured
+# Some options to be configured (assuming use Z3 for now
 """
 m_simplify_blocking_clauses = True
 
 
-def check_theory_consistency(init_theory_fml: str, assumptions: List[str]):
+# End of options
+
+
+def check_theory_consistency(init_theory_fml: str, assumptions: List[str], bin_solver):
     """
     TODO: this function should be able to take a set of assumptions?
     Check T-consistency
     :param init_theory_fml:
     :param assumptions: a list of Boolean variables
-    :return: unsat core if T-inconsistency
+    :param bin_solver: the binary solver
+    :return: unsat core if T-inconsistent
     """
-    logger.debug("One theory worker starts!")
-    theory_solver = SMTLibTheorySolver()
+    logger.debug("One theory worker starts: {}".format(bin_solver))
+    theory_solver = SMTLibTheorySolver(bin_solver)
     theory_solver.add(init_theory_fml)
     if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
         core = theory_solver.get_unsat_core()
@@ -42,10 +48,23 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
     results = []
     # TODO: If len(all_assumptions) == 1, then there is only one model to check.
     #   For such cases, we may use a portfolio mode (TBD)
-    #
+    """
+    if len(all_assumptions) == 1:
+        logger.debug("Only one Boolean model to decide: try portfolio")
+        for i in range(4):
+            print(m_portfolio_solvers[i])
+            result = pool.apply_async(check_theory_consistency,
+                                      (init_theory_fml, all_assumptions[0], m_portfolio_solvers[i]))
+            results.append(result)
+    else:
+        for i in range(len(all_assumptions)):
+            result = pool.apply_async(check_theory_consistency,
+                                      (init_theory_fml, all_assumptions[i], m_smt_solver_bin + " -in "))
+            results.append(result)
+    """
     for i in range(len(all_assumptions)):
         result = pool.apply_async(check_theory_consistency,
-                                  (init_theory_fml, all_assumptions[i],))
+                                  (init_theory_fml, all_assumptions[i], m_smt_solver_bin))
         results.append(result)
 
     raw_unsat_cores = []
@@ -70,17 +89,10 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
             blocking_clauses_core.append(bool_manager.vars2num[ele[1]])
         else:
             blocking_clauses_core.append(-bool_manager.vars2num[ele])
-
-    # TODO: simplify the blocking clauses
-    logger.debug("Blocking clauses from core: {}".format(blocking_clauses_core))
-    if not m_simplify_blocking_clauses:
-        return blocking_clauses_core
-    simplified_clauses_core = simplify_numeric_clauses(blocking_clauses_core)
-    logger.debug("Simplified blocking clauses: {}".format(simplified_clauses_core))
-    return simplified_clauses_core
+    return blocking_clauses_core
 
 
-def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager):
+def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager) -> List[str]:
     all_assumptions = []
     for model in bool_models:
         assumptions = []
@@ -113,7 +125,7 @@ def parallel_cdclt(smt2string: str, logic: str):
     init_theory_fml = " (set-logic {}) ".format(logic) + " (set-option :produce-unsat-cores true) " \
                       + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
-    logger.debug("Finish initializing bool solvers")
+    logger.debug("Finish initializing Bool solvers")
 
     sample_number = 5
     try:
@@ -123,9 +135,9 @@ def parallel_cdclt(smt2string: str, logic: str):
                 result = SolverResult.UNSAT
                 break
             # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
-            logger.debug("Boolean Abstraction is SAT")
+            logger.debug("Boolean abstraction is satisfiable")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
-            logger.debug("Finish Sampling Boolean models")
+            logger.debug("Finish sampling Boolean models; Start checking T-consistency!")
 
             all_assumptions = process_pysat_models(bool_models, bool_manager)
             raw_unsat_cores = theory_solve(init_theory_fml, all_assumptions, pool)
@@ -134,13 +146,21 @@ def parallel_cdclt(smt2string: str, logic: str):
                 result = SolverResult.SAT
                 break
 
-            logger.debug("Raw unsat cores: {}".format(raw_unsat_cores))
+            logger.debug("Theory solvers finished; Raw unsat cores: {}".format(raw_unsat_cores))
             blocking_clauses = []
             for core in raw_unsat_cores:
                 blocking_clauses.append(parse_raw_unsat_core(core, bool_manager))
+
+            # TODO: simplify the blocking clauses
+            logger.debug("Blocking clauses from cores: {}".format(blocking_clauses))
+            if m_simplify_blocking_clauses:
+                blocking_clauses = simplify_numeric_clauses(blocking_clauses)
+                logger.debug("Simplified blocking clauses: {}".format(blocking_clauses))
+
             bool_solver.add_clauses(blocking_clauses)
 
     except TheorySolverSuccess:
+        # print("One theory solver success!!")
         result = SolverResult.SAT
     except SMTLIBSolverError as ex:
         print(ex)

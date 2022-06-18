@@ -26,13 +26,13 @@ def string_test():
  (and (or $x23 $x23 $x94 $x51 $x66) (or $x66 $x37 $x94 $x51 $x62 $x10 $x63 $x23) (or $x10 $x37 $x23 $x94 $x63 $x51 $x66 $x23) (or $x23 $x23 $x37 $x66 $x10 $x62) (or $x10 $x63 $x23 $x94) (or $x62 $x23 $x63 $x66 $x23 $x94 $x37) (or $x10 $x63 $x37 $x51) $x94 (or $x23 $x63 $x10 $x37)))))))))))
 (check-sat)
     """
-    #with Profiler(True):
+    # with Profiler(True):
     # print(simple_cdclt(fml))
     print(parallel_cdclt(fml, logic="ALL"))
     # print(boolean_abstraction(fml))
 
 
-def process_file(filename: str, logic: str):
+def solve_file(filename: str, logic: str):
     with open(filename, "r") as f:
         smt2string = f.read()
         # simple_cdclt(smt2string)
@@ -45,7 +45,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     # string_test()
     # FIXME: the preprocessor creates a function named "bvsdiv_i", which cannot be recognized by z3??
-    # process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_BV/unsat/bench_4615.smt2", "QF_BV")
-    process_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA/unsat/sqrt-1mcosq-8-chunk-0203.smt2", "QF_NRA")
-
-
+    solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_NRA/unsat/exp-problem-10-3-weak-chunk-0095.smt2",
+               "QF_NRA")
+    # solve_file("/Users/prism/Work/semantic-fusion-seeds-master/QF_LIA/sat/unbd-sage13.smt2", "QF_LIA")

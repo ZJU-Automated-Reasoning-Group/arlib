@@ -69,6 +69,7 @@ class ResultParser:
     """
     parse what？
     """
+
     def __init__(self):
         return
 
