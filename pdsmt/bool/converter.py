@@ -15,13 +15,13 @@ def tseitin(dnf: List[List]):
     Tseitin algorithm: may introduce auxiliary variables
     """
     maxi = max(flatter(dnf))
-    next = maxi + 1
+    next_one = maxi + 1
     ans = []
     for i in dnf:
-        ans.append([-1 * i[j] for j in range(len(i))] + [next])
+        ans.append([-1 * i[j] for j in range(len(i))] + [next_one])
         for j in i:
-            ans.append([j, -1 * next])
-        next += 1
+            ans.append([j, -1 * next_one])
+        next_one += 1
     return ans
 
 

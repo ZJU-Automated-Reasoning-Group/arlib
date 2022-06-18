@@ -28,6 +28,7 @@ class MaxSATSolver:
         self.maxsat_engine = name
 
     def get_maxsat_engine(self):
+        """Get MaxSAT engine"""
         return self.maxsat_engine
 
     def solve_wcnf(self):

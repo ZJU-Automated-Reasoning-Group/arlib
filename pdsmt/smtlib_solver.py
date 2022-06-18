@@ -321,7 +321,7 @@ class SmtlibPortfolio:
 
     def __init__(self, solvers: List[str], debug: bool = False):
         """Single smtlib interactive process
-        :param command: the shell command to execute
+        :param solvers: list of solvers
         :param debug: log all messaging
         """
         self._procs: Dict[str, SmtlibProc] = {}

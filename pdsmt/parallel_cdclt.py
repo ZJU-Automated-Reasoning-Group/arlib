@@ -3,7 +3,7 @@ import logging
 import multiprocessing
 from multiprocessing import cpu_count
 from typing import List
-import random
+# import random
 
 from .bool import PySATSolver, simplify_numeric_clauses
 from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError

@@ -111,8 +111,9 @@ class SMTPreprocess(object):
         if m_init_abstraction == InitAbstractionStrategy.ATOM:
             clauses = extract_literals_square(clauses[0])
 
-        abs = {}
-        self.bool_clauses = self.abstract_clauses(abs, clauses)
+        # the name abs is not good
+        g_atom2bool = {}
+        self.bool_clauses = self.abstract_clauses(g_atom2bool, clauses)
 
         s = z3.Solver()  # a container for collecting variable signatures
         s.add(after_simp)
@@ -128,8 +129,8 @@ class SMTPreprocess(object):
 
         # initialize some mappings
         bool_var_id = 1
-        for atom in abs:
-            bool_var = str(abs[atom])
+        for atom in g_atom2bool:
+            bool_var = str(g_atom2bool[atom])
             bool_manager.num2vars[bool_var_id] = bool_var
             bool_manager.vars2num[bool_var] = bool_var_id
             bool_manager.bool_vars_name.append(bool_var)
@@ -137,7 +138,7 @@ class SMTPreprocess(object):
 
         # initialize some cnt
         bool_manager.smt2_init_cnt = z3.And(self.bool_clauses).sexpr()
-        theory_init_fml = z3.And([p == abs[p] for p in abs])
+        theory_init_fml = z3.And([p == g_atom2bool[p] for p in g_atom2bool])
         th_manager.smt2_init_cnt = theory_init_fml.sexpr()
 
         # NOTE: only useful when using special Boolean engines

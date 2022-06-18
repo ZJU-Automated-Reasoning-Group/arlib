@@ -70,7 +70,7 @@ def __render_profile(infiles, dotfile, pngfile):
     try:
         subprocess.run(['dot', '-Tpng', '-o', pngfile, dotfile])
     except FileNotFoundError:
-        logging.warn('dot was not found. Try "apt install graphviz".')
+        logging.warning('dot was not found. Try "apt install graphviz".')
         return False
     return True
 

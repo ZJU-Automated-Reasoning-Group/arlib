@@ -2,6 +2,9 @@
 
 
 class Variable:
+    """
+    A Boolean variable
+    """
     def __init__(self, variable: int):
         self.variable_value = variable
 
