@@ -10,3 +10,11 @@ Milestones
 - Try Unigen for uniform sampling of Boolean models
 
 - Parallel version
+
+
+### On Computing Small Boolean Models
+
+Currently, we use a "dual solver based approach" (See `pdsmt.bool.pysat_solver, `PySATSolver:reduce_models`).
+There are other approaches for computing small (even minimal) models of a SAT formula.
+E.g., 
+- https://github.com/francisol/py_minimal_model

@@ -19,7 +19,7 @@ from pysat.solvers import Solver
 from z3.z3util import get_vars
 
 from .mapped_blast import translate_smt2formula_to_cnf
-from .maxsat import MaxSATSolver
+from ..bool import MaxSATSolver
 
 logger = logging.getLogger(__name__)
 

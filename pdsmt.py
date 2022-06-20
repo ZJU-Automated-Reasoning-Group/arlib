@@ -16,14 +16,15 @@ g_smt2_file = None
 def signal_handler(sig, frame):
     """Captures the shutdown signals and cleans up all child processes of this process."""
     # print("handling signals")
-    g_smt2_file.close()
+    if g_smt2_file:
+        g_smt2_file.close()
     parent = psutil.Process(os.getpid())
     for child in parent.children(recursive=True):
         child.kill()
 
 
-def process_file(filename, logic):
-    global g_smt2_file, g_process_pool
+def process_file(filename: str, logic: str):
+    global g_smt2_file
     g_smt2_file = open(filename, "r")
     smt2string = g_smt2_file.read()
     # simple_cdclt(smt2string)

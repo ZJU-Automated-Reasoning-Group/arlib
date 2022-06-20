@@ -16,9 +16,9 @@ def terminate(process, is_timeout):
         try:
             process.terminate()
             is_timeout[0] = True
-        except Exception as e:
+        except Exception as ex:
             print("error for interrupting")
-            print(e)
+            print(ex)
 
 
 def gen_cnf_fml():
@@ -48,7 +48,7 @@ def gen_cnf_fml():
         for line in out_gene.split("\n"):
             data = line.split(" ")
             if data[0] == '' and len(data) > 1:
-                res.append([int(d) for d in data[1:-1]])
+                res.append([int(dd) for dd in data[1:-1]])
     except Exception as ex:
         print(ex)
         # print(out_gene)
