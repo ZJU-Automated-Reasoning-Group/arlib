@@ -1,8 +1,9 @@
 # coding: utf-8
 import z3
+
 from . import TestCase, main
 from .formula_generator import FormulaGenerator
-from ..bvopt.bvopt import OMTBVSolver
+from ..bv.bvopt import OMTBVSolver
 
 
 def is_sat(e):

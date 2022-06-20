@@ -76,16 +76,17 @@
 #
 # ==============================================================================
 from __future__ import print_function
+
 import copy
 import getopt
-import gzip
 import os
-from pysat.formula import CNFPlus, WCNFPlus
-from pysat.card import CardEnc, EncType
-from pysat.solvers import Solver, SolverNames
 import re
-from six.moves import range
 import sys
+
+from pysat.card import CardEnc, EncType
+from pysat.formula import CNFPlus, WCNFPlus
+from pysat.solvers import Solver, SolverNames
+from six.moves import range
 
 # cardinality encodings
 # ==============================================================================

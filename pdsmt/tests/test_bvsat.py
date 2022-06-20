@@ -1,6 +1,6 @@
 # coding: utf-8
 from . import TestCase, main
-from ..bvopt.bvsat import BVSolver
+from ..bv.bvsat import BVSolver
 
 
 class TestBVSat(TestCase):

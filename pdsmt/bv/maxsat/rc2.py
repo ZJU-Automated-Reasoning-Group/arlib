@@ -105,18 +105,20 @@
 #
 # ==============================================================================
 from __future__ import print_function
+
 import collections
 import getopt
 import itertools
-from math import copysign
 import os
-from pysat.formula import CNFPlus, WCNFPlus, IDPool
-from pysat.card import ITotalizer
-from pysat.solvers import Solver, SolverNames
 import re
-import six
-from six.moves import range
 import sys
+from math import copysign
+
+import six
+from pysat.card import ITotalizer
+from pysat.formula import CNFPlus, WCNFPlus, IDPool
+from pysat.solvers import Solver
+from six.moves import range
 
 # names of BLO strategies
 # ==============================================================================

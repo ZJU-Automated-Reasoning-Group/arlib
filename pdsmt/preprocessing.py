@@ -12,7 +12,9 @@
       but not each atom!!!
 """
 from typing import List
+
 import z3
+
 from .config import m_init_abstraction
 from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
 from .utils import SolverResult, InitAbstractionStrategy

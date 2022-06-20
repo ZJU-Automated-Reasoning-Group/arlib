@@ -1,9 +1,11 @@
 # coding: utf-8
-from .maxsat.fm import FM  # is the FM correct???
-from .maxsat.rc2 import RC2
-from pysat.solvers import Solver
-from pysat.formula import WCNF
 import copy
+
+from pysat.formula import WCNF
+from pysat.solvers import Solver
+
+from .fm import FM  # is the FM correct???
+from .rc2 import RC2
 
 
 class MaxSATSolver:

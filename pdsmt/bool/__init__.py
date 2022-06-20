@@ -1,6 +1,6 @@
 # coding: utf-8
-from .pysat_solver import PySATSolver
 from .cnfsimplifier import simplify_numeric_clauses
+from .pysat_solver import PySATSolver
 
 # Export
 PySATSolver = PySATSolver

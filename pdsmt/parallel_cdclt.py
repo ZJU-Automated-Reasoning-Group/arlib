@@ -3,15 +3,16 @@ import logging
 import multiprocessing
 from multiprocessing import cpu_count
 from typing import List
-# import random
 
 from .bool import PySATSolver, simplify_numeric_clauses
+from .config import m_smt_solver_bin
 from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
 from .theory import SMTLibTheorySolver
 from .utils import SolverResult, parse_sexpr_string
-from .config import m_smt_solver_bin
+
+# import random
 
 logger = logging.getLogger(__name__)
 

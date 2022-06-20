@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import List
+# from typing import List
 
 from z3 import *
 
@@ -19,7 +19,7 @@ def negate(f: BoolRef) -> BoolRef:
         return Not(f)
 
 
-def eval_preds(m: ModelRef, preds: List[BoolRef]):
+def eval_preds(m: ModelRef, preds):
     """
     Let m be a model of a formula phi
     preds be a set of predicates
@@ -35,26 +35,26 @@ def eval_preds(m: ModelRef, preds: List[BoolRef]):
     return res
 
 
-def get_atoms(e: BoolRef):
+def get_atoms(expr: BoolRef):
     """
     Get all atomic predicates in a formula
     """
     s = set()
 
-    def get_preds_(e):
-        if e in s:
+    def get_preds_(exp):
+        if exp in s:
             return
-        if is_not(e):
-            s.add(e)
-        if is_and(e) or is_or(e):
-            for e_ in e.children():
+        if is_not(exp):
+            s.add(exp)
+        if is_and(exp) or is_or(exp):
+            for e_ in exp.children():
                 get_preds_(e_)
             return
-        assert (is_bool(e))
-        s.add(e)
+        assert (is_bool(exp))
+        s.add(exp)
 
     # convert to NNF and then look for preds
-    ep = Tactic('nnf')(e).as_expr()
+    ep = Tactic('nnf')(expr).as_expr()
     get_preds_(ep)
     return s
 

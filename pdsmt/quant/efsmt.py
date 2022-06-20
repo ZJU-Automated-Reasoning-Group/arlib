@@ -1,5 +1,6 @@
 # coding: utf-8
 import logging
+
 import z3
 from z3.z3util import get_vars
 

@@ -1,8 +1,9 @@
 # coding: utf-8
 import z3
-from ..quant.qe import qelim_exists_lme
+
 from . import TestCase, main
 from .formula_generator import FormulaGenerator
+from ..quant.qe import qelim_exists_lme
 
 
 def is_equivalent(a: z3.BoolRef, b: z3.BoolRef):

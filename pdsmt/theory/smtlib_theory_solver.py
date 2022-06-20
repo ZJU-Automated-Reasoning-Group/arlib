@@ -1,6 +1,7 @@
 # coding: utf-8
 import logging
 from typing import List
+
 from ..smtlib_solver import SMTLIBSolver, SMTLIBPortfolioSolver
 
 logger = logging.getLogger(__name__)

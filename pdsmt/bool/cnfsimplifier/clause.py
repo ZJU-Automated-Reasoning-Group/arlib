@@ -4,6 +4,9 @@ import uuid
 from .variable import Variable
 
 
+# from typing import Set
+
+
 def create_id():
     return str(uuid.uuid4())
 
@@ -101,7 +104,7 @@ class Clause:
 
         new_set = self_set.union(other_set)
 
-        resolvent_clause = Clause(new_set)
+        resolvent_clause = Clause(list(new_set))
 
         return resolvent_clause
 

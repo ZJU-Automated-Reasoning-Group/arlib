@@ -71,14 +71,16 @@
 #
 # ==============================================================================
 from __future__ import print_function
+
 import getopt
+import os
+import re
+import sys
+from threading import Timer
+
 from pysat.card import ITotalizer
 from pysat.formula import CNF, WCNF, WCNFPlus
 from pysat.solvers import Solver, SolverNames
-from threading import Timer
-import os
-import sys
-import re
 
 
 # TODO: support weighted MaxSAT
