@@ -1,7 +1,8 @@
 # coding: utf-8
-from __future__ import print_function
+# from __future__ import print_function
 
 import logging
+from multiprocessing import Pool
 from typing import List
 
 from pysat.formula import CNF
@@ -28,33 +29,53 @@ sat_solvers = ['cadical',
                'minisat-gh']
 
 
+def internal_single_solve(solver_name, clauses, assumptions):
+    """Used by parallel solving"""
+    solver = Solver(name=solver_name, bootstrap_with=clauses)
+    ans = solver.solve(assumptions=assumptions)
+    if ans:
+        return ans, solver.get_model()
+    return ans, solver.get_core()
+
+
 class PySATSolver(object):
     def __init__(self, solver="cadical"):
-        self.solver = Solver(name=solver)
-        self.clauses = []
+        self.solver_name = solver
+        self._solver = Solver(name=solver)
+        self._clauses = []
+        self.parallel_sampling = False # parallel sampling of satisfying assignments
+        # reduce the size of each sampled model
         self.reduce_samples = True
+        self.parallel_reduce = False  # parallel reduce
 
     def check_sat(self):
-        return self.solver.solve()
+        return self._solver.solve()
 
     def add_clause(self, clause: List[int]):
-        self.solver.add_clause(clause)
-        self.clauses.append(clause)
+        self._solver.add_clause(clause)
+        self._clauses.append(clause)
 
     def add_clauses(self, clauses: List[List]):
         for cls in clauses:
-            self.solver.add_clause(cls)
-            self.clauses.append(cls)
+            self._solver.add_clause(cls)
+            self._clauses.append(cls)
 
     def add_cnf(self, cnf: CNF):
         # self.solver.append_formula(cnf.clauses, no_return=False)
         for cls in cnf.clauses:
-            self.solver.add_clause(cls)
-            self.clauses.append(cls)
+            self._solver.add_clause(cls)
+            self._clauses.append(cls)
 
     def sample_models(self, to_enum: int):
+        """
+        Sample to_enum number of models
+        Currently, I use the Solver::enum_models of pySAT
+        TODO:
+          -  Unigen and other third-party (uniform) samplers
+          -  Allow for passing a set of support variables
+        """
         results = []
-        for i, model in enumerate(self.solver.enum_models(), 1):
+        for i, model in enumerate(self._solver.enum_models(), 1):
             results.append(model)
             if i == to_enum:
                 break
@@ -65,8 +86,6 @@ class PySATSolver(object):
         reduced_models = self.reduce_models(results)
         logger.debug("Reduced models: {}".format(reduced_models))
         # TODO: remove redundant ones in the reduced models?
-        # print("original: ", results)
-        # print("reduced: ", reduced)
         return reduced_models
 
     def reduce_models(self, models: List[List]):
@@ -85,10 +104,13 @@ class PySATSolver(object):
         Related work
           - https://arxiv.org/pdf/2110.12924.pdf
         """
-        pos = CNF(from_clauses=self.clauses)
+        pos = CNF(from_clauses=self._clauses)
         neg = pos.negate()
         # print(neg.clauses) print(neg.auxvars)
-        reduced_models = []
+        if self.parallel_reduce:
+            return self.internal_parallel_solve(neg, models)
+
+        reduced_models = []  # is every query independent for the solver?
         aux_sol = Solver(name="cadical", bootstrap_with=neg)
         for m in models:
             assert not aux_sol.solve(m)
@@ -96,18 +118,54 @@ class PySATSolver(object):
         return reduced_models
 
     def get_model(self):
-        return self.solver.get_model()
+        return self._solver.get_model()
+
+    def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
+        """
+        Solver clauses under a set of assumptions
+        TODO: - Should we enforce that clauses are satisfiable?
+              - Should control size of the Pool
+              - Add timeout (if timeout, use the original model?)
+        """
+        answers_async = [None for _ in assumptions_lists]
+        with Pool(len(assumptions_lists)) as p:
+            def terminate_others(val):
+                if val:
+                    p.terminate()
+
+            for i, assumptions in enumerate(assumptions_lists):
+                answers_async[i] = p.apply_async(
+                    internal_single_solve,
+                    (
+                        self.solver_name,
+                        clauses,
+                        assumptions
+                    ),
+                    callback=lambda val: terminate_others(val[0]))
+            p.close()
+            p.join()
+
+        answers = [answer_async.get() for answer_async in answers_async if answer_async.ready()]
+        res = [pres for pans, pres in answers]
+        return res
 
 
 def test_pysat():
     cnf = CNF(from_clauses=[[1, 3], [-1, 2, -4], [2, 4]])
     # solver_name = random.choice(sat_solvers)
-    s1 = PySATSolver()
-    s1.add_cnf(cnf)
-    models = s1.sample_models(10)
+    sol = PySATSolver()
+    sol.add_cnf(cnf)
+    models = sol.sample_models(10)
+    print("Original models")
     print(models)
+    print("Reduced models (parallel)")
+    sol.parallel_reduce = True
+    print(sol.reduce_models(models))
+
+    print("Reduced models (sequential)")
+    sol.parallel_reduce = False
+    print(sol.reduce_models(models))
     # many reduced models are duplicate
-    print(s1.reduce_models(models))
 
 
 if __name__ == "__main__":
