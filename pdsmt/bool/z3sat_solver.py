@@ -30,13 +30,13 @@ class Z3SATSolver:
                 conds.append(b)
             self.solver.add(z3.Or(*conds))
 
-    def get_z3var(self, id: int):
+    def get_z3var(self, vid: int):
         """
         Given an integer (labeling a Boolean var.), return its corresponding Z3 Boolean var
         """
-        if id in self.int2z3var:
-            return self.int2z3var[id]
-        raise Exception(str(id) + " not in the var list!")
+        if vid in self.int2z3var:
+            return self.int2z3var[vid]
+        raise Exception(str(vid) + " not in the var list!")
 
     def get_unsat_core(self, assumptions: List[z3.BoolRef]):
         if self.solver.check(assumptions) == z3.unsat:

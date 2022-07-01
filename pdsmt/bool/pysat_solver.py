@@ -43,7 +43,7 @@ class PySATSolver(object):
         self.solver_name = solver
         self._solver = Solver(name=solver)
         self._clauses = []
-        self.parallel_sampling = False # parallel sampling of satisfying assignments
+        self.parallel_sampling = False  # parallel sampling of satisfying assignments
         # reduce the size of each sampled model
         self.reduce_samples = True
         self.parallel_reduce = False  # parallel reduce
