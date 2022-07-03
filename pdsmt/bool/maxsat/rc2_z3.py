@@ -7,12 +7,13 @@
 # See also https://github.com/pysathq/pysat and papers in CP 2014, JSAT 2015.
 
 from typing import List
+import sys
 
-from z3 import *
+import z3
 
 
 def tt(s, f):
-    return is_true(s.model().eval(f))
+    return z3.is_true(s.model().eval(f))
 
 
 def add(Ws, f, w):
@@ -38,11 +39,11 @@ class RC2:
         self.solver.set("sat.core.minimize_partial", True)
 
     def at_most(self, S, k):
-        fml = simplify(AtMost(S + [k]))
+        fml = z3.simplify(z3.AtMost(S + [k]))
         if fml in self.names:
             return self.names[fml]
-        name = Bool("%s" % fml)
-        self.solver.add(Implies(name, fml))
+        name = z3.Bool("%s" % fml)
+        self.solver.add(z3.Implies(name, fml))
         self.bounds[name] = (S, k)
         self.names[fml] = name
         return name
@@ -70,11 +71,11 @@ class RC2:
                 j += 1
             i = j
             r = self.solver.check([ws[j][0] for j in range(i)])
-            if r == sat:
+            if r == z3.sat:
                 self.update_max_cost()
             else:
                 return r
-        return sat
+        return z3.sat
 
     def get_cost(self):
         return sum(self.Ws0[c] for c in self.Ws0 if not tt(self.solver, c))
@@ -82,11 +83,11 @@ class RC2:
     # Retrieve independent cores from Ws
     def get_cores(self, Ws):
         cores = []
-        while unsat == self.check(Ws):
+        while z3.unsat == self.check(Ws):
             core = list(self.solver.unsat_core())
             print(self.solver.statistics())
             if not core:
-                return unsat
+                return z3.unsat
             w = min([Ws[c] for c in core])
             for f in core:
                 sub(Ws, f, w)
@@ -109,7 +110,7 @@ class RC2:
                 S, k = self.bounds[f]
                 if k + 1 < len(S):
                     add(Ws, self.at_most(S, k + 1), w)
-        add(Ws, self.at_most([mk_not(f) for f in core], 1), w)
+        add(Ws, self.at_most([z3.mk_not(f) for f in core], 1), w)
 
     # Ws are weighted soft constraints
     # Whenever there is an unsatisfiable core over ws
@@ -124,8 +125,8 @@ class RC2:
             cores = self.get_cores(Ws)
             if not cores:
                 break
-            if cores == unsat:
-                return unsat
+            if cores == z3.unsat:
+                return z3.unsat
             for (core, w) in cores:
                 self.min_cost += w
                 self.print_cost()
@@ -133,7 +134,7 @@ class RC2:
         return self.min_cost, {f for f in self.Ws0 if not tt(self.solver, f)}
 
     def from_file(self, file):
-        opt = Optimize()
+        opt = z3.Optimize()
         opt.from_file(file)
         self.solver.add(opt.assertions())
         obj = opt.objectives()[0]
@@ -155,9 +156,9 @@ class RC2:
 
 
 def main(file):
-    s = SolverFor("QF_FD")
+    s = z3.SolverFor("QF_FD")
     rc2 = RC2(s)
-    set_param(verbose=0)
+    z3.set_param(verbose=0)
     cost, falses = rc2.from_file(file)
     print(cost)
     print(s.statistics())

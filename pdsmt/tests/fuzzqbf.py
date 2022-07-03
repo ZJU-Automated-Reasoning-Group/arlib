@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 """
+Random QBF formula generator
+
     params:
         m = number of clauses
         x = number of existentials

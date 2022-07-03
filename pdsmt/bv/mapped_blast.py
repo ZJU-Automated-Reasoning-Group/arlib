@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
+# coding: utf-8
+import sys
 
-# remember to install z3 (or put the 'build' dir in the PYTHONPATH
-# var)
-
-from z3 import *
+import z3
 from z3.z3util import get_vars
 
 
@@ -11,7 +9,7 @@ from z3.z3util import get_vars
 # cr projected_var_ids
 
 
-def bitblast(formula):
+def bitblast(formula: z3.ExprRef):
     # input_vars = [x for x in collect_vars(formula)] # this might be slow?
     input_vars = get_vars(formula)
     # map bits in the bv input vars
@@ -26,26 +24,25 @@ def bitblast(formula):
         curr_id = curr_id + 1
     # projection_scope = curr_id - 1
     # bitblast
-    g = Goal()
+    g = z3.Goal()
     g.add(map_clauses)
     g.add(formula)
-    # t = Then('simplify', 'bit-blast', 'tseitin-cnf')
-    t = Then('simplify', 'bit-blast', 'tseitin-cnf')
+    t = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')
     bitblasted = t(g)[0]
 
     return bitblasted, id_table, bv2bool
 
 
-def is_literal(exp):
-    return is_const(exp) and exp.decl().kind() == Z3_OP_UNINTERPRETED
+def is_literal(exp: z3.ExprRef) -> bool:
+    return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
 
 
-def is_ite(exp):
-    return exp.decl().kind() == Z3_OP_ITE
+def is_ite(exp: z3.ExprRef) -> bool:
+    return exp.decl().kind() == z3.Z3_OP_ITE
 
 
-def is_iff(exp):
-    return exp.decl().kind() == Z3_OP_IFF
+def is_iff(exp: z3.ExprRef) -> bool:
+    return exp.decl().kind() == z3.Z3_OP_IFF
 
 
 def proj_id_last(var, n_proj_vars, n_vars):
@@ -65,7 +62,7 @@ def to_dimacs(cnf, table, proj_last):
 
     for clause in cnf:
         # print(clause)
-        assert is_or(clause) or is_not(clause) or is_literal(clause)
+        assert z3.is_or(clause) or z3.is_not(clause) or is_literal(clause)
         dimacs_clause = list(dimacs_visitor(clause, table))
         # dimacs_clause.append('0') # TODO: why append 0???
         cnf_clauses.append(" ".join(dimacs_clause))
@@ -102,8 +99,8 @@ def map_bitvector(input_vars):
         size = var.size()
         boolvars = []
         for x in range(size):
-            extracted_bool = Bool(name + "!" + str(x))
-            clause = extracted_bool == (Extract(x, x, var) == BitVecVal(1, 1))  # why adding this
+            extracted_bool = z3.Bool(name + "!" + str(x))
+            clause = extracted_bool == (z3.Extract(x, x, var) == z3.BitVecVal(1, 1))  # why adding this
             mapped_vars.append(extracted_bool)
             clauses.append(clause)
             boolvars.append(name + "!" + str(x))
@@ -116,7 +113,7 @@ hit = 0
 miss = 0
 
 
-def bexpr_visitor(exp, table, cache):
+def bexpr_visitor(exp: z3.ExprRef, table, cache):
     global hit, miss
     if exp in cache:
         hit += 1
@@ -136,7 +133,7 @@ def bexpr_visitor(exp, table, cache):
             cache[exp] = bvar
             yield bvar
             return
-        elif is_not(exp):
+        elif z3.is_not(exp):
             assert len(exp.children()) == 1
             ch = exp.children()[0]
             for var in bexpr_visitor(ch, table, cache):
@@ -144,7 +141,7 @@ def bexpr_visitor(exp, table, cache):
                 cache[exp] = term
                 yield term
             return
-        elif is_or(exp):
+        elif z3.is_or(exp):
             or_clauses = []
             for ch in exp.children():
                 # assert is_not(ch) or is_literal(ch)
@@ -154,7 +151,7 @@ def bexpr_visitor(exp, table, cache):
             cache[exp] = term
             yield term
             return
-        elif is_eq(exp) or is_iff(exp):
+        elif z3.is_eq(exp) or is_iff(exp):
             eq_clauses = []
             for ch in exp.children():
                 for var in bexpr_visitor(ch, table, cache):
@@ -190,19 +187,19 @@ def dimacs_visitor(exp, table):
             table[name] = id_var
         yield str(id_var)
         return
-    elif is_not(exp):
+    elif z3.is_not(exp):
         assert len(exp.children()) == 1
         ch = exp.children()[0]
         for var in dimacs_visitor(ch, table):
             yield "-" + var
         return
-    elif is_or(exp):
+    elif z3.is_or(exp):
         for ch in exp.children():
             for var in dimacs_visitor(ch, table):
                 yield var
         return
     else:
-        if is_true(exp): return  # corrent?
+        if z3.is_true(exp): return  # corrent?
         # elif is_false(e): return ??
         raise Exception("Unhandled type: ", exp)
 
@@ -215,20 +212,20 @@ def collect_vars(exp, seen=None):
     seen[exp] = True
 
     # check if 'e' is a bitvector input variable
-    if is_literal(exp) and is_bv(exp):
+    if is_literal(exp) and z3.is_bv(exp):
         yield exp
-    elif is_app(exp):
+    elif z3.is_app(exp):
         for ch in exp.children():
             for exp in collect_vars(ch, seen):
                 yield exp
         return
-    elif is_quantifier(exp):
+    elif z3.is_quantifier(exp):
         for exp in collect_vars(exp.body(), seen):
             yield exp
         return
 
 
-def translate_smt2formula_to_cnf(formula):
+def translate_smt2formula_to_cnf(formula: z3.ExprRef):
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
     # print("Generating DIMACS with projection...")
@@ -242,13 +239,26 @@ def translate_smt2formula_to_cnf(formula):
     return bv2bool, id_table, header, clauses
 
 
+def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
+    projection_last = ''
+    projection_last = projection_last and projection_last.lower() != "false"
+    bitblasted, id_table, bv2bool = bitblast(formula)
+    header, clauses = to_dimacs(bitblasted, id_table, projection_last)
+    saved_stdout = sys.stdout
+    with open(output_file, 'w+') as file:
+        sys.stdout = file
+        print('\n'.join(header))
+        print('\n'.join(clauses))
+    sys.stdout = saved_stdout
+
+
 # TODO: what is projection_last
-def test(inputfile):
+def test_blast(inputfile):
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
 
-    formula_vec = parse_smt2_file(inputfile)
-    formula = And(formula_vec)
+    formula_vec = z3.parse_smt2_file(inputfile)
+    formula = z3.And(formula_vec)
     print("Generating DIMACS with projection...")
     bitblasted, id_table, bv2bool = bitblast(formula)
     header, clauses = to_dimacs(bitblasted, id_table, projection_last)

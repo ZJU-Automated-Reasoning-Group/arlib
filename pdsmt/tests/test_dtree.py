@@ -2,7 +2,7 @@
 
 from . import TestCase, main
 
-from ..bool.knowledge_compiler.dtree import *
+from ..bool.knowledge_compiler.dtree import Dtree_Compiler
 from ..bool.knowledge_compiler.dimacs_parser import parse_cnf_string
 
 cnf_foo = """

@@ -3,8 +3,9 @@ import logging
 import random
 import subprocess
 from threading import Timer
+import os
 
-from z3 import *
+import z3
 
 from pdsmt.bool.pysat_solver import PySATSolver
 from pdsmt.parallel_cdclt import parallel_cdclt
@@ -75,7 +76,7 @@ def test_sat():
 
 def test_smt():
     for _ in range(33):
-        w, x, y, z = Reals("w x y z")
+        w, x, y, z = z3.Reals("w x y z")
         fg = FormulaGenerator([w, x, y, z])
         smt2string = fg.generate_formula_as_str()
         # res = simple_cdclt(smt2string)

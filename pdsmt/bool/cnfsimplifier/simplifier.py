@@ -5,7 +5,7 @@ Conjunctive Normal Form expression simplifier that preserves satisfiability
 """
 
 
-def tautoly(cnf):
+def cnf_tautoly_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are tautology
     :complexity: O(c)
@@ -14,7 +14,7 @@ def tautoly(cnf):
     return cnf
 
 
-def blocked_clause(cnf):
+def cnf_blocked_clause_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are blocked
     :complexity: O( (c*l)^2 )
@@ -23,7 +23,7 @@ def blocked_clause(cnf):
     return cnf
 
 
-def subsumption_elimination(cnf):
+def cnf_subsumption_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are subsumed
     :complexity: O(  )
@@ -32,7 +32,7 @@ def subsumption_elimination(cnf):
     return cnf
 
 
-def hidden_tautoly(cnf):
+def cnf_hidden_tautoly_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are hidden tautology
     :complexity: O( (c*l)^2 )
@@ -41,7 +41,7 @@ def hidden_tautoly(cnf):
     return cnf
 
 
-def hidden_blocked_clause(cnf):
+def cnf_hidden_blocked_clause_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are hidden blocked
     :complexity: O( (c*l)^2 )
@@ -50,7 +50,7 @@ def hidden_blocked_clause(cnf):
     return cnf
 
 
-def hidden_subsumption_elimination(cnf):
+def cnf_hidden_subsumption_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are hidden subsumed
     :complexity: O( (l*c)^2 )
@@ -59,7 +59,7 @@ def hidden_subsumption_elimination(cnf):
     return cnf
 
 
-def asymmetric_tautoly(cnf):
+def cnf_asymmetric_tautoly_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are asymmetric tautology
     :complexity: O( c^2 * l^2 * 2^l )
@@ -68,7 +68,7 @@ def asymmetric_tautoly(cnf):
     return cnf
 
 
-def asymmetric_blocked_clause(cnf):
+def cnf_asymmetric_blocked_clause_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are asymmetric blocked
     :complexity: O( c^2 * l^2 * 2^l )
@@ -77,7 +77,7 @@ def asymmetric_blocked_clause(cnf):
     return cnf
 
 
-def asymmetric_subsumption_elimination(cnf):
+def cnf_asymmetric_subsumption_elimination(cnf):
     """
     Simplify CNF by removing all clauses that are asymmetric subsumed
     :complexity: O( c^2 * l^2 * 2^l )

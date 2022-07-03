@@ -1,4 +1,5 @@
 # coding: utf-8
+from typing import List
 from .clause import Clause
 from .cnf import Cnf
 from .variable import Variable
@@ -11,7 +12,10 @@ class NumericClausesReader:
     def __init__(self):
         pass
 
-    def read(self, clauses):
+    def read(self, clauses: List[List[int]]) -> Cnf:
+        """
+        "Parse" numerical clauses
+        """
         clause_list = list()
         for cls in clauses:
             var_list = list()

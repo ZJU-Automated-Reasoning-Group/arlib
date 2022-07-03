@@ -14,7 +14,7 @@ y is the set of "program variables" (used in the original VC)
 """
 
 
-def efsmt_solve_aux(y, phi, maxloops=None):
+def efsmt_solve_aux(y, phi: z3.ExprRef, maxloops=None):
     x = [item for item in get_vars(phi) if item not in y]
     esolver = z3.SolverFor("QF_LRA")
     fsolver = z3.SolverFor("QF_LRA")

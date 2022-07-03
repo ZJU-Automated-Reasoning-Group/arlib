@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from pdsmt.formula_manager import merge_unsat_cores
+from ..formula_manager import merge_unsat_cores
 from . import TestCase, main
 
 

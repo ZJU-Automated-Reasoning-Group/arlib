@@ -68,6 +68,3 @@ def test_itp():
     fml_a = z3.And(a1, a2, b1)
     fml_b = z3.Or(z3.Not(a1), z3.Not(a2))
     print(list(Z3Interpolant.compute_itp(fml_a, fml_b, [a1, a2])))
-
-
-test_itp()

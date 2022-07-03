@@ -1,7 +1,6 @@
 # import argparse
 import random
-
-from z3 import *
+import z3
 
 """
 Randomly generate a formula (used for testing algorithms)
@@ -26,11 +25,11 @@ class FormulaGenerator:
         self.bv_no_underflow = False
 
         for var in init_vars:
-            if is_int(var):
+            if z3.is_int(var):
                 self.ints.append(var)
-            elif is_real(var):
+            elif z3.is_real(var):
                 self.reals.append(var)
-            elif is_bv(var):
+            elif z3.is_bv(var):
                 self.bvs.append(var)
 
         if len(self.ints) > 0:
@@ -47,15 +46,15 @@ class FormulaGenerator:
             self.use_bv = True
             bvsort = self.bvs[0].sort()
             for _ in range(random.randint(3, 6)):
-                self.bvs.append(BitVecVal(random.randint(1, 100), bvsort.size()))
+                self.bvs.append(z3.BitVecVal(random.randint(1, 100), bvsort.size()))
 
     @staticmethod
     def random_int():
-        return IntVal(random.randint(-100, 100))
+        return z3.IntVal(random.randint(-100, 100))
 
     @staticmethod
     def random_real():
-        return IntVal(random.randint(-100, 100))
+        return z3.IntVal(random.randint(-100, 100))
 
     def int_from_int(self):
         # TODO: also use constant
@@ -107,25 +106,25 @@ class FormulaGenerator:
             if prob <= 0.25:
                 self.bvs.append(r1 + r2)
                 if self.bv_no_overflow:
-                    self.hard_bools.append(BVAddNoOverflow(r1, r2, signed=self.bv_signed))
+                    self.hard_bools.append(z3.BVAddNoOverflow(r1, r2, signed=self.bv_signed))
                 if self.bv_no_underflow:
-                    self.hard_bools.append(BVAddNoUnderflow(r1, r2))
+                    self.hard_bools.append(z3.BVAddNoUnderflow(r1, r2))
             elif prob <= 0.5:
                 self.bvs.append(r1 - r2)
                 if self.bv_no_underflow:
-                    self.hard_bools.append(BVSubNoOverflow(r1, r2))
+                    self.hard_bools.append(z3.BVSubNoOverflow(r1, r2))
                 if self.bv_no_underflow:
-                    self.hard_bools.append(BVSubNoUnderflow(r1, r2, signed=self.bv_signed))
+                    self.hard_bools.append(z3.BVSubNoUnderflow(r1, r2, signed=self.bv_signed))
             elif prob <= 0.75:
                 self.bvs.append(r1 * r2)
                 if self.bv_no_underflow:
-                    self.hard_bools.append(BVMulNoOverflow(r1, r2, signed=self.bv_signed))
+                    self.hard_bools.append(z3.BVMulNoOverflow(r1, r2, signed=self.bv_signed))
                 if self.bv_no_underflow:
-                    self.hard_bools.append(BVMulNoUnderflow(r1, r2))
+                    self.hard_bools.append(z3.BVMulNoUnderflow(r1, r2))
             else:
                 self.bvs.append(r1 / r2)
                 if self.bv_signed:
-                    self.hard_bools.append(BVSDivNoOverflow(r1, r2))
+                    self.hard_bools.append(z3.BVSDivNoOverflow(r1, r2))
 
     def bool_from_int(self):
         if len(self.ints) >= 2:
@@ -179,24 +178,24 @@ class FormulaGenerator:
             # print(bv1.sort(), bv2.sort())
             if prob <= 0.16:
                 if unsigned:
-                    new_bv = ULT(bv1, bv2)
+                    new_bv = z3.ULT(bv1, bv2)
                 else:
                     new_bv = bv1 < bv2
             elif prob <= 0.32:
                 if unsigned:
-                    new_bv = ULE(bv1, bv2)
+                    new_bv = z3.ULE(bv1, bv2)
                 else:
                     new_bv = bv1 <= bv2
             elif prob <= 0.48:
                 new_bv = bv1 == bv2
             elif prob <= 0.62:
                 if unsigned:
-                    new_bv = UGT(bv1, bv2)
+                    new_bv = z3.UGT(bv1, bv2)
                 else:
                     new_bv = bv1 > bv2
             elif prob <= 0.78:
                 if unsigned:
-                    new_bv = UGE(bv1, bv2)
+                    new_bv = z3.UGE(bv1, bv2)
                 else:
                     new_bv = bv1 >= bv2
             else:
@@ -207,7 +206,7 @@ class FormulaGenerator:
         if len(self.bools) >= 2:
             if random.random() < 0.22:
                 b = random.choice(self.bools)
-                self.bools.append(Not(b))
+                self.bools.append(z3.Not(b))
                 return
 
             data = random.sample(self.bools, 2)
@@ -216,13 +215,13 @@ class FormulaGenerator:
             # [and, or, xor, implies]
             prob = random.random()
             if prob <= 0.25:
-                self.bools.append(And(b1, b2))
+                self.bools.append(z3.And(b1, b2))
             elif prob <= 0.5:
-                self.bools.append(Or(b1, b2))
+                self.bools.append(z3.Or(b1, b2))
             elif prob <= 0.75:
-                self.bools.append(Xor(b1, b2))
+                self.bools.append(z3.Xor(b1, b2))
             else:
-                self.bools.append(Implies(b1, b2))
+                self.bools.append(z3.Implies(b1, b2))
 
     def generate_formula(self):
 
@@ -262,7 +261,7 @@ class FormulaGenerator:
             if clen == 1:
                 cls = random.choice(self.bools)
             else:
-                cls = Or(random.sample(self.bools, min(len(self.bools), clen)))
+                cls = z3.Or(random.sample(self.bools, min(len(self.bools), clen)))
             res.append(cls)
 
         if len(self.hard_bools) > 1:
@@ -271,11 +270,11 @@ class FormulaGenerator:
         if len(res) == 1:
             return res[0]
         else:
-            return And(res)
+            return z3.And(res)
 
     def generate_formula_as_str(self):
         mutant = self.generate_formula()
-        sol = Solver()
+        sol = z3.Solver()
         sol.add(mutant)
         smt2_string = sol.to_smt2()
         return smt2_string
@@ -288,7 +287,7 @@ class FormulaGenerator:
 
 
 if __name__ == "__main__":
-    w, x, y, z = Ints("w x y z")
+    w, x, y, z = z3.Ints("w x y z")
     # r = Real("r")
     test = FormulaGenerator([w, x, y, z])
     # x, y, z = BitVecs("x y z", 16)

@@ -4,6 +4,9 @@ from ..bv.bvsat import BVSolver
 
 
 class TestBVSat(TestCase):
+    """
+    Test the bit-blasting based solver
+    """
 
     def test_bvsat(self):
         import z3
