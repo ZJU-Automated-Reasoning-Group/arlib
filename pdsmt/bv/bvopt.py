@@ -62,11 +62,11 @@ class OMTBVSolver:
         logger.debug("  from bv to bools: {}".format(self.bv2bool))
         logger.debug("  from bool to pysat id: {}".format(self.bool2id))
 
-        clauses_numric = []
+        clauses_numeric = []
         for cls in clauses:
-            clauses_numric.append([int(lit) for lit in cls.split(" ")])
+            clauses_numeric.append([int(lit) for lit in cls.split(" ")])
         # print("  pysat clauses: ", clauses_numric)
-        return clauses_numric
+        return clauses_numeric
 
     def check_sat(self):
         clauses_numeric = self.bit_blast()

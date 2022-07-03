@@ -57,10 +57,10 @@ class BVSolver:
         logger.debug("  from bv to bools: {}".format(self.bv2bool))
         logger.debug("  from bool to pysat id: {}".format(self.bool2id))
 
-        clauses_numric = []
+        clauses_numeric = []
         for cls in clauses:
-            clauses_numric.append([int(lit) for lit in cls.split(" ")])
-        return clauses_numric
+            clauses_numeric.append([int(lit) for lit in cls.split(" ")])
+        return clauses_numeric
 
     def check_sat(self):
         """Check satisfiability of a bit-vector formula"""
