@@ -21,7 +21,7 @@ class PySMTTheorySolver(object):
     def __init__(self):
         self.solver = Solver()
 
-    def add(self, smt2string):
+    def add(self, smt2string: str):
         parser = SmtLibParser()
         script = parser.get_script(StringIO(smt2string))
         fml = script.get_last_formula()

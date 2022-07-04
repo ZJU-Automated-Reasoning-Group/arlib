@@ -1,15 +1,17 @@
 """
 Propositional Interpolant
+
+Perhaps integrating the following implementations
+ -  https://github.com/fslivovsky/interpolatingsolver/tree/9050db1d39213e94f9cadd036754aed69a1faa5f
+    (it uses C++ and some third-party libraries)
 """
 from typing import List
 import z3
-
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
 
-class Z3Interpolant:
-
+class BooleanInterpolant:
     @staticmethod
     def mk_lit(m: z3.ModelRef, x: z3.ExprRef):
         if z3.is_true(m.eval(x)):
@@ -19,12 +21,9 @@ class Z3Interpolant:
 
     @staticmethod
     def pogo(A: z3.Solver, B: z3.Solver, xs: List[z3.ExprRef]):
-        """
-        Z3-based implementation
-        """
         while z3.sat == A.check():
             m = A.model()
-            L = [Z3Interpolant.mk_lit(m, x) for x in xs]
+            L = [BooleanInterpolant.mk_lit(m, x) for x in xs]
             if z3.unsat == B.check(L):
                 notL = z3.Not(z3.And(B.unsat_core()))
                 yield notL
@@ -39,7 +38,7 @@ class Z3Interpolant:
         solver_a.add(fml_a)
         solver_b = z3.SolverFor("QF_FD")
         solver_b.add(fml_b)
-        return list(Z3Interpolant.pogo(solver_a, solver_b, var_list))
+        return list(BooleanInterpolant.pogo(solver_a, solver_b, var_list))
 
 
 class PySATInterpolant:
@@ -61,10 +60,3 @@ class PySATInterpolant:
             else:
                 print("expecting unsat")
                 break
-
-
-def test_itp():
-    a1, a2, b1, b2, x1, x2 = z3.Bools('a1 a2 b1 b2 x1 x2')
-    fml_a = z3.And(a1, a2, b1)
-    fml_b = z3.Or(z3.Not(a1), z3.Not(a2))
-    print(list(Z3Interpolant.compute_itp(fml_a, fml_b, [a1, a2])))
