@@ -1,6 +1,10 @@
 # coding: utf-8
 # from __future__ import print_function
-
+"""
+Wrappers for PySAT.
+Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
+Besides, we may want to integrate some advanced facilities, such as (parallel) uniform sampling.
+"""
 import logging
 from multiprocessing import Pool
 from typing import List
@@ -9,10 +13,6 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 logger = logging.getLogger(__name__)
-
-"""
-Wrappers for PySAT
-"""
 
 sat_solvers = ['cadical',
                'gluecard30',
@@ -55,7 +55,7 @@ class PySATSolver(object):
         self._solver.add_clause(clause)
         self._clauses.append(clause)
 
-    def add_clauses(self, clauses: List[List]):
+    def add_clauses(self, clauses: List[List[int]]):
         for cls in clauses:
             self._solver.add_clause(cls)
             self._clauses.append(cls)
@@ -66,7 +66,7 @@ class PySATSolver(object):
             self._solver.add_clause(cls)
             self._clauses.append(cls)
 
-    def sample_models(self, to_enum: int):
+    def sample_models(self, to_enum: int) -> List[List[int]]:
         """
         Sample to_enum number of models
         Currently, I use the Solver::enum_models of pySAT
@@ -88,7 +88,7 @@ class PySATSolver(object):
         # TODO: remove redundant ones in the reduced models?
         return reduced_models
 
-    def reduce_models(self, models: List[List]):
+    def reduce_models(self, models: List[List]) -> List[List[int]]:
         """
         http://fmv.jku.at/papers/NiemetzPreinerBiere-FMCAD14.pdf
         Consider a Boolean formula P. The model of P (given by a SAT solver) is not necessarily minimal.
@@ -122,7 +122,7 @@ class PySATSolver(object):
 
     def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
         """
-        Solver clauses under a set of assumptions
+        Solve clauses under a set of assumptions (deal with each one in parallel)
         TODO: - Should we enforce that clauses are satisfiable?
               - Should control size of the Pool
               - Add timeout (if timeout, use the original model?)

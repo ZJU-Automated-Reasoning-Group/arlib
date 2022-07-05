@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+For large-scale testing of the implementation
+"""
 import logging
 import random
 import subprocess
@@ -75,7 +78,7 @@ def test_sat():
 
 
 def test_smt():
-    for _ in range(33):
+    for _ in range(3):
         w, x, y, z = z3.Reals("w x y z")
         fg = FormulaGenerator([w, x, y, z])
         smt2string = fg.generate_formula_as_str()
@@ -88,5 +91,5 @@ def test_smt():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    test_sat()
-    # test_smt()
+    # test_sat()
+    test_smt()

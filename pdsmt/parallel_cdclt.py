@@ -2,7 +2,7 @@
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
-from typing import List
+from typing import List, Optional
 
 from .bool import PySATSolver, simplify_numeric_clauses
 from .config import m_smt_solver_bin
@@ -29,7 +29,8 @@ def check_theory_consistency(init_theory_fml: str, assumptions: List[str], bin_s
     """
     TODO: this function should be able to take a set of assumptions?
     Check T-consistency
-    :param init_theory_fml:
+    :param init_theory_fml: the initial theory formula (it is not a good idea
+         to pass it everytime we call this function, because init_theory_fml is const
     :param assumptions: a list of Boolean variables
     :param bin_solver: the binary solver
     :return: unsat core if T-inconsistent
@@ -44,7 +45,7 @@ def check_theory_consistency(init_theory_fml: str, assumptions: List[str], bin_s
     # return ""  # empty core indicates SAT?
 
 
-def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
+def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool) -> List[str]:
     """Call theory solvers"""
     results = []
     # TODO: If len(all_assumptions) == 1, then there is only one model to check.
@@ -72,7 +73,7 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool):
     for i in range(len(all_assumptions)):
         result = results[i].get()
         if result == "":  # empty core indicates SAT?
-            return []
+            return [] # if it is true, we may need to raise TheorySolverSuccess
         raw_unsat_cores.append(result)
 
     return raw_unsat_cores

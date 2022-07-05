@@ -9,6 +9,8 @@ import multiprocessing
 # import signal
 import subprocess
 
+g_process_queue = []
+
 
 def solve_with_partitioned(formula_file, result_queue):
     print("one worker working")
@@ -29,18 +31,18 @@ def solve_with_partitioned(formula_file, result_queue):
 
 
 def signal_handler(sig, frame):
-    global process_queue
+    global g_process_queue
     try:
-        for p in process_queue:
+        for p in g_process_queue:
             if p: p.terminate()
         logging.debug("processes cleaned!")
     except Exception as e:
+        print(e)
         pass
 
 
 def main():
     # global process_queue
-    process_queue = []
 
     parser = argparse.ArgumentParser(description="Solve given formula.")
     parser.add_argument("formula", metavar="formula_file", type=str,
@@ -65,13 +67,13 @@ def main():
         n_workers = min(multiprocessing.cpu_count(), int(args.workers))
 
         for nth in range(n_workers):
-            process_queue.append(multiprocessing.Process(target=solve_with_partitioned,
-                                                         args=(formula_file,
-                                                               result_queue
-                                                               )))
+            g_process_queue.append(multiprocessing.Process(target=solve_with_partitioned,
+                                                           args=(formula_file,
+                                                                 result_queue
+                                                                 )))
 
         # Start all
-        for p in process_queue:
+        for p in g_process_queue:
             p.start()
 
         # Get result
@@ -81,7 +83,7 @@ def main():
         except multiprocessing.queues.Empty:
             result = "unknown"
         # Terminate all
-        for p in process_queue:
+        for p in g_process_queue:
             p.terminate()
 
     print(result)

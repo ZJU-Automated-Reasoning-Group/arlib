@@ -1,5 +1,9 @@
+"""
+The script for running pdsmt.py on a dir (to solve formulas in it)
+"""
 # coding: utf8
 import os
+from typing import List
 import subprocess
 from threading import Timer
 import logging
@@ -8,7 +12,7 @@ import logging
 # import zlib
 
 
-def find_smt2_files(path):
+def find_smt2_files(path: str) -> List[str]:
     flist = []  # path to smtlib2 files
     for root, dirs, files in os.walk(path):
         for fname in files:
@@ -30,7 +34,7 @@ def terminate(process, is_timeout):
             pass
 
 
-def solve_with_bin_solver(cmd, timeout):
+def solve_with_bin_solver(cmd: [str], timeout: int):
     """cmd should be a complete cmd"""
     # ret = "unknown"
     print(cmd)

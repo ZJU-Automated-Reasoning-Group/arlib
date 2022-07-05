@@ -1,6 +1,9 @@
 # coding: utf-8
 # pylint: disable=too-few-public-methods
 # import time
+"""
+The entrance of the parallel (and distributed) SMT solving engine
+"""
 import os
 import signal
 import psutil
@@ -8,9 +11,6 @@ import psutil
 from pdsmt.parallel_cdclt import parallel_cdclt
 
 g_smt2_file = None
-
-
-# g_process_pool = []
 
 
 def signal_handler(sig, frame):

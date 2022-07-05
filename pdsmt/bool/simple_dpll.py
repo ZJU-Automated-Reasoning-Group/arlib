@@ -3,6 +3,8 @@ import copy
 
 from typing import List
 
+# TODO: optimize and adapt the interface
+
 
 def is_unit(clause: List[int]):
     return len(clause) == 1

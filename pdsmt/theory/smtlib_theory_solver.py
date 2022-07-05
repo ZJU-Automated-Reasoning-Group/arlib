@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+Use one or more binary solvers as the theory solver of the parallel CDCL(T) engine.
+Note that we only use it for dealing with a conjunction of formulas.
+"""
 import logging
 from typing import List
 
@@ -44,7 +48,7 @@ class SMTLibTheorySolver(object):
 class SMTLibPortfolioTheorySolver(object):
     """
     Use smtlib_solver class to interact with a binary solver
-    TODO: test this
+    TODO: test this (as we have not tried SMTLIBPortfolioSolver before)
     """
 
     def __init__(self, solver_bin):
