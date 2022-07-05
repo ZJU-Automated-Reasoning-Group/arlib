@@ -38,9 +38,10 @@ class BooleanInterpolant:
             m = A.model()
             L = [BooleanInterpolant.mk_lit(m, x) for x in xs]
             if z3.unsat == B.check(L):
-                notL = z3.Not(z3.And(B.unsat_core()))
-                yield notL
-                A.add(notL)
+                core = z3.And(B.unsat_core())
+                # notL = z3.Not(z3.And(B.unsat_core()))
+                yield core
+                A.add(z3.Not(core))
             else:
                 print("expecting unsat")
                 break
@@ -152,7 +153,7 @@ class BVInterpolant:
             # for debugging
             assert is_inconsistent(z3_bool_fml_a, z3_bool_fml_b)
 
-            itp = z3.And(list(BooleanInterpolant.compute_itp(z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars)))
+            itp = z3.Or(list(BooleanInterpolant.compute_itp(z3_bool_fml_a, z3_bool_fml_b, self.common_bool_vars)))
             print("interpolant: ", z3.simplify(itp))
             print(self.common_vars2bool)
         else:
@@ -170,25 +171,24 @@ def test_blast():
 
 
 def test_bv_itp():
-    x, y, z = z3.BitVecs("x y z", 4)
+    x, y, z = z3.BitVecs("x y z", 3)
     bv_itp = BVInterpolant()
 
-    fml_a = z3.And(x == 1, y == 0)
-    fml_b = z3.And(y != 0, z3.ULT(z, 4), x == 1)
+    # fml_a = y == 0
+    # fml_b = y == 1
+    # bv_itp.compute_itp(fml_a, fml_b, [y])
+    # 只有当c4=1且c5=1时，y才会等于3; fml_a推出的插值是Or(Not(c4), Not(c5))
+    fml_a = z3.And(x == 1, z3.Or(y == 0, y == 1, y == 2))
+    fml_b = z3.And(y == 3, x == 1)
     bv_itp.compute_itp(fml_a, fml_b, [x, y])
-
 
 test_bv_itp()
 
 
 def test_bool_itp():
     a1, a2, b1, b2, x1, x2 = z3.Bools('a1 a2 b1 b2 x1 x2')
-    fml_a = z3.And(a1, a2, b1)
-    fml_b = z3.Or(z3.Not(a1), z3.Not(a2))
-    print(list(BooleanInterpolant.compute_itp(fml_a, fml_b, [a1, a2])))
+    fml_a = z3.And(a1, a2)
+    fml_b = z3.Not(a1)
+    print(list(BooleanInterpolant.compute_itp(fml_a, fml_b, [a1])))
 
-"""
-    # fml_a = y == 1
-    # fml_b = y == 0
-    # bv_itp.compute_itp(fml_a, fml_b, [y])
-"""
+#test_bool_itp()

@@ -40,6 +40,7 @@ def solve_file(filename: str, logic: str):
         print(res)
 
 
+
 if __name__ == '__main__':
     # string_test()
     logging.basicConfig(level=logging.DEBUG)
