@@ -51,8 +51,8 @@ class SMTLibPortfolioTheorySolver(object):
     TODO: test this (as we have not tried SMTLIBPortfolioSolver before)
     """
 
-    def __init__(self, solver_bin):
-        solvers = [solver_bin, solver_bin + " smt.arith.solver=2"]
+    def __init__(self, solvers_list: List[str]):
+        solvers = solvers_list
         self.bin_solvers = SMTLIBPortfolioSolver(solvers)
 
     def __del__(self):

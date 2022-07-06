@@ -142,7 +142,7 @@ class SmtlibProc:
         buf = buf.strip()
         self._last_buf = ""
 
-        if "(error" in buf or "Fatal" in buf:
+        if "error" in buf or "Fatal" in buf:
             raise SMTLIBSolverError(f"Solver error: {buf}")
 
         if self._debug:
@@ -189,6 +189,7 @@ class SMTLIBSolver:
         elif status == "unknown":
             return SolverResult.UNKNOWN
         else:
+            print(status)
             raise SMTLIBSolverError(status)
             # return False
 
@@ -318,6 +319,7 @@ class SMTLIBSolver:
 
 
 class SmtlibPortfolio:
+    # TODO: it seems that this version does not kill other solvers when someone is finished
 
     def __init__(self, solvers: List[str], debug: bool = False):
         """Single smtlib interactive process
@@ -413,11 +415,11 @@ class SMTLIBPortfolioSolver(SMTLIBSolver):
     def __init__(self, solvers: List[str]):
         assert len(solvers) > 0
         logger.info("Creating portfolio with solvers: " + ",".join(solvers))
-        assert len(solvers) > 0
         debug: bool = False
 
         self._smtlib: SmtlibPortfolio = SmtlibPortfolio(solvers, debug)
         self.ncores = len(solvers)
+        self._smtlib.start()
 
     def _reset(self, constraints: Optional[str] = None) -> None:
         # Auxiliary method to reset the smtlib external solver to initial defaults
@@ -428,3 +430,29 @@ class SMTLIBPortfolioSolver(SMTLIBSolver):
 
         if constraints is not None:
             self._smtlib.send(constraints)
+
+    def check_sat(self):
+        """Override the one in SMTLIBSolver to handle some special cases"""
+        start = time.time()
+        self._smtlib.send(f"(check-sat)")
+        status = self._smtlib.recv()  # is this correct?
+        assert status is not None
+
+        logger.debug("Check took %s seconds (%s)", time.time() - start, status)
+
+        # if status in ("sat", "unsat", "unknown"):
+        #    return status
+        # TODO: Sometimes, the status may include results of multiple sovler,
+        #  So, I use "xx" in status, instead of xx == status here.
+        logger.debug("Results from the solvers (%s)", status)
+        if "unsat" in status:
+            return SolverResult.UNSAT
+        elif "sat" in status:
+            return SolverResult.SAT
+        elif "unknown" in status:
+            return SolverResult.UNKNOWN
+        else:
+            print(status)
+            raise SMTLIBSolverError(status)
+            # return False
+
