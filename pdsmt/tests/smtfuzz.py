@@ -1818,8 +1818,6 @@ class Nodes:
         self.dict[Int()] = 0
         self.dict[Real()] = 0
 
-        self.count = OrderedDict()
-
         self.initial_ints = a_ints
         self.initial_reals = a_reals
 
@@ -2365,6 +2363,7 @@ class Nodes:
             term = '({} {})'.format(random.choice(BiOp), boolean_subexpressions)
         elif nsam > 2:  # n-array
             term = '({} {})'.format(random.choice(NarOp), boolean_subexpressions)
+
         return term
 
     def extend_qdict_array(self):
@@ -3039,16 +3038,11 @@ class Nodes:
 
         if m_global_logic == 'QF_IDL' or m_global_logic == 'IDL' or m_global_logic == 'QF_UFIDL':
             # if random.random() < 0.25:
-            if False:
-                par = random.choice(self.d[Int()])
-                new_int = Int_Op('-', par)
-                self.d[Int()].append(new_int)
-            else:
-                parone = random.choice(self.d[Int()])
-                operands = str(parone)
-                partwo = random.choice(self.d[Int()])
-                operands += (" " + str(partwo))
-                self.d[Int()].append(Int_Op("-", operands))  # RDL
+            parone = random.choice(self.d[Int()])
+            operands = str(parone)
+            partwo = random.choice(self.d[Int()])
+            operands += (" " + str(partwo))
+            self.d[Int()].append(Int_Op("-", operands))  # RDL
             return
 
         p = random.random()
@@ -3283,11 +3277,6 @@ class Nodes:
                 operands += (" " + str(random.choice(self.d[Int()])))
             new_str = String_Op('str.substr', operands)
             self.d[String()].append(new_str)
-        # if False: # for CVC4
-        #    par = random.choice(self.d[String()])
-        #    operands = str(par)
-        #    operands += (" " + str(random.choice(self.d[String()])))
-        #    new_str = String_Op('str.update', operands)
         if m_use_ite and random.random() < 0.05:
             parb = random.choice(self.d[Bool()])
             operand = str(parb)
@@ -3300,33 +3289,12 @@ class Nodes:
 
         if m_test_string_re:
             reop = random.random()
-            '''
-            if reop < 0.33:
-              if random.random() < 0.5: par = random.choice(self.d[String()])
-              else: par = "\"" + random_string(10) + "\""
-              operands = str(par)
-              new_re = Regular_Op('str.to_re', operands)
-              self.d[Regular()].append(new_re)
-              #else:
-              #  par1 = random_string(1)
-              #  par2 = random_string(1)
-              #  operands = "\"" + str(par1) + "\""
-              #  operands += (" \"" + str(par2) + "\"")
-              #  new_re = Regular_Op('re.range', operands) # re.range has very strict conditions
-              #  self.d[Regular()].append(new_re)   
-            '''
             if reop < 0.35:
                 rea = random.choice(self.d[Regular()])
                 operands = str(rea)
                 new_re = Regular_Op(random.choice(ReUnOp), operands)
                 self.d[Regular()].append(new_re)
             elif reop < 0.65:
-                # rea = random.choice(self.d[Regular()])
-                # reb = random.choice(self.d[Regular()])
-                # operands = str(rea)
-                # operands += (" " + str(reb))
-                # new_re = Regular_Op(random.choice(ReBinOp), operands)
-                # self.d[Regular()].append(new_re)
                 par = random.choice(self.d[Regular()])
                 operands = str(par)
                 n = random.randrange(1, 4)
@@ -3636,7 +3604,8 @@ class Nodes:
             self.dict[FP()] += 1
 
     def real_from_real(self):
-        # lra_logics = ['QF_AUFLIRA', 'AUFLIRA', 'QF_RDL', 'QF_UFRDL', 'RDL', 'QF_FPLRA', 'LRA', 'QF_LRA', 'UFLRA', 'QF_UFLRA', 'AUFLRA', 'QF_AUFLRA']
+        # lra_logics = ['QF_AUFLIRA', 'AUFLIRA', 'QF_RDL', 'QF_UFRDL', 'RDL',
+        # 'QF_FPLRA', 'LRA', 'QF_LRA', 'UFLRA', 'QF_UFLRA', 'AUFLRA', 'QF_AUFLRA']
 
         if "RDL" in m_global_logic:
             if True:
@@ -3654,7 +3623,8 @@ class Nodes:
             if m_global_logic in lra_logics:
                 new_real = Real_Op(random.choice(RealUnOp), par)
             else:
-                if random.random() < 0.65 or m_global_logic == 'UFNRA' or m_global_logic == 'NRA' or m_global_logic == 'QF_UFNRA':
+                if random.random() < 0.65 or m_global_logic == 'UFNRA' or m_global_logic == 'NRA' \
+                        or m_global_logic == 'QF_UFNRA':
                     new_real = Real_Op(random.choice(RealUnOp), par)
                 else:  # sin, cos, tanh
                     new_real = Real_Op(random.choice(RealUnOp2), par)
@@ -3760,7 +3730,6 @@ class Nodes:
             par = random.choice(self.d[FP()])
             new_fp = FP_Op(random.choice(FPUnOp), par)
             self.d[FP()].append(new_fp)
-        # elif chance < 0.67: #binary
         else:
             par = random.choice(self.d[FP()])
             operands = str(par)
@@ -3768,45 +3737,25 @@ class Nodes:
             operands += (" " + str(par))
             new_fp = FP_Op(random.choice(FPNOp), operands)
             self.d[FP()].append(new_fp)
-        '''
-        else: # Tri? fp.fma 
-            par = random.choice(self.d[FP()])
-            #self.count[par] += 1
-            operands = str(par) 
-            par = random.choice(self.d[FP()])
-            #self.count[par] += 1
-            operands += (" " + str(par))
-            par = random.choice(self.d[FP()])
-            #self.count[par] += 1
-            operands += (" " + str(par)) 
-            new_fp = FP_Op(random.choice(FPTriOp), operands)
-            self.d[FP()].append(new_fp) 
-            #self.count[new_fp] = 0
-        '''
 
     def bool_from_fp(self):
         # n-array or binary?
         if random.random() < 0.15:
             par = random.choice(self.d[FP()])
-            # self.count[par] += 1
             operand = str(par)
             new_bool = Bool_Op(random.choice(UnFPBoolOp), operand)
             self.d[Bool()].append(new_bool)
-            # self.count[new_bool] = 0
             self.dict[Bool()] += 1
             return
 
         par = random.choice(self.d[FP()])
-        # self.count[par] += 1
         operands = str(par)
         n_operands = random.randrange(1, 5)
         for _ in range(n_operands):
             par = random.choice(self.d[FP()])
-            # self.count[par] += 1
             operands += (" " + str(par))
         new_bool = Bool_Op(random.choice(IRNFPBoolOp), operands)
         self.d[Bool()].append(new_bool)
-        # self.count[new_bool] = 0
         # give possibility of asserting this new bool here?
         self.dict[Bool()] += 1
 
@@ -3857,7 +3806,6 @@ class Nodes:
                 self.d[bv_sort] = []
                 self.dict[bv_sort] = 0
             self.d[bv_sort].append(bv)
-            # self.count[bv] = 0
             self.dict[bv_sort] += 1
 
     def BV_from_BV(self):
@@ -3881,8 +3829,6 @@ class Nodes:
                 width = s.w + s2.w
                 par1 = random.choice(self.d[s])
                 par2 = random.choice(self.d[s2])
-                # self.count[par1] += 1
-                # self.count[par2] += 1
                 operand = str(par1) + " " + str(par2)
                 new_BV = BV_Op("concat", operand)
                 bv_sort = BV(width)
@@ -3890,7 +3836,6 @@ class Nodes:
                     self.d[bv_sort] = []
                     self.dict[bv_sort] = 0
                 self.d[bv_sort].append(new_BV)
-                # self.count[new_BV] = 0
                 self.dict[bv_sort] += 1
 
             elif prob < 0.1:  # repeat
@@ -3899,23 +3844,19 @@ class Nodes:
                 width = ii * s.w
                 operator = '(_ repeat {})'.format(ii)
                 par = random.choice(self.d[s])
-                # self.count[par] += 1
                 new_BV = BV_Op(operator, par)
                 bv_sort = BV(width)
                 if bv_sort not in self.d.keys():
                     self.d[bv_sort] = []
                     self.dict[bv_sort] = 0
                 self.d[bv_sort].append(new_BV)
-                # self.count[new_BV] = 0
                 self.dict[bv_sort] += 1
 
             elif prob < 0.2:  # unary, extract
                 if random.random() < 0.5:  # unary
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     new_BV = BV_Op(random.choice(Un_BV_BV), par)
                     self.d[s].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[s] += 1
                 else:  # extract
                     width = s.w
@@ -3924,14 +3865,12 @@ class Nodes:
                     operator = "(_ extract {} {})".format(parameter1, parameter2)
                     new_width = parameter1 - parameter2 + 1
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     new_BV = BV_Op(operator, par)
                     bv_sort = BV(new_width)
                     if bv_sort not in self.d.keys():
                         self.d[bv_sort] = []
                         self.dict[bv_sort] = 0
                     self.d[bv_sort].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[bv_sort] += 1
 
             elif prob < 0.3:
@@ -3943,14 +3882,12 @@ class Nodes:
                         operator = "(_ sign_extend {})".format(ii)
                     width = s.w + ii
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     new_BV = BV_Op(operator, par)
                     bv_sort = BV(width)
                     if bv_sort not in self.d.keys():
                         self.d[bv_sort] = []
                         self.dict[bv_sort] = 0
                     self.d[bv_sort].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[bv_sort] += 1
                 else:
                     if random.random() < 0.5:
@@ -3958,31 +3895,24 @@ class Nodes:
                     else:
                         operator = "(_ rotate_right {})".format(ii)
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     new_BV = BV_Op(operator, par)
                     self.d[s].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[s] += 1
 
             elif prob < 0.4:  # n-array
                 a = random.randint(1, 3)
                 par = random.choice(self.d[s])
-                # self.count[par] += 1
                 operand = str(par)
                 for _ in range(a):
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     operand += (" " + str(par))
                 new_BV = BV_Op(random.choice(N_BV_BV), operand)
                 self.d[s].append(new_BV)
-                # self.count[new_BV] = 0
                 self.dict[s] += 1
 
             else:  # binary
                 par1 = random.choice(self.d[s])
                 par2 = random.choice(self.d[s])
-                # self.count[par1] += 1
-                # self.count[par2] += 1
                 operand = str(par1) + " " + str(par2)
                 operator = random.choice(Bin_BV_BV)
                 new_BV = BV_Op(operator, operand)
@@ -3991,11 +3921,9 @@ class Nodes:
                         self.d[BV(1)] = []
                         self.dict[BV(1)] = 0
                     self.d[BV(1)].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[BV(1)] += 1
                 else:
                     self.d[s].append(new_BV)
-                    # self.count[new_BV] = 0
                     self.dict[s] += 1
 
     def bool_from_BV(self):
@@ -4008,22 +3936,17 @@ class Nodes:
             if random.random() < 0.33:
                 par1 = random.choice(self.d[s])
                 par2 = random.choice(self.d[s])
-                # self.count[par1] += 1
-                # self.count[par2] += 1
                 operand = str(par1) + " " + str(par2)
                 new_bool = Bool_Op(random.choice(Bin_BV_Bool), operand)
             else:
                 par = random.choice(self.d[s])
-                # self.count[par] += 1
                 operand = str(par)
                 n = random.randint(1, 4)
                 for _ in range(n):
                     par = random.choice(self.d[s])
-                    # self.count[par] += 1
                     operand += (" " + str(par))
                 new_bool = Bool_Op(random.choice(N_BV_Bool), operand)
             self.d[Bool()].append(new_bool)
-            # self.count[new_bool] = 0
             self.dict[Bool()] += 1
 
     def new_array_boolector(self, logic):
@@ -4432,7 +4355,6 @@ class Nodes:
                     # else: new_bool = Bool_Op('uf7_3', operands)
 
         self.d[Bool()].append(new_bool)
-        # self.count[new_bool] = 0
         self.dict[Bool()] += 1
 
         if m_use_ite and random.random() < 0.05:
@@ -4714,46 +4636,6 @@ def add_z3_qe_cmd():
     #  print('(apply ' + random.choice(tactics) + ')')
     print('(check-sat-using ' + random.choice(['qe-light', 'qe', 'qe2', 'qe_rec']) + ')')
 
-
-def add_z3_tactic_cmd():
-    if not m_test_z3_tactic: return
-    tactics = [
-        # 'aig ',
-        'solve-eqs ',
-        'horn-simplify '
-        'subpaving ',
-        'ackermannize_bv ',
-        'reduce-bv-size ',
-        'macro-finder ',
-        'ufbv-rewriter ',
-        'reduce-invertible ',
-        'add-bounds ',
-        'sat-preprocess '
-        'eq2bv ',
-        'pb2bv ',
-        'fix-dl-var ',
-        'unit-subsume-simplify ',
-        'normalize-bounds ',
-        'purify-arith ',
-        'dom-simplify ',
-        # 'propagate-bv-bounds-new '
-        'ctx-solver-simplify ',
-    ]
-    final_t = ['qfnia ', 'aufnira ', 'qfufbv_ackr ', 'smt ', 'sat ', 'qflia ', 'lra ', 'lia ']
-    final_t += ['bv ', 'nra ', 'uflra ', 'lira ', 'ufbv ', 'nlsat ', 'qfufbv_ackr ', 'qfufbv ', 'qfauflia ', 'qfaufbv ']
-    # tactics += final_t
-    # or-else
-    if random.random() < 0.5:
-        checkcmd = "(apply (and-then simplify "
-    else:
-        checkcmd = "(apply (or-else simplify "
-    to_set1 = random.sample(tactics, random.randint(4, 12))
-    for tac in to_set1: checkcmd += tac
-    checkcmd += random.choice(final_t)
-    checkcmd += "))\n"
-    print(checkcmd)
-
-
 def add_smt_opt_cmd(nodes, logic):
     if m_test_smt_opt:
         nodes_vars = []
@@ -4872,7 +4754,6 @@ def add_additional_cmds(nodes, logic):
     global m_test_named_assert
     if m_test_smt_opt: add_smt_opt_cmd(nodes, logic)
     if m_test_qe: add_z3_qe_cmd()
-    if m_test_z3_tactic: add_z3_tactic_cmd()
     return
 
 
@@ -5178,7 +5059,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
             if random.random() < ni:
                 nodes.new_int()
             if random.random() < e:
-                # nodes.int_from_int()
                 if m_test_string:
                     nodes.string_from_string()
                 elif m_test_string_lia:
@@ -5193,7 +5073,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     nodes.bag_from_bag()
 
             if random.random() < f:
-                # nodes.bool_from_int()
                 if m_test_string:
                     nodes.bool_from_string()
                 elif m_test_string_lia:
@@ -5347,8 +5226,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 nodes.BV_from_BV()
             if random.random() < u:
                 nodes.bool_from_BV()
-            # if random.random() < m_create_bool_rate:
-            #    nodes.bool_from_bool()
             if random.random() < gen_arr:
                 nodes.new_array(logic)
             if random.random() < gen_arr:
@@ -5398,7 +5275,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
             if random.random() < ni:
                 nodes.new_int()
             if random.random() < e:
-                # nodes.int_from_int()
                 if m_test_string:
                     nodes.string_from_string()
                 elif m_test_string_lia:
@@ -5413,7 +5289,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     nodes.bag_from_bag()
 
             if random.random() < f:
-                # nodes.bool_from_int()
                 if m_test_string:
                     nodes.bool_from_string()
                 elif m_test_string_lia:
@@ -5428,12 +5303,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     nodes.bool_from_bag()
                 if m_test_seplog and random.random() < 0.7:
                     nodes.bool_from_seplog()
-            # if random.random() < g:
-            #    nodes.new_real()
-            # if random.random() < h:
-            #    nodes.real_from_real()
-            # if random.random() < m:
-            #    nodes.bool_from_real()
             if random.random() < g:
                 if m_test_fp:
                     nodes.new_fp()
@@ -5500,7 +5369,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
             if random.random() < ni:
                 nodes.new_int()
             if random.random() < e:
-                # nodes.int_from_int()
                 if m_test_string:
                     nodes.string_from_string()
                 elif m_test_string_lia:
@@ -5515,7 +5383,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     nodes.bag_from_bag()
 
             if random.random() < f:
-                # nodes.bool_from_int()
                 if m_test_string:
                     nodes.bool_from_string()
                 elif m_test_string_lia:
@@ -5530,12 +5397,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     nodes.bool_from_bag()
                 if m_test_seplog and random.random() < 0.7:
                     nodes.bool_from_seplog()
-            # if random.random() < g:
-            #    nodes.new_real()
-            # if random.random() < h:
-            #    nodes.real_from_real()
-            # if random.random() < m:
-            #    nodes.bool_from_real()
             if random.random() < g:
                 if m_test_fp:
                     nodes.new_fp()
@@ -5599,7 +5460,6 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     if random.random() < m_max_smt_rate:
                         print('(assert {})'.format(new_node))
                     else:
-                        # print('(assert-soft {})'.format(new_node))
                         print('(assert-soft {} :weight {})'.format(new_node, str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
@@ -5615,12 +5475,10 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     if random.random() < m_max_smt_rate:
                         print('(assert {})'.format(node1))
                     else:
-                        # print('(assert-soft {})'.format(node1))
                         print('(assert-soft {} :weight {})'.format(node1, str(random.randint(1, 20))))
                     if random.random() < m_max_smt_rate:
                         print('(assert {})'.format(node2))
                     else:
-                        # print('(assert-soft {})'.format(node2))
                         print('(assert-soft {} :weight {})'.format(node2, str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
@@ -5697,7 +5555,6 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
             nodes.new_int()
 
         if random.random() < e:
-            # nodes.int_from_int()
             if m_test_string:
                 nodes.string_from_string()
             elif m_test_string_lia:
@@ -5712,7 +5569,6 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
                 nodes.bag_from_bag()
 
         if random.random() < f:
-            # nodes.bool_from_int()
             if m_test_string:
                 nodes.bool_from_string()
             elif m_test_string_lia:
@@ -5727,13 +5583,6 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
                 nodes.bool_from_bag()
             if m_test_seplog and random.random() < 0.7:
                 nodes.bool_from_seplog()
-
-        # if random.random() < g:
-        #    nodes.new_real()
-        # if random.random() < h:
-        #    nodes.real_from_real()
-        # if random.random() < m:
-        #    nodes.bool_from_real()
 
         if random.random() < g:
             if m_test_fp:
@@ -6419,9 +6268,6 @@ if __name__ == "__main__":
     parser.add_argument('--datalogchcvar', dest='datalogchcvar', default=3, type=int,
                         help="Max. number of var in each rule")
     parser.add_argument('--datalogchctactic', dest='datalogchctactic', default=3, type=int, help="Test horn tactic")
-
-    # parser.add_argument('--recfun', dest='recfun', default=0, type=int, help="test recursive functions")
-    # parser.add_argument('--recfunlogic', dest='recfunlogic', default="int", type=str, help="test recursive functions")
 
     parser.add_argument('--difftest', dest='difftest', default=0, type=int,
                         help="diff test: compare default and synthesis")
