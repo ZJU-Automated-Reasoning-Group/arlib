@@ -15,9 +15,9 @@ from typing import List
 
 import z3
 
-from .config import m_init_abstraction
 from .formula_manager import BooleanFormulaManager, TheoryFormulaManager
-from .utils import SolverResult, InitAbstractionStrategy
+from ..config import m_init_abstraction
+from ..utils import SolverResult, InitAbstractionStrategy
 
 
 def extract_literals_square(clauses: List) -> List[List]:

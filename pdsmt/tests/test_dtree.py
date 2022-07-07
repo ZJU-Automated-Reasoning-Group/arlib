@@ -1,9 +1,8 @@
 # coding: utf-8
 
 from . import TestCase, main
-
-from ..bool.knowledge_compiler.dtree import Dtree_Compiler
 from ..bool.knowledge_compiler.dimacs_parser import parse_cnf_string
+from ..bool.knowledge_compiler.dtree import Dtree_Compiler
 
 cnf_foo = """
 p cnf 4 4\n
@@ -17,7 +16,6 @@ p cnf 4 4\n
 class TestDTree(TestCase):
 
     def test_dtree(self):
-
         clausal_form, nvars = parse_cnf_string(cnf_foo, True)
         print(clausal_form)
         dtree_compiler = Dtree_Compiler(clausal_form)

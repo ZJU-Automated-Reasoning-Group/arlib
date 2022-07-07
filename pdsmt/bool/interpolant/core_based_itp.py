@@ -6,6 +6,7 @@ Perhaps integrating the following implementations
     (it uses C++ and some third-party libraries)
 """
 from typing import List
+
 import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver

@@ -1,4 +1,5 @@
 from typing import List
+
 from .io import NumericClausesReader
 from .simplifier import cnf_subsumption_elimination, cnf_hidden_subsumption_elimination, \
     cnf_asymmetric_subsumption_elimination, cnf_asymmetric_tautoly_elimination, \

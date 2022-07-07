@@ -2,15 +2,15 @@
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
-from typing import List, Optional
+from typing import List
 
-from .bool import PySATSolver, simplify_numeric_clauses
-from .config import m_smt_solver_bin
-from .exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
-from .theory import SMTLibTheorySolver
-from .utils import SolverResult, parse_sexpr_string
+from ..bool import PySATSolver, simplify_numeric_clauses
+from ..theory import SMTLibTheorySolver
+from ..utils import SolverResult, parse_sexpr_string
+from ..utils.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
+from ..config import m_smt_solver_bin
 
 # import random
 
@@ -73,7 +73,7 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool) -> List
     for i in range(len(all_assumptions)):
         result = results[i].get()
         if result == "":  # empty core indicates SAT?
-            return [] # if it is true, we may need to raise TheorySolverSuccess
+            return []  # if it is true, we may need to raise TheorySolverSuccess
         raw_unsat_cores.append(result)
 
     return raw_unsat_cores
@@ -129,7 +129,7 @@ def parallel_cdclt(smt2string: str, logic: str):
 
     logger.debug("Finish initializing Bool solvers")
 
-    sample_number = 5
+    sample_number = 10
     try:
         while True:
             is_sat = bool_solver.check_sat()

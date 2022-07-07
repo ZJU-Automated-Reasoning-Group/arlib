@@ -5,8 +5,7 @@ import z3
 
 from . import TestCase, main
 from .formula_generator import FormulaGenerator
-from .grammar_gene import gene_smt2string
-from ..parallel_cdclt import parallel_cdclt
+from ..cdcl.parallel_cdclt import parallel_cdclt
 
 
 def gen_small_formula(logic: str):
@@ -38,10 +37,10 @@ class TestParallelSMTSolver(TestCase):
 
     def test_par_solver(self):
         logging.basicConfig(level=logging.DEBUG)
-        # smt2string = gen_small_formula("real")
 
         for _ in range(10):
-            smt2string = gene_smt2string("QF_AUFLIA")
+            # smt2string = gene_smt2string("QF_NRA")
+            smt2string = gen_small_formula("real")
             try:
                 fml = z3.And(z3.parse_smt2_string(smt2string))
                 if is_simple_formula(fml):
@@ -51,7 +50,7 @@ class TestParallelSMTSolver(TestCase):
                 print(smt2string)
             res = parallel_cdclt(smt2string, logic="ALL")
             print(res)
-            break # exit when the first one is finished
+            break  # exit when the first one is finished
 
 
 if __name__ == '__main__':

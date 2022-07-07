@@ -8,7 +8,7 @@ import os
 import signal
 import psutil
 
-from pdsmt.parallel_cdclt import parallel_cdclt
+from pdsmt.cdcl.parallel_cdclt import parallel_cdclt
 
 g_smt2_file = None
 

@@ -3,9 +3,9 @@ Using pySMT to compute propositional itp
 """
 
 import z3
-from pysmt.shortcuts import Symbol
 # from pysmt.shortcuts import binary_interpolant, sequence_interpolant
 from pysmt.shortcuts import Solver, Interpolator
+from pysmt.shortcuts import Symbol
 from pysmt.typing import BOOL
 
 

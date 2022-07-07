@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from ..formula_manager import merge_unsat_cores
+from ..cdcl.formula_manager import merge_unsat_cores
 from . import TestCase, main
 
 

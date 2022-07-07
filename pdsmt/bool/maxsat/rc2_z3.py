@@ -6,8 +6,8 @@
 #
 # See also https://github.com/pysathq/pysat and papers in CP 2014, JSAT 2015.
 
-from typing import List
 import sys
+from typing import List
 
 import z3
 

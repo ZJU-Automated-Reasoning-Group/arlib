@@ -9,7 +9,7 @@ from typing import List
 
 import z3
 
-from mapped_blast import translate_smt2formula_to_cnf
+from .mapped_blast import translate_smt2formula_to_cnf
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +182,7 @@ def test_bv_itp():
     fml_b = z3.And(y == 3, x == 1)
     bv_itp.compute_itp(fml_a, fml_b, [x, y])
 
+
 test_bv_itp()
 
 
@@ -191,4 +192,4 @@ def test_bool_itp():
     fml_b = z3.Not(a1)
     print(list(BooleanInterpolant.compute_itp(fml_a, fml_b, [a1])))
 
-#test_bool_itp()
+# test_bool_itp()

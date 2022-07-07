@@ -4,10 +4,10 @@ import logging
 import z3
 
 from . import TestCase, main
-from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
-from ..global_params.paths import cvc5_exec, z3_exec
 from .formula_generator import FormulaGenerator
 from .grammar_gene import gene_smt2string
+from ..global_params.paths import cvc5_exec, z3_exec
+from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 
 
 def gen_small_formula(logic: str):

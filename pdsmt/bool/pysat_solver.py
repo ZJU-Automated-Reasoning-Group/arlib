@@ -115,6 +115,10 @@ class PySATSolver(object):
         for m in models:
             assert not aux_sol.solve(m)
             reduced_models.append(aux_sol.get_core())
+
+        # TODO: it seems that the reduced models may also contain some redundancy
+        #  E.g., it could be [[1, -3], [ 1, -3]].
+        #  Perhaps we can run the CNF simplifier here
         return reduced_models
 
     def get_model(self):

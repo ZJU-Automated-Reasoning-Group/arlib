@@ -25,8 +25,8 @@ from random import shuffle
 from subprocess import PIPE, Popen
 from typing import Optional, List, Dict
 
-from .exceptions import SMTLIBSolverError
-from .utils import SolverResult
+from pdsmt.utils.exceptions import SMTLIBSolverError
+from pdsmt.utils import SolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -455,4 +455,3 @@ class SMTLIBPortfolioSolver(SMTLIBSolver):
             print(status)
             raise SMTLIBSolverError(status)
             # return False
-

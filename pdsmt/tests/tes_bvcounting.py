@@ -1,6 +1,7 @@
 # coding: utf-8
-import z3
 import os
+
+import z3
 
 from . import TestCase, main
 from ..bv.bvcounting import BVModelCounter
@@ -15,6 +16,7 @@ class TestBVModelCounter(TestCase):
     """
     Test the model counter for QF_BV formulas
     """
+
     def test_model_counter(self):
         for _ in range(1):
             x = z3.BitVec("x", 4)

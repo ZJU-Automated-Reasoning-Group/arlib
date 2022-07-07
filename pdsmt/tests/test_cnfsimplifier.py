@@ -1,6 +1,6 @@
 # coding: utf-8
-from ..bool import simplify_numeric_clauses
 from . import TestCase, main
+from ..bool import simplify_numeric_clauses
 
 
 class TestCNFSimplifier(TestCase):

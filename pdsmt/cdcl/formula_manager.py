@@ -1,11 +1,10 @@
 # coding: utf-8
 """
-
-# TODO: currently, I only remove redundant ones in the unsat cores.
-#  Actually, our goal is to build blocking clauses from the unsat cores.
-#   (e.g., let "1 and 2 and 4" be a core, the blocking clause should be "-1 or -2 or -4"
-#  So, another strategy is to build the blocking clauses first, and then use
-#  the simplifier in bool.cnfsimplifier (which has many features)
+TODO: currently, I only remove redundant ones in the unsat cores.
+  Actually, our goal is to build blocking clauses from the unsat cores.
+   (e.g., let "1 and 2 and 4" be a core, the blocking clause should be "-1 or -2 or -4"
+   So, another strategy is to build the blocking clauses first, and then use
+   the simplifier in bool.cnfsimplifier (which has many features)
 """
 
 import itertools
@@ -33,8 +32,7 @@ def merge_unsat_cores(cores: List):
 
 
 class BooleanFormulaManager(object):
-    """
-    Track the correlations between Boolean variables and theory atoms
+    """Track the correlations between Boolean variables and theory atoms
     """
 
     def __init__(self):
@@ -48,8 +46,7 @@ class BooleanFormulaManager(object):
 
 
 class TheoryFormulaManager(object):
-    """
-    TBD
+    """TBD
     """
 
     def __init__(self):

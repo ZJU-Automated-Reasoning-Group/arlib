@@ -264,7 +264,7 @@ class DNNF_Compiler:
                 return self.cache[l_key][c_key]
             else:
                 r = self.cnf2ddnnf(dtree)
-                if r != False and r is not None: # seems redundant?
+                if r != False and r is not None:  # seems redundant?
                     if self.cache is None:
                         self.cache = {}
                     if l_key not in self.cache:

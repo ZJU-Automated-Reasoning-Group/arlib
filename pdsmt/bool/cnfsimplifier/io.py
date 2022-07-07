@@ -1,5 +1,6 @@
 # coding: utf-8
 from typing import List
+
 from .clause import Clause
 from .cnf import Cnf
 from .variable import Variable
@@ -9,6 +10,7 @@ class NumericClausesReader:
     """
     Build an internal CNF object from Boolean clauses [[int]]
     """
+
     def __init__(self):
         pass
 

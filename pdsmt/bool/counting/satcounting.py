@@ -30,7 +30,7 @@ def solve_with_bin_solver(cmd, timeout=30):
     p.stdout.close()
     timer.cancel()
     if p.poll() is None:
-        p.terminate() # need this?
+        p.terminate()  # need this?
 
     if is_timeout[0]:
         return "timeout"
@@ -73,4 +73,3 @@ class SATModelCounter:
         2. Count the models subject to each cube in parallel
         """
         raise NotImplementedError
-

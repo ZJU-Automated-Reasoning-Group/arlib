@@ -7,6 +7,7 @@ class Cnf:
     """
     A special CNF class (currently for implementing CNF simplifications)
     """
+
     def __init__(self, clause_list: list):
         self.clause_list = clause_list
 

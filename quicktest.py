@@ -1,9 +1,5 @@
 import logging
-import time
-import z3
-from pdsmt.simple_cdclt import simple_cdclt
-from pdsmt.parallel_cdclt import parallel_cdclt
-from pdsmt.profiler import Profiler, render_profiles
+from pdsmt.cdcl.parallel_cdclt import parallel_cdclt
 
 
 def string_test():

@@ -23,10 +23,9 @@ class TestBoolEngines(TestCase):
                 print("SAT")
                 models = s.sample_models(10)
                 reduced_models = s.reduce_models(models)
-                assert(len(models) <= len(reduced_models))
+                assert (len(models) <= len(reduced_models))
                 break
 
 
 if __name__ == '__main__':
     main()
-

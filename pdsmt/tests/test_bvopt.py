@@ -33,6 +33,7 @@ class TestBVOMT(TestCase):
     """
     Test the OMT(BV) solver
     """
+
     def test_bvopt(self):
         import logging
         logging.basicConfig(level=logging.DEBUG)

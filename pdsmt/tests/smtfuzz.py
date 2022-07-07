@@ -4636,6 +4636,7 @@ def add_z3_qe_cmd():
     #  print('(apply ' + random.choice(tactics) + ')')
     print('(check-sat-using ' + random.choice(['qe-light', 'qe', 'qe2', 'qe_rec']) + ')')
 
+
 def add_smt_opt_cmd(nodes, logic):
     if m_test_smt_opt:
         nodes_vars = []

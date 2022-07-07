@@ -1,8 +1,8 @@
 # coding: utf-8
 import z3
 
-from ..bool.counting.satcounting import SATModelCounter
 from .mapped_blast import translate_smt2formula_to_cnf_file
+from ..bool.counting.satcounting import SATModelCounter
 
 
 class BVModelCounter:
@@ -18,4 +18,3 @@ class BVModelCounter:
         translate_smt2formula_to_cnf_file(fml, cnf_file)
         sat_counter = SATModelCounter()
         return sat_counter.count_models(cnf_file)
-

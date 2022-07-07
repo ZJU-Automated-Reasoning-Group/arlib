@@ -2,12 +2,12 @@
 import logging
 import re
 
-from .config import m_smt_solver_bin
 from .formula_manager import BooleanFormulaManager
 from .preprocessing import SMTPreprocess
-from .smtlib_solver import SMTLIBSolver
-from .theory import SMTLibTheorySolver
-from .utils import SolverResult, RE_GET_EXPR_VALUE_ALL
+from ..config import m_smt_solver_bin
+from ..theory import SMTLibTheorySolver
+from ..utils import SolverResult, RE_GET_EXPR_VALUE_ALL
+from ..utils.smtlib_solver import SMTLIBSolver
 
 logger = logging.getLogger(__name__)
 
