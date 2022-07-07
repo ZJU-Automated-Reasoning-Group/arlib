@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+Parallel CDCL(T)-style SMT Solving
+"""
+
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
@@ -11,8 +15,6 @@ from ..theory import SMTLibTheorySolver
 from ..utils import SolverResult, parse_sexpr_string
 from ..utils.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from ..config import m_smt_solver_bin
-
-# import random
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +32,10 @@ def check_theory_consistency(init_theory_fml: str, assumptions: List[str], bin_s
     TODO: this function should be able to take a set of assumptions?
     Check T-consistency
     :param init_theory_fml: the initial theory formula (it is not a good idea
-         to pass it everytime we call this function, because init_theory_fml is const
+         to pass it everytime when we call this function, because init_theory_fml is const
     :param assumptions: a list of Boolean variables
     :param bin_solver: the binary solver
-    :return: unsat core if T-inconsistent
+    :return: unsat core if T-inconsistent; raise TheorySolverSuccess if T-consistent
     """
     logger.debug("One theory worker starts: {}".format(bin_solver))
     theory_solver = SMTLibTheorySolver(bin_solver)
@@ -45,8 +47,18 @@ def check_theory_consistency(init_theory_fml: str, assumptions: List[str], bin_s
     # return ""  # empty core indicates SAT?
 
 
-def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool) -> List[str]:
-    """Call theory solvers"""
+def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool: multiprocessing.Pool):
+    """
+    Call theory solvers to solve a set of assumptions.
+    :param init_theory_fml: The theory formula encoding the mapping between
+            Boolean variables and the theory atoms they encode
+            (e.g., b1 = x >= 3, b2 = y <= 5, where b1 and b2 are Boolean variables)
+    :param all_assumptions: The set of assumptions to be checked,
+            (e.g., [[b1, b2], [b1], [not b1, b2]]
+    :param pool: The process pool for parallel solving
+    :return: The set of unsat cores (given by the theory solvers)
+            Note that the theory solvers may throw an exception TheorySolverSuccess,
+    """
     results = []
     # TODO: If len(all_assumptions) == 1, then there is only one model to check.
     #   For such cases, we may use a portfolio mode (TBD)
@@ -79,8 +91,14 @@ def theory_solve(init_theory_fml: str, all_assumptions: List[str], pool) -> List
     return raw_unsat_cores
 
 
-def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
-    """ Given a unsat core in string, build a numerical clause """
+def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager) -> List[int]:
+    """
+     Given an unsat core in string, build a blocking numerical clause from the core
+    :param core: The unsat core built a theory solver
+    :param bool_manager: The manger for tracking the information of Boolean abstraciton
+         (e.g., the mapping between the name and the numerical ID)
+    :return: The blocking clauses built from the unsat core
+    """
     parsed_core = parse_sexpr_string(core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
@@ -95,6 +113,13 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager):
 
 
 def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager) -> List[str]:
+    """
+    Given a set of Boolean models, built the assumptions (to be checked by the theory solvers)
+    :param bool_models: The set of Boolean models
+    :param bool_manager: The manger for tracking the information of Boolean abstraciton
+         (e.g., the mapping between the name and the numerical ID)
+    :return: The set of assumptions
+    """
     all_assumptions = []
     for model in bool_models:
         assumptions = []
@@ -108,8 +133,13 @@ def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanForm
     return all_assumptions
 
 
-def parallel_cdclt(smt2string: str, logic: str):
-    """The entrance"""
+def parallel_cdclt(smt2string: str, logic: str) -> SolverResult:
+    """
+    The main function of the parallel CDCL(T) SMT solving enigne
+    :param smt2string: The formula to be solved
+    :param logic: The logic type
+    :return: The satisfiability result
+    """
     preprocessor = SMTPreprocess()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
 

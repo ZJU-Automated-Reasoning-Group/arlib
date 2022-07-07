@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+For testing the quantifier elimination engine
+"""
+
 import z3
 
 from . import TestCase, main

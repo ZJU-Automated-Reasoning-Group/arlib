@@ -1,4 +1,9 @@
 # coding: utf-8
+"""
+This is a simplified, sequential version of the CDCL(T)-based SMT solving engine.
+
+It may serve as a reference implementation of the main enigne.
+"""
 import logging
 import re
 

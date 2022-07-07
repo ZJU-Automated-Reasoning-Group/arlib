@@ -18,23 +18,22 @@ def merge_unsat_cores(cores: List):
     """
     Remove subsumed and redundant cores
     :param cores: a set of unsat cores
-    :return:
+    :return: a new set of unsat cores
 
     Consider the following cores
      [[-1, 2], [4], [5, 6, 2], [-1, 2, 3] [4]]
 
     - [4] and [4] are redundant
     - [-1, 2] subsumes [-1, 2, 3]?
-
     """
     cores.sort()
     return list(cores for cores, _ in itertools.groupby(cores))
 
 
 class BooleanFormulaManager(object):
-    """Track the correlations between Boolean variables and theory atoms
     """
-
+    Track the correlations between Boolean variables and theory atoms
+    """
     def __init__(self):
         self.smt2_signature = []  # s-expression of the signature
         self.smt2_init_cnt = ""  # initial cnt in SMT2 (without "assert")
@@ -46,9 +45,9 @@ class BooleanFormulaManager(object):
 
 
 class TheoryFormulaManager(object):
-    """TBD
     """
-
+    Maintain theory information
+    """
     def __init__(self):
         self.smt2_signature = []  # variables
         self.smt2_init_cnt = ""

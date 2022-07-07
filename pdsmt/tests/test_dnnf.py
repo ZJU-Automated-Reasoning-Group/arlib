@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+For testing the knowledge compilation engine
+"""
 
 from . import TestCase, main
 from ..bool.knowledge_compiler.dimacs_parser import parse_cnf_string

@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+For testing model counting of bit-vector formulas
+"""
 import os
 
 import z3

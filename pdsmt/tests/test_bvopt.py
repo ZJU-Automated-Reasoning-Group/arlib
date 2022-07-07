@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+For testing OMT(BV) solving engine
+"""
 import z3
 
 from . import TestCase, main

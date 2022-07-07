@@ -1,7 +1,6 @@
 # coding: utf-8
 """
-FIXME: seems to have bugs? (need also track the Boolean variables introduced by the CNF transformers?
-
+Craig interpolant generation for QF_BV formulas
 """
 import logging
 from enum import Enum

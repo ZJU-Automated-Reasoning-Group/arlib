@@ -1,5 +1,9 @@
 # coding: utf-8
+"""
+For testing the unsat core simplifiers
 
+NOTE: we may also use third-party CNF simplifiers to deal with the unsat cores.
+"""
 from ..cdcl.formula_manager import merge_unsat_cores
 from . import TestCase, main
 

@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+For testing the smtlib-based solver (used for interacting with binary solvers)
+"""
 import logging
 
 import z3

@@ -1,11 +1,11 @@
 # coding: utf-8
+"""
+A simple/native implementation of DPLL algorithm
+# TODO: optimize and adapt the interface
+"""
 import copy
 
 from typing import List
-
-
-# TODO: optimize and adapt the interface
-
 
 def is_unit(clause: List[int]):
     return len(clause) == 1

@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+For testing the QF_BV solver
+"""
+
 from . import TestCase, main
 from ..bv.bvsat import BVSolver
 

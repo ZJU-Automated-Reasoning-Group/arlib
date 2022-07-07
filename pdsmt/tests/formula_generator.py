@@ -1,14 +1,13 @@
-# import argparse
-import random
-
-import z3
-
 """
 Randomly generate a formula using z3's Python APIs
+
 NOTE: This file is a quite simplified implementation
       For generating more diverse and complex queries,
       please refer to grammar_gene.py
 """
+import random
+
+import z3
 
 
 class FormulaGenerator:

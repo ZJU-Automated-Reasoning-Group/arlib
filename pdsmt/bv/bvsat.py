@@ -1,5 +1,7 @@
 # coding: utf-8
-
+"""
+Flattening-based QF_BV solver
+"""
 import logging
 import time
 

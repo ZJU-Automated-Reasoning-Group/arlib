@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+For testing CDCL(T)-based parallel SMT solving engine
+"""
+
 import logging
 
 import z3

@@ -1,5 +1,6 @@
 """
-This file will use fuzzsat.py and other files to generate more complex formula
+This file will use fuzzsat.py, smtfuzz.py, and fuzzqbf.py to generate more complex formula
+
 """
 
 import logging

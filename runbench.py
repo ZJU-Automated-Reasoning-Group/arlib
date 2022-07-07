@@ -71,7 +71,7 @@ def solve_with_bin_solver(cmd: [str], timeout: int):
 
 def solve_file(filename: str, logic: str):
     # cmd = ["/Users/prism/Work/cvc5/build/bin/cvc5", "-q"]
-    cmd = ["python3", "/Users/prism/Work/pdsmt/pdsmt.py", "--logic", logic, filename]
+    cmd = ["python3", "/Users/prism/Work/pdsmt/cdclt.py", "--logic", logic, filename]
     out = solve_with_bin_solver(cmd, 10)
     print(out)
 

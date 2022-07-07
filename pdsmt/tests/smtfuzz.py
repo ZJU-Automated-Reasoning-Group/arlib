@@ -1,5 +1,7 @@
 # coding: utf-8
-# import time
+"""
+Generating SMT-LIB2 formulas
+"""
 import argparse
 import itertools
 import math

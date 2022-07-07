@@ -1,7 +1,8 @@
 # coding: utf-8
 """
-The the Boolean-level reasoning engines in the parallel CDCL(T) engine
+For testing the the Boolean-level reasoning engines in the parallel CDCL(T) SMT solving engine
 """
+
 from . import TestCase, main
 # from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 # from ..global_params.paths import cvc5_exec, z3_exec

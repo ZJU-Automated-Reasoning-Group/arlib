@@ -1,5 +1,7 @@
 # coding: utf-8
 """
+OMT(BV) Solver
+
 1. Translate a bit-vector optimization problem to a weighted MaxSAT problem,
 2. Call a third-path MaxSAT solver
 

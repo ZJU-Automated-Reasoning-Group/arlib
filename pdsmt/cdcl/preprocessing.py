@@ -1,5 +1,10 @@
 # coding: utf-8
 """
+This is the preprocessing phase of the CDCL(T)-based SMT solving engine.
+The key goal is to perform basic simplifications and convert the simplified formula
+to CNF (from which we can build the Boolean abstraction of the original SMT formula)
+
+NOTE:
     Consider the function SMTPreprocess.from_smt2_string,
     After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
     the object clauses is of the following form

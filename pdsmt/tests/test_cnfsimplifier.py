@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+For testing the CNF simplifier
+"""
+
 from . import TestCase, main
 from ..bool import simplify_numeric_clauses
 

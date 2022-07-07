@@ -1,4 +1,8 @@
 # coding: utf-8
+"""
+Some facilities for converting between different forms of Boolean formulas
+E.g., tseitin's transformation
+"""
 from typing import List
 
 

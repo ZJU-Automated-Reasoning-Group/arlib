@@ -1,6 +1,7 @@
 # coding: utf-8
 """
-Public subclasses of Exception
+Public subclasses of different Exceptions for the pdsmt library
+
 """
 
 

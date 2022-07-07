@@ -1,4 +1,7 @@
 # coding: utf-8
+"""
+Simple facilities for dealing with s-expr strings.
+"""
 
 # Being explicit about Types
 Symbol = str
