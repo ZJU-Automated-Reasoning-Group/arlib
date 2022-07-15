@@ -51,7 +51,8 @@ class MaxSATSolver:
 
     def tacas16_binary_search(self):
         """
-        Implement Nadel's algorithm for OMT(BV) "Bit-Vector Optimization"
+        Implement Nadel's algorithm for OMT(BV) "Bit-Vector Optimization (TACAS'16)"
+
         Key idea: OMT on unsigned BV can be seen as lexicographic optimization over the bits in the
         bitwise representation of the objective, ordered from the most-significant bit (MSB)
         to the least-significant bit (LSB).
@@ -73,6 +74,8 @@ class MaxSATSolver:
             for b in bits:
                 assumption_lits.append(b)
                 if not sat_oracle.solve(assumptions=assumption_lits):
+                    # if b cannot be positive, then set it to be negative?
+                    # after this round, we will try the remaining bits
                     assumption_lits.pop()
                     assumption_lits.append(-b)
         except Exception as ex:
