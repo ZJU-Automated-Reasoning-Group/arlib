@@ -1,27 +1,7 @@
-"""
-Baselines for solving EFSMT(BV)
-"""
 from typing import List
 
 import z3
 from z3.z3util import get_vars
-
-
-def qsmt(y: List[z3.ExprRef], phi: z3.ExprRef) -> z3.CheckSatResult:
-    """
-    Solves exists x. forall y. phi(x, y)
-    TODO: should we use smtlib_solver to support more engines? (instead of just z3)
-    """
-    try:
-        # set_param("verbose", 15)
-        qfml = z3.ForAll(y, phi)
-        # print(qfml)
-        s = z3.SolverFor("UFBV")  # can be very fast
-        # s = Solver()
-        s.add(qfml)
-        return s.check()
-    except Exception as ex:
-        print(ex)
 
 
 def cegar_efsmt(y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):

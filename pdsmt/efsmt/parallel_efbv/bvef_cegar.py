@@ -7,7 +7,6 @@ from typing import List
 import z3
 from z3.z3util import get_vars
 
-from bvef_baselines import qsmt, cegar_efsmt
 from exists_solver import ExistsSolver
 from forall_solver import ForAllSolver
 
@@ -87,17 +86,9 @@ def test_efsmt():
     fmla = z3.Implies(z3.And(y > 0, y < 10), y - 2 * x < 7)
     # '''
     # fmlb = And(y > 3, x == 1)
-    start = time.time()
-    print(cegar_efsmt([y], fmla, 100))
-    print(time.time() - start)
 
     start = time.time()
     print(bv_efsmt_with_uniform_sampling([y], fmla, 100))
-    print(time.time() - start)
-    # '''
-
-    start = time.time()
-    print(qsmt([y], fmla))
     print(time.time() - start)
 
 
@@ -111,10 +102,6 @@ def test():
     # s = Solver()
     s.add(qfml)
     print(s.check())  # unsat
-    print(time.time() - start)
-
-    start = time.time()
-    print(cegar_efsmt([x, y, z], fml))
     print(time.time() - start)
 
 
