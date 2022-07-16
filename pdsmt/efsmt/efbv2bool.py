@@ -10,13 +10,13 @@ Translate EFSMT(BV) to Boolean-level Problems
 import logging
 
 import z3
-from ..bv.mapped_blast import translate_smt2formula_to_cnf
+from ..bv import translate_smt2formula_to_cnf
 
 
 logger = logging.getLogger(__name__)
 
 
-class EFSMT2Bool:
+class EFBV2Bool:
 
     def __init__(self, universal_vars: z3.ExprRef, fml: z3.BoolRef):
         self.bv_fml = fml  # a quantifier-free bit-vector formula
