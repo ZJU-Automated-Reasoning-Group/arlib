@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Craig interpolant generation for QF_BV formulas
+For maintaining the correlations of bit-vec and Boolean world.
 """
 import logging
 from typing import List
