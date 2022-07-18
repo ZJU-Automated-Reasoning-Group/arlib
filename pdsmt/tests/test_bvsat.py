@@ -3,8 +3,8 @@
 For testing the QF_BV solver
 """
 
-from . import TestCase, main
-from ..bv.bvsat import BVSolver
+from pdsmt.tests import TestCase, main
+from pdsmt.bv.bvsat import BVSolver
 
 
 class TestBVSat(TestCase):

@@ -3,9 +3,9 @@
 For testing the knowledge compilation engine
 """
 
-from . import TestCase, main
-from ..bool.knowledge_compiler.dimacs_parser import parse_cnf_string
-from ..bool.knowledge_compiler.obdd import BDD_Compiler
+from pdsmt.tests import TestCase, main
+from pdsmt.bool.knowledge_compiler.dimacs_parser import parse_cnf_string
+from pdsmt.bool.knowledge_compiler.obdd import BDD_Compiler
 
 cnf_foo3 = """
 p cnf 4 4\n

@@ -6,8 +6,8 @@ import os
 
 import z3
 
-from . import TestCase, main
-from ..bv.bvcounting import BVModelCounter
+from pdsmt.tests import TestCase, main
+from pdsmt.bv.bvcounting import BVModelCounter
 
 
 def clear_tmp_cnf_files():

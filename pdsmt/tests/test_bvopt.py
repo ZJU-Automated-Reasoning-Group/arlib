@@ -4,9 +4,9 @@ For testing OMT(BV) solving engine
 """
 import z3
 
-from . import TestCase, main
-from .formula_generator import FormulaGenerator
-from ..bv.bvopt import OMTBVSolver
+from pdsmt.tests import TestCase, main
+from pdsmt.tests.formula_generator import FormulaGenerator
+from pdsmt.bv.bvopt import OMTBVSolver
 
 
 def is_sat(e):

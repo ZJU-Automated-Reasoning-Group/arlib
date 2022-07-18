@@ -4,8 +4,8 @@ For testing the unsat core simplifiers
 
 NOTE: we may also use third-party CNF simplifiers to deal with the unsat cores.
 """
-from ..cdcl.formula_manager import merge_unsat_cores
-from . import TestCase, main
+from pdsmt.cdcl.formula_manager import merge_unsat_cores
+from pdsmt.tests import TestCase, main
 
 
 class TestUnsatCore(TestCase):

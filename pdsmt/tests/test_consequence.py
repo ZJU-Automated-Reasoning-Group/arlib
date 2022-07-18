@@ -1,5 +1,5 @@
 # coding: utf-8
-from . import TestCase, main
+from pdsmt.tests import TestCase, main
 
 
 class TestConsequence(TestCase):

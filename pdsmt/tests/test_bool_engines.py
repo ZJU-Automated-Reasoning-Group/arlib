@@ -3,11 +3,11 @@
 For testing the the Boolean-level reasoning engines in the parallel CDCL(T) SMT solving engine
 """
 
-from . import TestCase, main
+from pdsmt.tests import TestCase, main
 # from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 # from ..global_params.paths import cvc5_exec, z3_exec
-from .grammar_gene import gen_cnf_numeric_clauses
-from ..bool.pysat_solver import PySATSolver
+from pdsmt.tests.grammar_gene import gen_cnf_numeric_clauses
+from pdsmt.bool.pysat_solver import PySATSolver
 
 
 class TestBoolEngines(TestCase):
