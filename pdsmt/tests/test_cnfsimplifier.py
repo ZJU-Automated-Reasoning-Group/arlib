@@ -3,8 +3,8 @@
 For testing the CNF simplifier
 """
 
-from . import TestCase, main
-from ..bool import simplify_numeric_clauses
+from pdsmt.tests import TestCase, main
+from pdsmt.bool import simplify_numeric_clauses
 
 
 class TestCNFSimplifier(TestCase):

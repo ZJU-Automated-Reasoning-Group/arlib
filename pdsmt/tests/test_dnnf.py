@@ -3,10 +3,10 @@
 For testing the knowledge compilation engine
 """
 
-from . import TestCase, main
-from ..bool.knowledge_compiler.dimacs_parser import parse_cnf_string
-from ..bool.knowledge_compiler.dnnf import DNNF_Compiler
-from ..bool.knowledge_compiler.dtree import Dtree_Compiler
+from pdsmt.tests import TestCase, main
+from pdsmt.bool.knowledge_compiler.dimacs_parser import parse_cnf_string
+from pdsmt.bool.knowledge_compiler.dnnf import DNNF_Compiler
+from pdsmt.bool.knowledge_compiler.dtree import Dtree_Compiler
 
 cnf_foo2 = """
 p cnf 4 4\n

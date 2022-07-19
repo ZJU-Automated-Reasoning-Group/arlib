@@ -7,9 +7,9 @@ import logging
 
 import z3
 
-from . import TestCase, main
-from .formula_generator import FormulaGenerator
-from ..cdcl.parallel_cdclt import parallel_cdclt
+from pdsmt.tests import TestCase, main
+from pdsmt.tests.formula_generator import FormulaGenerator
+from pdsmt.cdcl.parallel_cdclt import parallel_cdclt
 
 
 def gen_small_formula(logic: str):
