@@ -1,1 +1,1 @@
-from .formula_manager import BooleanFormulaManager, TheoryFormulaManager, SMTPreprocess
+from .smt_formula_manager import BooleanFormulaManager, TheoryFormulaManager, SMTPreprocess

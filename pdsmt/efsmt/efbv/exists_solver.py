@@ -1,84 +1,68 @@
-"""
-TODO: should we perform bit-blasting, and implement this part in the bit-level?
-"""
 from typing import List
-from enum import Enum
-from random import randrange
+import random
 
-import z3
+from pysat.solvers import Solver
+from pysat.formula import CNF
 
+from pdsmt.efsmt.efbv.efbv_formula_manager import EFBVFormulaManager
 
-class IncrementalMode(Enum):
-    PUSHPOP = 0  # use push/pop
-    ASSUMPTION = 1  # use assumption literal
-    NOINC = 2  # non incremental, every time, create a new solver
+sat_solvers = ['cadical', 'gluecard30', 'gluecard41', 'glucose30', 'glucose41', 'lingeling',
+               'maplechrono', 'maplecm', 'maplesat', 'minicard', 'mergesat3', 'minisat22', 'minisat-gh']
 
-
-m_incremental_mode = IncrementalMode.PUSHPOP
-
-
-# m_incremental_mode = IncrementalMode.ASSUMPTION
 
 class ExistsSolver(object):
-    def __init__(self, cared_vars: List, phi: z3.ExprRef):
-        self.x_vars = cared_vars
-        self.fmls = [phi]
-        self.cared_bits = []
-        for var in cared_vars:
-            self.cared_bits = self.cared_bits + [z3.Extract(i, i, var) == 1 for i in range(var.size())]
+    def __init__(self, manager: EFBVFormulaManager):
+        self.solver_name = "cadical"
+        self.fml_manager = manager
+        self._solver = Solver(name=self.solver_name)
+        self._clauses = [] # do not add fml_manager.bool_clauses here
 
-    def get_uniform_samples_with_xor(self, num_samples: int) -> List[z3.ModelRef]:
+    def get_random_assignment(self):
+        """Randomly assign values to the existential variables
+        result = []
+        for v in self.fml_manager.existential_bools:
+            if random.random() < 0.5:
+                result.append(v)
+            else:
+                result.append(-v)
+        return result
         """
-        Get num_samples models (projected to vars)
-        TODO: I think this could be run in parallel?
-        """
-        models = []
-        s = z3.SolverFor("QF_BV")
-        s.add(z3.And(self.fmls))
-        num_success = 0
-        if m_incremental_mode == IncrementalMode.PUSHPOP:
-            while True:
-                s.push()
-                rounds = 3  # why 3?
-                for _ in range(rounds):
-                    trials = 10
-                    fml = z3.BoolVal(randrange(0, 2))
-                    for i in range(trials):
-                        fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
-                    # TODO: maybe use assumption literal (faster than push/pop)?
-                    s.add(fml)
-                if s.check() == z3.sat:
-                    models.append(s.model())
-                    num_success += 1
-                    if num_success == num_samples:
-                        break
-                s.pop()
-        elif m_incremental_mode == IncrementalMode.ASSUMPTION:
-            while True:
-                rounds = 3  # why 3?
-                assumption = z3.BoolVal(True)
-                for _ in range(rounds):
-                    trials = 10
-                    fml = z3.BoolVal(randrange(0, 2))
-                    for _ in range(trials):
-                        fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
-                    assumption = z3.And(assumption, fml)
-                    # TODO: maybe use assumption literal (faster than push/pop)?
-                if s.check(assumption) == z3.sat:
-                    models.append(s.model())
-                    num_success += 1
-                    if num_success == num_samples:
-                        break
-        return models
+        return [v if random.random() < 0.5 else -v for v in self.fml_manager.existential_bools]
 
-    def get_models(self, num_samples: int) -> List[z3.ModelRef]:
-        # return self.get_uniform_samples_with_xor(num_samples)
-        models = []
-        s = z3.SolverFor("QF_BV")
-        s.add(z3.And(self.fmls))
-        if s.check() == z3.sat:
-            models.append(s.model())
-            if num_samples > 1:
-                models = models + self.get_uniform_samples_with_xor(num_samples - 1)
-        # print(models)
-        return models
+    def check_sat(self):
+        """Generate more or more assignments (for the existential values)
+        NOTE: in the first round, we use randomly assign values to the existential varialbes?
+        """
+        if len(self._clauses) == 0:  # the first round
+            return self.get_random_assignment()
+        else:
+            return self._solver.solve()
+
+    def add_clause(self, clause: List[int]):
+        self._solver.add_clause(clause)
+        self._clauses.append(clause)
+
+    def add_clauses(self, clauses: List[List[int]]):
+        """Update self._clauses
+        E.g., refinement from the ForAllSolver
+        """
+        for cls in clauses:
+            self._solver.add_clause(cls)
+            self._clauses.append(cls)
+
+    def add_cnf(self, cnf: CNF):
+        # self.solver.append_formula(cnf.clauses, no_return=False)
+        for cls in cnf.clauses:
+            self._solver.add_clause(cls)
+            self._clauses.append(cls)
+
+    def get_model(self):
+        return self._solver.get_model()
+
+
+def test_prop():
+    cnf = CNF(from_clauses=[[1, 3], [-1, 2, -4], [2, 4]])
+    # solver_name = random.choice(sat_solvers)
+    sol = ExistsSolver()
+    sol.add_cnf(cnf)
+    print(sol.check_sat())

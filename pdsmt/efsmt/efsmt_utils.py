@@ -1,11 +1,13 @@
 """Some basic functions for efsmt
 """
 import time
-
 import z3
 
-from ..global_params import z3_exec, cvc5_exec
-from ..utils.smtlib_solver import SMTLIBSolver
+from pdsmt.global_params import z3_exec, cvc5_exec
+from pdsmt.utils.smtlib_solver import SMTLIBSolver
+
+sat_solvers = ['cadical', 'gluecard30', 'gluecard41', 'glucose30', 'glucose41', 'lingeling',
+               'maplechrono', 'maplecm', 'maplesat', 'minicard', 'mergesat3', 'minisat22', 'minisat-gh']
 
 
 def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):
@@ -38,4 +40,3 @@ def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):
         print(res)
     bin_solver.stop()
     return res
-

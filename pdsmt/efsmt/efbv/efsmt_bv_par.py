@@ -1,4 +1,18 @@
-# coding: utf-8
+""" Solving Exits-Forall Problem (currently focus on bit-vec?)
+
+Possible extensions:
+- better generalizaton for esolver
+- better generalizaton for fsolver
+- uniform sampling for processing multiple models each round?
+
+- use unsat core??
+
+However, the counterexample may not be general enough to exclude a large class of invalid expressions,
+which will lead to the repetition of several loop iterations. We believe our sampling technique could
+be a good enhancement to CEGIS. By generating several diverse counterexamples, the verifier can
+provide more information to the learner so that it can make more progress on its own,
+limiting the number of calls to the verifier
+"""
 import argparse
 import logging
 import time
@@ -10,34 +24,12 @@ from z3.z3util import get_vars
 from exists_solver import ExistsSolver
 from forall_solver import ForAllSolver
 
-"""
-Solving Exits-Forall Problem (currently focus on bit-vec?)
 
-https://github.com/pysmt/pysmt/blob/97088bf3b0d64137c3099ef79a4e153b10ccfda7/examples/efsmt.py
-
-
-Possible extensions:
-- better generalizaton for esolver
-- better generalizaton for fsolver
-- uniform sampling for processing multiple models each round?
-
-- use unsat core??
-
-However, the counterexample may not be general enough to exclude a large class of invalid expressions, 
-which will lead to the repetition of several loop iterations. We believe our sampling technique could 
-be a good enhancement to CEGIS. By generating several diverse counterexamples, the verifier can 
-provide more information to the learner so that it can make more progress on its own,
-limiting the number of calls to the verifier
-"""
-
-
-def bv_efsmt_with_uniform_sampling(y: List, phi: z3.ExprRef, maxloops=None):
+def bv_efsmt_with_uniform_sampling(x: List, y: List, phi: z3.ExprRef, maxloops=None):
     """
     Solves exists x. forall y. phi(x, y)
     FIXME: inconsistent with efsmt
     """
-    x = [item for item in get_vars(phi) if item not in y]
-
     esolver = ExistsSolver(x, z3.BoolVal(True))
     fsolver = ForAllSolver()
     loops = 0
@@ -83,25 +75,13 @@ def bv_efsmt_with_uniform_sampling(y: List, phi: z3.ExprRef, maxloops=None):
 
 def test_efsmt():
     x, y, z = z3.BitVecs("x y z", 16)
-    fmla = z3.Implies(z3.And(y > 0, y < 10), y - 2 * x < 7)
-    # '''
-    # fmlb = And(y > 3, x == 1)
+    fml = z3.Implies(z3.And(y > 0, y < 10), y - 2 * x < 7)
+
+    universal_vars = [y]
+    existential_vars = [item for item in get_vars(fml) if item not in universal_vars]
 
     start = time.time()
-    print(bv_efsmt_with_uniform_sampling([y], fmla, 100))
-    print(time.time() - start)
-
-
-def test():
-    w, x, y, z = z3.Ints("w x y z")
-    fml = z3.And(x <= y, z <= z3.If(x >= w, x, w))
-
-    start = time.time()
-    qfml = z3.ForAll([x, y, z], fml)
-    s = z3.SolverFor("UFBV")
-    # s = Solver()
-    s.add(qfml)
-    print(s.check())  # unsat
+    print(bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, fml, 100))
     print(time.time() - start)
 
 
@@ -120,4 +100,3 @@ if __name__ == '__main__':
     logging.debug("Start to solve")
 
     test_efsmt()
-    # test()
