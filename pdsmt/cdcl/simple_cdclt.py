@@ -7,17 +7,16 @@ It may serve as a reference implementation of the main enigne.
 import logging
 import re
 
-from .formula_manager import BooleanFormulaManager
-from .preprocessing import SMTPreprocess
-from ..config import m_smt_solver_bin
-from ..theory import SMTLibTheorySolver
-from ..utils import SolverResult, RE_GET_EXPR_VALUE_ALL
-from ..utils.smtlib_solver import SMTLIBSolver
+from pdsmt.cdcl import BooleanFormulaManager, SMTPreprocess
+from pdsmt.config import m_smt_solver_bin
+from pdsmt.theory import SMTLibTheorySolver
+from pdsmt.utils import SolverResult, RE_GET_EXPR_VALUE_ALL
+from pdsmt.utils.smtlib_solver import SMTLIBSolver
 
 logger = logging.getLogger(__name__)
 
 
-class SMTLibBoolSolver():
+class SMTLibBoolSolver:
     """
     This implementation is brittle. Particularly, it uses an SMT solver to
     solve Boolean formulas, making the interaction both convenient (in terms of unsat cores)
@@ -46,8 +45,7 @@ class SMTLibBoolSolver():
         raw_model = self.bin_solver.get_expr_values(self.fml_manager.bool_vars_name)
         tuples_model = re.findall(RE_GET_EXPR_VALUE_ALL, raw_model)
         # e.g., [('p@0', 'true'), ('p@1', 'false')]
-        return [pair[0] if pair[1].startswith("t") else \
-                    "(not {})".format(pair[0]) for pair in tuples_model]
+        return [pair[0] if pair[1].startswith("t") else "(not {})".format(pair[0]) for pair in tuples_model]
 
 
 def boolean_abstraction(smt2string: str):

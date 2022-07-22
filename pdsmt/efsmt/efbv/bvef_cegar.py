@@ -119,5 +119,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
     logging.debug("Start to solve")
 
-    # test_efsmt()
-    test()
+    test_efsmt()
+    # test()

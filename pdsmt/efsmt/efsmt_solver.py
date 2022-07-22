@@ -7,8 +7,9 @@ from enum import Enum
 from typing import List
 
 import z3
+from z3.z3util import get_vars
 
-from .efsmt_utils import simple_cegar_efsmt, solve_with_bin_smt
+from .efsmt_utils import solve_with_bin_smt
 
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,54 @@ class EFSMTStrategy(Enum):
     QBF = 5,
     SAT = 6,
     PARALLEL_CEGAR = 7
+
+
+def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
+    """ Solves exists x. forall y. phi(x, y) with simple CEGAR
+    """
+    x = [item for item in get_vars(phi) if item not in y]
+    # set_param("verbose", 15)
+    # set_param("smt.arith.solver", 3)
+    if "IA" in logic:
+        qf_logic = "QF_LIA"
+    elif "RA" in logic:
+        qf_logic = "QF_LRA"
+    elif "BV" in logic:
+        qf_logic = "QF_BV"
+    else:
+        qf_logic = ""
+
+    if qf_logic != "":
+        esolver = z3.SolverFor(qf_logic)
+        fsolver = z3.SolverFor(qf_logic)
+    else:
+        esolver = z3.Solver()
+        fsolver = z3.Solver()
+
+    esolver.add(z3.BoolVal(True))
+
+    loops = 0
+    while maxloops is None or loops <= maxloops:
+        loops += 1
+        # print("round: ", loops)
+        eres = esolver.check()
+        if eres == z3.unsat:
+            return z3.unsat
+        else:
+            emodel = esolver.model()
+            mappings = [(var, emodel.eval(var, model_completion=True)) for var in x]
+            sub_phi = z3.simplify(z3.substitute(phi, mappings))
+            fsolver.push()
+            fsolver.add(z3.Not(sub_phi))
+            if fsolver.check() == z3.sat:
+                fmodel = fsolver.model()
+                y_mappings = [(var, fmodel.eval(var, model_completion=True)) for var in y]
+                sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
+                esolver.add(sub_phi)
+                fsolver.pop()
+            else:
+                return z3.sat
+    return z3.unknown
 
 
 class EFSMTSolver:

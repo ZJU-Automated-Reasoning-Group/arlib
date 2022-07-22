@@ -20,8 +20,8 @@ from pysat.formula import CNF, WCNF
 from pysat.solvers import Solver
 from z3.z3util import get_vars
 
-from . import translate_smt2formula_to_cnf
-from ..bool import MaxSATSolver
+from pdsmt.bv import translate_smt2formula_to_cnf
+from pdsmt.bool import MaxSATSolver
 
 logger = logging.getLogger(__name__)
 

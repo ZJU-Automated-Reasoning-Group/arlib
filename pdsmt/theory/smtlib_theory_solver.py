@@ -6,7 +6,7 @@ Note that we only use it for dealing with a conjunction of formulas.
 import logging
 from typing import List
 
-from ..utils.smtlib_solver import SMTLIBSolver, SMTLIBPortfolioSolver
+from pdsmt.utils.smtlib_solver import SMTLIBSolver, SMTLIBPortfolioSolver
 
 logger = logging.getLogger(__name__)
 

@@ -4,8 +4,8 @@ Model counting for QF_BV formulas
 """
 import z3
 
-from .mapped_blast import translate_smt2formula_to_cnf_file
-from ..bool.counting.satcounting import SATModelCounter
+from pdsmt.bv import translate_smt2formula_to_cnf_file
+from pdsmt.bool.counting.satcounting import SATModelCounter
 
 
 class BVModelCounter:

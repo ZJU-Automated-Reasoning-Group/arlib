@@ -8,13 +8,12 @@ import multiprocessing
 from multiprocessing import cpu_count
 from typing import List
 
-from .formula_manager import BooleanFormulaManager
-from .preprocessing import SMTPreprocess
-from ..bool import PySATSolver, simplify_numeric_clauses
-from ..theory import SMTLibTheorySolver
-from ..utils import SolverResult, parse_sexpr_string
-from ..utils.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
-from ..config import m_smt_solver_bin
+from pdsmt.cdcl import SMTPreprocess, BooleanFormulaManager
+from pdsmt.bool import PySATSolver, simplify_numeric_clauses
+from pdsmt.theory import SMTLibTheorySolver
+from pdsmt.utils import SolverResult, parse_sexpr_string
+from pdsmt.utils.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
+from pdsmt.config import m_smt_solver_bin
 
 logger = logging.getLogger(__name__)
 

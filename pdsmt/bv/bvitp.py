@@ -8,7 +8,7 @@ from typing import List
 
 import z3
 
-from .mapped_blast import translate_smt2formula_to_cnf
+from pdsmt.bv import translate_smt2formula_to_cnf
 
 logger = logging.getLogger(__name__)
 

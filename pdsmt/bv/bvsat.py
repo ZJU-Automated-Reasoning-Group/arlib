@@ -10,8 +10,8 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 from z3.z3util import get_vars
 
-from .mapped_blast import translate_smt2formula_to_cnf
-from ..utils import SolverResult
+from pdsmt.bv import translate_smt2formula_to_cnf
+from pdsmt.utils import SolverResult
 
 logger = logging.getLogger(__name__)
 

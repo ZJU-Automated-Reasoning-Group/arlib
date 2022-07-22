@@ -7,6 +7,7 @@ import copy
 
 from typing import List
 
+
 def is_unit(clause: List[int]):
     return len(clause) == 1
 
