@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Union
 import random
+import copy
 
 from pysat.solvers import Solver
 from pysat.formula import CNF
@@ -29,14 +30,30 @@ class ExistsSolver(object):
         """
         return [v if random.random() < 0.5 else -v for v in self.fml_manager.existential_bools]
 
-    def check_sat(self):
+    def get_models(self, num=1):
         """Generate more or more assignments (for the existential values)
         NOTE: in the first round, we use randomly assign values to the existential varialbes?
         """
         if len(self._clauses) == 0:  # the first round
             return self.get_random_assignment()
         else:
-            return self._solver.solve()
+            if self._solver.solve():
+                return self._solver.get_model()
+            return []
+
+    def get_candidates(self, num=1) -> Union[bool, List[CNF]]:
+        models = self.get_models(num)
+        if len(models) == 0:
+            return False
+        results = []
+        for e_model in models:
+            # sub_phi = self.fml_manager.bool_clauses
+            sub_phi = copy.deepcopy(self.fml_manager.bool_clauses)  # should we do this?
+            sub_phi.append(e_model)  # add the model additional constraints (act as "substitute"?)
+            pos = CNF(from_clauses=sub_phi)
+            neg_sub_phi = pos.negate()
+            results.append(neg_sub_phi)
+        return results
 
     def add_clause(self, clause: List[int]):
         self._solver.add_clause(clause)

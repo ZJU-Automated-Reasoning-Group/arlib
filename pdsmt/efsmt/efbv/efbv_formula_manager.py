@@ -40,6 +40,9 @@ class EFBVFormulaManager:
         for cls in clauses:
             self.bool_clauses.append([int(lit) for lit in cls.split(" ")])
 
+    def build_bv_model(self):
+        raise NotImplementedError
+
 
 def test_efsmt():
     from z3.z3util import get_vars

@@ -6,9 +6,6 @@ import z3
 from pdsmt.global_params import z3_exec, cvc5_exec
 from pdsmt.utils.smtlib_solver import SMTLIBSolver
 
-sat_solvers = ['cadical', 'gluecard30', 'gluecard41', 'glucose30', 'glucose41', 'lingeling',
-               'maplechrono', 'maplecm', 'maplesat', 'minicard', 'mergesat3', 'minisat22', 'minisat-gh']
-
 
 def solve_with_bin_smt(y, phi: z3.ExprRef, logic: str, solver_name: str):
     """Call bin SMT solvers to solve exists forall"""
