@@ -50,7 +50,7 @@ class TestEFBVManager(TestCase):
         from z3.z3util import get_vars
         # logging.basicConfig(level=logging.DEBUG)
 
-        for _ in range(10):
+        for _ in range(20):
             existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
             vars_fml = [str(v) for v in get_vars(fml)]
             if not ("x" in vars_fml and "y" in vars_fml):
@@ -62,7 +62,7 @@ class TestEFBVManager(TestCase):
             fml_manager.initialize(fml, existential_vars, universal_vars)
 
             res_a = solve_with_z3(fml)
-            bool_fml, bool_u_vars = fml_manager.to_z3_clauses("q")
+            bool_u_vars, bool_fml = fml_manager.to_z3_clauses("q")
             res_b = solve_with_z3(bool_fml)
             if res_a != res_b:
                 print("inconsistent!!")

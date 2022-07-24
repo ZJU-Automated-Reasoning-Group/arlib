@@ -23,7 +23,7 @@ class FormulaGenerator:
         # hard_bools are the cnts that must enforced
         # e.g., to enforce the absence of overflow and underflow!
         self.hard_bools = []
-        self.bv_signed = False
+        self.bv_signed = True
         self.bv_no_overflow = False
         self.bv_no_underflow = False
 

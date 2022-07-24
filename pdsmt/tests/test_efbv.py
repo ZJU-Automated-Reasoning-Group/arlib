@@ -58,12 +58,13 @@ class TestEFBVSolver(TestCase):
             if is_simple_formula(fml):
                 continue
 
-            res_a, model = solve_with_z3(universal_vars, fml)
             res_b = efsmt_bv_seq(existential_vars, universal_vars, fml)
+            res_a, model = solve_with_z3(universal_vars, fml)
             # res_b = simple_cegar_efsmt_bv(existential_vars, universal_vars, fml)
             if res_a != res_b:
                 print("inconsistent!!")
                 print(res_a, res_b)
+                # print(fml)
                 print(model)
                 break
             # break

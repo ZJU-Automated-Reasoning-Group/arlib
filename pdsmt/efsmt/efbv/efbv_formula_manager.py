@@ -45,6 +45,8 @@ class EFBVFormulaManager:
         logger.debug("boolean clauses:  {}".format(self.bool_clauses))
 
     def to_z3_clauses(self, prefix: str):
+        """Map to z3 formula (this function does not track the correlations with
+          the original z3 formula)"""
         int2var = {}
         expr_clauses = []
         universal_vars = []
@@ -56,15 +58,16 @@ class EFBVFormulaManager:
                 if numeric_var in int2var:
                     z3_var = int2var[numeric_var]
                 else:
+                    # create new Boolean vars
                     z3_var = z3.Bool("{0}{1}".format(prefix, numeric_var))
+                    int2var[numeric_var] = z3_var
                     if numeric_var in self.universal_bools:
                         universal_vars.append(z3_var)
-                    int2var[numeric_var] = z3_var
                 z3_lit = z3.Not(z3_var) if numeric_lit < 0 else z3_var
                 expr_cls.append(z3_lit)
             expr_clauses.append(z3.Or(expr_cls))
 
-        return z3.And(expr_clauses), universal_vars
+        return universal_vars, z3.And(expr_clauses)
 
 
 def test_efsmt():
@@ -81,5 +84,3 @@ def test_efsmt():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     test_efsmt()
-
-

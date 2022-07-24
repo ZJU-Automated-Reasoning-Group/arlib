@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 def solve_qbf(universal_vars: List, fml: z3.ExprRef):
-    sol = z3.SolverFor("BV")
+    sol = z3.Solver()
     sol.add(z3.ForAll(universal_vars, fml))
-    print(sol)
+    print(sol.to_smt2())
     res = sol.check()
     if res == z3.sat:
         return EFBVResult.SAT
@@ -37,6 +37,8 @@ def efsmt_bv_seq(existential_vars: List, universal_vars: List, phi: z3.ExprRef, 
     fml_manager.initialize(phi, existential_vars, universal_vars)
 
     u_vars, z3fml = fml_manager.to_z3_clauses(prefix="q")
+    # print(u_vars)
+    # print(z3fml)
     return solve_qbf(u_vars, z3fml)
 
     """
