@@ -9,7 +9,10 @@ import z3
 
 from pdsmt.tests import TestCase, main
 from pdsmt.tests.formula_generator import FormulaGenerator
+from pdsmt.tests.grammar_gene import gene_smt2string
+
 from pdsmt.cdcl.parallel_cdclt import parallel_cdclt
+from pdsmt.utils import SolverResult
 
 
 def gen_small_formula(logic: str):
@@ -37,14 +40,27 @@ def is_simple_formula(fml: z3.ExprRef):
     return False
 
 
+def solve_with_z3(smt2string: str):
+    fml = z3.And(z3.parse_smt2_string(smt2string))
+    sol = z3.Solver()
+    sol.add(fml)
+    res = sol.check()
+    if res == z3.sat:
+        return SolverResult.SAT
+    elif res == z3.unsat:
+        return SolverResult.UNSAT
+    else:
+        return SolverResult.UNKNOWN
+
+
 class TestParallelSMTSolver(TestCase):
 
     def test_par_solver(self):
-        logging.basicConfig(level=logging.DEBUG)
+        # logging.basicConfig(level=logging.DEBUG)
 
         for _ in range(10):
-            # smt2string = gene_smt2string("QF_NRA")
-            smt2string = gen_small_formula("real")
+            smt2string = gene_smt2string("QF_LRA")
+            # smt2string = gen_small_formula("real")
             try:
                 fml = z3.And(z3.parse_smt2_string(smt2string))
                 if is_simple_formula(fml):
@@ -53,7 +69,11 @@ class TestParallelSMTSolver(TestCase):
                 print(ex)
                 print(smt2string)
             res = parallel_cdclt(smt2string, logic="ALL")
-            print(res)
+            res_z3 = solve_with_z3(smt2string)
+            print(res, res_z3)
+            if res != res_z3:
+                print("inconsistent!!")
+
             break  # exit when the first one is finished
 
 

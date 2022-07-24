@@ -24,8 +24,8 @@ class EFBVFormulaManager:
         """
         # TODO: should handle cases where fml is simplified to be true or false
         bv2bool, bool2id, header, clauses = translate_smt2formula_to_cnf(fml)
-        logger.debug("  from bv to bools: {}".format(bv2bool))
-        logger.debug("  from bool to sat id: {}".format(bool2id))
+        # logger.debug("  from bv to bools: {}".format(bv2bool))
+        # logger.debug("  from bool to sat id: {}".format(bool2id))
 
         for bv_var in existential_vars:
             for bool_var_name in bv2bool[str(bv_var)]:
@@ -40,8 +40,31 @@ class EFBVFormulaManager:
         for cls in clauses:
             self.bool_clauses.append([int(lit) for lit in cls.split(" ")])
 
-    def build_bv_model(self):
-        raise NotImplementedError
+        logger.debug("existential vars: {}".format(self.existential_bools))
+        logger.debug("universal vars:   {}".format(self.universal_bools))
+        logger.debug("boolean clauses:  {}".format(self.bool_clauses))
+
+    def to_z3_clauses(self, prefix: str):
+        int2var = {}
+        expr_clauses = []
+        universal_vars = []
+        for clause in self.bool_clauses:
+            expr_cls = []
+            for numeric_lit in clause:
+                # if numeric_lit == 0: break
+                numeric_var = abs(numeric_lit)
+                if numeric_var in int2var:
+                    z3_var = int2var[numeric_var]
+                else:
+                    z3_var = z3.Bool("{0}{1}".format(prefix, numeric_var))
+                    if numeric_var in self.universal_bools:
+                        universal_vars.append(z3_var)
+                    int2var[numeric_var] = z3_var
+                z3_lit = z3.Not(z3_var) if numeric_lit < 0 else z3_var
+                expr_cls.append(z3_lit)
+            expr_clauses.append(z3.Or(expr_cls))
+
+        return z3.And(expr_clauses), universal_vars
 
 
 def test_efsmt():
