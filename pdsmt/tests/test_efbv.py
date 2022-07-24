@@ -46,28 +46,38 @@ def solve_with_z3(universal_vars, fml):
 
 class TestEFBVSolver(TestCase):
 
+    def test_efbv_simple(self):
+        logging.basicConfig(level=logging.DEBUG)
+        x, y = z3.BitVecs("x y", 2)
+        fml = z3.Or(x <= 3, z3.Not(y == 2))
+        print(fml)
+        print(solve_with_z3([y], fml))
+        print(efsmt_bv_seq([x], [y], fml))
+
+        # print(z3.Then('simplify', 'bit-blast', 'tseitin-cnf')(fml).as_expr())
+
     def test_efbv_solver(self):
         from z3.z3util import get_vars
         logging.basicConfig(level=logging.DEBUG)
+        if False:
+            for _ in range(30):
+                existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
+                vars_fml = [str(v) for v in get_vars(fml)]
+                if not ("x" in vars_fml and "y" in vars_fml):
+                    continue
+                if is_simple_formula(fml):
+                    continue
 
-        for _ in range(30):
-            existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
-            vars_fml = [str(v) for v in get_vars(fml)]
-            if not ("x" in vars_fml and "y" in vars_fml):
-                continue
-            if is_simple_formula(fml):
-                continue
-
-            res_b = efsmt_bv_seq(existential_vars, universal_vars, fml)
-            res_a, model = solve_with_z3(universal_vars, fml)
-            # res_b = simple_cegar_efsmt_bv(existential_vars, universal_vars, fml)
-            if res_a != res_b:
-                print("inconsistent!!")
-                print(res_a, res_b)
-                # print(fml)
-                print(model)
-                break
-            # break
+                res_b = efsmt_bv_seq(existential_vars, universal_vars, fml)
+                res_a, model = solve_with_z3(universal_vars, fml)
+                # res_b = simple_cegar_efsmt_bv(existential_vars, universal_vars, fml)
+                if res_a != res_b:
+                    print("inconsistent!!")
+                    print(res_a, res_b)
+                    # print(fml)
+                    print(model)
+                    break
+                # break
 
 
 if __name__ == '__main__':

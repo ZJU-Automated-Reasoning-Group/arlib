@@ -13,15 +13,21 @@ from pdsmt.efsmt.efbv.efbv_exists_solver import ExistsSolver
 from pdsmt.efsmt.efbv.efbv_forall_solver import ForAllSolver
 from pdsmt.efsmt.efbv.efbv_utils import EFBVResult
 
+from pdsmt.msa.mistral_msa import MSASolver
 
 logger = logging.getLogger(__name__)
 
 
 def solve_qbf(universal_vars: List, fml: z3.ExprRef):
     sol = z3.Solver()
-    sol.add(z3.ForAll(universal_vars, fml))
-    print(sol.to_smt2())
+    sol.add(z3.ForAll(universal_vars, z3.simplify(fml)))
+    print(sol)
     res = sol.check()
+
+    # msa_finder = MSASolver()
+    # msa_finder.init_from_formula(fml)
+    # print(msa_finder.find_small_model())
+
     if res == z3.sat:
         return EFBVResult.SAT
     elif res == z3.unsat:

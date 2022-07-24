@@ -24,8 +24,8 @@ class EFBVFormulaManager:
         """
         # TODO: should handle cases where fml is simplified to be true or false
         bv2bool, bool2id, header, clauses = translate_smt2formula_to_cnf(fml)
-        # logger.debug("  from bv to bools: {}".format(bv2bool))
-        # logger.debug("  from bool to sat id: {}".format(bool2id))
+        logger.debug("  from bv to bools: {}".format(bv2bool))
+        logger.debug("  from bool to sat id: {}".format(bool2id))
 
         for bv_var in existential_vars:
             for bool_var_name in bv2bool[str(bv_var)]:
