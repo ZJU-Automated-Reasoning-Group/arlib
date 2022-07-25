@@ -6,7 +6,7 @@ OMT(BV) Solver
 2. Call a third-path MaxSAT solver
 
 TODO:
-- Need to track the relations between
+- Need to track the relations betweeng
   - bit-vector variable and boolean variables
   - boolean variables and the numbers in pysat CNF
 """

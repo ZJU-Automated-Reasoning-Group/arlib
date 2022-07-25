@@ -94,4 +94,3 @@ def efsmt_bv_seq(existential_vars: List, universal_vars: List, phi: z3.ExprRef):
         return solve_with_qbf(fml_manager.to_qbf_clauses())
     elif g_efbv_tactic == EFBVTactic.SIMPLE_CEGAR:
         return simple_cegar_efsmt_bv(existential_vars, universal_vars, phi)
-
