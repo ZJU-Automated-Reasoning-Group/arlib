@@ -1,6 +1,8 @@
 # coding: utf-8
 """
 For maintaining the correlations of bit-vec and Boolean world.
+ TODO: qdimacs  http://www.qbflib.org/qdimacs.html
+      http://beyondnp.org/pages/solvers/qbf-solvers/
 """
 import logging
 from typing import List
@@ -8,23 +10,27 @@ from typing import List
 import z3
 from z3.z3util import get_vars
 
-from pdsmt.bv import translate_smt2formula_to_cnf
+from pdsmt.bv import translate_smt2formula_to_cnf, translate_smt2formula_to_numeric_clauses
 
 logger = logging.getLogger(__name__)
 
 
-class EFBVFormulaManager:
-
+class EFBV2BoolTranslator:
     def __init__(self):
         self.universal_bools = []
         self.existential_bools = []
         self.bool_clauses = []
 
-    def initialize(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def flattening(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """" Translate a bit-vector formula to a Boolean formula and initialize some self.fields
         """
         # TODO: should handle cases where fml is simplified to be true or false
-        bv2bool, bool2id, header, clauses = translate_smt2formula_to_cnf(fml)
+        # bv2bool, bool2id, header, clauses = translate_smt2formula_to_cnf(fml)
+        # for cls in clauses:
+        #    self.bool_clauses.append([int(lit) for lit in cls.split(" ")])
+
+        bv2bool, bool2id, header, self.bool_clauses = translate_smt2formula_to_numeric_clauses(fml)
+
         logger.debug("  from bv to bools: {}".format(bv2bool))
         logger.debug("  from bool to sat id: {}".format(bool2id))
 
@@ -38,15 +44,9 @@ class EFBVFormulaManager:
             for bool_var_name in bv2bool[str(bv_var)]:
                 self.universal_bools.append(bool2id[bool_var_name])
 
-        for cls in clauses:
-            self.bool_clauses.append([int(lit) for lit in cls.split(" ")])
-
         logger.debug("existential vars: {}".format(self.existential_bools))
         logger.debug("universal vars:   {}".format(self.universal_bools))
         logger.debug("boolean clauses:  {}".format(self.bool_clauses))
-
-    def to_qdimacs(self):
-        raise NotImplementedError
 
     def to_qbf_clauses(self) -> z3.ExprRef:
         """ Translate to a special QBF instance
@@ -119,18 +119,16 @@ class EFBVFormulaManager:
             cnt = z3.ForAll(universal_vars, simplified_fml)
         return cnt
 
-
-def test_efsmt():
-    from z3.z3util import get_vars
-    x, y, z = z3.BitVecs("x y z", 6)
-    fml = z3.Implies(z3.And(y > 0, y < 8), y - 2 * x < 7)
-
-    universal_vars = [y]
-    existential_vars = [item for item in get_vars(fml) if item not in universal_vars]
-    m = EFBVFormulaManager()
-    m.initialize(fml, existential_vars, universal_vars)
+    def to_qdimacs(self) -> str:
+        raise NotImplementedError
 
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    test_efsmt()
+class EFBVFormulaManager:
+
+    def __init__(self):
+        return
+
+    def to_qbf(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+        translator = EFBV2BoolTranslator()
+        translator.flattening(fml, existential_vars, universal_vars)
+        return translator.to_qbf_clauses()

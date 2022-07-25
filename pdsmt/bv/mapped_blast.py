@@ -87,6 +87,29 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
     return cnf_header, cnf_clauses
 
 
+def to_dimacs_numeric(cnf, table, proj_last):
+    cnf_clauses = []
+    projection_scope = len(table)
+
+    for clause_expr in cnf:
+        assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
+        dimacs_clause_numeric = list(dimacs_visitor_numeric(clause_expr, table))
+        cnf_clauses.append(dimacs_clause_numeric)
+
+    if proj_last:
+        n_vars = len(table)
+        clauses = []
+        for clause in cnf_clauses:
+            int_clause = clause
+            proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
+            clauses.append(proj_clause)
+        cnf_clauses = clauses
+        cnf_header = [ "p" ]
+    else:
+        cnf_header = [ "p" ]
+    return cnf_header, cnf_clauses
+
+
 def map_bitvector(input_vars):
     # print("input vars...")
     # print(input_vars)
@@ -136,6 +159,33 @@ def dimacs_visitor(exp, table):
         raise Exception("Unhandled type: ", exp)
 
 
+def dimacs_visitor_numeric(exp, table):
+    if is_literal(exp):
+        name = exp.decl().name()
+        if name in table:
+            id_var = int(table[name])
+        else:
+            id_var = len(table) + 1
+            table[name] = id_var
+        yield id_var
+        return
+    elif z3.is_not(exp):
+        assert len(exp.children()) == 1
+        ch = exp.children()[0]
+        for var in dimacs_visitor_numeric(ch, table):
+            yield -var
+        return
+    elif z3.is_or(exp):
+        for ch in exp.children():
+            for var in dimacs_visitor_numeric(ch, table):
+                yield var
+        return
+    else:
+        if z3.is_true(exp): return  # correct?
+        # elif is_false(e): return ??
+        raise Exception("Unhandled type: ", exp)
+
+
 def collect_vars(exp, seen=None):
     if seen is None:
         seen = {}
@@ -170,7 +220,12 @@ def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], 
 
 
 def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
-    raise NotImplementedError
+    projection_last = ''
+    projection_last = projection_last and projection_last.lower() != "false"
+    # print("Generating DIMACS with projection...")
+    blasted, id_table, bv2bool = bitblast(formula)
+    header, clauses = to_dimacs_numeric(blasted, id_table, projection_last)
+    return bv2bool, id_table, header, clauses
 
 
 def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):

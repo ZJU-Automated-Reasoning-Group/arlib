@@ -88,9 +88,8 @@ def efsmt_bv_seq(existential_vars: List, universal_vars: List, phi: z3.ExprRef):
     """ Solves exists x. forall y. phi(x, y)
     """
     fml_manager = EFBVFormulaManager()
-    fml_manager.initialize(phi, existential_vars, universal_vars)
 
     if g_efbv_tactic == EFBVTactic.Z3_QBF:
-        return solve_with_qbf(fml_manager.to_qbf_clauses())
+        return solve_with_qbf(fml_manager.to_qbf(phi, existential_vars, universal_vars))
     elif g_efbv_tactic == EFBVTactic.SIMPLE_CEGAR:
         return simple_cegar_efsmt_bv(existential_vars, universal_vars, phi)

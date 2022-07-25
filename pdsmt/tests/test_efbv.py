@@ -15,10 +15,10 @@ from pdsmt.efsmt.efbv.efbv_utils import EFBVResult
 
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
-    x, y = z3.BitVecs("x y", 2)
-    fg = FormulaGenerator([x, y])
+    w, x, y = z3.BitVecs("w x y", 3)
+    fg = FormulaGenerator([w, x, y])
     fml = fg.generate_formula()
-    existential_vars = [y]
+    existential_vars = [w, y]
     universal_vars = [x]
     return existential_vars, universal_vars, fml
 
@@ -50,10 +50,10 @@ class TestEFBVSolver(TestCase):
         from z3.z3util import get_vars
         logging.basicConfig(level=logging.DEBUG)
         if True:
-            for _ in range(50):
+            for _ in range(30):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
                 vars_fml = [str(v) for v in get_vars(fml)]
-                if not ("x" in vars_fml and "y" in vars_fml):
+                if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
                     continue
                 if is_simple_formula(fml):
                     continue

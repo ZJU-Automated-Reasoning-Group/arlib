@@ -7,7 +7,7 @@ from pdsmt.efsmt.efbv.efbv_formula_manager import EFBVFormulaManager
 logger = logging.getLogger(__name__)
 
 
-class ExistsSolver(object):
+class EFBVExistsSolver(object):
     def __init__(self, manager: EFBVFormulaManager):
         self.solver_name = "cadical"
         self.fml_manager = manager
