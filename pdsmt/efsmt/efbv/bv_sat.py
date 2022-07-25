@@ -17,12 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class BVSolver:
-    """
-    Solving QF_BV formulas by combing Z3 and pySAT
-      - Z3: Translate a QF_BV formula to a SAT formula
-      - pySAT: solve the translated SAT formula
-    """
-
     def __init__(self):
         self.fml = None
         self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
@@ -65,10 +59,11 @@ class BVSolver:
                 bool_model = solver.get_model()
                 logger.debug("SAT solving time: {}".format(time.time() - start_time))
                 self.model = bool_model
-                return SolverResult.SAT
+                # return SolverResult.SAT
+
                 # The following code is for building the bit-vector model
                 bv_model = {}
-                if not self.signed: # unsigned
+                if not self.signed:  # unsigned
                     for bv_var in self.bv2bool:
                         bool_vars = self.bv2bool[bv_var]
                         start = self.bool2id[bool_vars[0]]  # start ID
@@ -92,5 +87,7 @@ class BVSolver:
                 # TODO: map back to bit-vector model
                 self.model = bv_model
                 print(bv_model)
+                return SolverResult.SAT
+
         except Exception as ex:
             print(ex)

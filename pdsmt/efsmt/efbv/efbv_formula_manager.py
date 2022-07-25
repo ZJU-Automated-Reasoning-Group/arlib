@@ -45,7 +45,10 @@ class EFBVFormulaManager:
         logger.debug("universal vars:   {}".format(self.universal_bools))
         logger.debug("boolean clauses:  {}".format(self.bool_clauses))
 
-    def to_qbf_clauses(self):
+    def to_qdimacs(self):
+        raise NotImplementedError
+
+    def to_qbf_clauses(self) -> z3.ExprRef:
         """ Translate to a special QBF instance
         FIXME:
          After bit-blasting and CNF transformation, we may have many auxiliary Boolean variables.
@@ -90,6 +93,7 @@ class EFBVFormulaManager:
         cared_vars_length = len(self.existential_bools) + len(self.universal_bools)
 
         for var_id in self.existential_bools:
+            # a trick for identifying equivalent variables
             to_rep = z3.Bool("{0}{1}".format(prefix, var_id + cared_vars_length))
             var_z3 = z3.Bool("{0}{1}".format(prefix, var_id))
             replace_mappings.append((to_rep, var_z3))
@@ -108,6 +112,7 @@ class EFBVFormulaManager:
             if not (var in universal_vars or var in existential_vars):
                 auxiliary_boolean_vars.append(var)
 
+        # TODO: remove universal vars that do not appear in simplified_fml?
         if len(auxiliary_boolean_vars) >= 1:
             cnt = z3.ForAll(universal_vars, z3.Exists(auxiliary_boolean_vars, simplified_fml))
         else:

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
-def solve_with_qbf(fml: z3.ExprRef):
+def solve_with_qbf(fml: z3.ExprRef) -> EFBVResult:
     """Exists X Forall Y Exists Z . P()
     We do not need to explicitly specify the first Exists
     Z: the aux Boolean vars (e.g., introduced by the bit-blasting and CNF transformer?)
@@ -31,7 +31,7 @@ def solve_with_qbf(fml: z3.ExprRef):
         return EFBVResult.UNKNOWN
 
 
-def simple_cegar_efsmt_bv(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
+def simple_cegar_efsmt_bv(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None) -> EFBVResult:
     # set_param("verbose", 15)
     qf_logic = "QF_BV"  # or QF_UFBV
     esolver = z3.SolverFor(qf_logic)
