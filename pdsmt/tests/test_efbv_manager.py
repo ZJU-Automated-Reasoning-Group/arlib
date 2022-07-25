@@ -61,14 +61,7 @@ class TestEFBVManager(TestCase):
             fml_manager = EFBVFormulaManager()
             fml_manager.initialize(fml, existential_vars, universal_vars)
 
-            res_a = solve_with_z3(fml)
-            bool_u_vars, bool_fml = fml_manager.to_z3_clauses("q")
-            res_b = solve_with_z3(bool_fml)
-            if res_a != res_b:
-                print("inconsistent!!")
-                print(res_a, res_b)
-                break
-            print("success")
+            solve_with_z3(fml)
 
 
 if __name__ == '__main__':

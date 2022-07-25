@@ -18,14 +18,14 @@ def gen_small_bv_formula(logic: str):
     x, y = z3.BitVecs("x y", 2)
     fg = FormulaGenerator([x, y])
     fml = fg.generate_formula()
-    existential_vars = [x]
-    universal_vars = [y]
+    existential_vars = [y]
+    universal_vars = [x]
     return existential_vars, universal_vars, fml
 
 
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
+    clauses = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True
@@ -46,21 +46,11 @@ def solve_with_z3(universal_vars, fml):
 
 class TestEFBVSolver(TestCase):
 
-    def test_efbv_simple(self):
-        logging.basicConfig(level=logging.DEBUG)
-        x, y = z3.BitVecs("x y", 2)
-        fml = z3.Or(x <= 3, z3.Not(y == 2))
-        print(fml)
-        print(solve_with_z3([y], fml))
-        print(efsmt_bv_seq([x], [y], fml))
-
-        # print(z3.Then('simplify', 'bit-blast', 'tseitin-cnf')(fml).as_expr())
-
     def test_efbv_solver(self):
         from z3.z3util import get_vars
         logging.basicConfig(level=logging.DEBUG)
-        if False:
-            for _ in range(30):
+        if True:
+            for _ in range(50):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
                 vars_fml = [str(v) for v in get_vars(fml)]
                 if not ("x" in vars_fml and "y" in vars_fml):
@@ -74,7 +64,7 @@ class TestEFBVSolver(TestCase):
                 if res_a != res_b:
                     print("inconsistent!!")
                     print(res_a, res_b)
-                    # print(fml)
+                    print(fml)
                     print(model)
                     break
                 # break

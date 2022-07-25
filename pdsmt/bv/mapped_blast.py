@@ -47,7 +47,7 @@ def bitblast(formula: z3.ExprRef):
         curr_id = curr_id + 1
     # projection_scope = curr_id - 1
     g = z3.Goal()
-    g.add(map_clauses)
+    g.add(map_clauses)  # why adding these constraints?
     g.add(formula)
     t = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')
     blasted = t(g)[0]
@@ -167,6 +167,10 @@ def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], 
     #   Maybe we need to turn the parameters of "simplify"?
     header, clauses = to_dimacs(blasted, id_table, projection_last)
     return bv2bool, id_table, header, clauses
+
+
+def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
+    raise NotImplementedError
 
 
 def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
