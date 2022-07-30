@@ -10,7 +10,7 @@ from typing import List
 import z3
 from z3.z3util import get_vars
 
-from pdsmt.bv import translate_smt2formula_to_cnf, translate_smt2formula_to_numeric_clauses
+from pdsmt.bv import translate_smt2formula_to_numeric_clauses
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,11 @@ class EFBV2BoolTranslator:
         FIXME:
          After bit-blasting and CNF transformation, we may have many auxiliary Boolean variables.
          If operating over the Boolean level, it seems that we need to solve the problem below:
-                 Exists BX ForAll BY Exists BZ . BF(BX, BY, BZ)  (where BZ is the set of auxiliary variables)
+             Exists BX ForAll BY Exists BZ . BF(BX, BY, BZ)
+                 where BZ is the set of auxiliary variables)
          Instead of the following problem
-                 Exists X ForAll Y . F(X, Y)  (where X and Y are the existential and universal quantified bit-vectors, resp.)
+             Exists X ForAll Y . F(X, Y)
+                 where X and Y are the existential and universal quantified bit-vectors, resp.)
         """
         prefix = "q"
         int2var = {}
@@ -119,16 +121,44 @@ class EFBV2BoolTranslator:
             cnt = z3.ForAll(universal_vars, simplified_fml)
         return cnt
 
-    def to_qdimacs(self) -> str:
-        raise NotImplementedError
-
 
 class EFBVFormulaManager:
+    """
+    """
 
     def __init__(self):
-        return
+        self.qe_level = "word"  # { "bool", "word" }
+        # TODO: implement a native expansion-based qe procedure
+        self.qe_tactic = "qe2"  # {"qe", "qe2"}
 
     def to_qbf(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+        """Translate an EFSMT(BV) formula to a QBF formula
+        :param fml: a quantifier-free bit-vector formula
+        :param existential_vars: the set of existential quantified bit-vector variables
+        :param universal_vars: the set of universal quantified bit-vector formulas
+        :return: a quantified Boolean formula (in z3)
+        """
         translator = EFBV2BoolTranslator()
         translator.flattening(fml, existential_vars, universal_vars)
         return translator.to_qbf_clauses()
+
+    def to_sat(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+        """Translate an EFSMT(BV) formula to a SAT formula
+        :return: a quantifier-free Boolean formula (in z3)
+        """
+        if self.qe_level == "bool":
+            # first, build a QBF formula
+            qbf_fml = self.to_qbf(fml, existential_vars, universal_vars)
+            # second, use boolean-level QE to convert the QBF formula to SAT
+            sat_formula = z3.Then("simplify", self.qe_tactic)(qbf_fml).as_expr()
+            # finally, convert the SAT formula to CNF form
+            return z3.Then("simplify", "tseitin-cnf")(sat_formula).as_expr()
+        else:
+            qbv_fml = z3.ForAll(universal_vars, fml)
+            # first, use word-level QE to build a quantifier-free bit-vec formula
+            qfbv_fml = z3.Then("simplify", self.qe_tactic)(qbv_fml).as_expr()
+            # second, convert the bit-vec formula to CNF
+            return z3.Then("simplify", "bit-blast", "tseitin-cnf")(qfbv_fml).as_expr()
+
+    def to_bdd(self):
+        raise NotImplementedError
