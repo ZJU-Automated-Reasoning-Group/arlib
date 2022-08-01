@@ -23,6 +23,18 @@ class BoolSolverSuccess(SMTSuccess):
     """
 
 
+class ExitsSolverSuccess(SMTSuccess):
+    """
+    The theory solver checks T-consistency successfully
+    """
+
+
+class ForAllSolverSuccess(SMTSuccess):
+    """
+    TBD
+    """
+
+
 class SimplifierSuccess(SMTSuccess):
     """
     TBD

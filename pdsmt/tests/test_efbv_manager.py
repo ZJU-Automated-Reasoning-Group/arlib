@@ -10,7 +10,7 @@ import z3
 from pdsmt.tests import TestCase, main
 from pdsmt.tests.formula_generator import FormulaGenerator
 from pdsmt.efsmt.efbv.efbv_utils import EFBVResult
-from pdsmt.efsmt.efbv.efbv_formula_manager import EFBVFormulaManager
+from pdsmt.efsmt.efbv.efbv_formula_manager import EFBVFormulaTranslator
 
 
 def gen_small_bv_formula(logic: str):
@@ -58,7 +58,7 @@ class TestEFBVManager(TestCase):
             if is_simple_formula(fml):
                 continue
 
-            fml_manager = EFBVFormulaManager()
+            fml_manager = EFBVFormulaTranslator()
             fml_manager.initialize(fml, existential_vars, universal_vars)
 
             solve_with_z3(fml)

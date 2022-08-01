@@ -122,7 +122,7 @@ class EFBV2BoolTranslator:
         return cnt
 
 
-class EFBVFormulaManager:
+class EFBVFormulaTranslator:
     """
     """
 

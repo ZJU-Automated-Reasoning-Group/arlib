@@ -9,7 +9,7 @@ import z3
 
 from pdsmt.tests import TestCase, main
 from pdsmt.tests.formula_generator import FormulaGenerator
-from pdsmt.efsmt.efbv.efbv_seq import simple_cegar_efsmt_bv, efsmt_bv_seq
+from pdsmt.efsmt.efbv.efbv_engine import simple_cegar_efsmt_bv, efsmt_bv_seq
 from pdsmt.efsmt.efbv.efbv_utils import EFBVResult
 
 
