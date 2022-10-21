@@ -1,5 +1,5 @@
 import logging
-from pdsmt.cdcl.parallel_cdclt import parallel_cdclt
+from arlib.cdcl.parallel_cdclt import parallel_cdclt
 
 
 def string_test():

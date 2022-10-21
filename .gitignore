@@ -2,7 +2,7 @@ tmp.py
 bin_solvers
 *.prof
 .DS_Store
-pdsmt/test/.pytest_cache
+arlib/test/.pytest_cache
 *.qdimacs
 *.dot
 !test

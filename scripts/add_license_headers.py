@@ -17,7 +17,7 @@ def parse_options():
     global ARGS
     ap = argparse.ArgumentParser(
         usage='add_license_headers.py [<options>] <basedir>')
-    ap.add_argument('basedir', help='base directory of the pdSMT directory')
+    ap.add_argument('basedir', help='base directory of the arlib directory')
     ARGS = ap.parse_args()
 
 
@@ -31,9 +31,9 @@ def prepare_header():
 
 def list_files():
     """Iterable over all files that should get the copyright header."""
-    # yield f'{ARGS.basedir}/bin/pdsmt'
-    # yield f'{ARGS.basedir}/bin/pdsmt-profile'
-    yield from glob.iglob(f'{ARGS.basedir}/pdsmt/*.py')
+    # yield f'{ARGS.basedir}/bin/arlib'
+    # yield f'{ARGS.basedir}/bin/arlib-profile'
+    yield from glob.iglob(f'{ARGS.basedir}/arlib/*.py')
 
 
 def update_file(filename, new_header):

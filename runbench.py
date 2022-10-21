@@ -1,5 +1,5 @@
 """
-The script for running pdsmt.py on a dir (to solve formulas in it)
+The script for running on a dir (to solve formulas in it)
 """
 # coding: utf8
 import os
@@ -71,7 +71,7 @@ def solve_with_bin_solver(cmd: [str], timeout: int):
 
 def solve_file(filename: str, logic: str):
     # cmd = ["/Users/prism/Work/cvc5/build/bin/cvc5", "-q"]
-    cmd = ["python3", "/Users/prism/Work/pdsmt/cdclt.py", "--logic", logic, filename]
+    cmd = ["python3", "/Users/prism/Work/arlib/cdclt.py", "--logic", logic, filename]
     out = solve_with_bin_solver(cmd, 10)
     print(out)
 

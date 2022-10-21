@@ -4,7 +4,7 @@
 
 ## Parallel/Distributed Bit-Vector Optimizations
 
-See `pdsmt/bv/bvopt.py`
+See `arlib/bv/bvopt.py`
 
 - Single-objective optimization
 - Multi-objectives optimization
@@ -15,16 +15,16 @@ to a special multi-objectives optimization problem (e.g., "Bit-vector optimizati
 
 ## Bit-Vector Interpolation
 
-See `pdsmt/bv/bvipt.py`
+See `arlib/bv/bvipt.py`
 
 
 ## Bit-Vector Model Counting
 
-See `pdsmt/bv/bvcounting`
+See `arlib/bv/bvcounting`
 
 ## Parallel/Distributed CDCL(T) SMT Solving
 
-See `pdsmt/cdcl/parallel/cdclt.py`
+See `arlib/cdcl/parallel/cdclt.py`
 
 
 ## Exists-Forall over Linear Integer/Real
