@@ -47,8 +47,8 @@ def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.Ex
     esolver.add(z3.BoolVal(True))
     loops = 0
     while maxloops is None or loops <= maxloops:
+        logger.debug("  Round: {}".format(loops))
         loops += 1
-        # print("round: ", loops)
         eres = esolver.check()
         if eres == z3.unsat:
             return EFBVResult.UNSAT
@@ -79,13 +79,12 @@ def solve_efsmt_bv(existential_vars: List, universal_vars: List, phi: z3.ExprRef
     """
     global g_efbv_tactic
     g_efbv_tactic = EFBVTactic.SEQ_CEGAR
+    # g_efbv_tactic = EFBVTactic.SIMPLE_CEGAR
 
     if g_efbv_tactic == EFBVTactic.Z3_QBF:
         fml_manager = EFBVFormulaTranslator()
         return solve_with_qbf(fml_manager.to_qbf(phi, existential_vars, universal_vars))
     elif g_efbv_tactic == EFBVTactic.SIMPLE_CEGAR:
-        return solve_with_simple_cegar(existential_vars, universal_vars, phi)
+        return solve_with_simple_cegar(existential_vars, universal_vars, phi, maxloops=100)
     elif g_efbv_tactic == EFBVTactic.SEQ_CEGAR:
         return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi, maxloops=100)
-
-

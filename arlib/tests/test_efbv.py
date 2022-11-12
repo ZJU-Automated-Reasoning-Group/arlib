@@ -15,7 +15,7 @@ from arlib.efsmt.efbv.efbv_utils import EFBVResult
 
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
-    w, x, y = z3.BitVecs("w x y", 3)
+    w, x, y = z3.BitVecs("w x y", 5)
     fg = FormulaGenerator([w, x, y])
     fml = fg.generate_formula()
     existential_vars = [w, y]
@@ -58,17 +58,18 @@ class TestEFBVSolver(TestCase):
                 if is_simple_formula(fml):
                     continue
 
-                print(fml)
-                print(existential_vars)
+                # print(fml)
+                # print(existential_vars)
 
-                res_b = solve_efsmt_bv(existential_vars, universal_vars, fml)
-                res_a, model = solve_with_z3(universal_vars, fml)
+                res_a = solve_efsmt_bv(existential_vars, universal_vars, fml)
+                res_b, model = solve_with_z3(universal_vars, fml)
                 if res_a != res_b:
                     print("inconsistent!!")
                     print(res_a, res_b)
                     print(fml)
                     print(model)
                     break
+                print(res_a, res_b)
                 break
 
 

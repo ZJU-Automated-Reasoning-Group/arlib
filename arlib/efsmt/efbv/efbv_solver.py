@@ -58,16 +58,28 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
                 reverse_sub_phis = []
                 print("e models: ", e_models)
                 for emodel in e_models:
-                    sub_phi = z3.substitute(phi, [(x, emodel.eval(x, True)) for x in exists_vars])
+                    x_mappings = [(x, emodel.eval(x, model_completion=True)) for x in exists_vars]
+                    sub_phi = z3.simplify(z3.substitute(phi, x_mappings))
                     # sub_phis.append(sub_phi)
                     reverse_sub_phis.append(z3.Not(sub_phi))
-                blocking_fml = fsolver.get_blocking_fml(reverse_sub_phis)
-                if z3.is_false(blocking_fml):  # At least one Not(sub_phi) is UNSAT
+
+                fmodels = fsolver.check(reverse_sub_phis)
+                if len(fmodels) == 0:
                     logger.debug("  Success with SAT")
                     result = EFBVResult.SAT  # fsolver tells sat
                     break
-                # block all CEX?
-                esolver.fmls.append(blocking_fml)
+                for fmodel in fmodels:
+                    # sigma = [model.eval(vy, True) for vy in self.forall_vars]
+                    y_mappings = [(y, fmodel.eval(y, model_completion=True)) for y in forall_vars]
+                    sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
+                    # block all CEX?
+                    print("blocking fml: ", sub_phi)
+                    if z3.is_false(sub_phi):
+                        logger.debug("  Success with UNSAT")
+                        # using break is not fine
+                        raise ExitsSolverSuccess()
+                    esolver.fmls.append(sub_phi)
+
     except ForAllSolverSuccess as ex:
         # print(ex)
         logger.debug("  Forall solver SAT")

@@ -82,13 +82,14 @@ class ForAllSolver(object):
         Check one-by-one
         """
         models = []
-        s = z3.SolverFor("QF_BV")
         for cnt in cnt_list:
-            res = s.check(cnt)  # check with assumption
+            s = z3.SolverFor("QF_BV")
+            s.add(cnt)
+            res = s.check()
             if res == z3.sat:
                 models.append(s.model())
             elif res == z3.unsat:
-                return []  # at least  one is UNSAT
+                return []  # at least one is UNSAT
         return models
 
     def parallel_check(self, cnt_list: List[z3.BoolRef]):
@@ -97,23 +98,6 @@ class ForAllSolver(object):
         res = parallel_check_candidates(cnt_list, 4)
         # res = parallel_check_sat_multiprocessing(cnt_list, 4) # this one has bugs
         return res
-
-    def get_blocking_fml(self, cnt_list: List[z3.BoolRef]):
-        """
-        cnt_list: a set of candidates
-        """
-        cex = self.check(cnt_list)
-        if len(cex) == 0:
-            # At least one Not(sub_phi) is UNSAT
-            return z3.BoolVal(False)
-        fmls = []
-        for fmodel in cex:
-            # sigma = [model.eval(vy, True) for vy in self.forall_vars]
-            sub_phi = z3.substitute(self.phi, [(y, fmodel.eval(y, True)) for y in self.forall_vars])
-            # block all CEX?
-            fmls.append(sub_phi)
-        # print("blocking fml: ", z3.And(fmls))
-        return z3.simplify(z3.And(fmls))
 
 
 def compact_check_misc(precond, cnt_list, res_label, models):
