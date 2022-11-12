@@ -50,7 +50,7 @@ class TestEFBVSolver(TestCase):
         from z3.z3util import get_vars
         logging.basicConfig(level=logging.DEBUG)
         if True:
-            for _ in range(5):
+            for _ in range(15):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
                 vars_fml = [str(v) for v in get_vars(fml)]
                 if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
@@ -69,7 +69,7 @@ class TestEFBVSolver(TestCase):
                     print(fml)
                     print(model)
                     break
-                # break
+                break
 
 
 if __name__ == '__main__':

@@ -3,28 +3,53 @@ Forall Solver
 """
 import logging
 from enum import Enum
+from typing import List
+
+import concurrent.futures
 
 import z3
 
 from arlib.utils.exceptions import ForAllSolverSuccess
-
-from arlib.efsmt.efbv.efbv_parallel_utils import parallel_check_sat
+from arlib.efsmt.efbv.efbv_parallel_utils import parallel_check_sat_multiprocessing
 
 logger = logging.getLogger(__name__)
 
 
-def check_theory_consistency(fml: z3.BoolRef):
+def check_candidate(fml: List[z3.BoolRef], fml_ctx: z3.Context, origin_ctx: z3.Context):
     """
+    :param fml: the formula to be checked
+    :param fml_ctx: context of the fml
+    :param origin_ctx: context of the main/origin thread
+    :return A model in the origin_ctx
     """
-    logger.debug("checking candidate ")
-    sol = z3.SolverFor("QF_BV")
-    sol.add(fml)
-    if sol.check() == z3.sat:
-        m = sol.model()
-        return sol.model()
-    # return None
-    raise ForAllSolverSuccess()
-    # return ""  # empty core indicates SAT?
+    # print("Checking one ...", fml)
+    solver = z3.SolverFor("QF_BV", ctx=fml_ctx)
+    solver.add(fml)
+    if solver.check() == z3.sat:
+        m = solver.model()
+        return m.translate(origin_ctx)  # to the original context?
+    else:
+        raise ForAllSolverSuccess()
+
+
+def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
+    # Create new context for the computation
+    # Note that we need to do this sequentially, as parallel access to the current context or its objects
+    # will result in a segfault
+    origin_ctx = fmls[0].ctx
+    tasks = []
+    for fml in fmls:
+        # tasks.append((fml, main_ctx()))
+        i_context = z3.Context()
+        i_fml = fml.translate(i_context)
+        tasks.append((i_fml, i_context))
+
+    # TODO: try processes?
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        #  with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = [executor.submit(check_candidate, task[0], task[1], origin_ctx) for task in tasks]
+        results = [f.result() for f in futures]
+        return results
 
 
 class FSolverMode(Enum):
@@ -35,8 +60,8 @@ class FSolverMode(Enum):
 
 class ForAllSolver(object):
     def __init__(self):
-        # self.solver_mode = FSolverMode.PARALLEL
-        self.solver_mode = FSolverMode.SEQUENTIAL
+        self.solver_mode = FSolverMode.PARALLEL
+        # self.solver_mode = FSolverMode.SEQUENTIAL
         self.forall_vars = []
         self.phi = None
 
@@ -46,13 +71,13 @@ class ForAllSolver(object):
     def pop(self):
         return
 
-    def check(self, cnt_list):
+    def check(self, cnt_list: List[z3.BoolRef]):
         if self.solver_mode == FSolverMode.SEQUENTIAL:
             return self.sequential_check(cnt_list)
         elif self.solver_mode == FSolverMode.PARALLEL:
             return self.parallel_check(cnt_list)
 
-    def sequential_check(self, cnt_list):
+    def sequential_check(self, cnt_list: List[z3.BoolRef]):
         """
         Check one-by-one
         """
@@ -63,29 +88,31 @@ class ForAllSolver(object):
             if res == z3.sat:
                 models.append(s.model())
             elif res == z3.unsat:
-                return []  # as list one is UNSAT
+                return []  # at least  one is UNSAT
         return models
 
-    def parallel_check(self, cnt_list):
-        res = parallel_check_sat(cnt_list, 4)
-        return res
-        # raise NotImplementedError
-
-    def get_blocking_fml(self, cnt_list):
+    def parallel_check(self, cnt_list: List[z3.BoolRef]):
         """
+        """
+        res = parallel_check_candidates(cnt_list, 4)
+        # res = parallel_check_sat_multiprocessing(cnt_list, 4) # this one has bugs
+        return res
+
+    def get_blocking_fml(self, cnt_list: List[z3.BoolRef]):
+        """
+        cnt_list: a set of candidates
         """
         cex = self.check(cnt_list)
         if len(cex) == 0:
             # At least one Not(sub_phi) is UNSAT
             return z3.BoolVal(False)
         fmls = []
-        for model in cex:
-            sigma = [model.eval(vy, True) for vy in self.forall_vars]
-            sub_phi = self.phi
-            for j in range(len(self.forall_vars)):
-                sub_phi = z3.simplify(z3.substitute(sub_phi, (self.forall_vars[j], sigma[j])))
+        for fmodel in cex:
+            # sigma = [model.eval(vy, True) for vy in self.forall_vars]
+            sub_phi = z3.substitute(self.phi, [(y, fmodel.eval(y, True)) for y in self.forall_vars])
             # block all CEX?
             fmls.append(sub_phi)
+        # print("blocking fml: ", z3.And(fmls))
         return z3.simplify(z3.And(fmls))
 
 

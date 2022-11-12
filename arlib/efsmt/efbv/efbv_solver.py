@@ -18,8 +18,11 @@ import time
 from arlib.efsmt.efbv.efbv_forall_solver import ForAllSolver
 from arlib.efsmt.efbv.efbv_exists_solver import ExistsSolver
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
+from arlib.utils.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, ForAllSolverSuccess, ForAllSolverUnknown
+
 import z3
 from z3.z3util import get_vars
+from z3 import *
 
 logger = logging.getLogger(__name__)
 
@@ -37,54 +40,51 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
     fsolver.phi = phi
 
     loops = 0
-    while maxloops is None or loops <= maxloops:
-        loops += 1
-        logger.debug("  Round: {}".format(loops))
-        # TODO: need to make the fist and the subsequent iteration different???
-        # TODO: in the uniform sampler, I always call the solver once before xx...
-        e_models = esolver.get_models(5)
+    result = EFBVResult.UNKNOWN
+    try:
+        while maxloops is None or loops <= maxloops:
+            logger.debug("  Round: {}".format(loops))
+            loops += 1
+            # TODO: need to make the fist and the subsequent iteration different???
+            # TODO: in the uniform sampler, I always call the solver once before xx...
+            e_models = esolver.get_models(5)
 
-        if len(e_models) == 0:
-            logger.debug("  Success with UNSAT")
-            return EFBVResult.UNSAT  # esolver tells unsat
-        else:
-            sub_phis = []
-            reverse_sub_phis = []
-            for emodel in e_models:
-                tau = [emodel.eval(var, True) for var in exists_vars]
-                sub_phi = phi
-                for i in range(len(exists_vars)):
-                    sub_phi = z3.simplify(z3.substitute(sub_phi, (exists_vars[i], tau[i])))
-                sub_phis.append(sub_phi)
-                reverse_sub_phis.append(z3.Not(sub_phi))
-
-            blocking_fmls = fsolver.get_blocking_fml(reverse_sub_phis)
-            if z3.is_false(blocking_fmls):  # At least one Not(sub_phi) is UNSAT
-                logger.debug("  Success with SAT")
-                return EFBVResult.SAT  # fsolver tells sat
-            # block all CEX?
-            esolver.fmls.append(blocking_fmls)
-            """
-            fsolver.push()  # currently, do nothing
-            f_models = fsolver.check(reverse_sub_phis)
-            # print(fmodels)
-            if len(f_models) == 0:  # At least one Not(sub_phi) is UNSAT
-                logger.debug("  Success with SAT")
-                return EFBVResult.SAT  # fsolver tells sat
+            if len(e_models) == 0:
+                logger.debug("  Success with UNSAT")
+                result = EFBVResult.UNSAT  # esolver tells unsat
+                break
             else:
-                logger.debug(" Refining with {0} counter-examples".format(len(f_models)))
-                # refine using all subphi
-                # TODO: the fsolver may return sigma, instead of the models
-                for fmodel in f_models:
-                    sigma = [fmodel.eval(vy, True) for vy in forall_vars]
-                    sub_phi = phi
-                    for j in range(len(forall_vars)):
-                        sub_phi = z3.simplify(z3.substitute(sub_phi, (forall_vars[j], sigma[j])))
-                    # block all CEX?
-                    esolver.fmls.append(sub_phi)
-                    fsolver.pop()
-            """
-    return EFBVResult.UNKNOWN
+                # sub_phis = []
+                reverse_sub_phis = []
+                print("e models: ", e_models)
+                for emodel in e_models:
+                    sub_phi = z3.substitute(phi, [(x, emodel.eval(x, True)) for x in exists_vars])
+                    # sub_phis.append(sub_phi)
+                    reverse_sub_phis.append(z3.Not(sub_phi))
+                blocking_fml = fsolver.get_blocking_fml(reverse_sub_phis)
+                if z3.is_false(blocking_fml):  # At least one Not(sub_phi) is UNSAT
+                    logger.debug("  Success with SAT")
+                    result = EFBVResult.SAT  # fsolver tells sat
+                    break
+                # block all CEX?
+                esolver.fmls.append(blocking_fml)
+    except ForAllSolverSuccess as ex:
+        # print(ex)
+        logger.debug("  Forall solver SAT")
+        result = EFBVResult.SAT
+    except ForAllSolverUnknown as ex:
+        logger.debug("  Forall solver UNKNOWN")
+        result = EFBVResult.UNKNOWN
+    except ExitsSolverSuccess as ex:
+        logger.debug("  Exists solver UNSAT")
+        result = EFBVResult.UNSAT
+    except ExitsSolverUnknown as ex:
+        logger.debug("  Exists solver UNKNOWN")
+        result = EFBVResult.UNKNOWN
+    except Exception as ex:
+        print("XX")
+
+    return result
 
 
 def test_efsmt():
@@ -96,5 +96,34 @@ def test_efsmt():
     print(time.time() - start)
 
 
+def test():
+    """
+    FIXME: crash in parallel mode
+    """
+    w, x, y = z3.BitVecs("w x y", 3)
+    fml = And(Or(7 >= x, 5 > y, And(3 < w, 5 == y), 5 >= x),
+              Or(3 < w, 5 > y, 5 == y, 5 >= x),
+              Or(3 <= x, 5 < 7, Xor(5 >= x, 5 < 7)), 5 < w,
+              Or(Xor(5 >= x, 5 < 7), 3 < w, 7 >= x, 3 <= x, 5 == y, And(3 < w, 5 == y)),
+              Or(And(3 < w, 5 == y), 3 <= x, 5 <= 7, 3 < w, Xor(5 >= x, 5 < 7), 5 > y, 5 == y),
+              Or(5 < w, And(3 < w, 5 == y), 5 <= 7, 5 < 7, 5 > y, 7 >= x, 5 == y),
+              Or(5 > y, 3 <= x, 5 < w, 3 < w, 5 <= 7),
+              Or(5 > y, 5 <= 7, 5 == y, 3 < w, And(3 < w, 5 == y), Xor(5 >= x, 5 < 7), 5 >= x),
+              Or(5 > y, 5 < w, 3 < w, 5 < 7, Xor(5 >= x, 5 < 7), And(3 < w, 5 == y), 7 >= x, 5 == y),
+              Or(5 < 7, 5 == y, 5 > y, 3 <= x),
+              Or(5 <= 7, 3 <= x, 5 < 7, And(3 < w, 5 == y), 5 > y, 3 < w, 5 >= x),
+              Or(3 <= x, 5 <= 7, 5 < w),
+              Or(And(3 < w, 5 == y), Xor(5 >= x, 5 < 7)),
+              Or(3 <= x, Xor(5 >= x, 5 < 7), 5 > y, 5 < w, 5 < 7, 5 == y, 7 >= x, 5 >= x),
+              Or(Xor(5 >= x, 5 < 7), 5 < 7, 3 < w, 5 <= 7, And(3 < w, 5 == y), 7 >= x),
+              Or(5 < w, 5 <= 7, 5 < 7, 5 == y, 5 > y, 3 <= x),
+              Or(5 < w, 5 > y, And(3 < w, 5 == y), 7 >= x, 5 < 7, 3 <= x, 5 >= x),
+              Or(5 >= x, 5 <= 7, And(3 < w, 5 == y), 7 >= x))
+
+    print(bv_efsmt_with_uniform_sampling([w, y], [x], fml, 100))
+
+
 if __name__ == '__main__':
-    test_efsmt()
+    logging.basicConfig(level=logging.DEBUG)
+    # test_efsmt()
+    test()

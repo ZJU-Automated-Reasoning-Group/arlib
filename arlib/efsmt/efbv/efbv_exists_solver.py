@@ -1,11 +1,16 @@
 """
 
 """
+import logging
 from enum import Enum
 from random import randrange
 from typing import List
 
 import z3
+
+from arlib.utils.exceptions import ExitsSolverSuccess, ExitsSolverUnknown
+
+logger = logging.getLogger(__name__)
 
 
 class IncrementalMode(Enum):
@@ -70,12 +75,16 @@ class ExistsSolver(object):
 
     def get_models(self, num_samples: int) -> List[z3.ModelRef]:
         # return self.get_uniform_samples_with_xor(num_samples)
-        models = []
-        s = z3.SolverFor("QF_BV")
-        s.add(z3.And(self.fmls))
-        if s.check() == z3.sat:
-            models.append(s.model())
-            if num_samples > 1:
-                models = models + self.get_uniform_samples_with_xor(num_samples - 1)
-        # if unsat or unknown, will return an empty list []
-        return models
+        sol = z3.SolverFor("QF_BV")
+        sol.add(z3.And(self.fmls))
+        res = sol.check()
+        if res == z3.sat:
+            if num_samples == 1:
+                return [sol.model()]
+            else:
+                return self.get_uniform_samples_with_xor(num_samples - 1)
+            return models
+        elif res == z3.unsat:
+            return []
+        else:
+            raise ExitsSolverUnknown()

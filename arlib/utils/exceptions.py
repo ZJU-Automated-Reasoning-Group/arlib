@@ -25,7 +25,6 @@ class BoolSolverSuccess(SMTSuccess):
 
 class ExitsSolverSuccess(SMTSuccess):
     """
-    The theory solver checks T-consistency successfully
     """
 
 
@@ -36,6 +35,23 @@ class ForAllSolverSuccess(SMTSuccess):
 
 
 class SimplifierSuccess(SMTSuccess):
+    """
+    TBD
+    """
+
+
+class SMTUnknown(Exception):
+    """
+    TBD
+    """
+
+
+class ExitsSolverUnknown(SMTUnknown):
+    """
+    """
+
+
+class ForAllSolverUnknown(SMTUnknown):
     """
     TBD
     """

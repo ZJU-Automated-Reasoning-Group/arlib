@@ -86,6 +86,6 @@ def solve_efsmt_bv(existential_vars: List, universal_vars: List, phi: z3.ExprRef
     elif g_efbv_tactic == EFBVTactic.SIMPLE_CEGAR:
         return solve_with_simple_cegar(existential_vars, universal_vars, phi)
     elif g_efbv_tactic == EFBVTactic.SEQ_CEGAR:
-        return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi)
+        return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi, maxloops=100)
 
 
