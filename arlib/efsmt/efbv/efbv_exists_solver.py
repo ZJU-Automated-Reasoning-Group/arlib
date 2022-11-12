@@ -1,5 +1,9 @@
+"""
+
+"""
 from enum import Enum
 from random import randrange
+from typing import List
 
 import z3
 
@@ -13,8 +17,6 @@ class IncrementalMode(Enum):
 m_incremental_mode = IncrementalMode.PUSHPOP
 
 
-# m_incremental_mode = IncrementalMode.ASSUMPTION
-
 class ExistsSolver(object):
     def __init__(self, cared_vars, phi):
         self.x_vars = cared_vars
@@ -23,7 +25,7 @@ class ExistsSolver(object):
         for var in cared_vars:
             self.cared_bits = self.cared_bits + [z3.Extract(i, i, var) == 1 for i in range(var.size())]
 
-    def get_uniform_samples_with_xor(self, num_samples):
+    def get_uniform_samples_with_xor(self, num_samples: int):
         """
         Get num_samples models (projected to vars)
         TODO: I think this could be run in parallel?
@@ -59,7 +61,6 @@ class ExistsSolver(object):
                     for _ in range(trials):
                         fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
                     assumption = z3.And(assumption, fml)
-                    # TODO: maybe use assumption literal (faster than push/pop)?
                 if s.check(assumption) == z3.sat:
                     models.append(s.model())
                     num_success += 1
@@ -67,7 +68,7 @@ class ExistsSolver(object):
                         break
         return models
 
-    def get_models(self, num_samples):
+    def get_models(self, num_samples: int) -> List[z3.ModelRef]:
         # return self.get_uniform_samples_with_xor(num_samples)
         models = []
         s = z3.SolverFor("QF_BV")
@@ -76,5 +77,5 @@ class ExistsSolver(object):
             models.append(s.model())
             if num_samples > 1:
                 models = models + self.get_uniform_samples_with_xor(num_samples - 1)
-        # print(models)
+        # if unsat or unknown, will return an empty list []
         return models

@@ -1,6 +1,11 @@
 # coding: utf-8
 """
 For maintaining the correlations of bit-vec and Boolean world.
+Currently, we mainly use the file for translating quantified
+bit-vector formulas to different forms of Boolean problems,
+e.g., QBF, BDD?
+
+
  TODO: qdimacs  http://www.qbflib.org/qdimacs.html
       http://beyondnp.org/pages/solvers/qbf-solvers/
 """

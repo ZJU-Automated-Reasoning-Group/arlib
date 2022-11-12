@@ -9,7 +9,7 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.efsmt.efbv.efbv_engine import simple_cegar_efsmt_bv, efsmt_bv_seq
+from arlib.efsmt.efbv.efbv_engine import solve_efsmt_bv
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
 
 
@@ -50,7 +50,7 @@ class TestEFBVSolver(TestCase):
         from z3.z3util import get_vars
         logging.basicConfig(level=logging.DEBUG)
         if True:
-            for _ in range(30):
+            for _ in range(5):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
                 vars_fml = [str(v) for v in get_vars(fml)]
                 if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
@@ -58,9 +58,11 @@ class TestEFBVSolver(TestCase):
                 if is_simple_formula(fml):
                     continue
 
-                res_b = efsmt_bv_seq(existential_vars, universal_vars, fml)
+                print(fml)
+                print(existential_vars)
+
+                res_b = solve_efsmt_bv(existential_vars, universal_vars, fml)
                 res_a, model = solve_with_z3(universal_vars, fml)
-                # res_b = simple_cegar_efsmt_bv(existential_vars, universal_vars, fml)
                 if res_a != res_b:
                     print("inconsistent!!")
                     print(res_a, res_b)

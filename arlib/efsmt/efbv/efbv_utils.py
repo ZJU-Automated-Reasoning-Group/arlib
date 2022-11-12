@@ -16,3 +16,5 @@ class EFBVTactic(Enum):
     EXTERNAL_QBF = 2
     EXTERNAL_BV = 3
     SIMPLE_CEGAR = 4
+    SEQ_CEGAR = 5
+    PAR_CEGAR = 6

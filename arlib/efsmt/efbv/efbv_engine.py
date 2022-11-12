@@ -1,4 +1,7 @@
-"""Sequential version
+"""
+This file exports external interfaces of different algorithms for solving
+ exists-forall bit-vector problems
+
  TODO: use pysat.CNF or "raw" numerical clauses?
 """
 
@@ -9,6 +12,7 @@ import z3
 
 from arlib.efsmt.efbv.efbv_formula_manager import EFBVFormulaTranslator
 from arlib.efsmt.efbv.efbv_utils import EFBVResult, EFBVTactic
+from arlib.efsmt.efbv.efbv_solver import bv_efsmt_with_uniform_sampling
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +20,8 @@ g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
 def solve_with_qbf(fml: z3.ExprRef) -> EFBVResult:
-    """Exists X Forall Y Exists Z . P()
-    We do not need to explicitly specify the first Exists
+    """Solve Exists X Forall Y Exists Z . P(...), which is translated from an exists-forall bit-vector instance
+    NOTE: We do not need to explicitly specify the first Exists
     Z: the aux Boolean vars (e.g., introduced by the bit-blasting and CNF transformer?)
     """
     sol = z3.Solver()
@@ -31,7 +35,11 @@ def solve_with_qbf(fml: z3.ExprRef) -> EFBVResult:
         return EFBVResult.UNKNOWN
 
 
-def simple_cegar_efsmt_bv(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None) -> EFBVResult:
+def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None) -> EFBVResult:
+    """
+    Solve exists-forall bit-vectors
+     (The name of the engine is EFBVTactic.SIMPLE_CEGAR)
+    """
     # set_param("verbose", 15)
     qf_logic = "QF_BV"  # or QF_UFBV
     esolver = z3.SolverFor(qf_logic)
@@ -66,12 +74,18 @@ def simple_cegar_efsmt_bv(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.Expr
     return EFBVResult.UNKNOWN
 
 
-def efsmt_bv_seq(existential_vars: List, universal_vars: List, phi: z3.ExprRef):
+def solve_efsmt_bv(existential_vars: List, universal_vars: List, phi: z3.ExprRef):
     """ Solves exists x. forall y. phi(x, y)
     """
-    fml_manager = EFBVFormulaTranslator()
+    global g_efbv_tactic
+    g_efbv_tactic = EFBVTactic.SEQ_CEGAR
 
     if g_efbv_tactic == EFBVTactic.Z3_QBF:
+        fml_manager = EFBVFormulaTranslator()
         return solve_with_qbf(fml_manager.to_qbf(phi, existential_vars, universal_vars))
     elif g_efbv_tactic == EFBVTactic.SIMPLE_CEGAR:
-        return simple_cegar_efsmt_bv(existential_vars, universal_vars, phi)
+        return solve_with_simple_cegar(existential_vars, universal_vars, phi)
+    elif g_efbv_tactic == EFBVTactic.SEQ_CEGAR:
+        return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi)
+
+

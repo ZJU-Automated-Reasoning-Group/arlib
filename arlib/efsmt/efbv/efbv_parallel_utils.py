@@ -8,15 +8,19 @@ import z3
 
 
 def check_sat(fml: z3.ExprRef):
+    print("Checking ..")
     sol = z3.SolverFor("QF_BV")
     sol.add(fml)
-    return sol.check()
+    print("Added to solver...")
+    if sol.check() == z3.sat:
+        m = sol.model()
+        return m
+    return None
 
 
 def parallel_check_sat(fmls: List[z3.ExprRef], num_workers):
     """Solve clauses under a set of assumptions (deal with each one in parallel)
-    TODO: - Should we enforce that clauses are satisfiable?
-          - Add timeout (if timeout, use the original model?)
+    TODO: Add timeout (if timeout, use the original model?)
     """
     assert num_workers >= 1
     answers_async = [None for _ in fmls]
