@@ -5,51 +5,12 @@ import logging
 from enum import Enum
 from typing import List
 
-import concurrent.futures
-
 import z3
 
 from arlib.utils.exceptions import ForAllSolverSuccess
-from arlib.efsmt.efbv.efbv_parallel_utils import parallel_check_sat_multiprocessing
+from arlib.efsmt.efbv.efbv_forall_solver_helper import parallel_check_candidates
 
 logger = logging.getLogger(__name__)
-
-
-def check_candidate(fml: List[z3.BoolRef], fml_ctx: z3.Context, origin_ctx: z3.Context):
-    """
-    :param fml: the formula to be checked
-    :param fml_ctx: context of the fml
-    :param origin_ctx: context of the main/origin thread
-    :return A model in the origin_ctx
-    """
-    # print("Checking one ...", fml)
-    solver = z3.SolverFor("QF_BV", ctx=fml_ctx)
-    solver.add(fml)
-    if solver.check() == z3.sat:
-        m = solver.model()
-        return m.translate(origin_ctx)  # to the original context?
-    else:
-        raise ForAllSolverSuccess()
-
-
-def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
-    # Create new context for the computation
-    # Note that we need to do this sequentially, as parallel access to the current context or its objects
-    # will result in a segfault
-    origin_ctx = fmls[0].ctx
-    tasks = []
-    for fml in fmls:
-        # tasks.append((fml, main_ctx()))
-        i_context = z3.Context()
-        i_fml = fml.translate(i_context)
-        tasks.append((i_fml, i_context))
-
-    # TODO: try processes?
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        #  with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(check_candidate, task[0], task[1], origin_ctx) for task in tasks]
-        results = [f.result() for f in futures]
-        return results
 
 
 class FSolverMode(Enum):
@@ -62,8 +23,8 @@ class ForAllSolver(object):
     def __init__(self):
         self.solver_mode = FSolverMode.PARALLEL
         # self.solver_mode = FSolverMode.SEQUENTIAL
-        self.forall_vars = []
-        self.phi = None
+        # self.forall_vars = []
+        # self.phi = None
 
     def push(self):
         return
@@ -87,6 +48,7 @@ class ForAllSolver(object):
             s.add(cnt)
             res = s.check()
             if res == z3.sat:
+                m = s.model()
                 models.append(s.model())
             elif res == z3.unsat:
                 return []  # at least one is UNSAT
@@ -95,9 +57,23 @@ class ForAllSolver(object):
     def parallel_check(self, cnt_list: List[z3.BoolRef]):
         """
         """
-        res = parallel_check_candidates(cnt_list, 4)
+        origin_ctx = cnt_list[0].ctx
+        logger.debug("Forall solver: Parallel checking the candidates")
+        models_in_other_ctx = parallel_check_candidates(cnt_list, 4)
+        res = [] # translate the model to the main thread
+        for m in models_in_other_ctx:
+            res.append(m.translate(origin_ctx))
         # res = parallel_check_sat_multiprocessing(cnt_list, 4) # this one has bugs
         return res
+
+    def build_mappings(self):
+        """
+        Build the mapping for replacement
+        mappings = []
+        for v in m:
+            mappings.append((z3.BitVec(str(v)), v.size(), origin_ctx), z3.BitVecVal(m[v], v.size(), origin_ctx))
+        """
+        raise NotImplementedError
 
 
 def compact_check_misc(precond, cnt_list, res_label, models):

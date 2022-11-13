@@ -36,8 +36,8 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
 
     esolver = ExistsSolver(exists_vars, z3.BoolVal(True))
     fsolver = ForAllSolver()
-    fsolver.vars = forall_vars
-    fsolver.phi = phi
+    # fsolver.vars = forall_vars
+    # fsolver.phi = phi
 
     loops = 0
     result = EFBVResult.UNKNOWN
@@ -56,7 +56,7 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
             else:
                 # sub_phis = []
                 reverse_sub_phis = []
-                print("e models: ", e_models)
+                # print("e models: ", e_models)
                 for emodel in e_models:
                     x_mappings = [(x, emodel.eval(x, model_completion=True)) for x in exists_vars]
                     sub_phi = z3.simplify(z3.substitute(phi, x_mappings))
@@ -73,7 +73,7 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
                     y_mappings = [(y, fmodel.eval(y, model_completion=True)) for y in forall_vars]
                     sub_phi = z3.simplify(z3.substitute(phi, y_mappings))
                     # block all CEX?
-                    print("blocking fml: ", sub_phi)
+                    # print("blocking fml: ", sub_phi)
                     if z3.is_false(sub_phi):
                         logger.debug("  Success with UNSAT")
                         # using break is not fine
@@ -108,34 +108,6 @@ def test_efsmt():
     print(time.time() - start)
 
 
-def test():
-    """
-    FIXME: crash in parallel mode
-    """
-    w, x, y = z3.BitVecs("w x y", 3)
-    fml = And(Or(7 >= x, 5 > y, And(3 < w, 5 == y), 5 >= x),
-              Or(3 < w, 5 > y, 5 == y, 5 >= x),
-              Or(3 <= x, 5 < 7, Xor(5 >= x, 5 < 7)), 5 < w,
-              Or(Xor(5 >= x, 5 < 7), 3 < w, 7 >= x, 3 <= x, 5 == y, And(3 < w, 5 == y)),
-              Or(And(3 < w, 5 == y), 3 <= x, 5 <= 7, 3 < w, Xor(5 >= x, 5 < 7), 5 > y, 5 == y),
-              Or(5 < w, And(3 < w, 5 == y), 5 <= 7, 5 < 7, 5 > y, 7 >= x, 5 == y),
-              Or(5 > y, 3 <= x, 5 < w, 3 < w, 5 <= 7),
-              Or(5 > y, 5 <= 7, 5 == y, 3 < w, And(3 < w, 5 == y), Xor(5 >= x, 5 < 7), 5 >= x),
-              Or(5 > y, 5 < w, 3 < w, 5 < 7, Xor(5 >= x, 5 < 7), And(3 < w, 5 == y), 7 >= x, 5 == y),
-              Or(5 < 7, 5 == y, 5 > y, 3 <= x),
-              Or(5 <= 7, 3 <= x, 5 < 7, And(3 < w, 5 == y), 5 > y, 3 < w, 5 >= x),
-              Or(3 <= x, 5 <= 7, 5 < w),
-              Or(And(3 < w, 5 == y), Xor(5 >= x, 5 < 7)),
-              Or(3 <= x, Xor(5 >= x, 5 < 7), 5 > y, 5 < w, 5 < 7, 5 == y, 7 >= x, 5 >= x),
-              Or(Xor(5 >= x, 5 < 7), 5 < 7, 3 < w, 5 <= 7, And(3 < w, 5 == y), 7 >= x),
-              Or(5 < w, 5 <= 7, 5 < 7, 5 == y, 5 > y, 3 <= x),
-              Or(5 < w, 5 > y, And(3 < w, 5 == y), 7 >= x, 5 < 7, 3 <= x, 5 >= x),
-              Or(5 >= x, 5 <= 7, And(3 < w, 5 == y), 7 >= x))
-
-    print(bv_efsmt_with_uniform_sampling([w, y], [x], fml, 100))
-
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    # test_efsmt()
-    test()
+    test_efsmt()

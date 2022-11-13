@@ -20,6 +20,8 @@ class IncrementalMode(Enum):
     NOINC = 2  # non incremental, every time, create a new solver
 
 
+logger = logging.getLogger(__name__)
+
 m_incremental_mode = IncrementalMode.ASSUMPTION
 
 
@@ -87,6 +89,7 @@ class ExistsSolver(object):
         return models
 
     def get_models(self, num_samples: int) -> List[z3.ModelRef]:
+        logging.debug("Exists solver: starting sampling models")
         # return self.get_uniform_samples_with_xor(num_samples)
         sol = z3.SolverFor("QF_BV")
         sol.add(z3.And(self.fmls))
