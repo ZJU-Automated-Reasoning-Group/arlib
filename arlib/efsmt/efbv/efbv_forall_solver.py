@@ -2,28 +2,24 @@
 Forall Solver
 """
 import logging
-from enum import Enum
 from typing import List
 
 import z3
 
-from arlib.utils.exceptions import ForAllSolverSuccess
+# from arlib.utils.exceptions import ForAllSolverSuccess
 from arlib.efsmt.efbv.efbv_forall_solver_helper import parallel_check_candidates
+from arlib.efsmt.efbv.efbv_utils import FSolverMode
 
 logger = logging.getLogger(__name__)
 
 
-class FSolverMode(Enum):
-    SEQUENTIAL = 0
-    PARALLEL = 1  # parallel check
-    EXTERNAL_PARALLEL = 2  # use external SMT solvers for parallel
+m_forall_solver_strategy = FSolverMode.PARALLEL_THREAD
 
 
 class ForAllSolver(object):
-    def __init__(self):
-        self.solver_mode = FSolverMode.PARALLEL
-        # self.solver_mode = FSolverMode.SEQUENTIAL
+    def __init__(self, ctx: z3.Context):
         # self.forall_vars = []
+        self.ctx = ctx  # the Z3 context of the main thread
         # self.phi = None
 
     def push(self):
@@ -33,10 +29,14 @@ class ForAllSolver(object):
         return
 
     def check(self, cnt_list: List[z3.BoolRef]):
-        if self.solver_mode == FSolverMode.SEQUENTIAL:
+        if m_forall_solver_strategy == FSolverMode.SEQUENTIAL:
             return self.sequential_check(cnt_list)
-        elif self.solver_mode == FSolverMode.PARALLEL:
-            return self.parallel_check(cnt_list)
+        elif m_forall_solver_strategy == FSolverMode.PARALLEL_THREAD:
+            return self.parallel_check_thread(cnt_list)
+        elif m_forall_solver_strategy == FSolverMode.PARALLEL_PROCESS:
+            return self.parallel_check_process(cnt_list)
+        else:
+            raise NotImplementedError
 
     def sequential_check(self, cnt_list: List[z3.BoolRef]):
         """
@@ -54,21 +54,24 @@ class ForAllSolver(object):
                 return []  # at least one is UNSAT
         return models
 
-    def parallel_check(self, cnt_list: List[z3.BoolRef]):
+    def parallel_check_thread(self, cnt_list: List[z3.BoolRef]):
         """
+        Solve each formula in cnt_list in parallel
         """
-        origin_ctx = cnt_list[0].ctx
         logger.debug("Forall solver: Parallel checking the candidates")
-        models_in_other_ctx = parallel_check_candidates(cnt_list, 4)
-        res = [] # translate the model to the main thread
+        models_in_other_ctx = parallel_check_candidates(cnt_list, num_workers=4)
+        res = []  # translate the model to the main thread
         for m in models_in_other_ctx:
-            res.append(m.translate(origin_ctx))
+            res.append(m.translate(self.ctx))
         # res = parallel_check_sat_multiprocessing(cnt_list, 4) # this one has bugs
         return res
 
+    def parallel_check_process(self, cnt_list: List[z3.BoolRef]):
+        raise NotImplementedError
+
     def build_mappings(self):
         """
-        Build the mapping for replacement
+        Build the mapping for replacement (not used for now)
         mappings = []
         for v in m:
             mappings.append((z3.BitVec(str(v)), v.size(), origin_ctx), z3.BitVecVal(m[v], v.size(), origin_ctx))

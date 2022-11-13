@@ -35,7 +35,7 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
     # x = [item for item in get_vars(phi) if item not in y]
 
     esolver = ExistsSolver(exists_vars, z3.BoolVal(True))
-    fsolver = ForAllSolver()
+    fsolver = ForAllSolver(exists_vars[0].ctx)
     # fsolver.vars = forall_vars
     # fsolver.phi = phi
 

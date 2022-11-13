@@ -15,11 +15,11 @@ from arlib.efsmt.efbv.efbv_utils import EFBVResult
 
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
-    w, x, y = z3.BitVecs("w x y", 10)
-    fg = FormulaGenerator([w, x, y])
+    w, x, y, z = z3.BitVecs("w x y z", 3)
+    fg = FormulaGenerator([w, x, y, z])
     fml = fg.generate_formula()
-    existential_vars = [w, y]
-    universal_vars = [x]
+    existential_vars = [w, x, y]
+    universal_vars = [z]
     return existential_vars, universal_vars, fml
 
 

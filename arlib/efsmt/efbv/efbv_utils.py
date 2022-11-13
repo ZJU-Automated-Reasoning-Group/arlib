@@ -18,3 +18,15 @@ class EFBVTactic(Enum):
     SIMPLE_CEGAR = 4
     SEQ_CEGAR = 5
     PAR_CEGAR = 6
+
+
+class ESolverMode(Enum):
+    SEQUENTIAL = 0
+    PARALLEL = 1  # parallel check
+    UNIGEN = 2  # use bit-blasting and Unigen
+
+
+class FSolverMode(Enum):
+    SEQUENTIAL = 0
+    PARALLEL_THREAD = 1  # parallel check
+    PARALLEL_PROCESS = 2  # parallel check

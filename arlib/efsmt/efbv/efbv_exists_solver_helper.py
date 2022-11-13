@@ -78,32 +78,36 @@ class BitBlastSampler:
         return bv_model
 
 
-def sample_worker(fml: z3.BoolRef, cared_bits, fml_ctx: z3.Context):
+def sample_worker(fml: z3.BoolRef, cared_bits: List):
     """
     :param fml: the formula to be checked
     :param cared_bits: used for sampling (...)
     :param fml_ctx: context of the fml
-    :return A model (TODO: allow for sampling more than one model)
+    :return A model
+      TODO: allow for sampling more than one models
     """
-    # print("Checking one ...", fml)
-    solver = z3.SolverFor("QF_BV", ctx=fml_ctx)
+    # print("Sampling in one thread ...")
+    local_ctx = fml.ctx
+    solver = z3.SolverFor("QF_BV", ctx=local_ctx)
     solver.add(fml)
     while True:
         rounds = 3  # why 3?
-        assumption = z3.BoolVal(True)
+        assumption = z3.BoolVal(True, ctx=local_ctx)
         for _ in range(rounds):
             trials = 10
-            fml = z3.BoolVal(randrange(0, 2))
+            fml = z3.BoolVal(randrange(0, 2), ctx=local_ctx)
             for _ in range(trials):
-                fml = z3.Xor(fml, cared_bits[randrange(0, len(cared_bits))])
+                fml = z3.Xor(fml, cared_bits[randrange(0, len(cared_bits))], ctx=local_ctx)
             assumption = z3.And(assumption, fml)
         if solver.check(assumption) == z3.sat:
             return solver.model()
 
 
-def parallel_sample(fml, cared_bits, num_samples: int, num_workers: int):
+def parallel_sample(fml: z3.BoolRef, cared_bits: List, num_samples: int, num_workers: int):
     """
     Perform uniform sampling in parallel
+    TODO: the cared_bits is only specific the algorithm we use for sampling (which is not good)
+      As we may use other algorithms for the sampling
     """
     tasks = []
     # Create new context for the computation
@@ -114,12 +118,12 @@ def parallel_sample(fml, cared_bits, num_samples: int, num_workers: int):
         # tasks.append((fml, main_ctx()))
         i_context = z3.Context()
         i_fml = fml.translate(i_context)
-        i_cared_bits = cared_bits.translate(i_context)
-        tasks.append((i_fml, i_cared_bits, i_context))
+        i_cared_bits = [bit.translate(i_context) for bit in cared_bits]
+        tasks.append((i_fml, i_cared_bits))
 
     # TODO: try processes?
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         #  with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(sample_worker, task[0], task[1], task[2]) for task in tasks]
+        futures = [executor.submit(sample_worker, task[0], task[1]) for task in tasks]
         results = [f.result() for f in futures]
         return results

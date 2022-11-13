@@ -10,15 +10,17 @@ import z3
 from arlib.utils.exceptions import ForAllSolverSuccess
 
 
-def check_candidate(fml: List[z3.BoolRef], fml_ctx: z3.Context):
+def check_candidate(fml: z3.BoolRef):
     """
     Check candidate provided by the ExistsSolver
-    :param fml: the formula to be checked
-    :param fml_ctx: context of the fml
-    :return A model in the origin_ctx
+    :param fml: the formula to be checked, which is based on
+                 a new z3 context different from the main thread
+    :return A model (to be translated to the main context by ForAllSolver)
+    TODO: we may pass a set of formulas to this function (any ways, the code in
+      this function is thread-local?
     """
     # print("Checking one ...", fml)
-    solver = z3.SolverFor("QF_BV", ctx=fml_ctx)
+    solver = z3.SolverFor("QF_BV", ctx=fml.ctx)
     solver.add(fml)
     if solver.check() == z3.sat:
         m = solver.model()
@@ -38,12 +40,12 @@ def parallel_check_candidates(fmls: List[z3.BoolRef], num_workers: int):
         # tasks.append((fml, main_ctx()))
         i_context = z3.Context()
         i_fml = fml.translate(i_context)
-        tasks.append((i_fml, i_context))
+        tasks.append(i_fml)
 
     # TODO: try processes?
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         #  with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(check_candidate, task[0], task[1]) for task in tasks]
+        futures = [executor.submit(check_candidate, task) for task in tasks]
         results = [f.result() for f in futures]
         return results
 
