@@ -1,4 +1,17 @@
 from enum import Enum
+from abc import ABC, abstractmethod
+from typing import List
+import z3
+
+
+class EFBVSolver(ABC):
+    def __init__(self, **kwargs):
+        self.seed = kwargs.get("seed", 1)
+
+    @abstractmethod
+    def solve_efsmt_bv(self, existential_vars: List, universal_vars: List, phi: z3.ExprRef):
+        pass
+
 
 
 class EFBVResult(Enum):

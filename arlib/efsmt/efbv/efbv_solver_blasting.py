@@ -4,6 +4,8 @@ we run (parallel) uniform sampling.
 
 However, the implementation is a bit complicated.
 E.g., we need to perform bit-blasting again and again
+
+FIXME: this file is not used for now (a bit complicated communication...)
 """
 
 import logging

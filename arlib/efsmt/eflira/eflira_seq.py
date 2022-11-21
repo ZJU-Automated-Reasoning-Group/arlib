@@ -5,7 +5,7 @@ import time
 
 import z3
 
-from efsmt_parser import EFSMTParser
+from efsmt_parser import EFSMTParser, EFSMTZ3Parser
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +55,9 @@ def solve_with_z3(y: List[z3.ExprRef], phi: z3.ExprRef):
 
 
 def test2():
-    file = "/Users/prism/Desktop/3.smt2"
-    ss = EFSMTParser()
+    file = "/Users/prism/Desktop/efbv.smt2"
+    # ss = EFSMTParser()
+    ss = EFSMTZ3Parser()
     exists_vars, forall_vars, qf_fml = ss.parse_smt2_file(file)
     print("Start solving!")
     start = time.time()
@@ -65,14 +66,6 @@ def test2():
     start = time.time()
     solve_with_simple_cegar(exists_vars, forall_vars, qf_fml, maxloops=50)
     print("efsmt time: ", time.time() - start)
-
-
-def test3():
-    x , y, z = z3.BitVecs("x y z", 8)
-    fml = z3.ForAll([y, z], z3.Or(x == y, y == z))
-    s = z3.Solver()
-    s.add(fml)
-    print(s.to_smt2())
 
 
 def main():

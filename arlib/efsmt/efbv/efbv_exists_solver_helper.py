@@ -5,7 +5,6 @@ Using (parallel) Boolean model samplers to sample bit-vector models
 """
 
 import logging
-from typing import List, Tuple
 import concurrent.futures
 from random import randrange
 from typing import List, Tuple

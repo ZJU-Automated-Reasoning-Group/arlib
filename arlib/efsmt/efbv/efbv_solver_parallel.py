@@ -12,19 +12,19 @@ be a good enhancement to CEGIS. By generating several diverse counterexamples, t
 provide more information to the learner so that it can make more progress on its own,
 limiting the number of calls to the verifier
 """
-
 import logging
 import time
+from typing import List
 from arlib.efsmt.efbv.efbv_forall_solver import ForAllSolver
 from arlib.efsmt.efbv.efbv_exists_solver import ExistsSolver
-from arlib.efsmt.efbv.efbv_utils import EFBVResult
+from arlib.efsmt.efbv.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
 from arlib.utils.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, ForAllSolverSuccess, ForAllSolverUnknown
 
 import z3
-from z3.z3util import get_vars
-from z3 import *
 
 logger = logging.getLogger(__name__)
+
+g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
 def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None):
@@ -99,12 +99,29 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
     return result
 
 
+class ParallelEFBVSolver(EFBVSolver):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        """
+        qbf, simple_cegar, z3
+        """
+        self.mode = kwargs.get("mode", "canary")  #
+
+    def solve_efsmt_bv(self, existential_vars: List, universal_vars: List, phi: z3.ExprRef):
+        if self.mode == "canary":
+            return bv_efsmt_with_uniform_sampling(existential_vars, universal_vars, phi)
+        else:
+            raise NotImplementedError()
+
+
 def test_efsmt():
     x, y, z = z3.BitVecs("x y z", 16)
     fmla = z3.Implies(z3.And(y > 0, y < 10), y - 2 * x < 7)
-    # '''
+    #
     start = time.time()
-    print(bv_efsmt_with_uniform_sampling([x], [y], fmla, 100))
+    solver = ParallelEFBVSolver(mode="canary")
+    print(solver.solve_efsmt_bv([x], [y], fmla))
     print(time.time() - start)
 
 

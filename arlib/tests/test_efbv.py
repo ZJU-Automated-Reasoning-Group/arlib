@@ -9,7 +9,8 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.efsmt.efbv.efbv_engine import solve_efsmt_bv
+from arlib.efsmt.efbv.efbv_solver_parallel import ParallelEFBVSolver
+from arlib.efsmt.efbv.efbv_solver_sequential import SequentialEFBVSolver
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
 
 
@@ -57,19 +58,21 @@ class TestEFBVSolver(TestCase):
                     continue
                 if is_simple_formula(fml):
                     continue
-
                 # print(fml)
                 # print(existential_vars)
+                # seq_solver = SequentialEFBVSolver(mode="z3")
+                # res_seq = seq_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
+                par_solver = ParallelEFBVSolver(mode="canary")
+                res_par = par_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
 
-                res_a = solve_efsmt_bv(existential_vars, universal_vars, fml)
                 res_b, model = solve_with_z3(universal_vars, fml)
-                if res_a != res_b:
+                if res_par != res_b:
                     print("inconsistent!!")
-                    print(res_a, res_b)
+                    print(res_par, res_b)
                     print(fml)
                     print(model)
                     break
-                print(res_a, res_b)
+                print(res_par, res_b)
                 break
 
 

@@ -236,6 +236,7 @@ class EFSMTZ3Parser:
             fml = fml_vec[0]
         else:
             fml = fml_vec
+        print("Z3 finishes parsing")
         return ground_quantifier(fml)
 
     def parse_smt2_file(self, filename: str):
@@ -244,6 +245,7 @@ class EFSMTZ3Parser:
             fml = fml_vec[0]
         else:
             fml = fml_vec
+        print("Z3 finishes parsing")
         return ground_quantifier(fml)
 
 
