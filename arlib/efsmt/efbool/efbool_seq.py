@@ -5,7 +5,6 @@ from arlib.efsmt.efbool.efbool_utils import EFBoolResult
 from arlib.efsmt.efbool.efbool_exists_solver import BoolExistsSolver
 from arlib.efsmt.efbool.efbool_forall_solver import BoolForAllSolver
 
-
 logger = logging.getLogger(__name__)
 
 

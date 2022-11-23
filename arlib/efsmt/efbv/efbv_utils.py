@@ -13,7 +13,6 @@ class EFBVSolver(ABC):
         pass
 
 
-
 class EFBVResult(Enum):
     """Result of EFBV checking"""
     UNSAT = 0

@@ -172,7 +172,8 @@ class SeqEFBVSolver:
         """
         return
 
-    def solve(self, exists_vars: List[z3.ExprRef], forall_vars: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None) -> EFBVResult:
+    def solve(self, exists_vars: List[z3.ExprRef], forall_vars: List[z3.ExprRef], phi: z3.ExprRef,
+              maxloops=None) -> EFBVResult:
         """
         Solves exists x. forall y. phi(x, y)
         FIXME: inconsistent with efsmt

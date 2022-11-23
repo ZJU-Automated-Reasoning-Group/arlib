@@ -13,7 +13,6 @@ from arlib.utils.exceptions import ExitsSolverSuccess, ExitsSolverUnknown
 from arlib.efsmt.efbv.efbv_exists_solver_helper import parallel_sample
 from arlib.efsmt.efbv.efbv_utils import ESolverMode
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,6 +24,8 @@ class IncrementalMode(Enum):
 
 m_incremental_mode = IncrementalMode.ASSUMPTION
 m_exists_solver_strategy = ESolverMode.SEQUENTIAL
+
+
 # m_exists_solver_strategy = ESolverMode.PARALLEL
 
 
@@ -98,7 +99,8 @@ class ExistsSolver(object):
         Solve each formula in cnt_list in parallel
         """
         logger.debug("Exists solver: parallel sampling")
-        models_in_other_ctx = parallel_sample(z3.And(self.fmls), cared_bits=self.cared_bits, num_samples=num_samples, num_workers=4)
+        models_in_other_ctx = parallel_sample(z3.And(self.fmls), cared_bits=self.cared_bits, num_samples=num_samples,
+                                              num_workers=4)
         res = []  # translate the model to the main thread
         for m in models_in_other_ctx:
             res.append(m.translate(self.ctx))

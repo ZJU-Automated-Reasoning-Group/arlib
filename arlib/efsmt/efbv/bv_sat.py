@@ -72,7 +72,7 @@ class BVSolver:
                             if bool_model[i + start - 1] > 0:
                                 bv_val += 2 ** i
                         bv_model[bv_var] = bv_val
-                else: # signed
+                else:  # signed
                     # FIXME: the following seems to be wrong
                     for bv_var in self.bv2bool:
                         bool_vars = self.bv2bool[bv_var]

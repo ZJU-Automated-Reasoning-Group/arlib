@@ -12,7 +12,6 @@ from arlib.efsmt.efbv.efbv_utils import FSolverMode
 
 logger = logging.getLogger(__name__)
 
-
 m_forall_solver_strategy = FSolverMode.PARALLEL_THREAD
 
 
@@ -77,4 +76,3 @@ class ForAllSolver(object):
             mappings.append((z3.BitVec(str(v)), v.size(), origin_ctx), z3.BitVecVal(m[v], v.size(), origin_ctx))
         """
         raise NotImplementedError
-

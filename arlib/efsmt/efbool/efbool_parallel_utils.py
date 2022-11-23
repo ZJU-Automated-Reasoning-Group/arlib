@@ -2,6 +2,8 @@ from multiprocessing import Pool
 from typing import List, Tuple
 
 from pysat.solvers import Solver
+
+
 # from pysat.formula import CNF
 
 

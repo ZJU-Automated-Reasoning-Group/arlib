@@ -6,4 +6,3 @@ FIXME:
   Instead of the following problem
      Exists X ForAll Y . F(X, Y)  (where X and Y are the existential and universal quantified bit-vectors, resp.)
 """
-

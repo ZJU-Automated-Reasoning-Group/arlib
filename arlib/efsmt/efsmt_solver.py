@@ -11,7 +11,6 @@ from z3.z3util import get_vars
 
 from arlib.efsmt.efsmt_utils import solve_with_bin_smt
 
-
 logger = logging.getLogger(__name__)
 
 
