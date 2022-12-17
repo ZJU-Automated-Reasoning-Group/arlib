@@ -81,7 +81,6 @@ def sample_worker(fml: z3.BoolRef, cared_bits: List):
     """
     :param fml: the formula to be checked
     :param cared_bits: used for sampling (...)
-    :param fml_ctx: context of the fml
     :return A model
       TODO: allow for sampling more than one models
     """

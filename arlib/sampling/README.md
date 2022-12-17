@@ -10,6 +10,7 @@ You can install it via
 `pip install z3-solver --user`
 
 To enable more features, you may install other packages
+
 ~~~~
 numpy: for Dikin walk, etc.
 pyeda: for BDD-related staff
@@ -36,9 +37,7 @@ pysmt: for interacting with other SMT solvers
 
 ### Probabilistic Program Analysis
 
-
 ### Sampling for t-wise Coverage
-
 
 See `twise` dir (currently from https://github.com/smba/pycosa-toolbox).
 The implementation is not mature.

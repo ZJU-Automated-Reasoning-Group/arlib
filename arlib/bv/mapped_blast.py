@@ -104,9 +104,9 @@ def to_dimacs_numeric(cnf, table, proj_last):
             proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
             clauses.append(proj_clause)
         cnf_clauses = clauses
-        cnf_header = [ "p" ]
+        cnf_header = ["p"]
     else:
-        cnf_header = [ "p" ]
+        cnf_header = ["p"]
     return cnf_header, cnf_clauses
 
 
@@ -219,7 +219,8 @@ def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], 
     return bv2bool, id_table, header, clauses
 
 
-def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[int]]:
+def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[
+    Dict[str, list], Dict[str, int], List[str], List[int]]:
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
     # print("Generating DIMACS with projection...")

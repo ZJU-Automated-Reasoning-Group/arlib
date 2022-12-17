@@ -4,7 +4,7 @@
 import logging
 from enum import Enum
 from random import randrange
-from typing import List
+# from typing import List
 import random
 
 import z3

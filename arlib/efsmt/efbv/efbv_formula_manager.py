@@ -26,7 +26,7 @@ class EFBV2BoolTranslator:
         self.existential_bools = []
         self.bool_clauses = []
 
-    def flattening(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def flattening(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """" Translate a bit-vector formula to a Boolean formula and initialize some self.fields
         """
         # TODO: should handle cases where fml is simplified to be true or false
@@ -136,7 +136,7 @@ class EFBVFormulaTranslator:
         # TODO: implement a native expansion-based qe procedure
         self.qe_tactic = "qe2"  # {"qe", "qe2"}
 
-    def to_qbf(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def to_qbf(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """Translate an EFSMT(BV) formula to a QBF formula
         :param fml: a quantifier-free bit-vector formula
         :param existential_vars: the set of existential quantified bit-vector variables

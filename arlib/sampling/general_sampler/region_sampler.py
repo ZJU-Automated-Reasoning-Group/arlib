@@ -4,7 +4,9 @@
 from z3 import *
 from z3.z3util import get_vars
 import random
-#from random import *
+
+
+# from random import *
 
 
 class RegionSampler:
@@ -63,7 +65,6 @@ class RegionSampler:
     def gen_candidate(self):
         canidate = []
         for i in range(len(self.vars)):
-
             r = random.randint(self.lower_bounds[i], self.upper_bounds[i])
             canidate.append(r)
 

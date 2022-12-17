@@ -141,7 +141,6 @@ def test_dnf():
     print(cnf_fml)
     # FIXME: this triggers an assertion error in prime_implicant
     # maybe caused by skelom constant(but the algo should be independent of the form)
-    print(to_dnf(cnf_fml))
     # print(exclusive_to_dnf(cnf_fml))
 
 # test_quant()

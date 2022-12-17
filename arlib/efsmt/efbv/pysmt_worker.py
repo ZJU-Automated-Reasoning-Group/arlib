@@ -3,7 +3,7 @@
 Map pysmt model to z3 model?
 """
 import z3
-from pysmt.oracles import get_logic
+# from pysmt.oracles import get_logic
 from pysmt.shortcuts import EqualsOrIff, get_model
 from pysmt.shortcuts import Symbol, And
 from pysmt.typing import INT, REAL, BOOL, BVType, BV1, BV8, BV16, BV32, BV64
@@ -42,7 +42,7 @@ def check_sat_with_pysmt(fml):
         print(str(mod))
         # z3m = z3.Model()
 
-        z3_model = Solver(name='z3').converter.convert(m)
+        z3_model = Solver(name='z3').converter.convert()
         print(z3_model)
     else:
         print("unsat")

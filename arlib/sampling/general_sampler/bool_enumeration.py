@@ -62,6 +62,7 @@ def count_models_by_enumeration3(solver, variables):
         if satisfied: solutions = solutions + 1
     return solutions
 
+
 def test_enu():
     x = Bools(' '.join('x' + str(i) for i in range(10)))
     solver = Solver()
@@ -80,6 +81,5 @@ def test_enu():
     benchmark('Enumeration-based (conditional check, direct assignment)', count_models_by_enumeration, solver, x)
     benchmark('Enumeration-based (conditional check, separate assignment)', count_models_by_enumeration2, solver, x)
     benchmark('Enumeration-based (substitute + simplify)', count_models_by_enumeration3, solver, x)
-
 
 # test_enu()

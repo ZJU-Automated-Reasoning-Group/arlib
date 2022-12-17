@@ -1,5 +1,3 @@
-
-
 class PySamplerException(Exception):
     """Base class for all custom exceptions of PySampler"""
     pass

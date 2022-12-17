@@ -1,13 +1,12 @@
 # coding: utf-8
 from enum import Enum
 from typing import List
-import os
 import subprocess
 from threading import Timer
 
 import z3
 
-from .smtlib_solver import SmtlibProc
+from arlib.utils.smtlib_solver import SmtlibProc
 
 """
 TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv, entail, etc)

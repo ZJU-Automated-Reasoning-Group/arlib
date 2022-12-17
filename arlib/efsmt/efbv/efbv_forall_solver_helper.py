@@ -3,7 +3,7 @@ FIXME: the file is very likely buggy
 """
 import multiprocessing
 import concurrent.futures
-from typing import List, Tuple
+from typing import List
 
 import z3
 

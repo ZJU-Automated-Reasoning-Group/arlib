@@ -32,34 +32,36 @@ def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
     return res.as_expr()
 
 
-def compact_check_misc(precond, cnt_list, res_label, models):
+def compact_check_misc(precond, cnt_list, res_label):
     """
     TODO: In our settings, as long as there is one unsat, we can stop
       However, this algorithm stops until "all the remaining ones are UNSAT (which can have one of more instances)"
     """
     f = z3.BoolVal(False)
     for i in range(len(res_label)):
-        if res_label[i] == 2: f = z3.Or(f, cnt_list[i])
-    if z3.is_false(f): return
+        if res_label[i] == 2:
+            f = z3.Or(f, cnt_list[i])
+    if z3.is_false(f):
+        return
 
     # sol = z3.SolverFor("QF_BV")
-    sol = z3.Solve()
+    sol = z3.Solver()
     g = z3.And(precond, f)
     sol.add(g)
     s_res = sol.check()
     if s_res == z3.unsat:
         for i in range(len(res_label)):
-            if res_label[i] == 2: res_label[i] = 0
+            if res_label[i] == 2:
+                res_label[i] = 0
     elif s_res == z3.sat:
         m = sol.model()
-        models.append(m)  # counterexample
+        # models.append(m)  # counterexample
         for i in range(len(res_label)):
             if res_label[i] == 2 and z3.is_true(m.eval(cnt_list[i], True)):
                 res_label[i] = 1
     else:
         return
-    compact_check_misc(precond, cnt_list, res_label, models)
-
+    compact_check_misc(precond, cnt_list, res_label)
 
 
 def compact_check(precond: z3.BoolRef, cnt_list: List[z3.BoolRef]) -> List[int]:
@@ -76,7 +78,8 @@ def compact_check(precond: z3.BoolRef, cnt_list: List[z3.BoolRef]) -> List[int]:
     >>> assert compact_check(pre, cnts) == [1, 0, 0]
     """
     res = []
-    for _ in cnt_list: res.append(2)
+    for _ in cnt_list:
+        res.append(2)
     compact_check_misc(precond, cnt_list, res)
     return res
 

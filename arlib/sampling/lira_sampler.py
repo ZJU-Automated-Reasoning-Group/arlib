@@ -46,6 +46,7 @@ class LRASampler(Sampler):
         # for fml in dnf_fml:
         #    clra.sample()
 
+
 class LIASampler(Sampler):
 
     def __init__(self, **options):
