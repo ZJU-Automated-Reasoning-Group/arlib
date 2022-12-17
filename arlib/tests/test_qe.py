@@ -5,9 +5,9 @@ For testing the quantifier elimination engine
 
 import z3
 
-from . import TestCase, main
-from .formula_generator import FormulaGenerator
-from ..qe import qelim_exists_lme
+from arlib.tests import TestCase, main
+from arlib.tests.formula_generator import FormulaGenerator
+from arlib.qe import qelim_exists_lme
 
 
 def is_equivalent(a: z3.BoolRef, b: z3.BoolRef):
