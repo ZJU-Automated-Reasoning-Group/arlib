@@ -1,5 +1,6 @@
+bin_solvers/*
+!bin_solvers/download.py
 tmp.py
-bin_solvers
 *.prof
 .DS_Store
 arlib/test/.pytest_cache

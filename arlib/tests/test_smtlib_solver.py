@@ -3,13 +3,13 @@
 For testing the smtlib-based solver (used for interacting with binary solvers)
 """
 import logging
+from pathlib import Path
 
 import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
-from arlib.global_params.paths import cvc5_exec, z3_exec
 from arlib.theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 
 
@@ -31,6 +31,11 @@ def gen_small_formula(logic: str):
     s.add(fml)
     return s.to_smt2()
 
+
+project_root_dir = str(Path(__file__).parent.parent.parent)
+z3_exec = project_root_dir + "/bin_solvers/z3"
+cvc5_exec = project_root_dir + "/bin_solvers/cvc5"
+print(cvc5_exec)
 
 class TestSMTLIBSolver(TestCase):
 

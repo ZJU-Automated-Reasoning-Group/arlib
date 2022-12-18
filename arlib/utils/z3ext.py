@@ -25,9 +25,10 @@ Useful APIs
 
 
 def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
+    """Skolemize a formula (important for handling quantified formulas)"""
     g = z3.Goal()
     g.add(exp)
-    t = z3.Tactic('nnf')
+    t = z3.Tactic('snf')
     res = t(g)
     return res.as_expr()
 

@@ -59,9 +59,9 @@ class TestEFBVManager(TestCase):
                 continue
 
             fml_manager = EFBVFormulaTranslator()
-            fml_manager.initialize(fml, existential_vars, universal_vars)
 
-            solve_with_z3(fml)
+            qbf = fml_manager.to_qbf(fml, existential_vars, universal_vars)
+            solve_with_z3(qbf)
 
 
 if __name__ == '__main__':
