@@ -11,7 +11,7 @@
 from z3 import *
 from random import randint
 
-from arlib.utils.z3ext import get_variables
+from arlib.utils.z3_expr_utils import get_variables
 
 g_number_smtcall = 0
 

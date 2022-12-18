@@ -2,7 +2,7 @@
 import z3
 from arlib.sampling.sampler import Sampler
 from arlib.sampling.linear_ira.dikin_walk import ConunctiveLRASampler
-from arlib.utils.z3ext import to_dnf
+from arlib.utils.z3_solver_utils import to_dnf
 
 
 class LRASampler(Sampler):
