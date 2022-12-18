@@ -10,7 +10,7 @@ import z3
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
-from arlib.theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
+from arlib.utils.smtlib_theory_solver import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 
 
 def gen_small_formula(logic: str):
@@ -37,6 +37,7 @@ z3_exec = project_root_dir + "/bin_solvers/z3"
 cvc5_exec = project_root_dir + "/bin_solvers/cvc5"
 print(cvc5_exec)
 
+
 class TestSMTLIBSolver(TestCase):
 
     def test_smtlib_solver(self):
@@ -45,13 +46,6 @@ class TestSMTLIBSolver(TestCase):
         # smt2string = gen_small_formula("int")
         smt2string = gene_smt2string("QF_BV")
         bin_solver.add(smt2string)
-        print(bin_solver.check_sat())
-
-    def test_smtlib_portfolio_solver(self):
-        return
-        solvers_list = [cvc5_exec + " -q -i", z3_exec + " -in"]
-        bin_solver = SMTLibPortfolioTheorySolver(solvers_list)
-        bin_solver.add(gen_formula("real"))
         print(bin_solver.check_sat())
 
 
