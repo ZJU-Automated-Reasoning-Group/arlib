@@ -2,8 +2,8 @@
 import z3
 
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.symabs.smt2symabs import SymbolicAbstraction
-from arlib.symabs.smtcounting import ModelCounter
+from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
+from arlib.bv.bvcounting import ModelCounter
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 
@@ -61,7 +61,7 @@ def test_mcai():
         fml = fg.generate_formula()
         if is_sat(fml):
             # 1. Do abstraction
-            sa = SymbolicAbstraction()
+            sa = BVSymbolicAbstraction()
             sa.init_from_fml(fml)
             # sa.do_simplification()
 

@@ -34,7 +34,8 @@ def signal_handler(sig, frame):
     global g_process_queue
     try:
         for p in g_process_queue:
-            if p: p.terminate()
+            if p:
+                p.terminate()
         logging.debug("processes cleaned!")
     except Exception as e:
         print(e)
@@ -57,7 +58,8 @@ def main():
 
     args = parser.parse_args()
 
-    if args.verbose: logging.basicConfig(level=logging.DEBUG)
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
 
     formula_file = args.formula
 

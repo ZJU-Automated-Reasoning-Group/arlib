@@ -2,7 +2,7 @@
 import z3
 from arlib.tests.formula_generator import FormulaGenerator
 # from arlib.tests.grammar_gene import generate_from_grammar_as_str
-from arlib.symabs.arithopt import NumericalAbstraction, OMTEngineType
+from arlib.symabs.omt_symabs.lira_symbolic_abstraction import LIRASymbolicAbstraction, OMTEngineType
 
 
 def is_sat(e):
@@ -12,7 +12,7 @@ def is_sat(e):
     return s.check() == z3.sat
 
 
-def test_arithopt():
+def test_lira_symbolic_abstraction():
     try:
         w, x, y, z = z3.Ints("w x y z")
         fg = FormulaGenerator([w, x, y, z])
@@ -20,7 +20,7 @@ def test_arithopt():
         if is_sat(fml):
             # print(fml)
             # 1. Do abstraction
-            sa = NumericalAbstraction()
+            sa = LIRASymbolicAbstraction()
             sa.init_from_fml(fml)
 
             sa.omt_engine.compact_opt = False
@@ -53,6 +53,5 @@ def test_arithopt():
 
 if __name__ == '__main__':
     for _ in range(3):
-        if test_arithopt():
+        if test_lira_symbolic_abstraction():
             break
-

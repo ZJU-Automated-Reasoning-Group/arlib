@@ -1,18 +1,14 @@
 # coding: utf-8
 import z3
 import itertools
-import logging
-# import random
 from timeit import default_timer as symabs_timer
 from typing import List
 
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.utils.z3_solver_utils import is_entail
-from arlib.symabs.z3opt_util import box_optimize
+from arlib.symabs.omt_symabs.z3opt_util import box_optimize
 
 # import argparse
-
-logging.basicConfig(level=logging.WARNING)
 
 """
 Interval
@@ -28,7 +24,7 @@ def get_bv_size(x: z3.ExprRef):
         return -1
 
 
-class SymbolicAbstraction:
+class BVSymbolicAbstraction:
     def __init__(self):
         self.initialized = False
         self.formula = z3.BoolVal(True)
@@ -70,7 +66,8 @@ class SymbolicAbstraction:
             # NOTE: get_variables can be very flow (maybe use solver to get the var?)
             all_vars = get_variables(self.formula)
             for var in all_vars:
-                if z3.is_bv(var): self.vars.append(var)
+                if z3.is_bv(var):
+                    self.vars.append(var)
             self.initialized = True
         except z3.Z3Exception as ex:
             print("error when initialization")
@@ -80,7 +77,8 @@ class SymbolicAbstraction:
         try:
             self.formula = fml
             for var in get_variables(self.formula):
-                if z3.is_bv(var): self.vars.append(var)
+                if z3.is_bv(var):
+                    self.vars.append(var)
             self.initialized = True
         except z3.Z3Exception as ex:
             print("error when initialization")
@@ -258,19 +256,19 @@ def feat_test():
     x = z3.BitVec("x", 8)
     y = z3.BitVec("y", 8)
     fml = z3.And(z3.UGT(x, 0), z3.UGT(y, 0), z3.ULT(x, 10), z3.ULT(y, 10))
-    sa = SymbolicAbstraction()
+    sa = BVSymbolicAbstraction()
     sa.init_from_fml(fml)
     sa.interval_abs()
     sa.zone_abs()
 
 
-def feat_test_counting(fname):
+def feat_test_counting():
     x = z3.BitVec("x", 8)
     y = z3.BitVec("y", 8)
     z = z3.BitVec("z", 8)
     fml = z3.And(z3.UGT(x, 0), z3.UGT(y, 4), z3.ULT(x, 10), z3.ULT(z, 10))
 
-    sa = SymbolicAbstraction()
+    sa = BVSymbolicAbstraction()
     # sa.init_from_file(fname)
     sa.init_from_fml(fml)
     sa.do_simplification()
