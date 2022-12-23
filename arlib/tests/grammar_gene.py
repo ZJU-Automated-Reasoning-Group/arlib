@@ -99,3 +99,36 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
     if is_timeout_gene[0]:
         return False
     return out_gene
+
+
+def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
+    cnfratio = random.randint(2, 10)
+    cntsize = random.randint(5, 20)
+
+    # strategy = random.choice(strategies)
+    if incremental:
+        strategy = random.choice(['CNFexp', 'cnf', 'ncnf', 'bool'])
+    else:
+        strategy = 'noinc'
+
+    cmd = ['python3', smt_generator,
+           '--strategy', strategy,
+           '--cnfratio', str(cnfratio),
+           '--cntsize', str(cntsize),
+           '--disable', 'option_fuzzing',
+           '--difftest', '1',
+           '--logic', logic]
+
+    p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    is_timeout_gene = [False]
+    timer_gene = Timer(15, terminate, args=[p_gene, is_timeout_gene])
+    timer_gene.start()
+    out_gene = p_gene.stdout.readlines()
+    out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
+    p_gene.stdout.close()  # close?
+    timer_gene.cancel()
+    if p_gene.poll() is None:
+        p_gene.terminate() # need this?
+    if is_timeout_gene[0]:
+        return False
+    return out_gene

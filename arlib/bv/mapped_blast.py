@@ -255,3 +255,29 @@ def test_blast(input_file):
     # print('\n'.join(header))
     print('\n'.join(clauses))
     # print(id_table)
+
+
+def test_mapping_back():
+    x = z3.BitVec("x", 8)
+    y = z3.BitVec("y", 8)
+    formula = z3.And(z3.UGT(x, 0), z3.UGT(y, 0), z3.ULT(x, 10), z3.ULT(y, 10))
+
+
+'''
+def main():
+    inputfile = sys.argv[1]
+    projection_last = sys.argv[2]
+    projection_last = projection_last and projection_last.lower() != "false"
+
+    print("Reading formula...", file=sys.stderr)
+    formula_vec = parse_smt2_file(inputfile)
+    formula = And(formula_vec)
+    print("Generating DIMACS with projection...", file=sys.stderr)
+    bitblasted, id_table = bitblast(formula)
+    header, clauses  = to_dimacs(bitblasted, id_table, projection_last)
+    print('\n'.join(header))
+    print('\n'.join(clauses))
+
+if __name__ == '__main__':
+    main()
+'''
