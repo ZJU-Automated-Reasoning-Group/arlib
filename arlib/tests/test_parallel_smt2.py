@@ -33,6 +33,14 @@ class TestParallelSMTSolver2(TestCase):
         string_test()
 
 
+def solve_file(filename: str, logic: str):
+    with open(filename, "r") as f:
+        smt2string = f.read()
+        # simple_cdclt(smt2string)
+        res = parallel_cdclt_process(smt2string, logic=logic)
+        print(res)
+
+
 if __name__ == '__main__':
     logger = logging.getLogger('tmp')
     logger.setLevel(logging.DEBUG)
