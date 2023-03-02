@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Public subclasses of different Exceptions for the arlib library
+Public subclasses of different Exceptions for the psmt library
 
 """
 
@@ -11,9 +11,20 @@ class SMTSuccess(Exception):
     """
 
 
+class SMTError(Exception):
+    """
+    TBD
+    """
+
+
 class TheorySolverSuccess(SMTSuccess):
     """
     The theory solver checks T-consistency successfully
+    """
+
+
+class TheorySolverError(SMTError):
+    """
     """
 
 
@@ -23,14 +34,8 @@ class BoolSolverSuccess(SMTSuccess):
     """
 
 
-class ExitsSolverSuccess(SMTSuccess):
+class BoolSolverError(SMTError):
     """
-    """
-
-
-class ForAllSolverSuccess(SMTSuccess):
-    """
-    TBD
     """
 
 
@@ -40,26 +45,8 @@ class SimplifierSuccess(SMTSuccess):
     """
 
 
-class SMTUnknown(Exception):
+class SimplifierError(SMTError):
     """
-    TBD
-    """
-
-
-class ExitsSolverUnknown(SMTUnknown):
-    """
-    """
-
-
-class ForAllSolverUnknown(SMTUnknown):
-    """
-    TBD
-    """
-
-
-class SMTError(Exception):
-    """
-    TBD
     """
 
 
@@ -73,3 +60,4 @@ class SMTLIBSolverError(SMTError):
     """
     TBD
     """
+

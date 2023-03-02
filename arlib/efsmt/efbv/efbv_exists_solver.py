@@ -10,7 +10,7 @@ import random
 import z3
 
 from arlib.utils.exceptions import ExitsSolverSuccess, ExitsSolverUnknown
-from arlib.efsmt.efbv.efbv_exists_solver_helper import parallel_sample
+from arlib.efsmt.efbv.efbv_sampler_utils import parallel_sample
 from arlib.efsmt.efbv.efbv_utils import ESolverMode
 
 logger = logging.getLogger(__name__)
