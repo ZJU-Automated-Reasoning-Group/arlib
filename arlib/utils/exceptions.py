@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Public subclasses of different Exceptions for the psmt library
+Public subclasses of different Exceptions
 
 """
 
