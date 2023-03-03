@@ -1,7 +1,6 @@
 # coding: utf-8
 """
 Public subclasses of different Exceptions
-
 """
 
 

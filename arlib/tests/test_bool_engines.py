@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-For testing the the Boolean-level reasoning engines in the parallel CDCL(T) SMT solving engine
+For testing theBoolean-level reasoning engines in the parallel CDCL(T) SMT solving engine
 """
 
 from arlib.tests import TestCase, main

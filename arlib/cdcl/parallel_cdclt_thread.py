@@ -30,6 +30,24 @@ m_logic = "ALL"
 
 def check_theory_consistency(init_theory_fml: z3.BoolRef, assumptions: List[z3.ExprRef]):
     """
+    Check for theory consistency in CDCL(T)
+    Parameters:
+    -----------
+    init_theory_fml : z3.BoolRef
+        The initial theory formula.
+    assumptions : List[z3.ExprRef]
+        The assumptions to be checked for consistency with the theory formula.
+        NOTE: In our case, each assumption is a candidate Boolean model, which is to
+        to checked by the theory solver
+
+    Returns:
+    --------
+    The unsatisfiable core if the assumptions are inconsistent, otherwise an empty list.
+
+    Raises:
+    -------
+    TheorySolverSuccess: If the set of assumptions is consistent with the initial theory formula
+    TheorySolverError: If the theory solver encounters an error while attempting to solve the assumptions.
     """
     logger.debug("One theory worker starts")
     theory_solver = z3.Solver(ctx=init_theory_fml.ctx)

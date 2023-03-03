@@ -16,6 +16,21 @@ smt_generator = str(Path(__file__).parent) + "/smtfuzz.py"
 
 
 def terminate(process, is_timeout: List):
+    """
+        Terminates a process and sets the timeout flag to True.
+
+        Parameters:
+        -----------
+        process : subprocess.Popen
+            The process to be terminated.
+        is_timeout : List
+            A list containing a single boolean item. If the process exceeds the timeout limit, the boolean item will be
+            set to True.
+
+        Returns:
+        --------
+        None
+        """
     if process.poll() is None:
         try:
             process.terminate()

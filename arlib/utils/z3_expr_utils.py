@@ -294,7 +294,23 @@ def is_lit(a) -> bool:
 
 
 def create_function_body_str(funcname: str, varlist: List, body: z3.ExprRef) -> [str]:
-    """"""
+    """
+    Creates a string representation of a function body which can be used to define a new function in SMT-LIB2 format.
+
+    Parameters:
+    -----------
+    funcname : str
+        The name of the function to be defined.
+    varlist : List
+        The list of input variables for the function.
+    body : z3.ExprRef
+        The body of the function as a Z3 expression.
+
+    Returns:
+    -------
+    str
+        A string representation of the function body in SMT-LIB2 format.
+    """
     res = []
     target = "(define-fun {} (".format(funcname)
     for i in range(len(varlist)):

@@ -9,11 +9,28 @@ from arlib.utils import SolverResult
 
 
 class CDCLSolver(ABC):
+    """
+    Abstract base class for a solver which implements the Conflict Driven Clause Learning (CDCL) algorithm for solving
+    Satisfiability Modulo Theories (SMT) problems.
+    """
     def __init__(self, **kwargs):
         self.seed = kwargs.get("seed", 1)
 
     @abstractmethod
     def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:
+        """
+        Abstract method that solves an SMT-LIB2 problem with the CDCL algorithm.
+        Parameters:
+        -----------
+        smt2string : str
+            The SMT-LIB2 problem in its input format.
+        logic : str
+            The logic in use.
+        Returns:
+        --------
+        SolverResult
+            The result of the solver as a SolverResult object.
+        """
         pass
 
 
