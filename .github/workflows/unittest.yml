@@ -17,15 +17,15 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r --use-pep517 requirements.txt
         wget -O z3.zip "https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip"
         unzip z3.zip
-        cp z3*/bin/z3 bin_solvers
-        chmod +x bin_solvers/z3
+        cp z3*/bin/z3 ../bin_solvers
+        chmod +x ../bin_solvers/z3
         rm z3.zip
         rm -rf z3*/
         echo "z3 binary downloaded and installed successfully!"
     - name: Running unit test
       run: |
-        python -m pytest -m "not slow" -x arlib/tests
+        python -m pytest -m "not slow" -x tests
 
