@@ -18,7 +18,7 @@ from z3.z3util import get_vars
 
 from arlib.bv import translate_smt2formula_to_cnf
 from arlib.utils import SolverResult
-from arlib.utils.exceptions import ForAllSolverSuccess
+from arlib.efsmt.efbv.cegis_efbv.exceptions import ForAllSolverSuccess
 
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
 

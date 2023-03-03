@@ -8,7 +8,7 @@ import time
 
 import z3
 
-from arlib.efsmt.efbv.efbv_to_bool import EFBVFormulaTranslator
+from arlib.efsmt.efbv.blasting_efbv.efbv_to_bool import EFBVFormulaTranslator
 from arlib.efsmt.efbv.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
 
 logger = logging.getLogger(__name__)

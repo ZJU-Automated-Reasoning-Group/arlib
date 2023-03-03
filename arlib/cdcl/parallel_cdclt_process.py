@@ -14,7 +14,7 @@ from arlib.cdcl import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
 from arlib.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, parse_sexpr_string
-from arlib.utils.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
+from arlib.cdcl.exceptions import TheorySolverSuccess, SMTLIBSolverError, PySMTSolverError
 from arlib.config import m_smt_solver_bin
 
 logger = logging.getLogger(__name__)

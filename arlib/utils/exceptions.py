@@ -17,47 +17,7 @@ class SMTError(Exception):
     """
 
 
-class TheorySolverSuccess(SMTSuccess):
-    """
-    The theory solver checks T-consistency successfully
-    """
-
-
-class TheorySolverError(SMTError):
-    """
-    """
-
-
-class BoolSolverSuccess(SMTSuccess):
+class SMTUnknown(Exception):
     """
     TBD
     """
-
-
-class BoolSolverError(SMTError):
-    """
-    """
-
-
-class SimplifierSuccess(SMTSuccess):
-    """
-    TBD
-    """
-
-
-class SimplifierError(SMTError):
-    """
-    """
-
-
-class PySMTSolverError(SMTError):
-    """
-    TBD
-    """
-
-
-class SMTLIBSolverError(SMTError):
-    """
-    TBD
-    """
-

@@ -11,9 +11,9 @@ from typing import List
 
 import z3
 
-from arlib.cdcl import SMTPreprocessor4Thread
 from arlib.utils import SolverResult
-from arlib.utils.exceptions import TheorySolverSuccess, TheorySolverError
+from arlib.cdcl import SMTPreprocessor4Thread
+from arlib.cdcl.exceptions import TheorySolverSuccess, TheorySolverError
 
 logger = logging.getLogger(__name__)
 

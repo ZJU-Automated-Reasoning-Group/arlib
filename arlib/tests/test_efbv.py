@@ -9,8 +9,7 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.efsmt.efbv.efbv_solver_parallel import ParallelEFBVSolver
-from arlib.efsmt.efbv.efbv_solver_sequential import SequentialEFBVSolver
+from arlib.efsmt.efbv.cegis_efbv.efbv_cegis_parallel import ParallelEFBVSolver
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
 
 

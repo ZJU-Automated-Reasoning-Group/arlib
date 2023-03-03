@@ -20,7 +20,7 @@ See `arlib/bv/bvipt.py`
 
 ## Bit-Vector Model Counting
 
-See `arlib/bv/bvcounting`
+See `arlib/bv/bv_counting`
 
 ## Parallel/Distributed CDCL(T) SMT Solving
 

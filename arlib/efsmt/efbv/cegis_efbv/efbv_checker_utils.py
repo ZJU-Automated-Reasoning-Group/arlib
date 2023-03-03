@@ -7,7 +7,7 @@ from typing import List
 
 import z3
 
-from arlib.utils.exceptions import ForAllSolverSuccess
+from arlib.efsmt.efbv.cegis_efbv.exceptions import ForAllSolverSuccess
 
 
 def check_candidate(fml: z3.BoolRef):

@@ -3,14 +3,12 @@
 For testing CDCL(T)-based parallel SMT solving engine
 """
 
-import logging
-
 import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.efsmt.efbv.efbv_utils import EFBVResult
-from arlib.efsmt.efbv.efbv_to_bool import EFBVFormulaTranslator
+from arlib.efsmt.efbv.blasting_efbv.efbv_to_bool import EFBVFormulaTranslator
 
 
 def gen_small_bv_formula(logic: str):
