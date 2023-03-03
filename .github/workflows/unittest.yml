@@ -20,5 +20,5 @@ jobs:
         pip install --use-pep517 -r requirements.txt
     - name: Running unit test
       run: |
-        python -m pytest -m "not slow" -x /home/runner/work/arlib/arlib
+        python -m pytest -m "not slow" -x /home/runner/work/arlib/arlib/tests
 
