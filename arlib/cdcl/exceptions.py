@@ -40,8 +40,3 @@ class PySMTSolverError(SMTError):
     """
 
 
-class SMTLIBSolverError(SMTError):
-    """
-    TBD
-    """
-

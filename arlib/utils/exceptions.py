@@ -21,3 +21,9 @@ class SMTUnknown(Exception):
     """
     TBD
     """
+
+
+class SMTLIBSolverError(SMTError):
+    """
+    TBD
+    """
