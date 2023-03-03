@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r --use-pep517 requirements.txt
+        pip install --use-pep517 -r requirements.txt
         wget -O z3.zip "https://github.com/Z3Prover/z3/releases/download/z3-4.12.1/z3-4.12.1-x64-glibc-2.35.zip"
         unzip z3.zip
         cp z3*/bin/z3 ../bin_solvers
