@@ -1,7 +1,7 @@
 """
 Interface for CDCL(T)-based Solver
 """
-import itertools
+# import itertools
 from abc import ABC, abstractmethod
 from arlib.cdcl.parallel_cdclt_process import parallel_cdclt_process
 from arlib.cdcl.parallel_cdclt_thread import parallel_cdclt_thread
@@ -36,7 +36,8 @@ class CDCLSolver(ABC):
 
 class SequentialCDCLSolver(CDCLSolver):
     def __init__(self, **kwargs):
-        self.seed = kwargs.get("seed", 1)
+        super().__init__(**kwargs)
+        # self.seed = kwargs.get("seed", 1)
 
     def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:
         pass

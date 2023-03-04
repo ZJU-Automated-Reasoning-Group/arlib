@@ -1,8 +1,8 @@
 import z3
 
-from domains.algorithms import bilateral, RSY
-from domains.interval import Interval
-from domains.interval import IntervalDomain
+from arlib.symabs.ai_symabs.domains.algorithms import bilateral, RSY
+from arlib.symabs.ai_symabs.domains.interval import Interval
+from arlib.symabs.ai_symabs.domains.interval import IntervalDomain
 
 
 def test_bilateral_alpha_hat_add_subtract():

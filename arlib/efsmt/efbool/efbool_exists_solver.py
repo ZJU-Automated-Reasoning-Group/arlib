@@ -61,6 +61,14 @@ class BoolExistsSolver(object):
             self.clauses.append(cls)
 
     def add_cnf(self, cnf: CNF):
+        """
+        The add_cnf function adds a CNF object to the solver.
+        It does this by adding each clause in the CNF object to the solver, and then appending that list of clauses
+        to self.clauses.
+
+        :param self: Access the attributes and methods of the class in python
+        :param cnf:CNF: Add the clauses in the cnf object to the solver
+        """
         # self.solver.append_formula(cnf.clauses, no_return=False)
         for cls in cnf.clauses:
             self.solver.add_clause(cls)

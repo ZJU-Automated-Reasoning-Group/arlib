@@ -1,6 +1,6 @@
-from domains.interval import Interval, IntervalAbstractState, IntervalDomain
-from domains.reduced_product import ReducedProductAbstractState, ReducedProductDomain
-from domains.sign import Sign, SignAbstractState, SignDomain
+from arlib.symabs.ai_symabs.domains.interval import Interval, IntervalAbstractState, IntervalDomain
+from arlib.symabs.ai_symabs.domains.reduced_product import ReducedProductAbstractState, ReducedProductDomain
+from arlib.symabs.ai_symabs.domains.sign import Sign, SignAbstractState, SignDomain
 
 
 def test_reduce_sign_interval():

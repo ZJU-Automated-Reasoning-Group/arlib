@@ -1,4 +1,4 @@
-from domains.z3_variables import Z3VariablesState
+from arlib.symabs.ai_symabs.domains.z3_variables import Z3VariablesState
 
 
 def test_sign_concrete_state_creation_query():

@@ -1,6 +1,6 @@
 import random
 
-from domains.interval import Interval, IntervalAbstractState
+from arlib.symabs.ai_symabs.domains.interval import Interval, IntervalAbstractState
 
 
 def test_single_interval_comparisons():

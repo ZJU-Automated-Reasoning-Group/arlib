@@ -1,5 +1,7 @@
 # coding: utf-8
 """
+Perform bit-blasting and keep tracking of the relation of
+bit-vector varables and Boolean-variables
 """
 import sys
 from typing import List, Dict, Tuple

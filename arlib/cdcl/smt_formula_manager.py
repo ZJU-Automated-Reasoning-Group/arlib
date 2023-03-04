@@ -8,7 +8,7 @@ The main class is SMTPreprocess, which is used to
 
 """
 
-import itertools
+# import itertools
 from typing import List
 
 import z3

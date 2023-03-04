@@ -6,7 +6,7 @@ Process-based Parallel CDCL(T)-style SMT Solving
 import logging
 import multiprocessing
 from multiprocessing import cpu_count
-from multiprocessing import Manager, Value
+from multiprocessing import Manager
 from ctypes import c_char_p
 from typing import List
 

@@ -1,5 +1,5 @@
-from domains.interval import Interval, IntervalAbstractState
-from domains.interval import IntervalDomain
+from arlib.symabs.ai_symabs.domains.interval import Interval, IntervalAbstractState
+from arlib.symabs.ai_symabs.domains.interval import IntervalDomain
 
 
 def test_join_bottom_top():

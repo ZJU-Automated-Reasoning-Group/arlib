@@ -1,14 +1,17 @@
 # coding: utf-8
 """
+Translate Exists-Forall Bit-Vector Instances to Boolean Formulas
+- QBF: z3 expression, QDIMAS
+- SAT: z3 expression, DIMACS
+- BDD: the BDD in pyEDA?
+
 For maintaining the correlations of bit-vec and Boolean world.
-Currently, we mainly use the file for translating quantified
-bit-vector formulas to different forms of Boolean problems,
-e.g., QBF, BDD?
 
-
- TODO: qdimacs  http://www.qbflib.org/qdimacs.html
-      http://beyondnp.org/pages/solvers/qbf-solvers/
+Some references of QDIMACS
+  http://www.qbflib.org/qdimacs.html
+  http://beyondnp.org/pages/solvers/qbf-solvers/
 """
+
 import logging
 from typing import List
 
@@ -20,14 +23,16 @@ from arlib.bv import translate_smt2formula_to_numeric_clauses
 logger = logging.getLogger(__name__)
 
 
-class EFBV2BoolTranslator:
+class EFBV2BoolAux:
     def __init__(self):
         self.universal_bools = []
         self.existential_bools = []
         self.bool_clauses = []
 
     def flattening(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
-        """" Translate a bit-vector formula to a Boolean formula and initialize some self.fields
+        """
+        The flattening function takes a bit-vector formula and translates it to a Boolean formula.
+        It also initializes some fields of the class:
         """
         # TODO: should handle cases where fml is simplified to be true or false
         # bv2bool, bool2id, header, clauses = translate_smt2formula_to_cnf(fml)
@@ -131,23 +136,24 @@ class EFBVFormulaTranslator:
     """
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        self.seed = kwargs.get("seed", 1)  # random seed
         self.qe_level = "word"  # { "bool", "word" }
-        # TODO: implement a native expansion-based qe procedure
+        # TODO: implement a native expansion-based qe procedure?
         self.qe_tactic = "qe2"  # {"qe", "qe2"}
 
-    def to_qbf(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def to_z3_qbf(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """Translate an EFSMT(BV) formula to a QBF formula
         :param fml: a quantifier-free bit-vector formula
         :param existential_vars: the set of existential quantified bit-vector variables
         :param universal_vars: the set of universal quantified bit-vector formulas
         :return: a quantified Boolean formula (in z3)
         """
-        translator = EFBV2BoolTranslator()
+        translator = EFBV2BoolAux()
         translator.flattening(fml, existential_vars, universal_vars)
         return translator.to_qbf_clauses()
 
-    def to_sat(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def to_z3_sat(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """Translate an EFSMT(BV) formula to a SAT formula
         :return: a quantifier-free Boolean formula (in z3)
         """
@@ -164,6 +170,10 @@ class EFBVFormulaTranslator:
             qfbv_fml = z3.Then("simplify", self.qe_tactic)(qbv_fml).as_expr()
             # second, convert the bit-vec formula to CNF
             return z3.Then("simplify", "bit-blast", "tseitin-cnf")(qfbv_fml).as_expr()
+
+    def to_qdimacs(self):
+
+        raise NotImplementedError
 
     def to_bdd(self):
         raise NotImplementedError

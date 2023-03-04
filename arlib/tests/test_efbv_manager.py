@@ -58,7 +58,7 @@ class TestEFBVManager(TestCase):
 
             fml_manager = EFBVFormulaTranslator()
 
-            qbf = fml_manager.to_qbf(fml, existential_vars, universal_vars)
+            qbf = fml_manager.to_z3_qbf(fml, existential_vars, universal_vars)
             solve_with_z3(qbf)
 
 

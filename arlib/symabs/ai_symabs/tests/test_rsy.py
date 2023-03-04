@@ -1,8 +1,8 @@
 import z3
 
-from domains.algorithms import RSY
-from domains.sign import Sign, SignAbstractState
-from domains.sign import SignDomain
+from arlib.symabs.ai_symabs.domains.algorithms import RSY
+from arlib.symabs.ai_symabs.domains.sign import Sign, SignAbstractState
+from arlib.symabs.ai_symabs.domains.sign import SignDomain
 
 
 def test_RSY_alpha_hat_add_subtract():

@@ -1,4 +1,4 @@
-from domains.sign import Sign, SignAbstractState
+from arlib.symabs.ai_symabs.domains.sign import Sign, SignAbstractState
 
 
 def test_sign_enum_comparisons():

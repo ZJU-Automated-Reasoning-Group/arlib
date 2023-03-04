@@ -1,5 +1,5 @@
-from domains.sign import Sign, SignAbstractState
-from domains.sign import SignDomain
+from arlib.symabs.ai_symabs.domains.sign import Sign, SignAbstractState
+from arlib.symabs.ai_symabs.domains.sign import SignDomain
 
 
 def test_join_bottom_top():
