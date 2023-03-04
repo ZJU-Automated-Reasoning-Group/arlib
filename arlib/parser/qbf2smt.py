@@ -2,7 +2,7 @@
 
 """
 Converting QDIMACS format to smtlib
-
+This one is a bit tricky, as it uses bit-vector variables to "compactly" encode several Booleans.
 """
 
 import sys
@@ -20,6 +20,18 @@ def spacesplit(string):
 
 
 def tointlist(lst):
+    """
+    Converts a list of strings to a list of integers, and checks that it's 0-terminated.
+
+    Args:
+        lst (List[str]): The list to convert.
+
+    Returns:
+        List[int]: The list with strings converted to integers and 0 removed.
+
+    Raises:
+        ValueError: If the list is not a 0-terminated list of integers.
+    """
     try:
         # ns = map(lambda x: int(x), lst)
         ns = list(map(lambda x: int(x), lst))
@@ -32,6 +44,9 @@ def tointlist(lst):
 
 
 def parse(filename):
+    """
+    Parses a QDIMACS file and outputs its equivalent in SMT-LIB2 format, using UFBV logic.
+    """
     with open(filename) as f:
         printedcomments = False
         seendesc = False

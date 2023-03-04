@@ -12,7 +12,8 @@ from z3.z3util import get_vars
 # cr projected_var_ids
 
 
-def is_literal(exp: z3.ExprRef): return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
+def is_literal(exp: z3.ExprRef):
+    return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
 
 
 def is_ite(exp: z3.ExprRef): return exp.decl().kind() == z3.Z3_OP_ITE

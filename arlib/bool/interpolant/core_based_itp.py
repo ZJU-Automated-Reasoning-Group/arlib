@@ -22,6 +22,30 @@ class BooleanInterpolant:
 
     @staticmethod
     def pogo(A: z3.Solver, B: z3.Solver, xs: List[z3.ExprRef]):
+        """
+        The pogo function takes two solvers, A and B.
+        It then checks if the formula in A is satisfiable.
+        If it is, it tries to prove a contradiction from the formulas in B.
+        The function yields each interpolant as it goes along.
+
+        :param A:z3.Solver: Keep track of the current state of the interpolation problem
+        :param B:z3.Solver: Check the interpolant
+        :param xs:List[z3.ExprRef]: Pass the interpolation literals to the pogo function
+        :return: A generator of interpolants
+        :doc-author: Trelent
+        """
+        """
+        The pogo function takes two solvers, A and B.
+        It then checks if the formula in A is satisfiable.
+        If it is, it tries to prove a contradiction from the formulas in B.
+        The function yields each interpolant as it goes along.
+        
+        :param A:z3.Solver: Keep track of the current state of the interpolation problem
+        :param B:z3.Solver: Check the interpolant
+        :param xs:List[z3.ExprRef]: Pass the interpolation literals to the pogo function
+        :return: A generator of interpolants
+        :doc-author: Trelent
+        """
         while z3.sat == A.check():
             m = A.model()
             L = [BooleanInterpolant.mk_lit(m, x) for x in xs]

@@ -10,7 +10,16 @@ Engine: farkas, symba, ...
 
 def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
     """
-    Optimize one objective
+    The optimize function takes in a formula, an objective function, and whether or not the
+     objective is to be minimized. It then adds the formula to a z3 solver object and sets
+    its timeout if one was specified. It then maximizes/minimizes
+    the given objective function depending on what was specified.
+
+    :param fml:z3.ExprRef: Pass the formula
+    :param obj:z3.ExprRef: Specify the objective function
+    :param minimize: Specify whether we want to maximize or minimize the objective function
+    :param timeout:int: Set a timeout for the optimization
+    :return: The value of the objective
     """
     s = z3.Optimize()
     s.add(fml)

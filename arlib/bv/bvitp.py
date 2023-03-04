@@ -138,6 +138,13 @@ class BVInterpolant:
         return z3.And(expr_clauses)
 
     def compute_itp(self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, cared_vars: List[z3.ExprRef]):
+        """
+        The compute_itp function computes the interpolant between two formulas.
+
+        :param fml_a, fml_b:z3.BoolRef: Specify the formulas that are used to generate interpolants
+        :param cared_vars:List[z3.ExprRef]: Specify the variables that are used in the interpolant
+        :return: The interpolant
+        """
         if self.strategy == ITPStrategy.FLATTENING:
             cared_bool_vars_a, clauses_a = self.mapped_bit_blast(fml_a, cared_vars)
             cared_bool_vars_b, clauses_b = self.mapped_bit_blast(fml_b, cared_vars)

@@ -1,14 +1,32 @@
-# coding: utf-8
+"""
+Backbone generation for SMT problems
+"""
 from z3 import *
 
 
 def entail(a, b):
+    """
+    The entail function takes in two arguments, a and b. It then checks if the negation of
+    a implies b. If it does not, then it returns true (i.e., entail(a,b) = True). Otherwise
+    it returns false.
+
+    :param a: Represent the knowledge base
+    :param b: Check if the negation of a is entailed by b
+    :return: `true` if `a` entails `b`, and `false` otherwise
+    """
     s = Solver()
     s.add(Not(Implies(a, b)))
     return s.check() == unsat
 
 
 def get_atoms(e):
+    """
+    The get_atoms function takes a Z3 expression as input and returns the set of all
+    atomic predicates that appear in the expression.
+
+    :param e: Pass the expression to be converted
+    :return: The set of atoms in a formula
+    """
     s = set()
 
     def get_preds_(e):
@@ -29,6 +47,14 @@ def get_atoms(e):
 
 
 def enumerate_literals(exp, atoms):
+    """
+    The enumerate_literals function takes an expression and a list of atoms.
+    It returns a list of all the literals that are entailed by the expression, including both positive and negative literals.
+
+    :param exp: The expression
+    :param atoms: The set of atoms to be considered
+    :return: A list of literals that are entailed by the expression
+    """
     res = []
     for atom in atoms:
         if entail(exp, atom):

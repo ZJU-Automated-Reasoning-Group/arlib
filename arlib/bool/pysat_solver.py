@@ -39,6 +39,9 @@ def internal_single_solve(solver_name, clauses, assumptions):
 
 
 class PySATSolver(object):
+    """
+    Wrapper of PySAT
+    """
     def __init__(self, solver="cadical"):
         self.solver_name = solver
         self._solver = Solver(name=solver)

@@ -68,7 +68,8 @@ class ExistsSolver(object):
                 for _ in range(rounds):
                     trials = 10
                     fml = z3.BoolVal(randrange(0, 2))
-                    for i in range(trials): fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
+                    for i in range(trials):
+                        fml = z3.Xor(fml, self.cared_bits[randrange(0, len(self.cared_bits))])
                     # TODO: maybe use assumption literal (faster than push/pop)?
                     s.add(fml)
                 if s.check() == z3.sat:
@@ -99,7 +100,9 @@ class ExistsSolver(object):
         Solve each formula in cnt_list in parallel
         """
         logger.debug("Exists solver: parallel sampling")
-        models_in_other_ctx = parallel_sample(z3.And(self.fmls), cared_bits=self.cared_bits, num_samples=num_samples,
+        models_in_other_ctx = parallel_sample(z3.And(self.fmls),
+                                              cared_bits=self.cared_bits,
+                                              num_samples=num_samples,
                                               num_workers=4)
         res = []  # translate the model to the main thread
         for m in models_in_other_ctx:

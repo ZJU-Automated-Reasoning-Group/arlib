@@ -1,5 +1,6 @@
-# coding: utf-8
-
+"""
+CNF
+"""
 from .clause import Clause
 
 

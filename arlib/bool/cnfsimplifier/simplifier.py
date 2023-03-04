@@ -87,6 +87,13 @@ def cnf_asymmetric_subsumption_elimination(cnf):
 
 
 def explicits(cnf):
+    """
+    The explicits function takes a CNF object as an argument and returns the same CNF with
+    the following transformations applied:
+
+    :param cnf: Store the cnf formula
+    :return: The cnf after performing all the functions
+    """
     cnf = cnf.subsumption_elimination()
     cnf = cnf.blocked_clause_elimination()
     cnf = cnf.tautology_elimination()
@@ -94,6 +101,13 @@ def explicits(cnf):
 
 
 def hiddens(cnf):
+    """
+    The hiddens function takes a CNF object as input and returns a new CNF object
+    with the following transformations applied:
+
+    :param cnf: Store the cnf formula
+    :return: A new cnf object that has been optimized by the 3 hidden elimination methods
+    """
     cnf = cnf.hidden_subsumption_elimination()
     cnf = cnf.hidden_tautology_elimination()
     cnf = cnf.hidden_blocked_clause_elimination()
@@ -101,6 +115,10 @@ def hiddens(cnf):
 
 
 def asymmetrics(cnf):
+    """
+    :param cnf: Store the cnf formula
+    :return: A cnf object
+    """
     cnf = cnf.asymmetric_subsumption_elimination()
     cnf = cnf.asymmetric_tautology_elimination()
     cnf = cnf.asymmetric_blocked_clause_elimination()

@@ -51,6 +51,11 @@ class BVSolver:
         self.vars = get_vars(self.fml)
 
     def bit_blast(self):
+        """
+        The bit_blast function converts a bit-vector formula to Boolean logic.
+        It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV variables to boolean expressions
+        and the mapping from boolean expressions to numerical IDs, respectively.
+        """
         logger.debug("Start translating to CNF...")
         # NOTICE: can be slow
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)

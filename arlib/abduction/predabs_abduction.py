@@ -14,6 +14,13 @@ import z3
 
 
 def negate(f: z3.BoolRef) -> z3.BoolRef:
+    """
+    The negate function takes a z3.BoolRef and returns the negation of it.
+    If f is already a negation, then it returns the argument of that negation.
+
+    :param f:z3.BoolRef: Specify the formula that is to be negated
+    :return: The negation of the input boolean expression
+    """
     if z3.is_not(f):
         return f.arg(0)
     else:
@@ -22,8 +29,12 @@ def negate(f: z3.BoolRef) -> z3.BoolRef:
 
 def eval_preds(m: z3.ModelRef, preds: List[z3.BoolRef]):
     """
-    Let m be a model of a formula phi
-    preds be a set of predicates
+    The eval_preds function takes in a model m and a list of predicates preds.
+    It returns the set of predicates that are true in m, or false if they are not.
+
+    :param m:z3.ModelRef: Evaluate the predicates in the list of predicates
+    :param preds:List[z3.BoolRef]: Specify the set of predicates that we want to evaluate
+    :return: A list of predicates that are true in the model m
     """
     res = []
     for p in preds:

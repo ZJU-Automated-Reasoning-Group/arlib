@@ -2,7 +2,7 @@
 import sys
 
 
-def parse_decl(line, ous):
+def parse_decl(line: str, ous):
     decls = line.split()
     nvars = int(decls[2])
     for i in range(nvars):
@@ -10,6 +10,10 @@ def parse_decl(line, ous):
 
 
 def parse_clause(line, ous):
+    """
+    Parses a single clause and writes the corresponding
+    compound logic expression to `ous`.
+    """
     literals = line.split()
     assert (literals[-1] == '0')
     ous.write("(assert (or ")

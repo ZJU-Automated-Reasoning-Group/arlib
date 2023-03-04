@@ -17,7 +17,8 @@ g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
 def solve_with_qbf(fml: z3.ExprRef) -> EFBVResult:
-    """Solve Exists X Forall Y Exists Z . P(...), which is translated from an exists-forall bit-vector instance
+    """Solve Exists X Forall Y Exists Z . P(...), which is translated from an
+    exists-forall bit-vector instance
     NOTE: We do not need to explicitly specify the first Exists
     Z: the aux Boolean vars (e.g., introduced by the bit-blasting and CNF transformer?)
     """
@@ -33,6 +34,19 @@ def solve_with_qbf(fml: z3.ExprRef) -> EFBVResult:
 
 
 def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
+    """
+    The solve_with_simple_cegar function solves the exists-forall problem for bit-vectors.
+    It takes as input a list of variables x, a list of variables y, and an expression phi.
+    The function returns SAT if there is some assignment to y that makes phi true and all other assignments to x make phi false.
+    If no such assignment exists it returns UNSAT.
+
+    :param x:List[z3.ExprRef]: Represent the variables that are being quantified over
+    :param y:List[z3.ExprRef]: Provide the variables that are to be substituted in the model
+    :param phi:z3.ExprRef: Represent the formula that we want to check
+    :param maxloops: Specify the maximum number of iterations
+    :return: A value of type efbvresult
+    :doc-author: Trelent
+    """
     """
     Solve exists-forall bit-vectors
     """
@@ -69,6 +83,7 @@ def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.Ex
 
 
 def solve_with_z3(universal_vars: List, phi: z3.ExprRef):
+
     sol = z3.SolverFor("UFBV")
     sol.add(z3.ForAll(universal_vars, phi))
     res = sol.check()
