@@ -1,4 +1,6 @@
-# coding: utf-8
+"""Model counting for QF_BV formulas
+"""
+
 import itertools
 import logging
 import math
@@ -7,14 +9,21 @@ from copy import deepcopy
 from timeit import default_timer as counting_timer
 
 import z3
-from arlib.bool.counting.satcounting import SATModelCounter
+from arlib.bool.counting.bool_counting import SATModelCounter
 from arlib.utils.z3_expr_utils import get_variables
-
-"""Model counting for QF_BV formulas
-"""
 
 
 def split_list(alist, wanted_parts=1):
+    """
+    Splits a list into `wanted_parts` number of sub-lists.
+    Example usage:
+        >>> len(split_list([1, 2, 3, 4, 5, 6], wanted_parts=2))
+        2
+        >>> len(split_list([1, 2, 3, 4, 5, 6], wanted_parts=4))
+        4
+    """
+    if wanted_parts == 0:
+        raise ZeroDivisionError("wanted_parts must be greater than zero.")
     length = len(alist)
     return [alist[i * length // wanted_parts: (i + 1) * length // wanted_parts]
             for i in range(wanted_parts)]
@@ -51,6 +60,13 @@ def check_candidate_models_set(formula, assignments):
 
 
 class ModelCounter:
+    """
+        A class for counting the number of models of a Z3 formula.
+
+    Attributes:
+        formula (z3.ExprRef): The Z3 formula to count models for.
+        vars (list): A list of all variables in the formula.
+    """
     def __init__(self):
         self.formula = None
         self.vars = []

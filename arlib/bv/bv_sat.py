@@ -41,14 +41,18 @@ class BVSolver:
         self.fml = None
         self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
         self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
-        self.vars = []
+        # self.vars = []
         self.verbose = 0
         self.signed = False
         self.model = []
 
+    def from_smt_file(self, filepath: str):
+        fml_vec = z3.parse_smt2_file(filepath)
+        self.fml = z3.And(fml_vec)
+
     def from_smt_formula(self, formula: z3.BoolRef):
         self.fml = formula
-        self.vars = get_vars(self.fml)
+        # self.vars = get_vars(self.fml)   # FIXME: the function get_vars can be slow..
 
     def bit_blast(self):
         """

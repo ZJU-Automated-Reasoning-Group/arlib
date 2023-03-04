@@ -4,7 +4,7 @@ For testing the QF_BV solver
 """
 
 from arlib.tests import TestCase, main
-from arlib.bv.bvsat import BVSolver
+from arlib.bv.bv_sat import BVSolver
 
 
 class TestBVSat(TestCase):
