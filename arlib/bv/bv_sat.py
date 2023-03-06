@@ -15,6 +15,12 @@ from arlib.utils import SolverResult
 
 logger = logging.getLogger(__name__)
 
+"""
+F_bv --> F_bool --> SAT solver
+
+x + y = 10
+"""
+
 sat_solvers_in_pysat = ['cadical',
                         'gluecard30',
                         'gluecard41',
