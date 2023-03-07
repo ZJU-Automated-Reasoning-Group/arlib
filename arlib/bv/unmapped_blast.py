@@ -21,8 +21,11 @@ qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
                            z3.Tactic('tseitin-cnf')
                            )
 
+qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+
+
 def qfbv_to_sat(fml):
-    after_simp = qfbv_preamble(fml).as_expr()
+    after_simp = qfbv_tactic(fml).as_expr()
     if z3.is_false(after_simp):
         return SolverResult.UNSAT
     elif z3.is_true(after_simp):
@@ -35,11 +38,13 @@ def qfbv_to_sat(fml):
         return SolverResult.SAT
     return SolverResult.UNSAT
 
+
 def demo():
     x, y = z3.BitVecs("x y", 6)
     fml = z3.And(x + y == 8, x - y == 2)
     g = z3.Goal()
     g.add(fml)  # why adding these constraints?
     print(qfbv_to_sat(fml))
+
 
 demo()

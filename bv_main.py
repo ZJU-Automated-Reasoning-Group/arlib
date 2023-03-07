@@ -5,7 +5,7 @@ import os
 import signal
 import psutil
 import logging
-from arlib.bv.bv_sat import BVSolver
+from arlib.bv.qfbv_solver import BVSolver
 
 
 def signal_handler(sig, frame):

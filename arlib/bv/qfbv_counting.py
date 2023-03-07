@@ -67,6 +67,7 @@ class ModelCounter:
         formula (z3.ExprRef): The Z3 formula to count models for.
         vars (list): A list of all variables in the formula.
     """
+
     def __init__(self):
         self.formula = None
         self.vars = []

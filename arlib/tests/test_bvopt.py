@@ -6,7 +6,7 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.bv.bv_opt import OMTBVSolver
+from arlib.bv.qfbv_opt import OMTBVSolver
 
 
 def is_sat(e):
