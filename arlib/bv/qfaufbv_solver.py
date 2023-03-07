@@ -3,6 +3,8 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 from arlib.utils.types import SolverResult
 
+is_qfbv = z3.Probe('is-qfbv')
+
 qfaufbv_preamble = z3.AndThen(z3.With('simplify'),
                               z3.With('propagate-values'),
                               z3.With('solve-eqs', solve_eqs_max_occs=2),
@@ -11,21 +13,17 @@ qfaufbv_preamble = z3.AndThen(z3.With('simplify'),
                               z3.With('solve-eqs', solve_eqs_max_occs=2),
                               z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
                                       local_ctx_limit=10000000, flat=True, hoist_mul=False),
-                              # Z3 can solve a couple of extra benchmarks by using hoist_mul but the timeout in SMT-COMP is too small.
-                              # Moreover, it impacted negatively some easy benchmarks. We should decide later, if we keep it or not.
-                              # With('simplify', hoist_mul=False, som=False, flat_and_or=False),
                               z3.Tactic('bvarray2uf'),
                               z3.Tactic('ackermannize_bv'),
                               z3.Tactic('max-bv-sharing'),
-
                               # FIXME: after the above step, the formula may not belong
                               #  to QF_BF, and we should use a Probe to decide this.
                               #  If it is not QF_BV, we may have to use the smt tactic
                               #  Otherwise, we can use the following procedures..
-                              z3.Tactic('bit-blast'),
+                              z3.If(is_qfbv, z3.AndThen('bit-blast', 'sat'), 'smt'),
                               # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
                               # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
-                              z3.Tactic('tseitin-cnf')
+                              # z3.Tactic('tseitin-cnf')
                               )
 
 qfaufbv_tactic = z3.With(qfaufbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True, sort_store=True)
@@ -46,12 +44,19 @@ def qfaufbv_to_sat(fml):
     return SolverResult.UNSAT
 
 
-def demo():
-    x, y = z3.BitVecs("x y", 6)
-    fml = z3.And(x + y == 8, x - y == 2)
-    g = z3.Goal()
-    g.add(fml)  # why adding these constraints?
+def demo_aufbf():
+    z3.set_param("verbose", 15)
+    fml_str = """
+    (set-logic QF_AUFBV)
+(set-info :status sat)
+(declare-fun bv_22-0 () (_ BitVec 1))
+(declare-fun arr-8324605531633220487_-1461211092162269148-0 () (Array (_ BitVec 1) Bool))
+(assert (select arr-8324605531633220487_-1461211092162269148-0 (bvlshr bv_22-0 bv_22-0)))
+(check-sat)
+    """
+
+    fml = z3.And(z3.parse_smt2_string(fml_str))
     print(qfaufbv_to_sat(fml))
 
 
-demo()
+demo_aufbf()

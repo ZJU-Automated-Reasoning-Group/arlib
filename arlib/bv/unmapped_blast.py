@@ -34,16 +34,16 @@ def qfbv_to_sat(fml):
     g.add(after_simp)
     pos = CNF(from_string=g.dimacs())
     aux = Solver(name="minisat22", bootstrap_with=pos)
+    print("solving via pysat")
     if aux.solve():
         return SolverResult.SAT
     return SolverResult.UNSAT
 
 
 def demo():
+    z3.set_param("verbose", 15)
     x, y = z3.BitVecs("x y", 6)
     fml = z3.And(x + y == 8, x - y == 2)
-    g = z3.Goal()
-    g.add(fml)  # why adding these constraints?
     print(qfbv_to_sat(fml))
 
 
