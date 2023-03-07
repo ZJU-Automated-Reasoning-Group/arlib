@@ -103,7 +103,7 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
 
     p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout_gene = [False]
-    timer_gene = Timer(15, terminate, args=[p_gene, is_timeout_gene])
+    timer_gene = Timer(6, terminate, args=[p_gene, is_timeout_gene])
     timer_gene.start()
     out_gene = p_gene.stdout.readlines()
     out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
