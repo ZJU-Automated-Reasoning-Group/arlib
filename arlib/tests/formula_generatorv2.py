@@ -275,7 +275,7 @@ def complete_generate_nodes(assignment, randomness, theory):
             bv_nodes.append(flag[i])
         elif type(assignment[flag[i]]) == z3.z3.FPNumRef:
             fp_nodes.append(flag[i])
-            
+
     times = 10
     if len(int_nodes) != 0:
         for i in range(times):

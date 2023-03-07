@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Flattening-based QF_BV solver
+Flattening-based QF_FP solver
 """
 import logging
 
@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class QFFPSolver:
+    """
+    This class is used to check the satisfiability of QF_FP formulas. It uses various tactics from Z3
+    to translate the formula to CNF and then use PySAT to solve it.
+    """
 
     def __init__(self):
         self.fml = None
@@ -25,6 +29,10 @@ class QFFPSolver:
         self.fml = z3.And(fml_vec)
 
     def from_smt_string(self, smt: str):
+        """
+        Parse an SMT string and set the class member fml to the corresponding formula contained in the string.
+        :param smt: An SMT-LIB2 string
+        """
         fml_vec = z3.parse_smt2_string(smt)
         self.fml = z3.And(fml_vec)
 
@@ -64,7 +72,7 @@ class QFFPSolver:
                 g_to_dimacs = z3.Goal()
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())
-                print("Running pysat...")
+                logger.debug("Running pysat...")
                 aux = Solver(name="minisat22", bootstrap_with=pos)
                 if aux.solve():
                     return SolverResult.SAT

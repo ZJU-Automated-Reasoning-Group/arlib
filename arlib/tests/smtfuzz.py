@@ -485,7 +485,7 @@ class Var_Arr(Var):
     def __eq__(self, other):
         return isinstance(other,
                           Var_Arr) and self.n == other.n and self.sort == other.sort and \
-               self.sort_element == other.sort_element
+            self.sort_element == other.sort_element
 
     def __hash__(self):
         return hash((self.sort, self.sort_element, self.n))

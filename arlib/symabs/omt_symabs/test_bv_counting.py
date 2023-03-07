@@ -10,8 +10,6 @@ from copy import deepcopy
 
 from arlib.utils.z3_expr_utils import get_variables
 
-# logging.basicConfig(level=logging.DEBUG)
-
 
 def split_list(alist, wanted_parts=1):
     length = len(alist)

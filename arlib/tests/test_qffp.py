@@ -10,13 +10,15 @@ from arlib.utils import SolverResult
 
 import z3
 
+
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
+    clauses = z3.Then('simplify', 'propagate-values')(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True
     return False
+
 
 def solve_with_z3(smt2string: str):
     fml = z3.And(z3.parse_smt2_string(smt2string))
@@ -35,6 +37,7 @@ class TestQFFP(TestCase):
     """
     Test the bit-blasting based solver
     """
+
     def test_qffp_solver(self):
         i = 0
         for _ in range(10):

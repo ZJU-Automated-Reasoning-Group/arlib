@@ -89,9 +89,11 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
     cntsize = random.randint(5, 20)
     # strategy = random.choice(strategies)
     if incremental:
-        strategy = random.choice(['CNFexp', 'cnf', 'ncnf', 'bool'])
+        strategy = random.choice(['cnf', 'ncnf', 'bool'])
     else:
         strategy = 'noinc'
+
+    # 'CNFexp'
 
     cmd = ['python3', smt_generator,
            '--strategy', strategy,
@@ -143,7 +145,7 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
     p_gene.stdout.close()  # close?
     timer_gene.cancel()
     if p_gene.poll() is None:
-        p_gene.terminate() # need this?
+        p_gene.terminate()  # need this?
     if is_timeout_gene[0]:
         return False
     return out_gene

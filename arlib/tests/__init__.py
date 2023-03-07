@@ -3,6 +3,8 @@ try:
 except ImportError:
     import unittest
 
+import logging
+
 skipIf = unittest.skipIf
 
 
@@ -15,6 +17,7 @@ class TestCase(unittest.TestCase):
         """
         Hook method for setting up the test fixture before exercising it.
         """
+        logging.basicConfig(level=logging.DEBUG)
         pass
 
     def tearDown(self):

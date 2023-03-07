@@ -1,6 +1,8 @@
 # coding: utf-8
 """
-For testing CDCL(T)-based parallel SMT solving engine
+Testing the EFBV formula manger
+- Translate an EFBV formula to QBF
+- ...
 """
 
 import z3
@@ -46,7 +48,6 @@ class TestEFBVManager(TestCase):
 
     def test_efbv_manager(self):
         from z3.z3util import get_vars
-        # logging.basicConfig(level=logging.DEBUG)
 
         for _ in range(20):
             existential_vars, universal_vars, fml = gen_small_bv_formula("bv")

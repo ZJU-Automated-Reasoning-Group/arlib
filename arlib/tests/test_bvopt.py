@@ -38,8 +38,6 @@ class TestBVOMT(TestCase):
     """
 
     def test_bvopt(self):
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
         for _ in range(5):
             if try_bvopt():
                 break

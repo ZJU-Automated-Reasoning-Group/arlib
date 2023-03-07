@@ -25,7 +25,7 @@ def gen_small_bv_formula(logic: str):
 
 def is_simple_formula(fml: z3.ExprRef):
     # for pruning sample formulas that can be solved by the pre-processing
-    clauses = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')(fml)
+    clauses = z3.Then('simplify', 'solve-eqs')(fml)
     after_simp = clauses.as_expr()
     if z3.is_false(after_simp) or z3.is_true(after_simp):
         return True
@@ -48,7 +48,7 @@ class TestEFBVSolver(TestCase):
 
     def test_efbv_solver(self):
         from z3.z3util import get_vars
-        logging.basicConfig(level=logging.DEBUG)
+
         if True:
             for _ in range(15):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
@@ -72,7 +72,7 @@ class TestEFBVSolver(TestCase):
                     print(model)
                     break
                 print(res_par, res_b)
-                break
+                # break
 
 
 if __name__ == '__main__':
