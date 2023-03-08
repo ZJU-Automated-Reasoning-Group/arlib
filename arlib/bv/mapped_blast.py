@@ -52,7 +52,10 @@ def bitblast(formula: z3.ExprRef):
     g = z3.Goal()
     g.add(map_clauses)  # why adding these constraints?
     g.add(formula)
-    t = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')
+    # TODO: Do we need to call 'simplify' before tseitin-cnf? (It seems that
+    #  in some newer versions of z3, we need...
+    # t = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')
+    t = z3.Then('simplify', 'bit-blast', 'simplify', 'tseitin-cnf')
     blasted = t(g)[0]
     return blasted, id_table, bv2bool
 
@@ -95,6 +98,10 @@ def to_dimacs_numeric(cnf, table, proj_last):
     projection_scope = len(table)
 
     for clause_expr in cnf:
+        # FIXME: should we add the following assertion?
+        #  e.g., clause_expr could be False (or True)?
+        #   If it is Flase, then the formula is unsatisfiable, what should we return?
+        #   If it is True, perhaps we can skip the clause directly?
         assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
         dimacs_clause_numeric = list(dimacs_visitor_numeric(clause_expr, table))
         cnf_clauses.append(dimacs_clause_numeric)
