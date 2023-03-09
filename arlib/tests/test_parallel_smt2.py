@@ -1,5 +1,5 @@
 import logging
-from arlib.cdcl.parallel_cdclt_process import parallel_cdclt_process
+from arlib.cdclt.parallel_cdclt_process import parallel_cdclt_process
 from arlib.tests import TestCase, main
 
 

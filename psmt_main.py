@@ -8,7 +8,7 @@ import os
 import signal
 import psutil
 
-from arlib.cdcl.cdclt_solver import ParallelCDCLSolver
+from arlib.cdclt.cdclt_solver import ParallelCDCLSolver
 
 g_smt2_file = None
 

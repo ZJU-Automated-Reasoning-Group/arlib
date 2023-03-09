@@ -3,8 +3,8 @@ Interface for CDCL(T)-based Solver
 """
 # import itertools
 from abc import ABC, abstractmethod
-from arlib.cdcl.parallel_cdclt_process import parallel_cdclt_process
-from arlib.cdcl.parallel_cdclt_thread import parallel_cdclt_thread
+from arlib.cdclt.parallel_cdclt_process import parallel_cdclt_process
+from arlib.cdclt.parallel_cdclt_thread import parallel_cdclt_thread
 from arlib.utils import SolverResult
 
 

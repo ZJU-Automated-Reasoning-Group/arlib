@@ -7,7 +7,7 @@ It may serve as a reference implementation of the main enigne.
 import logging
 import re
 
-from arlib.cdcl import BooleanFormulaManager, SMTPreprocessor4Process
+from arlib.cdclt import BooleanFormulaManager, SMTPreprocessor4Process
 from arlib.config import m_smt_solver_bin
 from arlib.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, RE_GET_EXPR_VALUE_ALL

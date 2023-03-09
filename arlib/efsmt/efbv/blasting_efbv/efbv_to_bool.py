@@ -161,13 +161,17 @@ class EFBV2BoolAux:
                         if numeric_var not in aux_bool_vars:
                             aux_bool_vars.append(numeric_var)
 
+        num_vars = len(self.existential_bools) + len(self.universal_bools) + len(aux_bool_vars)
+        num_clauses = len(self.bool_clauses)
         fml_str = ["c QBF from EFSMT(BV)",
-                   "e " + " ".join([str(v) for v in self.existential_bools]),
-                   "a " + " ".join([str(v) for v in self.universal_bools]),
-                   "e " + " ".join([str(v) for v in aux_bool_vars])]
+                   "p cnf {0} {1}".format(str(num_vars), str(num_clauses)),
+                   "e {} 0".format(" ".join([str(v) for v in self.existential_bools])),
+                   "a {} 0".format(" ".join([str(v) for v in self.universal_bools])),
+                   "e {} 0".format(" ".join([str(v) for v in aux_bool_vars]))]
 
         for cls in self.bool_clauses:
             cls_str = [str(lit) for lit in cls]
+            cls_str.append(" 0")
             fml_str.append(" ".join(cls_str))
 
         return "\n".join(fml_str)
