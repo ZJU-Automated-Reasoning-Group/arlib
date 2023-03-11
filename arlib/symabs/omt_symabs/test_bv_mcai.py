@@ -3,7 +3,7 @@ import z3
 
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
-from arlib.bv.qfbv_counting import ModelCounter
+from arlib.bv.qfbv_counting import BVModelCounter
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 
@@ -15,7 +15,7 @@ def is_sat(e):
 
 
 def model_count(fml):
-    mc = ModelCounter()
+    mc = BVModelCounter()
     mc.init_from_fml(fml)
     return mc.count_models_by_sharp_sat()
 
@@ -30,14 +30,14 @@ def has_fp(abs_formula, fml):
 
 
 def compute_fp_rate(abs_formula, fml):
-    mc_abs = ModelCounter()
+    mc_abs = BVModelCounter()
     mc_abs.init_from_fml(abs_formula)
     abs_count = mc_abs.count_models_by_sharp_sat()
     # print("Model count of the abstraction: ", abs_count)
 
     # Count the number of false positives
     fp_fml = z3.And(abs_formula, z3.Not(fml))
-    mc_abs_fp = ModelCounter()
+    mc_abs_fp = BVModelCounter()
     mc_abs_fp.init_from_fml(fp_fml)
     abs_fp_count = mc_abs_fp.count_models_by_sharp_sat()
     # print("Model count of false positives: ", abs_fp_count)
@@ -130,9 +130,8 @@ def main():
         fml = fg.generate_formula()
         if is_sat(fml):
             # print(fml)
-            mc = ModelCounter()
+            mc = BVModelCounter()
             mc.init_from_fml(fml)
-            # bit_count_res = mc.count_models_by_bits_enumeration()
             # print("bit-level enumeration result: ", bit_count_res)
             sharp_sat_res = mc.count_models_by_sharp_sat()
             print("sharpSAT result: ", sharp_sat_res)

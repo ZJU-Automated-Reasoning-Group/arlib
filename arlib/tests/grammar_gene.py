@@ -149,3 +149,6 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
     if is_timeout_gene[0]:
         return False
     return out_gene
+
+if __name__ == '__main__':
+    print(gene_smt2string())

@@ -83,12 +83,12 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
         cnf_clauses = clauses
         cnf_header = [
             "p cnf {} {}".format(len(table), len(cnf_clauses)),
-            "cr {}".format(" ".join([str(x) for x in range(n_vars - projection_scope + 1, n_vars + 1)]))
+            # "cr {}".format(" ".join([str(x) for x in range(n_vars - projection_scope + 1, n_vars + 1)]))
         ]
     else:
         cnf_header = [
             "p cnf {} {}".format(len(table), len(cnf_clauses)),
-            "cr {}".format(" ".join([str(x) for x in range(1, projection_scope + 1)]))
+            # "cr {}".format(" ".join([str(x) for x in range(1, projection_scope + 1)]))
         ]
     return cnf_header, cnf_clauses
 
@@ -114,7 +114,7 @@ def to_dimacs_numeric(cnf, table, proj_last):
             proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
             clauses.append(proj_clause)
         cnf_clauses = clauses
-        cnf_header = ["p"]
+        cnf_header = ["p"]   # FIXME
     else:
         cnf_header = ["p"]
     return cnf_header, cnf_clauses

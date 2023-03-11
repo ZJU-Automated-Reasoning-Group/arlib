@@ -1,6 +1,7 @@
 """Model counting for QF_BV formulas
 """
 
+from typing import List
 import itertools
 import logging
 import math
@@ -9,19 +10,12 @@ from copy import deepcopy
 from timeit import default_timer as counting_timer
 
 import z3
-from arlib.bool.counting.bool_counting import SATModelCounter
 from arlib.utils.z3_expr_utils import get_variables
+from arlib.bv.mapped_blast import translate_smt2formula_to_cnf
+from arlib.bool.counting.dimacs_counting import count_dimacs_solutions
 
 
 def split_list(alist, wanted_parts=1):
-    """
-    Splits a list into `wanted_parts` number of sub-lists.
-    Example usage:
-        >>> len(split_list([1, 2, 3, 4, 5, 6], wanted_parts=2))
-        2
-        >>> len(split_list([1, 2, 3, 4, 5, 6], wanted_parts=4))
-        4
-    """
     if wanted_parts == 0:
         raise ZeroDivisionError("wanted_parts must be greater than zero.")
     length = len(alist)
@@ -38,7 +32,7 @@ def check_candidate_model(formula, all_vars, candidate):
     if is_true(m.eval(self.formula), True): return True
     else: return False
     """
-    solver = z3.Solver()
+    solver = z3.Solver(ctx=formula.ctx)
     solver.add(formula)
     assumption = []
     for i in range(len(all_vars)):
@@ -49,7 +43,7 @@ def check_candidate_model(formula, all_vars, candidate):
         return False
 
 
-def check_candidate_models_set(formula, assignments):
+def check_candidate_models_set(formula: z3.ExprRef, assignments: List):
     num_solutions = 0
     variables = get_variables(formula)
     for candidate in assignments:
@@ -59,10 +53,9 @@ def check_candidate_models_set(formula, assignments):
     return num_solutions
 
 
-class ModelCounter:
+class BVModelCounter:
     """
         A class for counting the number of models of a Z3 formula.
-
     Attributes:
         formula (z3.ExprRef): The Z3 formula to count models for.
         vars (list): A list of all variables in the formula.
@@ -116,7 +109,7 @@ class ModelCounter:
         return solutions
 
     # TODO: fix
-    def count_model_by_parallel_enumeration(self):
+    def count_model_by_enumeration_parallel(self):
         # time_start = time.process_time()
         time_start = counting_timer()
         logging.debug("Start parallel BV enumeration-based")
@@ -150,32 +143,24 @@ class ModelCounter:
         print("BV enumeration total solutions: ", solutions)
         return solutions
 
-    def count_models_by_bits_enumeration(self):
-        """
-        Bit-level counting
-        """
-        sat_counter = SATModelCounter()
-        logging.debug("Start bit-enumeration based")
-        return sat_counter.count_models_by_enumeration(self.formula)
-
     def count_models_by_sharp_sat(self):
-        """
-        Bit-level counting
-        """
-        sat_counter = SATModelCounter()
-        logging.debug("Start sharpSAT total solutions")
-        return sat_counter.count_models_by_sharp_sat(self.formula)
+        bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.formula)
+        time_start = counting_timer()
+        solutions = count_dimacs_solutions(header, clauses)
+        print("Time:", counting_timer() - time_start)
+        print("sharpSAT total solutions: ", solutions)
+        return solutions
 
 
 def feat_test():
-    mc = ModelCounter()
-    '''
-    x = BitVec("x", 4)
-    y = BitVec("y", 4)
-    fml = And(UGT(x, 0), UGT(y, 0), ULT(x - y, 10))
+    mc = BVModelCounter()
+    x = z3.BitVec("x", 4)
+    y = z3.BitVec("y", 4)
+    fml = z3.And(z3.UGT(x, 0), z3.UGT(y, 0), z3.ULT(x - y, 10))
     mc.init_from_fml(fml)
-    '''
-    mc.init_from_file('../../benchmarks/t1.smt2')
+    # mc.init_from_file('../../benchmarks/t1.smt2')
+    # mc.count_model_by_bv_enumeration()
+    mc.count_models_by_sharp_sat()
 
 
 if __name__ == '__main__':
