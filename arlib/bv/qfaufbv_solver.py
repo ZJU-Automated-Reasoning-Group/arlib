@@ -51,9 +51,9 @@ class QFAUFBVSolver:
                                             'simplify'),
                                       )
 
-        qfaufbv = z3.With(qfaufbv_preamble, elim_and=True, sort_store=True)
+        qfaufbv_prep = z3.With(qfaufbv_preamble, elim_and=True, sort_store=True)
 
-        after_simp = qfaufbv(self.fml).as_expr()
+        after_simp = qfaufbv_prep(self.fml).as_expr()
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
         elif z3.is_true(after_simp):
@@ -63,9 +63,9 @@ class QFAUFBVSolver:
         g_probe.add(after_simp)
         is_bool = z3.Probe('is-propositional')
         if is_bool(g_probe) == 1.0:
-            to_cnf = z3.AndThen('simplify', 'tseitin-cnf')
-            qfbv_tactic = z3.With(to_cnf, elim_and=True, push_ite_bv=True, blast_distinct=True)
-            blasted = qfbv_tactic(after_simp).as_expr()
+            to_cnf_impl = z3.AndThen('simplify', 'tseitin-cnf')
+            to_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
+            blasted = to_cnf(after_simp).as_expr()
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
@@ -74,7 +74,8 @@ class QFAUFBVSolver:
                 return SolverResult.SAT
             return SolverResult.UNSAT
         else:
-            sol = z3.Tactic('smt').solver()
+            # sol = z3.Tactic('smt').solver()
+            sol = z3.SolverFor("QF_AUFBV")
             sol.add(after_simp)
             res = sol.check()
             if res == z3.sat:

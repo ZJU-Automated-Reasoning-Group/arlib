@@ -7,6 +7,7 @@ from typing import List
 from threading import Timer
 import logging
 from pathlib import Path
+import uuid
 
 project_root_dir = str(Path(__file__).parent.parent.parent.parent)
 sharp_sat_bin = project_root_dir + "/bin_solvers/sharpSAT"
@@ -24,11 +25,6 @@ def terminate(process, is_timeout: List):
             print(ex)
 
 
-def clear_tmp_cnf_files():
-    if os.path.isfile('/tmp/out.cnf'):
-        os.remove('/tmp/out.cnf')
-
-
 def write_dimacs_to_file(header, clauses, output_file: str):
     # print("header: ", header)
     # print("clauses: ", len(clauses), clauses)
@@ -40,8 +36,7 @@ def write_dimacs_to_file(header, clauses, output_file: str):
 
 def count_dimacs_solutions(header: List, str_clauses: List):
     solutions = 0
-    # clear_tmp_cnf_files()
-    output_file = '/tmp/out.cnf'
+    output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
     write_dimacs_to_file(header, str_clauses, output_file)
     cmd = [sharp_sat_bin, output_file]
     print("Calling sharpSAT")
@@ -63,7 +58,8 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     except Exception as ex:
         print(ex)
         print("exception when running sharpSAT, will return false")
-        clear_tmp_cnf_files()
+        if os.path.isfile(output_file):
+            os.remove(output_file)
     if is_timeout[0]: logging.debug("sharpSAT timeout")  # should we put it in the above try scope?
     p.stdout.close()  # close?
     timer.cancel()
@@ -71,13 +67,14 @@ def count_dimacs_solutions(header: List, str_clauses: List):
         p.terminate()
     # process time is not current (it seems to miss the time spent on sharpSAT
     # print("Time:", counting_timer() - time_start)
-    clear_tmp_cnf_files()
+    if os.path.isfile(output_file):
+        os.remove(output_file)
     return solutions
 
 
-def cube_and_conquer_sharp_sat(smtfml):
+def cube_and_conquer_sharp_sat(header: List, str_clauses: List):
     """
-    1. Generate a set of disjont cubes such that they can be extended to be models of the formula
+    1. Generate a set of disjoint cubes such that they can be extended to be models of the formula
         C1: a, b
         C2: Not(a), b
         C3: a, Not b
