@@ -46,6 +46,7 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
 
 
 def call_sharp_sat(cnf_filename: str):
+    solutions = -1
     cmd = [sharp_sat_bin, cnf_filename]
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -145,4 +146,3 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
 
     print("results: ", raw_solutions)
     return sum(raw_solutions)
-

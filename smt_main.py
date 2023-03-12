@@ -1,11 +1,20 @@
 """
-The entrance of the bit-vector solving engine
+The entrance of the sequential SMT solving engine
+- QF_BV
+- QF_UFBV
+- QF_AUFBV
+- QF_FP
 """
 import os
 import signal
 import psutil
 import logging
-from arlib.bv.qfbv_solver import BVSolver
+from arlib.bv.qfbv_solver import QFBVSolver
+from arlib.bv.qfufbv_solver import QFUFBVSolver
+from arlib.bv.qfaufbv_solver import QFAUFBVSolver
+from arlib.fp.qffp_solver import QFFPSolver
+
+g_args = None
 
 
 def signal_handler(sig, frame):
@@ -17,7 +26,19 @@ def signal_handler(sig, frame):
 
 
 def process_file(filename: str):
-    sol = BVSolver()
+    sol = None
+    logic = g_args.logic
+    if logic == "QF_BV":
+        sol = QFBVSolver()
+    elif logic == "QF_UFBV":
+        sol = QFUFBVSolver()
+    elif logic == "QF_AUFBV" or logic == "QF_ABV":
+        sol = QFAUFBVSolver()
+    elif logic == "QF_FP":
+        sol = QFFPSolver()
+    else:
+        raise NotImplementedError("Unsupported logic")
+
     sol.from_smt_file(filename)
     print(sol.check_sat())
 
@@ -28,9 +49,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', dest='timeout', default=8, type=int, help="timeout")
     parser.add_argument('--verbose', dest='verbosity', default=1, type=int, help="verbosity level")
-    parser.add_argument('--model', dest='model', default=True, type=bool, help="enable model generation or not")
+    parser.add_argument('--logic', dest='logic', default="QF_BV", type=str,
+                        help="logic of the formula")
+    parser.add_argument('--model', dest='model', default=False, type=bool,
+                        help="enable model generation or not")
     parser.add_argument('--unsat_core', dest='unsat_core', default=False, type=bool,
                         help="enable core generation or not")
+    parser.add_argument('--incremental', dest='incremental', default=False, type=bool,
+                        help="enable incremental solving or not")
     parser.add_argument('--sat_engine', dest='sat_engine', default=1, type=int,
                         help="sat engines: 0: z3 (use the interval sat engine of z3) "
                              "1: pysat (TBD, as it supports several engines), "
