@@ -1,3 +1,6 @@
+"""
+Use unit propagation to compute "probing features" of SAT instances
+"""
 import math
 import random
 from arlib.bool.features.enums import VarState, ClauseState
@@ -206,9 +209,7 @@ class DPLLProbing:
 
                 else:
                     max_props = -1
-
                     for var_num in range(array_size):
-
                         # should be simplified, basically you try to set the variable to true, and to false
                         value = True
                         # do while

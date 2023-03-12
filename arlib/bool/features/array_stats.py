@@ -6,7 +6,6 @@ import scipy.stats as sci_stats
 File to control the computation and aggregation of statistics for lists of values.
 """
 
-
 def get_stats(l):
     """
     Gets the four basic stats used for most features
@@ -18,7 +17,6 @@ def get_stats(l):
     max_val = max(l)
     std = stats.pstdev(l)
     coefficient_of_variation = calc_coefficient_of_variation(mean, std)
-
     return mean, coefficient_of_variation, min_val, max_val
 
 
@@ -52,48 +50,42 @@ def scipy_entropy_discrete(l, num_outcomes):
     :return: Entropy of l
     """
     p = [0] * num_outcomes
-
     for elem in l:
         p[elem] += 1
-
     p = [x / len(l) for x in p]
-
     entropy = sci_stats.entropy(pk=p)
     return entropy
 
 
 def scipy_entropy_continous(l, buckets=100):
     """
-        Create a probability distribution of l, and then get the entropy of that distribution
-        :param l: Data
-        :return: Entropy of l
-        """
-
+    Create a probability distribution of l, and then get the entropy of that distribution
+    :param buckets:
+    :param l: Data
+    :return: Entropy of l
+    """
     maxval = 1
     # set up probability distribution with number of buckets
     p = [0] * buckets
-
     for x in l:
         index = math.floor(x * (buckets / maxval))
-
         if index >= buckets:
             index = buckets - 1
         if index < 0:
             index = 0
-
         p[index] += 1
 
     # normalise
     p = [x / len(l) for x in p]
-
     entropy = sci_stats.entropy(pk=p)
-
     return entropy
 
 
 # Legacy
 def entropy_float_array(l, num, vals, maxval):
     """
+    :param maxval:
+    :param num:
     :param l: list of values (float, should be between 0 and 1)
     :param vals: size of the bins used (normally 100)
     For now, this will be based on the implementation from SATzilla
@@ -103,15 +95,11 @@ def entropy_float_array(l, num, vals, maxval):
     writeFeature("POSNEG-RATIO-CLAUSE-entropy",array_entropy(pos_frac_in_clause,numClauses,100,1));
     https://en.wikipedia.org/wiki/Entropy_(information_theory)
     """
-
     # seems to be off by 1 error in the sat implementation... you shouldn't need 101 buckets...
     p = [0] * (vals + 1)
-
     res = 0
     entropy = 0
-
     # based on the assumption that all values in l are floats between 0 and 1
-
     # set up the probability distribution distribution
     for t in range(num):
         # if l[t] == reserved_value ?:
@@ -126,7 +114,6 @@ def entropy_float_array(l, num, vals, maxval):
             index = vals
         if index < 0:
             index = 0
-
         p[index] += 1
 
     for t in range(vals + 1):
@@ -147,12 +134,10 @@ def entropy_int_array(l, number_of_outcomes):
     vcg clause entropy = array_entropy(clause_array,numClauses,numActiveVars+1))
     Entropy of x  is H(X) = - sum (P(xi) * log(P(xi)))
     """
-
     # create the distribution buckets
     p = [0] * number_of_outcomes
     # res = 0
     entropy = 0
-
     # set up the probability distribution
     # Could also be in range of the list
     for elem in l:

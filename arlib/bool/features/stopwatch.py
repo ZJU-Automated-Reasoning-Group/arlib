@@ -1,6 +1,5 @@
 import time
 
-
 # perhaps the timeit library would be more suitable
 
 class Stopwatch:

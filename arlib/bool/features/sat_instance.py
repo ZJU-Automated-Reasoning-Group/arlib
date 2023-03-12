@@ -31,7 +31,7 @@ class SATInstance:
         # parse the cnf file
         if self.verbose:
             print("Parsing cnf file")
-        self.clauses, self.c, self.v = parse_cnf.parse_cnf(self.path_to_cnf)
+        self.clauses, self.c, self.v = parse_cnf.parse_cnf_file(self.path_to_cnf)
 
         if self.v == 0 or self.c == 0:
             self.solved = True
@@ -139,8 +139,8 @@ def get_base_features(cnf_path):
     sat_inst.gen_basic_features()
     sat_inst.display_results()
 
-    sat_inst.gen_dpll_probing_features()
-    sat_inst.display_results()
+    # sat_inst.gen_dpll_probing_features()
+    # sat_inst.display_results()
 
 
 def demo_features():

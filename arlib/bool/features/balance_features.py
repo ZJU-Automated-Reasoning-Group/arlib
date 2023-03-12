@@ -6,7 +6,6 @@ def compute_balance_features(clauses, c, v):
     :param v: number of variables
     :return:
     """
-
     variables_pos_count = [0] * v
     variables_neg_count = [0] * v
     pos_neg_variable_ratios = []
@@ -22,12 +21,10 @@ def compute_balance_features(clauses, c, v):
     horn_clause_variable_count = [0] * v
 
     for clause in clauses:
-
         if len(clause) == 2:
             num_binary_clauses += 1
         if len(clause) == 3:
             num_ternary_clauses += 1
-
         pos = 0
         neg = 0
 
@@ -35,9 +32,7 @@ def compute_balance_features(clauses, c, v):
             if literal < 0:
                 neg += 1
                 literal = abs(literal)
-
                 variables_neg_count[literal - 1] += 1
-
             else:
                 pos += 1
                 variables_pos_count[literal - 1] += 1

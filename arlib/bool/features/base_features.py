@@ -1,3 +1,6 @@
+"""
+Compute SAT features following SATZilla
+"""
 from arlib.bool.features import balance_features, graph_features, array_stats
 
 
