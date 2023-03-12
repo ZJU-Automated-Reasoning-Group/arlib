@@ -12,7 +12,7 @@ from timeit import default_timer as counting_timer
 import z3
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.bv.mapped_blast import translate_smt2formula_to_cnf
-from arlib.bool.counting.dimacs_counting import count_dimacs_solutions
+from arlib.bool.counting.dimacs_counting import count_dimacs_solutions, count_dimacs_solutions_parallel
 
 
 def split_list(alist, wanted_parts=1):
@@ -146,7 +146,8 @@ class BVModelCounter:
     def count_models_by_sharp_sat(self):
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.formula)
         time_start = counting_timer()
-        solutions = count_dimacs_solutions(header, clauses)
+        # solutions = count_dimacs_solutions(header, clauses)
+        solutions = count_dimacs_solutions_parallel(header, clauses)
         print("Time:", counting_timer() - time_start)
         print("sharpSAT total solutions: ", solutions)
         return solutions

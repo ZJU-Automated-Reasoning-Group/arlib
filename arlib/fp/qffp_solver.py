@@ -72,7 +72,7 @@ class QFFPSolver:
                 g_to_dimacs = z3.Goal()
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())
-                logger.debug("Running pysat...")
+                # print("Running pysat...")
                 aux = Solver(name="minisat22", bootstrap_with=pos)
                 if aux.solve():
                     return SolverResult.SAT

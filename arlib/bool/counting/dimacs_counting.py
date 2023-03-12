@@ -1,6 +1,7 @@
 """
 Model counting for DIMACS files
 """
+import copy
 import os
 import subprocess
 from typing import List
@@ -9,11 +10,20 @@ import logging
 from pathlib import Path
 import uuid
 
+import multiprocessing
+from multiprocessing import cpu_count
+
+from pysat.formula import CNF
+from pysat.solvers import Solver
+
+from arlib.bool.pysat_cnf import gen_cubes
+
 project_root_dir = str(Path(__file__).parent.parent.parent.parent)
 sharp_sat_bin = project_root_dir + "/bin_solvers/sharpSAT"
-sharp_sat_timeout = 300
+sharp_sat_timeout = 600
 
 logger = logging.getLogger(__name__)
+
 
 def terminate(process, is_timeout: List):
     if process.poll() is None:
@@ -25,7 +35,7 @@ def terminate(process, is_timeout: List):
             print(ex)
 
 
-def write_dimacs_to_file(header, clauses, output_file: str):
+def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str):
     # print("header: ", header)
     # print("clauses: ", len(clauses), clauses)
     with open(output_file, 'w+') as file:
@@ -34,11 +44,9 @@ def write_dimacs_to_file(header, clauses, output_file: str):
         for cls in clauses:
             file.write(cls + " 0\n")
 
-def count_dimacs_solutions(header: List, str_clauses: List):
-    solutions = 0
-    output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
-    write_dimacs_to_file(header, str_clauses, output_file)
-    cmd = [sharp_sat_bin, output_file]
+
+def call_sharp_sat(cnf_filename: str):
+    cmd = [sharp_sat_bin, cnf_filename]
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout = [False]
@@ -58,8 +66,8 @@ def count_dimacs_solutions(header: List, str_clauses: List):
     except Exception as ex:
         print(ex)
         print("exception when running sharpSAT, will return false")
-        if os.path.isfile(output_file):
-            os.remove(output_file)
+        if os.path.isfile(cnf_filename):
+            os.remove(cnf_filename)
     if is_timeout[0]: logging.debug("sharpSAT timeout")  # should we put it in the above try scope?
     p.stdout.close()  # close?
     timer.cancel()
@@ -67,13 +75,27 @@ def count_dimacs_solutions(header: List, str_clauses: List):
         p.terminate()
     # process time is not current (it seems to miss the time spent on sharpSAT
     # print("Time:", counting_timer() - time_start)
-    if os.path.isfile(output_file):
-        os.remove(output_file)
+    if os.path.isfile(cnf_filename):
+        os.remove(cnf_filename)
     return solutions
 
 
-def cube_and_conquer_sharp_sat(header: List, str_clauses: List):
+def count_dimacs_solutions(header: List, str_clauses: List):
+    output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
+    write_dimacs_to_file(header, str_clauses, output_file)
+    return call_sharp_sat(output_file)
+
+
+def check_sat(clauses, assumptions):
+    """Used by parallel solving"""
+    solver = Solver(bootstrap_with=clauses)
+    ans = solver.solve(assumptions=assumptions)
+    return ans
+
+
+def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
     """
+    FIXME: is the following strategy correct?
     1. Generate a set of disjoint cubes such that they can be extended to be models of the formula
         C1: a, b
         C2: Not(a), b
@@ -81,5 +103,46 @@ def cube_and_conquer_sharp_sat(header: List, str_clauses: List):
         C4: Not(a), Not(b)
     2. Count the models subject to each cube in parallel
     """
-    solutions = 0
-    return solutions
+    dimacs_str = ""
+    for info in header:
+        dimacs_str += "{}\n".format(info)
+    for cls in clauses:
+        dimacs_str += "{} 0\n".format(cls)
+
+    cnf = CNF(from_string=dimacs_str)
+    cubes = gen_cubes(cnf, min(2, cnf.nv))
+    satisfaible_cubes = []
+
+    # Prune unsatisfiable assumptions
+    for cube in cubes:
+        if check_sat(cnf, assumptions=cube):
+            satisfaible_cubes.append(cube)
+
+
+    cnf_tasks = []
+    for cube in satisfaible_cubes:
+        output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
+        new_clauses = copy.deepcopy(clauses)
+        # every list in the cube should be a unit clause?
+        for lit in cube:
+            new_clauses.append(str(lit))
+        new_header = ["p cnf {0} {1}".format(cnf.nv, len(clauses) + len(cube))]
+        write_dimacs_to_file(new_header, new_clauses, output_file)
+        # TODO: write to different cnf files
+        cnf_tasks.append(output_file)
+
+    results = []
+    pool = multiprocessing.Pool(processes=cpu_count())  # process pool
+    for i in range(len(cnf_tasks)):
+        result = pool.apply_async(call_sharp_sat,
+                                  (cnf_tasks[i],))
+        results.append(result)
+
+    raw_solutions = []
+    for i in range(len(cnf_tasks)):
+        result = results[i].get()
+        raw_solutions.append(int(result))
+
+    print("results: ", raw_solutions)
+    return sum(raw_solutions)
+
