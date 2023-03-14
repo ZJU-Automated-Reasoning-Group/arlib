@@ -18,6 +18,9 @@ class TestBVSat(TestCase):
         fml = z3.And(5 < x, x < y, y < 8)
         sol = QFBVSolver()
         sol.from_smt_formula(fml)
+        s = z3.Solver()
+        s.add(fml)
+        print(s.to_smt2())
         print(sol.check_sat())
 
 

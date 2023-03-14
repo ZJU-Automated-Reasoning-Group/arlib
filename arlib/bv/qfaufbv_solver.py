@@ -20,18 +20,19 @@ class QFAUFBVSolver:
         # self.vars = []
         self.verbose = 0
 
-    def from_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str):
         fml_vec = z3.parse_smt2_file(filepath)
-        self.fml = z3.And(fml_vec)
+        return self.check_sat(z3.And(fml_vec))
 
-    def from_smt_string(self, smt: str):
-        fml_vec = z3.parse_smt2_string(smt)
-        self.fml = z3.And(fml_vec)
+    def solve_smt_string(self, smt_str: str):
+        fml_vec = z3.parse_smt2_string(smt_str)
+        return self.check_sat(z3.And(fml_vec))
 
-    def from_smt_formula(self, formula: z3.BoolRef):
-        self.fml = formula
+    def solve_smt_formula(self, fml: z3.ExprRef):
+        return self.check_sat(fml)
 
-    def check_sat(self):
+
+    def check_sat(self, fml):
         """Check satisfiability of an QF_FP formula"""
         logger.debug("Start translating to CNF...")
 
@@ -53,7 +54,7 @@ class QFAUFBVSolver:
 
         qfaufbv_prep = z3.With(qfaufbv_preamble, elim_and=True, sort_store=True)
 
-        after_simp = qfaufbv_prep(self.fml).as_expr()
+        after_simp = qfaufbv_prep(fml).as_expr()
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
         elif z3.is_true(after_simp):
@@ -122,8 +123,7 @@ def demo_qfaufbv():
 (check-sat)
         """
     sol = QFAUFBVSolver()
-    sol.from_smt_string(fml_str)
-    print(sol.check_sat())
+    print(sol.solve_smt_string(fml_str))
 
 
 if __name__ == "__main__":

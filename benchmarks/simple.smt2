@@ -1,3 +1,4 @@
+(set-logic QF_BV)
 (set-info :status unknown)
 (declare-fun x () (_ BitVec 16))
 (assert

@@ -3,6 +3,7 @@
 Flattening-based QF_BV solver
 """
 import logging
+import sys
 import time
 
 import z3
@@ -39,7 +40,7 @@ class QFBVSolver:
     """
 
     def __init__(self):
-        self.fml = None
+        self.fml = None    # z3.ExpeRef (not used for now!)
         self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
         self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
         # self.vars = []
@@ -47,22 +48,22 @@ class QFBVSolver:
         self.signed = False
         self.model = []
 
-    def from_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str):
         fml_vec = z3.parse_smt2_file(filepath)
-        self.fml = z3.And(fml_vec)
+        return self.check_sat(z3.And(fml_vec))
 
-    def from_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str):
         fml_vec = z3.parse_smt2_string(smt_str)
-        self.fml = z3.And(fml_vec)
+        return self.check_sat(z3.And(fml_vec))
 
-    def from_smt_formula(self, formula: z3.BoolRef):
-        self.fml = formula
-        # self.vars = get_vars(self.fml)   # FIXME: the function get_vars can be slow..
+    def solve_smt_formula(self, fml: z3.ExprRef):
+        return self.check_sat(fml)
 
-    def check_sat(self):
-        return self.check_sat_without_model()
-
-    def check_sat_without_model(self):
+    def check_sat(self, fml: z3.ExprRef):
+        """
+        TODO: add an option that uses Yices2 to perform bit-blasting
+        :return:
+        """
         qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
                                    z3.With('propagate-values', flat_and_or=False),
                                    z3.Tactic('elim-uncnstr'),
@@ -78,20 +79,24 @@ class QFBVSolver:
                                    z3.Tactic('bit-blast'),
                                    # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
                                    # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
-                                   z3.Tactic('tseitin-cnf')
+                                   z3.Tactic('tseitin-cnf'),
+                                   # z3.Tactic('sat')
                                    )
         qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
 
-        after_simp = qfbv_tactic(self.fml).as_expr()
+        after_simp = qfbv_tactic(fml).as_expr()
+        # print(after_simp)
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
         elif z3.is_true(after_simp):
             return SolverResult.SAT
+        # print(".....")
         g = z3.Goal()
         g.add(after_simp)
         pos = CNF(from_string=g.dimacs())
+        # pos.to_fp(sys.stdout)
         aux = Solver(name="minisat22", bootstrap_with=pos)
-        print("solving via pysat")
+        # print("solving via pysat")
         if aux.solve():
             return SolverResult.SAT
         return SolverResult.UNSAT
@@ -102,6 +107,7 @@ class QFBVSolver:
         The bit_blast function converts a bit-vector formula to Boolean logic.
         It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV variables to boolean expressions
         and the mapping from boolean expressions to numerical IDs, respectively.
+
         """
         logger.debug("Start translating to CNF...")
         # NOTICE: can be slow

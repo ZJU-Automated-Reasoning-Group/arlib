@@ -39,8 +39,7 @@ def process_file(filename: str):
     else:
         raise NotImplementedError("Unsupported logic")
 
-    sol.from_smt_file(filename)
-    print(sol.check_sat())
+    print(sol.solve_smt_file(filename))
 
 
 if __name__ == "__main__":
@@ -62,9 +61,9 @@ if __name__ == "__main__":
                              "1: pysat (TBD, as it supports several engines), "
                              "2: binary solver (allow the user to specify a path for bin solvers)")
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
-    args = parser.parse_args()
+    g_args = parser.parse_args()
 
-    if args.verbosity == 2:
+    if g_args.verbosity == 2:
         logging.basicConfig(level=logging.DEBUG)
 
     # Which signals should we?
@@ -72,4 +71,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Registers signal handler, so we can kill all of our child processes.
-    process_file(args.infile)
+    process_file(g_args.infile)

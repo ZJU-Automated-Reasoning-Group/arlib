@@ -56,8 +56,7 @@ class TestQFFP(TestCase):
 
             # sol = ParallelCDCLSolver(mode="process")
             sol = QFFPSolver()
-            sol.from_smt_string(smt2string)
-            res = sol.check_sat()
+            res = sol.solve_smt_string(smt2string)
             res_z3 = solve_with_z3(smt2string)
             print(res, res_z3)
             if res != res_z3:
