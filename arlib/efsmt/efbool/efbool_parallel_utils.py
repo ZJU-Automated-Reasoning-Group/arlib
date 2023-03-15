@@ -13,7 +13,7 @@ def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tupl
     :param assumptions: a set of literals (forming the assumptions)
     :return: (true, model) or (false, unsat core)?
     """
-    solver = Solver(name="cadical", bootstrap_with=clauses)
+    solver = Solver(name="m22", bootstrap_with=clauses)
     ans = solver.solve(assumptions=assumptions)
     if ans:
         return ans, solver.get_model()

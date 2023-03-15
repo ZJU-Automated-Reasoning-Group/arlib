@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class BoolExistsSolver(object):
     def __init__(self, exists_vars, clauses):
-        self.solver_name = "cadical"
+        self.solver_name = "m22"
         self.solver = Solver(name=self.solver_name, bootstrap_with=clauses)
         self.existential_bools = exists_vars
         # self.universal_bool = forall_vars

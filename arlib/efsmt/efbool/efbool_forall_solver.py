@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class BoolForAllSolver(object):
     def __init__(self, exists_vars: List[int], forall_vars: List[int], clauses: List[List[int]]):
-        self.solver_name = "cadical"
+        self.solver_name = "m22"
         self.reduce_model = False
         pos = CNF(from_clauses=clauses)
         negated = pos.negate()
@@ -36,7 +36,7 @@ class BoolForAllSolver(object):
         pos.append(existential_model)
         neg = pos.negate()
 
-        aux_sol = Solver(name="cadical", bootstrap_with=neg)
+        aux_sol = Solver(name="m22", bootstrap_with=neg)
         assert not aux_sol.solve(assumptions=existential_counter_model)
         return aux_sol.get_core()
 
@@ -46,7 +46,7 @@ class BoolForAllSolver(object):
         blocking_clauses = []
         for existential_model in models:
             # TODO: check them in parallel?
-            solver = Solver(name="cadical", bootstrap_with=self.neg_clauses)
+            solver = Solver(name="m22", bootstrap_with=self.neg_clauses)
             for v in existential_model:
                 solver.add_clause([v])
             # NOTE: should not directly pass existential_model

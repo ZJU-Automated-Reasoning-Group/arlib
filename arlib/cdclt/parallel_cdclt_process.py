@@ -162,6 +162,8 @@ def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
     init_theory_fml_str = " (set-logic {}) ".format(logic) + " (set-option :produce-unsat-cores true) " \
                           + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
 
+    # print(init_theory_fml_str)
+
     """
     According to https://stackoverflow.com/questions/17377426/shared-variable-in-pythons-multiprocessing
     It seems Manger is slower than Value, but we cannot directly use Value for string? 

@@ -151,6 +151,7 @@ class SMTPreprocessor4Process(object):
         # clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
         clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
         after_simp = clauses.as_expr()
+        # print(after_simp)
         if z3.is_false(after_simp):
             self.status = SolverResult.UNSAT
         elif z3.is_true(after_simp):
