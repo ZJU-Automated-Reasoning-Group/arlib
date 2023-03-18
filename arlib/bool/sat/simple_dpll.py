@@ -13,6 +13,12 @@ def is_unit(clause: List[int]):
 
 
 def unit_propagation(s: List[List[int]]):
+    """
+    Perform unit propagation on the given formula s.
+
+    :param s: A list of lists representing a CNF formula.
+    :return: A tuple containing a satisfying assignment (if found) and the resulting formula after unit propagation.
+    """
     already_propagated = []
     i = 0
     while i < len(s):

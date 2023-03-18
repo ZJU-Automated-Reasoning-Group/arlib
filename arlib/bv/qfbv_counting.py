@@ -1,4 +1,6 @@
-"""Model counting for QF_BV formulas
+"""
+This module provides a BitVector model counter for Z3 formulas. It includes functions for counting models
+using enumeration, parallel enumeration, and sharpSAT. 
 """
 
 from typing import List
@@ -16,6 +18,19 @@ from arlib.bool.counting.dimacs_counting import count_dimacs_solutions, count_di
 
 
 def split_list(alist, wanted_parts=1):
+    """
+    Split a list into wanted_parts number of parts.
+
+    Args:
+        alist (list): The list to be split.
+        wanted_parts (int): The number of parts to split the list into.
+
+    Returns:
+        list: A list of lists, where each sublist is a part of the original list.
+
+    Raises:
+        ZeroDivisionError: If wanted_parts is zero.
+    """
     if wanted_parts == 0:
         raise ZeroDivisionError("wanted_parts must be greater than zero.")
     length = len(alist)
@@ -24,7 +39,9 @@ def split_list(alist, wanted_parts=1):
 
 
 def check_candidate_model(formula, all_vars, candidate):
-    """The 1st approach, build a fake model
+    """
+    Check candiate model
+    The 1st approach, build a fake model
      TODO: in some versions, ModelRef object has not attribute add_const_interp
     m = Model()
     for i in range(len(self.vars)):
@@ -44,6 +61,16 @@ def check_candidate_model(formula, all_vars, candidate):
 
 
 def check_candidate_models_set(formula: z3.ExprRef, assignments: List):
+    """
+    Check a set of candidate models for a given formula.
+
+    Args:
+        formula (z3.ExprRef): The Z3 formula to check models for.
+        assignments (List): A list of candidate assignments to check.
+
+    Returns:
+        int: The number of valid models found in the set of candidate models.
+    """
     num_solutions = 0
     variables = get_variables(formula)
     for candidate in assignments:

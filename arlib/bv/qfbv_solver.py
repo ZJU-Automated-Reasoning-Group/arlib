@@ -65,9 +65,18 @@ class QFBVSolver:
 
     def check_sat(self, fml: z3.ExprRef):
         """
+        Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
+        This function first translates the bit-vector formula into a SAT formula using Z3,
+        and then solves the translated SAT formula using pySAT.
+
         TODO: add an option that uses Yices2 to perform bit-blasting
-        :return:
+
+        :param fml: The bit-vector formula to be checked for satisfiability.
+        :type fml: z3.ExprRef
+        :return: SolverResult.SAT if the formula is satisfiable, SolverResult.UNSAT otherwise.
+        :rtype: SolverResult
         """
+
         qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
                                    z3.With('propagate-values', flat_and_or=False),
                                    z3.Tactic('elim-uncnstr'),
@@ -111,7 +120,6 @@ class QFBVSolver:
         The bit_blast function converts a bit-vector formula to Boolean logic.
         It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV variables to boolean expressions
         and the mapping from boolean expressions to numerical IDs, respectively.
-
         """
         logger.debug("Start translating to CNF...")
         # NOTICE: can be slow

@@ -1,12 +1,12 @@
-# coding: utf-8
+"""
+This module provides an implementation of the Minimal Satisfying Assignment (MSA) algorithm,
+adapted from the algorithm by Alessandro Previti and Alexey S. Ignatiev. It contains the MSASolver
+class which is used to find the minimal satisfying assignment for a given formula.
+"""
 from typing import FrozenSet
 
 import z3
 from z3.z3util import get_vars
-
-"""
-Minimal Satisfying Assignment. adapted from algo.by Alessandro Previti, Alexey S. Ignatiev
-"""
 
 
 # ==============================================================================

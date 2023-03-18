@@ -7,6 +7,7 @@ import time
 
 
 def evaluate_clauses(clauses, variable_assignments):
+
     """
     Define a function to evaluate a set of clauses with a given set of variable assignments
     """

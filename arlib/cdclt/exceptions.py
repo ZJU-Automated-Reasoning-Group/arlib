@@ -9,13 +9,18 @@ class TheorySolverSuccess(SMTSuccess):
 
 class TheorySolverError(SMTError):
     """
+    The theory solver encounters an error while checking T-consistency
     """
 
 
 class BoolSolverSuccess(SMTSuccess):
     """
-    TBD
+    The boolean solver checks satisfiability successfully
+    In the CDDL(T) settings, it means that the Boolean skeleton is unsatisfiable (
+    Thus, the orignal SMT formula is also unsatisfiable
+    )
     """
+
 
 
 class BoolSolverError(SMTError):

@@ -1,4 +1,9 @@
-# coding: utf-8
+"""
+This module provides a symbolic abstraction for bit-vector formulas.
+It supports interval, zone, and octagon abstractions.
+"""
+       
+
 import z3
 import itertools
 from timeit import default_timer as symabs_timer
@@ -9,12 +14,6 @@ from arlib.utils.z3_solver_utils import is_entail
 from arlib.symabs.omt_symabs.z3opt_util import box_optimize
 
 # import argparse
-
-"""
-Interval
-Zone
-Octagon
-"""
 
 
 def get_bv_size(x: z3.ExprRef):
@@ -46,6 +45,10 @@ class BVSymbolicAbstraction:
         # set_param("verbose", 15)
 
     def do_simplification(self):
+        """
+        Simplify the formula using Z3 tactics.
+        If the formula is initialized, apply a sequence of tactics to simplify it.
+        """
         if self.initialized:
             # TODO: it seems that propagate-bv-bounds has bugs, which can be even non-terminating on some formulas
             # TODO: use try_for?
@@ -110,7 +113,10 @@ class BVSymbolicAbstraction:
 
     def min_max_many(self, multi_queries: List[z3.ExprRef]):
         """
+        Minimize and maximize the given multi_queries.
+        Returns the conjunction of the minimized and maximized expressions.
         """
+
         # n_queries = len(multi_queries)
         # timeout = n_queries * self.single_query_timeout * 2 # is this reasonable?
         min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries, timeout=30000)
@@ -130,6 +136,11 @@ class BVSymbolicAbstraction:
         return z3.And(cnts)
 
     def interval_abs(self):
+        """
+        Perform interval abstraction on the formula.
+        Compute the minimum and maximum values for each variable in the formula.
+        Store the result in self.interval_abs_as_fml.
+        """
         if self.compact_opt:
             multi_queries = []
             for var in self.vars:
@@ -149,6 +160,11 @@ class BVSymbolicAbstraction:
             self.interval_abs_as_fml = z3.And(cnts)
 
     def zone_abs(self):
+        """
+        Perform zone abstraction on the formula.
+        Compute the minimum and maximum values for each pair of variables in the formula.
+        Store the result in self.zone_abs_as_fml.
+        """
         zones = list(itertools.combinations(self.vars, 2))
         if self.compact_opt:
             multi_queries = []
@@ -193,6 +209,11 @@ class BVSymbolicAbstraction:
             self.zone_abs_as_fml = z3.And(zone_cnts)
 
     def octagon_abs(self):
+        """
+        Perform octagon abstraction on the formula.
+        Compute the minimum and maximum values for each pair of variables in the formula,
+        Store the result in self.octagon_abs_as_fml.
+        """
         octagons = list(itertools.combinations(self.vars, 2))
         if self.compact_opt:
             multi_queries = []

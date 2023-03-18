@@ -13,6 +13,13 @@ from pysat.solvers import Solver
 
 
 class BooleanInterpolant:
+    
+    def __init__(self):
+        """
+        Initialize the BooleanInterpolant class.
+        """
+        pass
+        
     @staticmethod
     def mk_lit(m: z3.ModelRef, x: z3.ExprRef):
         if z3.is_true(m.eval(x)):
@@ -32,19 +39,6 @@ class BooleanInterpolant:
         :param B:z3.Solver: Check the interpolant
         :param xs:List[z3.ExprRef]: Pass the interpolation literals to the pogo function
         :return: A generator of interpolants
-        :doc-author: Trelent
-        """
-        """
-        The pogo function takes two solvers, A and B.
-        It then checks if the formula in A is satisfiable.
-        If it is, it tries to prove a contradiction from the formulas in B.
-        The function yields each interpolant as it goes along.
-        
-        :param A:z3.Solver: Keep track of the current state of the interpolation problem
-        :param B:z3.Solver: Check the interpolant
-        :param xs:List[z3.ExprRef]: Pass the interpolation literals to the pogo function
-        :return: A generator of interpolants
-        :doc-author: Trelent
         """
         while z3.sat == A.check():
             m = A.model()
@@ -67,6 +61,12 @@ class BooleanInterpolant:
 
 
 class PySATInterpolant:
+
+    def __init__(self):
+        """
+        Initialize the PySATInterpolant class.
+        """
+        pass
 
     @staticmethod
     def compute_itp(fml_a: CNF, fml_b: CNF, xs: List[int]):

@@ -26,6 +26,13 @@ logger = logging.getLogger(__name__)
 
 
 def terminate(process, is_timeout: List):
+    """
+    Terminate a given process and set the is_timeout flag to True.
+
+    Args:
+        process (subprocess.Popen): The process to be terminated.
+        is_timeout (List): A list containing a single boolean value indicating if the process has timed out.
+    """
     if process.poll() is None:
         try:
             process.terminate()
@@ -35,7 +42,16 @@ def terminate(process, is_timeout: List):
             print(ex)
 
 
+
 def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str):
+    """
+    Write the header and clauses of a DIMACS CNF formula to a file.
+
+    Args:
+        header (List[str]): A list containing the header information of the DIMACS CNF file.
+        clauses (List[str]): A list of strings representing the clauses of the DIMACS CNF file.
+        output_file (str): The path to the output file where the DIMACS CNF formula will be written.
+    """
     # print("header: ", header)
     # print("clauses: ", len(clauses), clauses)
     with open(output_file, 'w+') as file:
@@ -46,6 +62,16 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
 
 
 def call_sharp_sat(cnf_filename: str):
+    """
+    Call the sharpSAT solver on a given DIMACS CNF file and return the number of solutions.
+
+    Args:
+        cnf_filename (str): The path to the DIMACS CNF file.
+
+    Returns:
+        int: The number of solutions for the given DIMACS CNF formula.
+    """
+
     solutions = -1
     cmd = [sharp_sat_bin, cnf_filename]
     print("Calling sharpSAT")
@@ -82,13 +108,32 @@ def call_sharp_sat(cnf_filename: str):
 
 
 def count_dimacs_solutions(header: List, str_clauses: List):
+    """
+    Count the number of solutions for a given DIMACS CNF formula.
+
+    Args:
+        header (List): A list containing the header information of the DIMACS CNF file.
+        str_clauses (List): A list of strings representing the clauses of the DIMACS CNF file.
+
+    Returns:
+        int: The number of solutions for the given DIMACS CNF formula.
+    """
     output_file = '/tmp/{}.cnf'.format(str(uuid.uuid1()))
     write_dimacs_to_file(header, str_clauses, output_file)
     return call_sharp_sat(output_file)
 
 
 def check_sat(clauses, assumptions):
-    """Used by parallel solving"""
+    """
+    Check the satisfiability of a CNF formula with given assumptions.
+
+    Args:
+        clauses (List): A list of clauses representing the CNF formula.
+        assumptions (List): A list of literals representing the assumptions.
+
+    Returns:
+        bool: True if the CNF formula is satisfiable under the given assumptions, False otherwise.
+    """
     solver = Solver(bootstrap_with=clauses)
     ans = solver.solve(assumptions=assumptions)
     return ans
@@ -96,14 +141,22 @@ def check_sat(clauses, assumptions):
 
 def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
     """
-    FIXME: is the following strategy correct?
-    1. Generate a set of disjoint cubes such that they can be extended to be models of the formula
+    Count the number of solutions for a given DIMACS CNF formula in parallel.
+       1. Generate a set of disjoint cubes such that they can be extended to be models of the formula
         C1: a, b
         C2: Not(a), b
         C3: a, Not b
         C4: Not(a), Not(b)
-    2. Count the models subject to each cube in parallel
+      2. Count the models subject to each cube in parallel, and sum the results
+
+    Args:
+        header (List[str]): A list containing the header information of the DIMACS CNF file.
+        clauses (List[str]): A list of strings representing the clauses of the DIMACS CNF file.
+
+    Returns:
+        int: The number of solutions for the given DIMACS CNF formula.
     """
+
     dimacs_str = ""
     for info in header:
         dimacs_str += "{}\n".format(info)

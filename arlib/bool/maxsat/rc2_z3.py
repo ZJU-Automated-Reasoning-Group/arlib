@@ -1,4 +1,4 @@
-# RC2 algorithm
+# RC2 algorithm implemented via Z3's Python API
 # basic version with some optimizations
 # - process soft constraints in order of highest values first.
 # - extract multiple cores, not just one

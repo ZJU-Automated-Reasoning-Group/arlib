@@ -124,6 +124,13 @@ class DNNF_Compiler:
     """
 
     def bcp(self, dtree, literal):
+        """
+        Perform Boolean Constraint Propagation (BCP) on the given dtree with the given literal.
+        :param dtree: The decision tree to perform BCP on.
+        :param literal: The literal to propagate through the dtree.
+        :return: A modified decision tree after BCP.
+        """
+        
         modified = copy.deepcopy(dtree)
         if modified.is_leaf():
             # print(literal)
@@ -155,6 +162,7 @@ class DNNF_Compiler:
             modified.clause_key = modified.left_child.clause_key + modified.right_child.clause_key
             modified.lit_key += 2 ** (abs(literal) - 1)
         return modified
+        
 
     # def pure_literals(dtree):
     #     counter = dtree.get_counter()

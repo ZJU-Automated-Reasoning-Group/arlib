@@ -14,26 +14,61 @@ logger = logging.getLogger(__name__)
 
 
 class QFAUFBVSolver:
+    """
+    A class for solving QF_AUFBV (Quantifier-Free Array Theory with Uninterpreted Functions and Bit-Vectors) problems.
+    """
 
     def __init__(self):
+        """
+        Initialize the QFAUFBVSolver instance.
+        """
         self.fml = None
         # self.vars = []
         self.verbose = 0
 
     def solve_smt_file(self, filepath: str):
+        """
+        Solve an SMT problem from a file.
+
+        Args:
+            filepath (str): The path to the SMT file.
+
+        Returns:
+            SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
+        """
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
+        
 
     def solve_smt_string(self, smt_str: str):
+        """
+        Solve an SMT problem from a string.
+
+        Args:
+            smt_str (str): The SMT problem as a string.
+
+        Returns:
+            SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
+        """
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
+        
 
     def solve_smt_formula(self, fml: z3.ExprRef):
-        return self.check_sat(fml)
+        """
+        Solve an SMT problem from a Z3 formula.
 
+        Args:
+            fml (z3.ExprRef): The Z3 formula representing the SMT problem.
+
+        Returns:
+            SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
+        """
+        self.check_sat(fml)
+        
 
     def check_sat(self, fml):
-        """Check satisfiability of an QF_FP formula"""
+        """Check satisfiability of an formula"""
         logger.debug("Start translating to CNF...")
 
         qfaufbv_preamble = z3.AndThen('simplify',

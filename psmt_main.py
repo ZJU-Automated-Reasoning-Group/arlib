@@ -14,7 +14,13 @@ g_smt2_file = None
 
 
 def signal_handler(sig, frame):
-    """Captures the shutdown signals and cleans up all child processes of this process."""
+    """
+    Handles the shutdown signals and cleans up all child processes of this process.
+    
+    Args:
+        sig (int): The signal number received.
+        frame (frame): The current stack frame.
+    """
     # print("handling signals")
     if g_smt2_file:
         g_smt2_file.close()
@@ -23,7 +29,14 @@ def signal_handler(sig, frame):
         child.kill()
 
 
-def process_file(filename: str, logic: str):
+def process_file(filename: str, logic: str):   
+    """
+    Processes the given SMT2 file and solves it using the specified logic.
+
+    Args:
+        filename (str): The path to the SMT2 file to be processed.
+        logic (str): The logic to be used for solving the SMT2 file.
+    """
     global g_smt2_file
     g_smt2_file = open(filename, "r")
     smt2string = g_smt2_file.read()
