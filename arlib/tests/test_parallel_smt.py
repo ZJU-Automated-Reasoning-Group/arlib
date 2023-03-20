@@ -11,7 +11,7 @@ from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
 
-from arlib.cdclt.cdclt_solver import ParallelCDCLSolver
+from arlib.cdclt.cdclt_solver import ParallelCDCLTSolver
 from arlib.utils import SolverResult
 
 
@@ -71,7 +71,7 @@ class TestParallelSMTSolver(TestCase):
                 print(ex)
                 print(smt2string)
 
-            sol = ParallelCDCLSolver(mode="process")
+            sol = ParallelCDCLTSolver(mode="process")
             # sol = ParallelCDCLSolver(mode="thread")
             res = sol.solve_smt2_string(smt2string, logic="ALL")
             res_z3 = solve_with_z3(smt2string)

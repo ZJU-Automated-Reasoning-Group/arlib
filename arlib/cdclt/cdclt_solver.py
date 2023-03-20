@@ -9,7 +9,7 @@ from arlib.cdclt.simple_cdclt import boolean_abstraction
 from arlib.utils import SolverResult
 
 
-class CDCLSolver(ABC):
+class CDCLTSolver(ABC):
     """
     Abstract base class for a solver which implements the Conflict Driven Clause Learning (CDCL) algorithm for solving
     Satisfiability Modulo Theories (SMT) problems.
@@ -40,7 +40,7 @@ class CDCLSolver(ABC):
         pass
 
 
-class SequentialCDCLSolver(CDCLSolver):
+class SequentialCDCLTSolver(CDCLTSolver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.smt2_file = None
@@ -71,7 +71,7 @@ def dump_bool_skeleton(numeric_clauses, output_file: str):
         for cls in numeric_clauses:
             file.write(" ".join([str(l) for l in cls]) + " 0\n")
 
-class ParallelCDCLSolver(CDCLSolver):
+class ParallelCDCLTSolver(CDCLTSolver):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         """

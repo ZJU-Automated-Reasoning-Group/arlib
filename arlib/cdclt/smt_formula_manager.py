@@ -31,7 +31,6 @@ def extract_literals_square(clauses: List) -> List[List]:
     Thus, this function aims to build such a CNF
     """
     # FIXME: the naive strategy is not good...
-    maximum_models = 1  # estimate the maximum possible models (a naive strategy)
     res = []
     for cls in clauses:
         if z3.is_or(cls):
@@ -39,10 +38,8 @@ def extract_literals_square(clauses: List) -> List[List]:
             for lit in cls.children():
                 tmp_cls.append(lit)
             res.append(tmp_cls)
-            maximum_models *= len(tmp_cls)
         else:
             res.append([cls])
-    print("Maximum possible models: ", maximum_models)
     return res
 
 
@@ -214,6 +211,8 @@ class SMTPreprocessor4Thread(object):
     to CNF (from which we can build the Boolean abstraction of the original SMT formula)
 
     NOTE: This class is used for inter-thread communication
+    FIXME: the implementation of Boolean solver is different from that of SMTPreprocessor4Process
+      In this class, we use z3 expr for maintaining the Boolean skeleton, instead of PySAT.
 
     """
 

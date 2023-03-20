@@ -8,7 +8,7 @@ import os
 import signal
 import psutil
 
-from arlib.cdclt.cdclt_solver import ParallelCDCLSolver
+from arlib.cdclt.cdclt_solver import ParallelCDCLTSolver
 
 g_args = None
 
@@ -38,7 +38,7 @@ def process_file(filename: str, logic: str, mode: str):
     # g_smt2_file = open(filename, "r")
     # smt2string = g_smt2_file.read()
     # simple_cdclt(smt2string)
-    sol = ParallelCDCLSolver(mode=mode)
+    sol = ParallelCDCLTSolver(mode=mode)
     ret = sol.solve_smt2_file(filename=filename, logic=logic)
     print(ret)
     return ret
