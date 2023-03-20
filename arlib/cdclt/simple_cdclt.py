@@ -6,6 +6,7 @@ It may serve as a reference implementation of the main enigne.
 """
 import logging
 import re
+from typing import List
 
 from arlib.cdclt import BooleanFormulaManager, SMTPreprocessor4Process
 from arlib.config import m_smt_solver_bin
@@ -48,12 +49,16 @@ class SMTLibBoolSolver:
         return [pair[0] if pair[1].startswith("t") else "(not {})".format(pair[0]) for pair in tuples_model]
 
 
-def boolean_abstraction(smt2string: str):
+def boolean_abstraction(smt2string: str) -> List:
+    """
+    Only perform Boolean abstraction (e.g., for profiling)
+    """
     preprocessor = SMTPreprocessor4Process()
-    preprocessor.from_smt2_string(smt2string)
+    bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
     if preprocessor.status != SolverResult.UNKNOWN:
-        return preprocessor.status
-    return preprocessor.bool_clauses
+        return []
+    return bool_manager.numeric_clauses
+
 
 
 def simple_cdclt(smt2string: str):

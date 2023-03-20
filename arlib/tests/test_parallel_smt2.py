@@ -7,10 +7,9 @@ def string_test():
     fml = """
 (set-logic QF_LIA)
 (declare-fun x () Int)
-(declare-fun z () Int)
 (declare-fun y () Int)
-(assert (or (= x 1) (= x 2)))
-(assert (or (= y 3) (= y 4)))
+(assert (or (= x 1) (> x 2)))
+(assert (or (= y 3) (> y 4)))
 (assert (= 4 (+ x y)))
 (check-sat)
     """

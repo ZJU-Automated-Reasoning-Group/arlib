@@ -156,6 +156,7 @@ def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
 
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
 
+    # print(bool_manager.numeric_clauses)
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
 

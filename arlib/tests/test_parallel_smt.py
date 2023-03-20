@@ -59,7 +59,6 @@ class TestParallelSMTSolver(TestCase):
         """
         Used for local test, not for regrssion?
         """
-        return True
 
         for _ in range(10):
             smt2string = gene_smt2string("QF_LRA")
@@ -72,8 +71,8 @@ class TestParallelSMTSolver(TestCase):
                 print(ex)
                 print(smt2string)
 
-            # sol = ParallelCDCLSolver(mode="process")
-            sol = ParallelCDCLSolver(mode="thread")
+            sol = ParallelCDCLSolver(mode="process")
+            # sol = ParallelCDCLSolver(mode="thread")
             res = sol.solve_smt2_string(smt2string, logic="ALL")
             res_z3 = solve_with_z3(smt2string)
             print(res, res_z3)

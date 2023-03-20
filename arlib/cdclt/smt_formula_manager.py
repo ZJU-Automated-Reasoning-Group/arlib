@@ -30,6 +30,7 @@ def extract_literals_square(clauses: List) -> List[List]:
         [[...], [...], [...]]
     Thus, this function aims to build such a CNF
     """
+    # FIXME: the naive strategy is not good...
     maximum_models = 1  # estimate the maximum possible models (a naive strategy)
     res = []
     for cls in clauses:
@@ -124,8 +125,8 @@ class SMTPreprocessor4Process(object):
         return [self.abstract_clause(atom2bool, clause) for clause in clauses]
 
     def build_numeric_clauses(self, bool_manager):
-        """Currently, self.bool_clauses uses string
-        But in some cases, we need to obtain numeric clauses
+        """Currently, self.bool_clauses are Z3 exprs
+        But in some cases, we need to obtain numeric clauses (e.g., pass it to PySAT)
         """
         # assert m_init_abstraction == InitAbstractionStrategy.ATOM
         # print(self.bool_clauses)
@@ -139,11 +140,15 @@ class SMTPreprocessor4Process(object):
                         tmp_cls.append(bool_manager.vars2num[str(lit)])
                 bool_manager.numeric_clauses.append(tmp_cls)
             else:
-                # unary clause
+                # unary clause (which means there is only one literal in the current clause)
+                tmp_cls = []
                 if z3.is_not(cls):
-                    cls.append(-bool_manager.vars2num[str(cls.children()[0])])
+                    tmp_cls.append(-bool_manager.vars2num[str(cls.children()[0])])
                 else:
-                    cls.append(bool_manager.vars2num[str(cls)])
+                    tmp_cls.append(bool_manager.vars2num[str(cls)])
+                bool_manager.numeric_clauses.append(tmp_cls)
+
+        # print(bool_manager.numeric_clauses)
 
     def from_smt2_string(self, smt2string: str):
         # fml = z3.And(z3.parse_smt2_file(filename))
