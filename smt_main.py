@@ -26,20 +26,23 @@ def signal_handler(sig, frame):
 
 
 def process_file(filename: str):
-    sol = None
     logic = g_args.logic
-    if logic == "QF_BV":
-        sol = QFBVSolver()
-    elif logic == "QF_UFBV":
-        sol = QFUFBVSolver()
-    elif logic == "QF_AUFBV" or logic == "QF_ABV":
-        sol = QFAUFBVSolver()
-    elif logic == "QF_FP":
-        sol = QFFPSolver()
+
+    solvers = {
+        "QF_BV": QFBVSolver,
+        "QF_UFBV": QFUFBVSolver,
+        "QF_AUFBV": QFAUFBVSolver,
+        "QF_ABV": QFAUFBVSolver,
+        "QF_FP": QFFPSolver
+    }
+
+    if logic in solvers:
+        solver_class = solvers[logic]
+        sol = solver_class()
+        print(sol.solve_smt_file(filename))
     else:
         raise NotImplementedError("Unsupported logic")
 
-    print(sol.solve_smt_file(filename))
 
 
 if __name__ == "__main__":

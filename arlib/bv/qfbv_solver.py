@@ -63,7 +63,51 @@ class QFBVSolver:
     def solve_smt_formula(self, fml: z3.ExprRef):
         return self.check_sat(fml)
 
-    def check_sat(self, fml: z3.ExprRef):
+    def solve_qfbv_light(self, fml: z3.ExprRef):
+        """
+        Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
+        (This function uses more lighweight pre-processing than solve_qfbv)
+        """
+        qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
+                                   z3.With('propagate-values', flat_and_or=False),
+                                   z3.With('solve-eqs', solve_eqs_max_occs=2),
+                                   z3.Tactic('elim-uncnstr'),
+                                   # z3.Tactic('reduce-bv-size'),
+                                   z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                                           local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+                                   # Z3 can solve a couple of extra benchmarks by using hoist_mul but the timeout in SMT-COMP is too small.
+                                   # Moreover, it impacted negatively some easy benchmarks. We should decide later, if we keep it or not.
+                                   # With('simplify', hoist_mul=False, som=False, flat_and_or=False),
+                                   z3.Tactic('max-bv-sharing'),
+                                   # z3.Tactic('ackermannize_bv'),
+                                   z3.Tactic('bit-blast'),
+                                   # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                                   # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
+                                   z3.Tactic('tseitin-cnf'),
+                                   # z3.Tactic('sat')
+                                   )
+        qfbv_light_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+
+        after_simp = qfbv_light_tactic(fml).as_expr()
+        # print(after_simp)
+        if z3.is_false(after_simp):
+            return SolverResult.UNSAT
+        elif z3.is_true(after_simp):
+            return SolverResult.SAT
+        # print(".....")
+        g = z3.Goal()
+        g.add(after_simp)
+        pos = CNF(from_string=g.dimacs())
+        # pos.to_fp(sys.stdout)
+        aux = Solver(name="minisat22", bootstrap_with=pos)
+        # print("solving via pysat")
+        if aux.solve():
+            return SolverResult.SAT
+        return SolverResult.UNSAT
+
+
+
+    def solve_qfbv(self, fml: z3.ExprRef):
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
         This function first translates the bit-vector formula into a SAT formula using Z3,
@@ -76,7 +120,6 @@ class QFBVSolver:
         :return: SolverResult.SAT if the formula is satisfiable, SolverResult.UNSAT otherwise.
         :rtype: SolverResult
         """
-
         qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
                                    z3.With('propagate-values', flat_and_or=False),
                                    z3.Tactic('elim-uncnstr'),
@@ -113,6 +156,11 @@ class QFBVSolver:
         if aux.solve():
             return SolverResult.SAT
         return SolverResult.UNSAT
+
+
+    def check_sat(self, fml: z3.ExprRef):
+        # solve_qfbv_light
+        return self.solve_qfbv(fml)
 
 
     def bit_blast(self):

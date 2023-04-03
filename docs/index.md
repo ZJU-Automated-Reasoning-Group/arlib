@@ -1,9 +1,7 @@
-Welcome to arlib's documentation!
-=================================
+# Welcome to arlib's documentation!
 
-=============
- Introduction
-=============
+
+## Introduction
 
 arlib is a toolkit for playing with various automated reasoning tasks, such as
 
@@ -27,11 +25,3 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 
 Please let us know of any problem or possible improvements by opening
 an issue.
-
-
-=============
-Users of Arlib
-=============
-
-- efmc: a software model checker
-
