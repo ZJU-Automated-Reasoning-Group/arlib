@@ -67,7 +67,7 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
     for clause_expr in cnf:
         assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
         dimacs_clause = list(dimacs_visitor(clause_expr, table))
-        # dimacs_clause.append('0') # TODO: why append 0???
+        # dimacs_clause.append('0')  # TODO: append 0 or not
         cnf_clauses.append(" ".join(dimacs_clause))
 
     if proj_last:
@@ -76,7 +76,7 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
         for clause in cnf_clauses:
             int_clause = [int(x) for x in clause.split(" ")[:-1]]
             proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
-            # proj_clause.append(0)  # TODO: why append 0???
+            # proj_clause.append(0)  # TODO: append 0 or not
             str_clause = " ".join([str(x) for x in proj_clause])
             clauses.append(str_clause)
 
