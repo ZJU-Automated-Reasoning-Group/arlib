@@ -105,7 +105,7 @@ class Params:
 
 def run_tests():
     # cmd = "timeout 8s ./run-tests --gtest_output='xml:test_results.xml' --gtest_color=yes --gtest_filter=xx"
-    cmd = "/home/rainoftime/Work/z3/build/z3"
+    cmd = "z3"
     start = time.perf_counter()
     # TODO:
     #  add timeout
