@@ -25,7 +25,6 @@ from arlib.bool import MaxSATSolver
 
 logger = logging.getLogger(__name__)
 
-
 """
     cadical103  = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
     cadical153  = ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153')
@@ -43,8 +42,8 @@ logger = logging.getLogger(__name__)
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-               'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-               'mc', 'm22', 'msh']
+                        'g4', 'lgl', 'mcb', 'mpl', 'mg3',
+                        'mc', 'm22', 'msh']
 
 
 class OMTBVSolver:

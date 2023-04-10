@@ -1,17 +1,18 @@
-# coding: utf-8
+"""
+Clause
+"""
 import uuid
 
 from .variable import Variable
 
-
 # from typing import Set
-
 
 def create_id():
     return str(uuid.uuid4())
 
 
 class Clause:
+    """Representation of a Boolean clause"""
     def __init__(self, variable_list: list):
         """
         :complexity: O(n) where n is the number of variables in the clause
@@ -191,7 +192,7 @@ class Clause:
                 rec(i + 1, copied, literals, ans)
 
         variables = self.variable_list
-        sub_sets = list()
+        sub_sets = []
         rec(0, [], variables, sub_sets)
 
         return sub_sets
@@ -199,7 +200,8 @@ class Clause:
     def get_blocking_clause(self, cnf):
         """
         Checks whether a CNF's clause is a bocked clause or not
-        :complexity: O(c*l^2), where c is the number of clauses in cnf, and l is the number of literals per clause
+        :complexity: O(c*l^2), where c is the number of clauses in cnf,
+        and l is the number of literals per clause
         :param cnf: the cnf that the clause belogs
         :return: boolean
         """
@@ -214,7 +216,8 @@ class Clause:
 
     def is_subsumed(self, cnf):
         """
-        :complexity: O(c*l), where l is the number of literals per clause, and c is the number of clause in the cnf
+        :complexity: O(c*l), where l is the number of literals per clause,
+         and c is the number of clause in the cnf
         :param cnf: The cnf that the clause belong
         :return: boolean
         """
@@ -228,17 +231,18 @@ class Clause:
         """
         # todo: test
         Hidden Literal Addition HLA(F,C)
-        :complexity: O(c*l^2), where c is the number of clauses on CNF, and l is the number of literals on one clause
+        :complexity: O(c*l^2), where c is the number of clauses on CNF,
+        and l is the number of literals on one clause
         :param f: CNF
         :return: HLA(F,C)
         """
-        c = self
+        cls = self
 
-        c_hla = c.copy_with_same_id()
+        c_hla = cls.copy_with_same_id()
 
-        for lit in c.get_literals():
+        for lit in cls.get_literals():
             for clause in f.get_clauses():
-                if clause != c and clause.get_size() == 2:
+                if clause != cls and clause.get_size() == 2:
                     lit_clause = Clause([lit])
                     if lit_clause.is_sub_clause_of(clause):
 

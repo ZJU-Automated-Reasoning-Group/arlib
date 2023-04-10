@@ -74,7 +74,8 @@ class QFFPSolver:
                     return SolverResult.SAT
                 return SolverResult.UNSAT
             else:
-                sol = z3.Tactic('smt').solver()
+                sol = z3.Then('simplify', 'smt').solver()
+                # sol = z3.Tactic('QF_FP').solver()
                 sol.add(after_simp)
                 res = sol.check()
                 if res == z3.sat:

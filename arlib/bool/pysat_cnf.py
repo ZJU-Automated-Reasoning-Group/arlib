@@ -3,7 +3,7 @@ import sys
 import random
 from copy import deepcopy
 from typing import List
-from pysat.formula import CNF, IDPool
+from pysat.formula import CNF  #IDPool
 
 def simplify_cnf(fml: CNF, assumptions: List):
     """ given a formula, return a new formula simplified by the assumptions"""
@@ -24,7 +24,7 @@ def gen_cubes(fml: CNF, k_vars: int) -> List[List]:
     Randomly select k_vars variables and generate all cubes using those variables
     """
     total_vars = fml.nv
-    assert(k_vars <= total_vars)
+    assert k_vars <= total_vars
     cube_vars = random.sample([i + 1 for i in range(total_vars)], k_vars)
     all_cubes = []
     # Loop over all possible variable assignments
@@ -41,6 +41,7 @@ def gen_cubes(fml: CNF, k_vars: int) -> List[List]:
 
 
 def demo_simplify_cnf():
+    """test case"""
     clauses = [[1, 2], [4, 5], [-1, 2, 3]]
     fml = CNF(from_clauses=clauses)
     new_cnf = simplify_cnf(fml, [1, 4])

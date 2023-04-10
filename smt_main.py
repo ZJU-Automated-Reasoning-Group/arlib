@@ -7,14 +7,14 @@ The entrance of the sequential SMT solving engine
 """
 import os
 import signal
-import psutil
 import logging
+import psutil
 from arlib.bv.qfbv_solver import QFBVSolver
 from arlib.bv.qfufbv_solver import QFUFBVSolver
 from arlib.bv.qfaufbv_solver import QFAUFBVSolver
 from arlib.fp.qffp_solver import QFFPSolver
 
-g_args = None
+G_ARGS = None
 
 
 def signal_handler(sig, frame):
@@ -26,7 +26,8 @@ def signal_handler(sig, frame):
 
 
 def process_file(filename: str):
-    logic = g_args.logic
+    """Process one file"""
+    logic = G_ARGS.logic
 
     solvers = {
         "QF_BV": QFBVSolver,
@@ -64,9 +65,9 @@ if __name__ == "__main__":
                              "1: pysat (TBD, as it supports several engines), "
                              "2: binary solver (allow the user to specify a path for bin solvers)")
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
-    g_args = parser.parse_args()
+    G_ARGS = parser.parse_args()
 
-    if g_args.verbosity == 2:
+    if G_ARGS.verbosity == 2:
         logging.basicConfig(level=logging.DEBUG)
 
     # Which signals should we?
@@ -74,4 +75,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Registers signal handler, so we can kill all of our child processes.
-    process_file(g_args.infile)
+    process_file(G_ARGS.infile)

@@ -10,7 +10,7 @@ import psutil
 
 from arlib.cdclt.cdclt_solver import ParallelCDCLTSolver
 
-g_args = None
+G_ARGS = None
 
 
 def signal_handler(sig, frame):
@@ -56,13 +56,14 @@ if __name__ == "__main__":
                         help="the mode:"
                              "process: process-based  "
                              "thread: thread-based  "
-                             "preprocess: Dump the Boolean skeleton after pre-processing (as a CNF/DIMACS file), and the name wile infile.cnf")
+                             "preprocess: Dump the Boolean skeleton after pre-processing"
+                             " (as a CNF/DIMACS file), and the name wile infile.cnf")
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
-    g_args = parser.parse_args()
+    G_ARGS = parser.parse_args()
 
     # Which signals should we?
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Registers signal handler, so we can kill all of our child processes.
-    process_file(g_args.infile, g_args.logic, g_args.mode)
+    process_file(G_ARGS.infile, G_ARGS.logic, G_ARGS.mode)

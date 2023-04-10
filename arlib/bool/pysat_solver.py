@@ -43,7 +43,7 @@ def internal_single_solve(solver_name, clauses, assumptions):
     return ans, solver.get_core()
 
 
-class PySATSolver(object):
+class PySATSolver:
     """
     Wrapper of PySAT
     """
@@ -60,6 +60,7 @@ class PySATSolver(object):
         return self._solver.solve()
 
     def add_clause(self, clause: List[int]):
+        """add clause"""
         self._solver.add_clause(clause)
         self._clauses.append(clause)
 
@@ -99,11 +100,12 @@ class PySATSolver(object):
     def reduce_models(self, models: List[List]) -> List[List[int]]:
         """
         http://fmv.jku.at/papers/NiemetzPreinerBiere-FMCAD14.pdf
-        Consider a Boolean formula P. The model of P (given by a SAT solver) is not necessarily minimal.
-        In other words, the SAT solver may assign truth assignments to literals irrelevant to truth of P.
+        Consider a Boolean formula P. The model of P (given by a SAT solver)
+        is not necessarily minimal. In other words, the SAT solver may assign
+        truth assignments to literals irrelevant to truth of P.
 
-        Suppose we have a model M of P. To extract a smaller assignment, one trick is to encode the
-        negation of P in a separate dual SAT solver.
+        Suppose we have a model M of P. To extract a smaller assignment,
+        one trick is to encode the negation of P in a separate dual SAT solver.
 
         We can pass M as an assumption to the dual SAT solver. (check-sat-assuming M).
         All assumptions inconsistent with -P (called the failed assumptions),

@@ -38,7 +38,6 @@ class QFAUFBVSolver:
         """
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
-        
 
     def solve_smt_string(self, smt_str: str):
         """
@@ -52,7 +51,6 @@ class QFAUFBVSolver:
         """
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
-        
 
     def solve_smt_formula(self, fml: z3.ExprRef):
         """
@@ -65,7 +63,6 @@ class QFAUFBVSolver:
             SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
         """
         self.check_sat(fml)
-        
 
     def check_sat(self, fml):
         """Check satisfiability of an formula"""
@@ -109,17 +106,17 @@ class QFAUFBVSolver:
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
+        # the else part
+        # sol = z3.Tactic('smt').solver()
+        sol = z3.SolverFor("QF_AUFBV")
+        sol.add(after_simp)
+        res = sol.check()
+        if res == z3.sat:
+            return SolverResult.SAT
+        elif res == z3.unsat:
+            return SolverResult.UNSAT
         else:
-            # sol = z3.Tactic('smt').solver()
-            sol = z3.SolverFor("QF_AUFBV")
-            sol.add(after_simp)
-            res = sol.check()
-            if res == z3.sat:
-                return SolverResult.SAT
-            elif res == z3.unsat:
-                return SolverResult.UNSAT
-            else:
-                return SolverResult.UNKNOWN
+            return SolverResult.UNKNOWN
 
 
 def demo_qfaufbv():

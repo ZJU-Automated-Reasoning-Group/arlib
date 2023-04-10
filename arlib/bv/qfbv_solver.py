@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-               'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-               'mc', 'm22', 'msh']
+                        'g4', 'lgl', 'mcb', 'mpl', 'mg3',
+                        'mc', 'm22', 'msh']
 
 
 class QFBVSolver:
@@ -44,7 +44,7 @@ class QFBVSolver:
     """
 
     def __init__(self):
-        self.fml = None    # z3.ExpeRef (not used for now!)
+        self.fml = None  # z3.ExpeRef (not used for now!)
         self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
         self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
         # self.vars = []
@@ -102,8 +102,6 @@ class QFBVSolver:
             return SolverResult.SAT
         return SolverResult.UNSAT
 
-
-
     def solve_qfbv(self, fml: z3.ExprRef):
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
@@ -154,11 +152,9 @@ class QFBVSolver:
             return SolverResult.SAT
         return SolverResult.UNSAT
 
-
     def check_sat(self, fml: z3.ExprRef):
         # solve_qfbv_light
         return self.solve_qfbv(fml)
-
 
     def bit_blast(self):
         """

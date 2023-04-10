@@ -150,5 +150,6 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
         return False
     return out_gene
 
+
 if __name__ == '__main__':
     print(gene_smt2string())

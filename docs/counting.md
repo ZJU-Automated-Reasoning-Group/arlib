@@ -13,4 +13,9 @@ To count models for SAT formulas, please use `sharpSAT` or other third-party too
 
 QF_BV stands for quantifier-free bit-vector logic. It is a subset of the SMT-LIB standard and is commonly used in the analysis and verification of computer hardware and software systems. 
 
-To count the models of a QF_BF formula, refer to `arlib\bv\qfbv_counting.py`.
+To count the models of a QF_BF formula, refer to 
+- `arlib\bv\qfbv_counting.py`.
+- `arlib\tests\test_bv_counting.py`
+
+By default, we rely on sharpSAT. Currently, we need to copy a 
+binary version of sharpSAT to `bin_solvers`

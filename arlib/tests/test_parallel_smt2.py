@@ -34,6 +34,7 @@ def solve_file(filename: str, logic: str):
 
 if __name__ == '__main__':
     import sys
+
     logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     log = logging.getLogger('custom logger')
     log.setLevel(logging.DEBUG)

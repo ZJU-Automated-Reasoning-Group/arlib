@@ -114,7 +114,7 @@ def to_dimacs_numeric(cnf, table, proj_last):
             proj_clause = [proj_id_last(x, projection_scope, n_vars) for x in int_clause]
             clauses.append(proj_clause)
         cnf_clauses = clauses
-        cnf_header = ["p"]   # FIXME
+        cnf_header = ["p"]  # FIXME
     else:
         cnf_header = ["p"]
     return cnf_header, cnf_clauses

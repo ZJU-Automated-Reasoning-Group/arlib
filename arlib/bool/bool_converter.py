@@ -7,11 +7,12 @@ from typing import List
 
 
 def flatter(lst):
-    x = []
+    """Misc for tseitin"""
+    res = []
     for i in lst:
         abs_lst = [abs(j) for j in i]
-        x.extend(abs_lst)
-    return x
+        res.extend(abs_lst)
+    return res
 
 
 def tseitin(dnf: List[List]):
@@ -39,6 +40,7 @@ def tseitin(dnf: List[List]):
 
 
 def test():
+    """test case"""
     dnf = [[-1, -2, 4], [1, -4], [2, -4], [3, 5], [-3, -5]]
     print(tseitin(dnf))
 

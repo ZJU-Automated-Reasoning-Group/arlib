@@ -40,7 +40,7 @@ class TestQFFP(TestCase):
 
     def test_qffp_solver(self):
         i = 0
-        for _ in range(10):
+        for _ in range(12):
 
             smt2string = gene_smt2string("QF_FP")
             try:

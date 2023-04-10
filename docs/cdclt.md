@@ -21,16 +21,3 @@ Refer to https://smtlib.cs.uiowa.edu/benchmarks.shtml for benchmarks.
 1. Build and install all binary solvers in the `bin_solvers` directory.
 2. Install the required packages according to `requirements.txt`.
 
-## TODOs
-
-### On Sampling of Boolean Models
-
-Try Unigen2 and other tools for parallel and uniform sampling of Boolean models.
-
-### On Computing Small Boolean Models
-
-Currently, we use a dual solver-based approach (see `arlib.bool.pysat_solver`, `PySATSolver:reduce_models`). There are other approaches for computing small (even minimal) models of a SAT formula. For example, refer to https://github.com/francisol/py_minimal_model.
-
-### On Parallel Checking of Boolean Models
-
-When there is only one Boolean model to be checked, use a portfolio approach to check it in parallel.
