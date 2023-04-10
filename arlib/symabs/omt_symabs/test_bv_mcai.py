@@ -135,7 +135,8 @@ def main():
             # print("bit-level enumeration result: ", bit_count_res)
             sharp_sat_res = mc.count_models_by_sharp_sat()
             print("sharpSAT result: ", sharp_sat_res)
-            # mc.count_model_by_bv_enumeration() # why different with the previous one (due to overflow? bit-blasting?
+            # mc.count_model_by_bv_enumeration() # why different with the previous one
+            # (due to overflow? bit-blasting?)
             return True
         return False
     except Exception as ex:

@@ -32,15 +32,15 @@ class BooleanInterpolant:
             return z3.Not(x)
 
     @staticmethod
-    def pogo(A: z3.Solver, B: z3.Solver, xs: List[z3.ExprRef]):
-        while z3.sat == A.check():
-            m = A.model()
-            L = [BooleanInterpolant.mk_lit(m, x) for x in xs]
-            if z3.unsat == B.check(L):
-                core = z3.And(B.unsat_core())
+    def pogo(fml_a: z3.Solver, fml_b: z3.Solver, xs: List[z3.ExprRef]):
+        while z3.sat == fml_a.check():
+            m = fml_a.model()
+            lits = [BooleanInterpolant.mk_lit(m, x) for x in xs]
+            if z3.unsat == fml_b.check(lits):
+                core = z3.And(fml_b.unsat_core())
                 # notL = z3.Not(z3.And(B.unsat_core()))
                 yield core
-                A.add(z3.Not(core))
+                fml_a.add(z3.Not(core))
             else:
                 print("expecting unsat")
                 break
@@ -140,9 +140,9 @@ class BVInterpolant:
     def compute_itp(self, fml_a: z3.BoolRef, fml_b: z3.BoolRef, cared_vars: List[z3.ExprRef]):
         """
         The compute_itp function computes the interpolant between two formulas.
-
-        :param fml_a, fml_b:z3.BoolRef: Specify the formulas that are used to generate interpolants
-        :param cared_vars:List[z3.ExprRef]: Specify the variables that are used in the interpolant
+        :param fml_a: Specify the formulas that are used to generate interpolants
+        :param fml_b: Specify the formulas that are used to generate interpolants
+        :param cared_vars:List[z3.ExprRef]: Specify the variables
         :return: The interpolant
         """
         if self.strategy == ITPStrategy.FLATTENING:

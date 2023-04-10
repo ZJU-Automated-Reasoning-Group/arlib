@@ -3,7 +3,7 @@
 Flattening-based QF_BV solver
 """
 import logging
-import sys
+# import sys
 import time
 
 import z3

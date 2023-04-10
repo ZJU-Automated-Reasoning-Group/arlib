@@ -28,16 +28,16 @@ import random
 import z3
 # from z3.z3util import get_vars
 
-from reduction_types import zero_extension, right_zero_extension
-from reduction_types import one_extension, right_one_extension
-from reduction_types import sign_extension, right_sign_extension
+from arlib.bv.qbv.reduction_types import zero_extension, right_zero_extension
+from arlib.bv.qbv.reduction_types import one_extension, right_one_extension
+from arlib.bv.qbv.reduction_types import sign_extension, right_sign_extension
 
 process_queue = []
 
 
 # glock = multiprocessing.Lock()
 class Quantification(Enum):
-    """Determine which variables (universaly or existentialy quantified)
+    """Determine which variables (universally or existentially quantified)
     will be approxamated.
     """
     UNIVERSAL = 0  # over-approximation
@@ -409,7 +409,7 @@ def solve_sequential(formula):
     s = z3.Tactic("ufbv").solver()
     # TODO: try more tactics, e.g., 'bv', 'smt', 'qe2'...
     s.add(formula)
-    print(s.check())
+    return s.check()
 
 
 def split_list(a, n):
@@ -433,47 +433,19 @@ def signal_handler(sig, frame):
     # print("We finish here, have a good day!")
 
 
-def main_multiple():
+def solve_qbv_parallel(formula: z3.ExprRef):
     global process_queue
+    # logging.basicConfig(level=logging.DEBUG)
+    # reduction_types = [ReductionType.ONE_EXTENSION,
+    #                    ReductionType.SIGN_EXTENSION,
+    #                   ReductionType.ZERO_EXTENSION]
 
-    parser = argparse.ArgumentParser(description="Solve given formula.")
-    parser.add_argument("formula", metavar="formula_file", type=str,
-                        help="path to .smt2 formula file")
-    parser.add_argument("-r", "--reduction", default="0", type=str,
-                        help="determine the reduction type (0/1/s)")
-
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
-
-    parser.add_argument('--workers', dest='workers', default=3, type=int, help="num threads")
-
-    parser.add_argument('--timeout', dest='timeout', default=60, type=int, help="timeout")
-
-    parser.add_argument('--strategy', dest='strategy', default='default', type=str,
-                        help="strategy for generation: default, another")
-
-    args = parser.parse_args()
-
-    if args.verbose: logging.basicConfig(level=logging.DEBUG)
-
-    # Determine the type of reduction
-
-    if args.reduction == "1":
-        reduction_type = ReductionType.ONE_EXTENSION
-    elif args.reduction == "s":
-        reduction_type = ReductionType.SIGN_EXTENSION
-    else:
-        reduction_type = ReductionType.ZERO_EXTENSION
-
-    # File with .smt2 formula
-    formula_file = args.formula
-
-    # Parse SMT2 formula to Z3 format
-    formula = z3.And(z3.parse_smt2_file(formula_file))
+    reduction_type = ReductionType.ZERO_EXTENSION
+    timeout = 60
+    workers = 4
 
     # TODO: Not correct, should consider quant?
-
-    if args.strategy == "seq" or args.workers == 1:
+    if workers == 1:
         solve_sequential(formula)
         exit(0)
 
@@ -488,18 +460,15 @@ def main_multiple():
         partitioned_bits_lists.append(i)
 
     # logging.debug("max bit: ", m_max_bit_width)
-    over_parts = split_list(partitioned_bits_lists, int(args.workers / 2))
-    under_parts = split_list(partitioned_bits_lists, int(args.workers / 2))
-
-    # logging.debug(over_parts)
-    # logging.debug(under_parts)
+    over_parts = split_list(partitioned_bits_lists, int(workers / 2))
+    under_parts = split_list(partitioned_bits_lists, int(workers / 2))
 
     with multiprocessing.Manager() as manager:
         result_queue = multiprocessing.Queue()
 
         # process_queue = []
 
-        for nth in range(int(args.workers)):
+        for nth in range(int(workers)):
             bits_id = int(nth / 2)
             if nth % 2 == 0:
                 if len(over_parts[bits_id]) > 0:
@@ -547,7 +516,7 @@ def main_multiple():
         # Get result
         try:
             # Wait at most 60 seconds for a return
-            result = result_queue.get(timeout=int(args.timeout))
+            result = result_queue.get(timeout=int(timeout))
         except multiprocessing.queues.Empty:
             # If queue is empty, set result to undef
             result = z3.CheckSatResult(z3.Z3_L_UNDEF)
@@ -560,11 +529,32 @@ def main_multiple():
     return result
 
 
+def solve_qbv_file_parallel(formula_file: str):
+    # Parse SMT2 formula to Z3 format
+    formula = z3.And(z3.parse_smt2_file(formula_file))
+    return solve_qbv_parallel(formula)
+
+def solve_qbv_str_parallel(fml_str: str):
+    # Parse SMT2 formula to Z3 format
+    formula = z3.And(z3.parse_smt2_string(fml_str))
+    return solve_qbv_parallel(formula)
+
+
+def demo_qbv():
+    fml_str = ''' \n
+(assert \n
+ (exists ((s (_ BitVec 5)) )(forall ((t (_ BitVec 5)) )(not (= (bvnand s t) (bvor s (bvneg t))))) \n
+ ) \n
+ ) \n
+(check-sat)
+'''
+    solve_qbv_str_parallel(fml_str)
+
+
 if __name__ == "__main__":
     # TODO: if terminated by the caller, we should kill the processes in the process_queue??
     # signal.signal(signal.SIGINT, signal_handler)
     # signal.signal(signal.SIGTERM, signal_handler)
     # signal.signal(signal.SIGQUIT, signal_handler)
     # signal.signal(signal.SIGHUP, signal_handler)
-
-    main_multiple()
+    demo_qbv()

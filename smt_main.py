@@ -52,13 +52,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', dest='timeout', default=8, type=int, help="timeout")
     parser.add_argument('--verbose', dest='verbosity', default=1, type=int, help="verbosity level")
+    parser.add_argument('--workers', dest='workers', default=1, type=int, help="number of threads/processes")
     parser.add_argument('--logic', dest='logic', default="QF_BV", type=str,
                         help="logic of the formula")
-    parser.add_argument('--model', dest='model', default=False, type=bool,
+    parser.add_argument('--model', dest='model', default=False, action='store_true',
                         help="enable model generation or not")
-    parser.add_argument('--unsat_core', dest='unsat_core', default=False, type=bool,
+    parser.add_argument('--unsat_core', dest='unsat_core', default=False, action='store_true',
                         help="enable core generation or not")
-    parser.add_argument('--incremental', dest='incremental', default=False, type=bool,
+    parser.add_argument('--incremental', dest='incremental', default=False, action='store_true',
                         help="enable incremental solving or not")
     parser.add_argument('--sat_engine', dest='sat_engine', default=1, type=int,
                         help="sat engines: 0: z3 (use the interval sat engine of z3) "

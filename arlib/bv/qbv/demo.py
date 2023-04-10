@@ -1,6 +1,4 @@
-"""Parallel bv"""
 from z3 import *
-# from z3.z3util import vset, is_expr_val
 
 from arlib.bv.qbv.parallel_qbv_solver import *
 
@@ -39,8 +37,7 @@ def demo_partition(max_bits, workers):
     print(split_list(max_bits_lists, len(under_appro)))
 
 
-def demo_solve_with_approx_partitioned(formula, reduction_type, q_type, bit_places,
-                                       polarity, local_max_bit_width):
+def demo_solve_with_approx_partitioned(formula, reduction_type, q_type, bit_places, polarity, local_max_bit_width):
     """Recursively go through `formula` and approximate it. Check
     satisfiability of the approximated formula. Put the result to
     the `result_queue`.
