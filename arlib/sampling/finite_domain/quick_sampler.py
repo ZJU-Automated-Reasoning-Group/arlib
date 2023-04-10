@@ -141,5 +141,4 @@ def quicksampler_for_file(fname):
 if __name__ == '__main__':
     # test_sampler()
     quicksampler_for_file('../test/t1.smt2')
-    # quicksampler_for_file(("../../smt-benchmark/sampling/qsym/nm/case1798378065.smt2"))
-    # test()
+    

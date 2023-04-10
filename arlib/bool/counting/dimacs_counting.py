@@ -7,7 +7,6 @@ import subprocess
 from typing import List
 from threading import Timer
 import logging
-from pathlib import Path
 import uuid
 
 import multiprocessing
@@ -18,8 +17,10 @@ from pysat.solvers import Solver
 
 from arlib.bool.pysat_cnf import gen_cubes
 
-project_root_dir = str(Path(__file__).parent.parent.parent.parent)
-sharp_sat_bin = project_root_dir + "/bin_solvers/sharpSAT"
+# from pathlib import Path
+# project_root_dir = str(Path(__file__).parent.parent.parent.parent)
+# sharp_sat_exec = project_root_dir + "/bin_solvers/sharpSAT"
+from arlib.global_params.paths import sharp_sat_exec
 sharp_sat_timeout = 600
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ def call_sharp_sat(cnf_filename: str):
     """
 
     solutions = -1
-    cmd = [sharp_sat_bin, cnf_filename]
+    cmd = [sharp_sat_exec, cnf_filename]
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout = [False]

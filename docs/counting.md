@@ -1,5 +1,4 @@
 
-Here is an optimized version of the code:
 
 # Model Counting
 
@@ -17,5 +16,5 @@ To count the models of a QF_BF formula, refer to
 - `arlib\bv\qfbv_counting.py`.
 - `arlib\tests\test_bv_counting.py`
 
-By default, we rely on sharpSAT. Currently, we need to copy a 
-binary version of sharpSAT to `bin_solvers`
+Note that we rely on sharpSAT for the implementation. Currently, you need to either copy a 
+binary version of sharpSAT to `bin_solvers` or install a sharpSAT globally.

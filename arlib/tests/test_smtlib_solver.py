@@ -2,8 +2,7 @@
 """
 For testing the smtlib-based solver (used for interacting with binary solvers)
 """
-import logging
-from pathlib import Path
+
 
 import z3
 
@@ -11,7 +10,7 @@ from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
 from arlib.utils.smtlib_theory_solver import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
-
+from arlib.global_params.paths import cvc5_exec
 
 def gen_small_formula(logic: str):
     """
@@ -32,16 +31,11 @@ def gen_small_formula(logic: str):
     return s.to_smt2()
 
 
-project_root_dir = str(Path(__file__).parent.parent.parent)
-z3_exec = project_root_dir + "/bin_solvers/z3"
-cvc5_exec = project_root_dir + "/bin_solvers/cvc5"
-print(cvc5_exec)
-
-
 class TestSMTLIBSolver(TestCase):
 
     def test_smtlib_solver(self):
         bin_cmd = cvc5_exec + " -q"
+        # print(bin_cmd)
         bin_solver = SMTLibTheorySolver(bin_cmd)
         # smt2string = gen_small_formula("int")
         smt2string = gene_smt2string("QF_BV")

@@ -1,5 +1,14 @@
 # pylint: disable=all
-# from https://github.com/ethanluoyc/sympais/blob/master/src/sympais/experimental/smt.py
+"""
+ This file is from https://github.com/ethanluoyc/sympais/blob/master/src/sympais/experimental/smt.py
+
+For more translators from SMT-LIB2 to Computer Algebra System
+- To ISAT, Mathematica, QepCAD, and Redlog
+  https://github.com/cvc5/cvc5/tree/2283ee3b0327441c29caf26be977c1e4cd13c637/examples/nra-translate
+- smt2sympy.py, osil2smt.py
+  https://github.com/AndreaCallia/deltaopt
+  https://github.com/AndreaCallia/manyopt
+"""
 import functools
 import warnings
 from typing import Callable, Dict

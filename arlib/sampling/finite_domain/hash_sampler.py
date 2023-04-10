@@ -66,4 +66,5 @@ def test(num_samples):
 
 # test(8)
 
-test_api()
+if __name__ == "__main__":
+    test_api()
