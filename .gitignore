@@ -1,3 +1,4 @@
+backup
 bin_solvers/*
 !bin_solvers/download.py
 tmp.py

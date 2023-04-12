@@ -55,7 +55,7 @@ class QFFPSolver:
             after_simp = qffp_preamble(fml).as_expr()
             if z3.is_false(after_simp):
                 return SolverResult.UNSAT
-            elif z3.is_true(after_simp):
+            if z3.is_true(after_simp):
                 return SolverResult.SAT
 
             g_probe = z3.Goal()
@@ -69,29 +69,28 @@ class QFFPSolver:
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())
                 # print("Running pysat...")
-                aux = Solver(name="minisat22", bootstrap_with=pos)
+                aux = Solver(name="cadical103", bootstrap_with=pos)
                 if aux.solve():
                     return SolverResult.SAT
                 return SolverResult.UNSAT
-            else:
-                sol = z3.Then('simplify', 'smt').solver()
-                # sol = z3.Tactic('QF_FP').solver()
-                sol.add(after_simp)
-                res = sol.check()
-                if res == z3.sat:
-                    return SolverResult.SAT
-                elif res == z3.unsat:
-                    return SolverResult.UNSAT
-                else:
-                    return SolverResult.UNKNOWN
 
+            # the "else" part
+            sol = z3.Then('simplify', 'smt').solver()
+            # sol = z3.Tactic('QF_FP').solver()
+            sol.add(after_simp)
+            res = sol.check()
+            if res == z3.sat:
+                return SolverResult.SAT
+            if res == z3.unsat:
+                return SolverResult.UNSAT
+            return SolverResult.UNKNOWN
         except Exception as ex:
             print("ERROR")
             # exit(0)
             print(ex)
-            s = z3.Solver()
-            s.add(self.fml)
-            print(s.to_smt2())
+            sol = z3.Solver()
+            sol.add(self.fml)
+            print(sol.to_smt2())
             return SolverResult.UNKNOWN
 
 

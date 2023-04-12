@@ -68,21 +68,22 @@ class QFBVSolver:
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
         (This function uses more lighweight pre-processing than solve_qfbv)
         """
-        qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
-                                   z3.With('propagate-values', flat_and_or=False),
-                                   z3.With('solve-eqs', solve_eqs_max_occs=2),
-                                   z3.Tactic('elim-uncnstr'),
-                                   # z3.Tactic('reduce-bv-size'),
-                                   z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
-                                           local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-                                   z3.Tactic('max-bv-sharing'),
-                                   # z3.Tactic('ackermannize_bv'),
-                                   z3.Tactic('bit-blast'),
-                                   # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-                                   # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
-                                   z3.Tactic('tseitin-cnf'),
-                                   # z3.Tactic('sat')
-                                   )
+        qfbv_preamble = \
+            z3.AndThen(z3.With('simplify', flat_and_or=False),
+                       z3.With('propagate-values', flat_and_or=False),
+                       z3.With('solve-eqs', solve_eqs_max_occs=2),
+                       z3.Tactic('elim-uncnstr'),
+                       # z3.Tactic('reduce-bv-size'),
+                       z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                               local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+                       z3.Tactic('max-bv-sharing'),
+                       # z3.Tactic('ackermannize_bv'),
+                       z3.Tactic('bit-blast'),
+                       # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                       # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
+                       z3.Tactic('tseitin-cnf'),
+                       # z3.Tactic('sat')
+                       )
         qfbv_light_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
 
         after_simp = qfbv_light_tactic(fml).as_expr()
@@ -92,9 +93,9 @@ class QFBVSolver:
         elif z3.is_true(after_simp):
             return SolverResult.SAT
         # print(".....")
-        g = z3.Goal()
-        g.add(after_simp)
-        pos = CNF(from_string=g.dimacs())
+        goal = z3.Goal()
+        goal.add(after_simp)
+        pos = CNF(from_string=goal.dimacs())
         # pos.to_fp(sys.stdout)
         aux = Solver(name="minisat22", bootstrap_with=pos)
         # print("solving via pysat")

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class EFSMTStrategy(Enum):
     Z3 = 0,  # via bin solver
     CVC5 = 1,  # via bin solver
-    Boolector = 2,  # via bin solver
+    BOOLECTOR = 2,  # via bin solver
     Yices2 = 3,  # via bin solver
     SIMPLE_CEGAR = 4,
     QBF = 5,
@@ -89,7 +89,7 @@ class EFSMTSolver:
         :param phi: a quantifier-free formula
         """
         if self.tactic == EFSMTStrategy.Z3 or self.tactic == EFSMTStrategy.CVC5 \
-                or self.tactic == EFSMTStrategy.Boolector or self.tactic == EFSMTStrategy.Yices2:
+                or self.tactic == EFSMTStrategy.BOOLECTOR or self.tactic == EFSMTStrategy.Yices2:
             return self.solve_with_qsmt(y, phi)
         elif self.tactic == EFSMTStrategy.SIMPLE_CEGAR:
             return self.solve_with_simple_cegar(y, phi)
@@ -108,7 +108,7 @@ class EFSMTSolver:
     def solve_with_simple_cegar(self, y: List[z3.ExprRef], phi: z3.ExprRef):
         """Solve with a CEGAR-style algorithm, which consists of a "forall solver" and an "exists solver"
         """
-        """This can be slow (perhaps not a good idea for NRA) Maybe good for LRA or BV?"""
+        # This can be slow (perhaps not a good idea for NRA) Maybe good for LRA or BV?
         print("Simple, sequential, CEGAR-style EFSMT!")
         z3_res, model = simple_cegar_efsmt(self.logic, y, phi)
         return z3_res, model
@@ -125,7 +125,7 @@ class EFSMTSolver:
             return solve_with_bin_smt(y, phi, self.logic, "z3")
         elif self.tactic == EFSMTStrategy.CVC5:
             return solve_with_bin_smt(y, phi, self.logic, "cvc5")
-        elif self.tactic == EFSMTStrategy.Boolector:
+        elif self.tactic == EFSMTStrategy.BOOLECTOR:
             return solve_with_bin_smt(y, phi, self.logic, "boolector2")
         elif self.tactic == EFSMTStrategy.Yices2:
             return solve_with_bin_smt(y, phi, self.logic, "yices2")
@@ -133,7 +133,7 @@ class EFSMTSolver:
             return self.internal_solve(y, phi)  # for special cases
 
     def solve_with_qbf(self, y: List[z3.ExprRef], phi: z3.ExprRef):
-        assert self.logic == "BV" or self.logic == "UFBV"
+        assert self.logic in ("BV", "UFBV")
         raise NotImplementedError
 
     def solve_with_sat(self, y: List[z3.ExprRef], phi: z3.ExprRef):

@@ -1,17 +1,25 @@
 # Run regression tests
 SOLVER="$(pwd)/venv/bin/python3"
-OPTIONS="psmt_main.py --workers 2 --logic ALL --verbose 1 "
+TOOL="smt_main.py --logic "
 BENCHMARK_DIR=$1
 TIMEOUT=$2
+
+Z3_SOLVER="$(pwd)/bin_solvers/z3"
+CVC5_SOLVER="$(pwd)/bin_solvers/cvc5"
 
 echo "Benchmark dir is ${BENCHMARK_DIR}"
 echo "Timeout is ${TIMEOUT}"
 
-echo "Running psmt"
+echo "Running solvers"
 
 trap "exit" INT
 for file in ${BENCHMARK_DIR}/*.smt2; do
     echo "Solving ${file}"
     filename=`basename ${file}`
+    logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$file")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+    OPTIONS=$TOOL$logic
+    # echo ${OPTIONS}
     gtimeout ${TIMEOUT} /usr/bin/time ${SOLVER} ${OPTIONS} ${file}
+    gtimeout ${TIMEOUT} /usr/bin/time ${Z3_SOLVER} ${file}
+    gtimeout ${TIMEOUT} /usr/bin/time ${CVC5_SOLVER}  ${file}
 done
