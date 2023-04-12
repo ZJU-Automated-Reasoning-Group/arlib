@@ -103,6 +103,17 @@ class QFBVSolver:
             return SolverResult.SAT
         return SolverResult.UNSAT
 
+    def solve_qfbv_via_z3(self, fml: z3.ExprRef):
+        sol = z3.SolverFor("QF_BV")
+        sol.add(fml)
+        res = sol.check()
+        if res == z3.sat:
+            return SolverResult.SAT
+        elif res == z3.unsat:
+            return SolverResult.UNSAT
+        else:
+            return  SolverResult.UNKNOWN
+
     def solve_qfbv(self, fml: z3.ExprRef):
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
@@ -126,11 +137,12 @@ class QFBVSolver:
                                    # Z3 can solve a couple of extra benchmarks by using hoist_mul but the timeout in SMT-COMP is too small.
                                    # Moreover, it impacted negatively some easy benchmarks. We should decide later, if we keep it or not.
                                    # With('simplify', hoist_mul=False, som=False, flat_and_or=False),
-                                   z3.Tactic('max-bv-sharing'),
-                                   z3.Tactic('ackermannize_bv'),
-                                   z3.Tactic('bit-blast'),
-                                   # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-                                   # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
+                                   'max-bv-sharing',
+                                   'ackermannize_bv',
+                                   'bit-blast',
+                                   z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                                   # z3.With('solve-eqs', solve_eqs_max_occs=2),
+                                   'aig',
                                    z3.Tactic('tseitin-cnf'),
                                    # z3.Tactic('sat')
                                    )
@@ -154,7 +166,9 @@ class QFBVSolver:
         return SolverResult.UNSAT
 
     def check_sat(self, fml: z3.ExprRef):
+        # z3.set_param("verbose", 15)
         # solve_qfbv_light
+        # return self.solve_qfbv_via_z3(fml)
         return self.solve_qfbv(fml)
 
     def bit_blast(self):
