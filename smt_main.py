@@ -1,4 +1,5 @@
 from typing import Any
+
 """
 The entrance of the sequential SMT solving engine
 - QF_BV
@@ -18,21 +19,25 @@ from arlib.utils import SolverResult
 
 G_ARGS = None
 
+
 def signal_handler(sig: int, frame: Any) -> None:
     parent = psutil.Process(os.getpid())
     for child in parent.children(recursive=True):
         child.kill()
 
+
 def process_file(filename: str):
     """Process one file"""
     logic = G_ARGS.logic
-    solvers = {'QF_BV': QFBVSolver,
-               'QF_UFBV': QFUFBVSolver,
-               'QF_AUFBV': QFAUFBVSolver,
-               'QF_ABV': QFAUFBVSolver,
-               'QF_FP': QFFPSolver}
-    if logic in solvers:
-        solver_class = solvers[logic]
+    logic2solver = {'QF_BV': QFBVSolver,
+                    'QF_UFBV': QFUFBVSolver,
+                    'QF_AUFBV': QFAUFBVSolver,
+                    'QF_ABV': QFAUFBVSolver,
+                    'QF_FP': QFFPSolver,
+                    'QF_BVFP': QFFPSolver}
+
+    if logic in logic2solver:
+        solver_class = logic2solver[logic]
         sol = solver_class()
         res = sol.solve_smt_file(filename)
         if res == SolverResult.SAT:
@@ -47,12 +52,14 @@ def process_file(filename: str):
 
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', dest='timeout', default=8, type=int, help='timeout')
     parser.add_argument('--verbose', dest='verbosity', default=1, type=int, help='verbosity level')
     parser.add_argument('--workers', dest='workers', default=1, type=int, help='number of threads/processes')
     parser.add_argument('--logic', dest='logic', default='QF_BV', type=str, help='logic of the formula')
-    parser.add_argument('--model', dest='model', default=False, action='store_true', help='enable model generation or not')
+    parser.add_argument('--model', dest='model', default=False, action='store_true',
+                        help='enable model generation or not')
     parser.add_argument('--unsat_core', dest='unsat_core', default=False, action='store_true',
                         help='enable core generation or not')
     parser.add_argument('--incremental', dest='incremental', default=False, action='store_true',

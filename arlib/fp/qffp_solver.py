@@ -1,6 +1,8 @@
 # coding: utf-8
 """
-Flattening-based QF_FP solver
+For solving the following formulas
+- QF_FP
+- QF_BVFP?
 """
 import logging
 
@@ -44,7 +46,8 @@ class QFFPSolver:
                                    'propagate-values',
                                    'fpa2bv',
                                    'propagate-values',
-                                   z3.With('simplify', arith_lhs=False, elim_and=True),
+                                   # 'reduce-bv-size',   # should we add this?
+                                    z3.With('simplify', arith_lhs=False, elim_and=True),
                                    'ackermannize_bv',
                                    'bit-blast',
                                    # If we do not add the following pass, the tseitin-cnf tactic may report an errror
