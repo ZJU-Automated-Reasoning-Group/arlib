@@ -68,10 +68,11 @@ if __name__ == '__main__':
                         help='enable core generation or not')
     parser.add_argument('--incremental', dest='incremental', default=False, action='store_true',
                         help='enable incremental solving or not')
-    parser.add_argument('--sat_engine', dest='sat_engine', default=1, type=int,
-                        help='sat engines: 0: z3 (use the interval sat engine of z3) '
-                             '1: pysat (TBD, as it supports several engines), '
-                             '2: binary solver (allow the user to specify a path for bin solvers)')
+    parser.add_argument('--sat_engine', dest='sat_engine', default="z3", type=str,
+                        help='set the SAT backend: z3, cd(cadical103), cd15(cadical153),'
+                             'gc3(gluecard3), gc4(glucard4), g3(glucose3), g4(glucose4),'
+                             'lgl(lingeling), mcb(maplechrono), mcm(maplecm), mpl(maplesat)'
+                             'mg3(mergesat3), mc(minicard), m22(minisat22, mgh(minsatgh)')
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
     G_ARGS = parser.parse_args()
     if G_ARGS.verbosity == 2:

@@ -134,16 +134,14 @@ class QFBVSolver:
                                    z3.Tactic('reduce-bv-size'),
                                    z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
                                            local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-                                   # Z3 can solve a couple of extra benchmarks by using hoist_mul but the timeout in SMT-COMP is too small.
-                                   # Moreover, it impacted negatively some easy benchmarks. We should decide later, if we keep it or not.
-                                   # With('simplify', hoist_mul=False, som=False, flat_and_or=False),
+                                   z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
                                    'max-bv-sharing',
                                    'ackermannize_bv',
                                    'bit-blast',
-                                   z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                                    z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
                                    # z3.With('solve-eqs', solve_eqs_max_occs=2),
                                    'aig',
-                                   z3.Tactic('tseitin-cnf'),
+                                   'tseitin-cnf',
                                    # z3.Tactic('sat')
                                    )
         qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
@@ -157,7 +155,10 @@ class QFBVSolver:
         # print(".....")
         g = z3.Goal()
         g.add(after_simp)
-        pos = CNF(from_string=g.dimacs())
+
+        dimacs_str = g.dimacs()
+        # print(dimacs_str)
+        pos = CNF(from_string=dimacs_str)
         # pos.to_fp(sys.stdout)
         aux = Solver(name="minisat22", bootstrap_with=pos)
         # print("solving via pysat")
