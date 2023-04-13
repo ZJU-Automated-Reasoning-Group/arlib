@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 """
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                         'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-                        'mc', 'm22', 'msh']
+                        'mc', 'm22', 'mgh']
 
 
 class QFBVSolver:
@@ -42,6 +42,7 @@ class QFBVSolver:
       - Z3: Translate a QF_BV formula to a SAT formula
       - pySAT: solve the translated SAT formula
     """
+    sat_engine = 'mgh'
 
     def __init__(self):
         self.fml = None  # z3.ExpeRef (not used for now!)
@@ -97,7 +98,7 @@ class QFBVSolver:
         goal.add(after_simp)
         pos = CNF(from_string=goal.dimacs())
         # pos.to_fp(sys.stdout)
-        aux = Solver(name="minisat22", bootstrap_with=pos)
+        aux = Solver(name=QFBVSolver.sat_engine, bootstrap_with=pos)
         # print("solving via pysat")
         if aux.solve():
             return SolverResult.SAT
@@ -112,16 +113,14 @@ class QFBVSolver:
         elif res == z3.unsat:
             return SolverResult.UNSAT
         else:
-            return  SolverResult.UNKNOWN
+            return SolverResult.UNKNOWN
 
     def solve_qfbv(self, fml: z3.ExprRef):
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
         This function first translates the bit-vector formula into a SAT formula using Z3,
         and then solves the translated SAT formula using pySAT.
-
         TODO: add an option that uses Yices2 to perform bit-blasting
-
         :param fml: The bit-vector formula to be checked for satisfiability.
         :type fml: z3.ExprRef
         :return: SolverResult.SAT if the formula is satisfiable, SolverResult.UNSAT otherwise.
@@ -138,7 +137,7 @@ class QFBVSolver:
                                    'max-bv-sharing',
                                    'ackermannize_bv',
                                    'bit-blast',
-                                    z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                                   z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
                                    # z3.With('solve-eqs', solve_eqs_max_occs=2),
                                    'aig',
                                    'tseitin-cnf',
@@ -160,7 +159,7 @@ class QFBVSolver:
         # print(dimacs_str)
         pos = CNF(from_string=dimacs_str)
         # pos.to_fp(sys.stdout)
-        aux = Solver(name="minisat22", bootstrap_with=pos)
+        aux = Solver(name=QFBVSolver.sat_engine, bootstrap_with=pos)
         # print("solving via pysat")
         if aux.solve():
             return SolverResult.SAT
@@ -170,6 +169,8 @@ class QFBVSolver:
         # z3.set_param("verbose", 15)
         # solve_qfbv_light
         # return self.solve_qfbv_via_z3(fml)
+        if QFBVSolver.sat_engine == 'z3':
+            return self.solve_qfbv_via_z3(fml)
         return self.solve_qfbv(fml)
 
     def bit_blast(self):

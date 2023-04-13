@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class QFAUFBVFPSolver:
+    sat_engine = 'mgh'
 
     def __init__(self):
         """
@@ -65,6 +66,8 @@ class QFAUFBVFPSolver:
 
     def check_sat(self, fml):
         """Check satisfiability of an formula"""
+        if self.sat_engine == 'z3':
+            return self.solve_qfaufbvfp_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
         qfaufbvfp_preamble = z3.AndThen('simplify',
@@ -103,14 +106,17 @@ class QFAUFBVFPSolver:
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
-            aux = Solver(name="minisat22", bootstrap_with=pos)
+            aux = Solver(name=QFAUFBVFPSolver.sat_engine, bootstrap_with=pos)
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
         # the else part
         # sol = z3.Tactic('smt').solver()
+        return self.solve_qfaufbvfp_via_z3(after_simp)
+
+    def solve_qfaufbvfp_via_z3(self, fml: z3.ExprRef):
         sol = z3.SolverFor("QF_AUFBV")
-        sol.add(after_simp)
+        sol.add(fml)
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT

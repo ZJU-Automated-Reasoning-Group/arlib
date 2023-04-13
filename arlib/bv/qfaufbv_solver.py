@@ -17,6 +17,7 @@ class QFAUFBVSolver:
     """
     A class for solving QF_AUFBV (Quantifier-Free Array Theory with Uninterpreted Functions and Bit-Vectors) problems.
     """
+    sat_engine = 'mgh'
 
     def __init__(self):
         """
@@ -66,6 +67,8 @@ class QFAUFBVSolver:
 
     def check_sat(self, fml):
         """Check satisfiability of an formula"""
+        if QFAUFBVSolver.sat_engine == 'z3':
+            return self.solve_qfaufbv_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
         qfaufbv_preamble = z3.AndThen('simplify',
@@ -102,14 +105,17 @@ class QFAUFBVSolver:
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
-            aux = Solver(name="minisat22", bootstrap_with=pos)
+            aux = Solver(name=QFAUFBVSolver.sat_engine, bootstrap_with=pos)
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
         # the else part
         # sol = z3.Tactic('smt').solver()
+        return self.solve_qfaufbv_via_z3(after_simp)
+
+    def solve_qfaufbv_via_z3(self, fml: z3.ExprRef):
         sol = z3.SolverFor("QF_AUFBV")
-        sol.add(after_simp)
+        sol.add(fml)
         res = sol.check()
         if res == z3.sat:
             return SolverResult.SAT
@@ -117,7 +123,6 @@ class QFAUFBVSolver:
             return SolverResult.UNSAT
         else:
             return SolverResult.UNKNOWN
-
 
 def demo_qfaufbv():
     z3.set_param("verbose", 15)
