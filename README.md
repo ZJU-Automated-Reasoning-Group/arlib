@@ -4,7 +4,7 @@ A toolkit for automated reasoning.
 
 Primary contributors to this project:
 - rainoftime, rainoftime@gmail.com
-
+- JasonJ2021
 
 ## How to Install and Use
 
