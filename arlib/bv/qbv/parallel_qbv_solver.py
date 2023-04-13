@@ -342,8 +342,11 @@ def solve_with_approx_partitioned(formula, reduction_type, q_type, bit_places, p
         # logging.debug("approximation generation success!")
         # Solve the approximated formula
         # s = z3.Solver()
-        s = z3.Tactic("ufbv").solver()
-        s.add(approximated_formula)
+        new_ctx = z3.Context()
+        new_ctx_fml = approximated_formula.translate(new_ctx)
+        s = z3.Tactic(new_ctx, "ufbv").solver()
+        s.add(new_ctx_fml)
+
         result = s.check()
         if q_type == Quantification.UNIVERSAL:
             logging.debug("over-appro solving finished")

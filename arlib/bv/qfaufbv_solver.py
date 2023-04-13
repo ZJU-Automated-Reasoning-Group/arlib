@@ -70,7 +70,7 @@ class QFAUFBVSolver:
 
         qfaufbv_preamble = z3.AndThen('simplify',
                                       'propagate-values',
-                                      z3.With('solve-eqs'),
+                                      'solve-eqs',
                                       'elim-uncnstr',
                                       'reduce-bv-size',
                                       z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False,

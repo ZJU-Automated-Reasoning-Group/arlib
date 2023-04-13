@@ -450,41 +450,25 @@ def solve_sequential(formula):
     print(s.check())
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Solve given formula.")
-    parser.add_argument("formula", metavar="formula_file", type=str,
-                        help="path to .smt2 formula file")
-    parser.add_argument("-r", "--reduction", default="0", type=str,
-                        help="determine the reduction type (0/1/s)")
 
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
+def solve_qbv_parallel(formula):
 
-    parser.add_argument('--strategy', dest='strategy', default='default', type=str,
-                        help="strategy for generation: default, another")
+    # global process_queue
+    # logging.basicConfig(level=logging.DEBUG)
+    # reduction_types = [ReductionType.ONE_EXTENSION,
+    #                    ReductionType.SIGN_EXTENSION,
+    #                   ReductionType.ZERO_EXTENSION]
 
-    args = parser.parse_args()
+    reduction_type = ReductionType.ZERO_EXTENSION
+    timeout = 60
+    workers = 4
 
-    if args.verbose: logging.basicConfig(level=logging.DEBUG)
-
-    # Determine the type of reduction
-    if args.reduction == "1":
-        reduction_type = ReductionType.ONE_EXTENSION
-    elif args.reduction == "s":
-        reduction_type = ReductionType.SIGN_EXTENSION
-    else:
-        reduction_type = ReductionType.ZERO_EXTENSION
-
-    # File with .smt2 formula
-    formula_file = args.formula
-
-    # Parse SMT2 formula to Z3 format
-    formula = z3.And(z3.parse_smt2_file(formula_file))
-
-    #
-    if args.strategy == "seq":
+    # TODO: Not correct, should consider quant?
+    if workers == 1:
         solve_sequential(formula)
         exit(0)
+
+
 
     # Parallel run of original and approximated formula
     with multiprocessing.Manager() as manager:
@@ -536,5 +520,28 @@ def main():
     return result
 
 
+def solve_qbv_file_parallel(formula_file: str):
+    # Parse SMT2 formula to Z3 format
+    formula = z3.And(z3.parse_smt2_file(formula_file))
+    return solve_qbv_parallel(formula)
+
+def solve_qbv_str_parallel(fml_str: str):
+    # Parse SMT2 formula to Z3 format
+    formula = z3.And(z3.parse_smt2_string(fml_str))
+    return solve_qbv_parallel(formula)
+
+
+def demo_qbv():
+    fml_str = ''' \n
+(assert \n
+ (exists ((s (_ BitVec 5)) )(forall ((t (_ BitVec 5)) )(not (= (bvnand s t) (bvor s (bvneg t))))) \n
+ ) \n
+ ) \n
+(check-sat)
+'''
+    solve_qbv_str_parallel(fml_str)
+
+
+
 if __name__ == "__main__":
-    main()
+    demo_qbv()

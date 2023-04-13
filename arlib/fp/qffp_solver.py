@@ -52,6 +52,7 @@ class QFFPSolver:
                                    'bit-blast',
                                    # If we do not add the following pass, the tseitin-cnf tactic may report an errror
                                    z3.With('simplify', arith_lhs=False, elim_and=True)
+                                   # should we add aig?
                                    )
 
         try:

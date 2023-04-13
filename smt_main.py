@@ -15,6 +15,7 @@ from arlib.bv.qfbv_solver import QFBVSolver
 from arlib.bv.qfufbv_solver import QFUFBVSolver
 from arlib.bv.qfaufbv_solver import QFAUFBVSolver
 from arlib.fp.qffp_solver import QFFPSolver
+from arlib.fp.qfaufbvfp_solver import QFAUFBVFPSolver
 from arlib.utils import SolverResult
 
 G_ARGS = None
@@ -34,7 +35,10 @@ def process_file(filename: str):
                     'QF_AUFBV': QFAUFBVSolver,
                     'QF_ABV': QFAUFBVSolver,
                     'QF_FP': QFFPSolver,
-                    'QF_BVFP': QFFPSolver}
+                    'QF_BVFP': QFFPSolver,
+                    'QF_UFFP': QFFPSolver,
+                    "QF_AUFBVFP": QFAUFBVFPSolver
+                    }
 
     if logic in logic2solver:
         solver_class = logic2solver[logic]
