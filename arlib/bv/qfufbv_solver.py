@@ -46,7 +46,7 @@ class QFUFBVSolver:
                                      'ackermannize_bv',
                                      z3.If(z3.Probe('is-qfbv'),
                                            z3.AndThen('bit-blast',
-                                                      z3.With('simplify', arith_lhs=False, elim_and=True)),
+                                                      'simplify'),
                                            'simplify'),
                                      )
 
@@ -88,7 +88,7 @@ class QFUFBVSolver:
 
 
 def demo_qfufbv():
-    z3.set_param("verbose", 15)
+    # z3.set_param("verbose", 15)  #large number -> more detailed nfo
     fml_str = """
 (set-logic QF_UFBV)
 (declare-fun A ((_ BitVec 32)) (_ BitVec 32))

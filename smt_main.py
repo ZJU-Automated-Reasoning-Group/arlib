@@ -1,11 +1,7 @@
-from typing import Any
-
 """
 The entrance of the sequential SMT solving engine
-- QF_BV
-- QF_UFBV
-- QF_AUFBV
-- QF_FP
+QF_BV, QF_UFBV, QF_AUFBV, QF_ABV
+QF_FP, QF_BVFP, QF_UFFP, QF_AUFBVFP
 """
 import os
 import signal
@@ -21,7 +17,7 @@ from arlib.utils import SolverResult
 G_ARGS = None
 
 
-def signal_handler(sig: int, frame: Any) -> None:
+def signal_handler(sig: int, frame) -> None:
     parent = psutil.Process(os.getpid())
     for child in parent.children(recursive=True):
         child.kill()
@@ -37,6 +33,7 @@ def process_file(filename: str):
                     'QF_FP': QFFPSolver,
                     'QF_BVFP': QFFPSolver,
                     'QF_UFFP': QFFPSolver,
+                    "QF_ABVFP": QFAUFBVFPSolver,
                     "QF_AUFBVFP": QFAUFBVFPSolver
                     }
 

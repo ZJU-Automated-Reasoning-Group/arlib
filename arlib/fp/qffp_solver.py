@@ -47,16 +47,18 @@ class QFFPSolver:
                                    'fpa2bv',
                                    'propagate-values',
                                    # 'reduce-bv-size',   # should we add this?
-                                    z3.With('simplify', arith_lhs=False, elim_and=True),
+                                   z3.With('simplify', arith_lhs=False, elim_and=True),
                                    'ackermannize_bv',
-                                   'bit-blast',
-                                   # If we do not add the following pass, the tseitin-cnf tactic may report an errror
-                                   z3.With('simplify', arith_lhs=False, elim_and=True)
-                                   # should we add aig?
+                                   z3.If(z3.Probe('is-qfbv'),
+                                         z3.AndThen('bit-blast',
+                                                    'simplify'),
+                                         'simplify'),
                                    )
 
         try:
-            after_simp = qffp_preamble(fml).as_expr()
+            # qffp_blast = z3.With(qffp_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
+            qffp_blast = qffp_preamble
+            after_simp = qffp_blast(fml).as_expr()
             if z3.is_false(after_simp):
                 return SolverResult.UNSAT
             if z3.is_true(after_simp):
@@ -66,35 +68,39 @@ class QFFPSolver:
             g_probe.add(after_simp)
             is_bool = z3.Probe('is-propositional')
             if is_bool(g_probe) == 1.0:
-                to_cnf = z3.AndThen('simplify', 'tseitin-cnf')
-                qfbv_tactic = z3.With(to_cnf, elim_and=True, push_ite_bv=True, blast_distinct=True)
-                blasted = qfbv_tactic(after_simp).as_expr()
+                to_cnf_impl = z3.AndThen(z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                                         'aig',
+                                         'tseitin-cnf')
+                # o_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
+                to_cnf = to_cnf_impl
+                blasted = to_cnf(after_simp).as_expr()
                 g_to_dimacs = z3.Goal()
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())
-                # print("Running pysat...")
-                aux = Solver(name="cadical103", bootstrap_with=pos)
+                # print("calling pysat")
+                aux = Solver(name="minisat22", bootstrap_with=pos)
                 if aux.solve():
                     return SolverResult.SAT
                 return SolverResult.UNSAT
+            else:
+                # sol = z3.Tactic('smt').solver()
+                sol = z3.SolverFor("QF_FP")
+                sol.add(after_simp)
+                res = sol.check()
+                if res == z3.sat:
+                    return SolverResult.SAT
+                elif res == z3.unsat:
+                    return SolverResult.UNSAT
+                else:
+                    return SolverResult.UNKNOWN
 
-            # the "else" part
-            sol = z3.Then('simplify', 'smt').solver()
-            # sol = z3.Tactic('QF_FP').solver()
-            sol.add(after_simp)
-            res = sol.check()
-            if res == z3.sat:
-                return SolverResult.SAT
-            if res == z3.unsat:
-                return SolverResult.UNSAT
-            return SolverResult.UNKNOWN
         except Exception as ex:
             print("ERROR")
             # exit(0)
             print(ex)
-            sol = z3.Solver()
-            sol.add(self.fml)
-            print(sol.to_smt2())
+            # sol = z3.Solver()
+            # sol.add(self.fml)
+            # print(sol.to_smt2())
             return SolverResult.UNKNOWN
 
 

@@ -79,7 +79,7 @@ class QFBVSolver:
                        z3.Tactic('max-bv-sharing'),
                        # z3.Tactic('ackermannize_bv'),
                        z3.Tactic('bit-blast'),
-                       # z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+                       z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
                        # With('solve-eqs', local_ctx=True, flat=False, flat_and_or=False),
                        z3.Tactic('tseitin-cnf'),
                        # z3.Tactic('sat')
