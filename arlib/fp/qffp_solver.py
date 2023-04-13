@@ -20,7 +20,7 @@ class QFFPSolver:
     This class is used to check the satisfiability of QF_FP formulas. It uses various tactics from Z3
     to translate the formula to CNF and then use PySAT to solve it.
     """
-
+    sat_engine = 'mgh'
     def __init__(self):
         self.fml = None
         # self.vars = []
@@ -40,6 +40,8 @@ class QFFPSolver:
     def check_sat(self, fml):
         # z3.set_param("verbose", 15)
         """Check satisfiability of an QF_FP formula"""
+        if QFFPSolver.sat_engine == 'z3':
+            return self.solve_qffp_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
         qffp_preamble = z3.AndThen(z3.With('simplify', arith_lhs=False, elim_and=True),
@@ -77,8 +79,8 @@ class QFFPSolver:
                 g_to_dimacs = z3.Goal()
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())
-                # print("calling pysat")
-                aux = Solver(name="minisat22", bootstrap_with=pos)
+                # print("Running pysat...{}".format(QFFPSolver.sat_engine))
+                aux = Solver(name=QFFPSolver.sat_engine, bootstrap_with=pos)
                 if aux.solve():
                     return SolverResult.SAT
                 return SolverResult.UNSAT
@@ -103,6 +105,16 @@ class QFFPSolver:
             # print(sol.to_smt2())
             return SolverResult.UNKNOWN
 
+    def solve_qffp_via_z3(self, fml: z3.ExprRef):
+        sol = z3.SolverFor("QF_FP")
+        sol.add(fml)
+        res = sol.check()
+        if res == z3.sat:
+            return SolverResult.SAT
+        elif res == z3.unsat:
+            return SolverResult.UNSAT
+        else:
+            return  SolverResult.UNKNOWN
 
 def demo_qffp():
     z3.set_param("verbose", 15)

@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class QFUFBVSolver:
+    sat_engine = 'mgh'
 
     def __init__(self):
         self.fml = None
@@ -33,6 +34,8 @@ class QFUFBVSolver:
 
     def check_sat(self, fml):
         """Check satisfiability of an QF_FP formula"""
+        if QFUFBVSolver.sat_engine == 'z3':
+            return self.solve_qfufbv_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
         qfufbv_preamble = z3.AndThen('simplify',
@@ -70,22 +73,24 @@ class QFUFBVSolver:
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
             print("calling pysat")
-            aux = Solver(name="minisat22", bootstrap_with=pos)
+            aux = Solver(name=QFUFBVSolver.sat_engine, bootstrap_with=pos)
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
         else:
             # sol = z3.Tactic('smt').solver()
-            sol = z3.SolverFor("QF_UFBV")
-            sol.add(after_simp)
-            res = sol.check()
-            if res == z3.sat:
-                return SolverResult.SAT
-            elif res == z3.unsat:
-                return SolverResult.UNSAT
-            else:
-                return SolverResult.UNKNOWN
+            return self.solve_qfufbv_via_z3(after_simp)
 
+    def solve_qfufbv_via_z3(self, fml: z3.ExprRef):
+        sol = z3.SolverFor("QF_UFBV")
+        sol.add(fml)
+        res = sol.check()
+        if res == z3.sat:
+            return SolverResult.SAT
+        elif res == z3.unsat:
+            return SolverResult.UNSAT
+        else:
+            return SolverResult.UNKNOWN
 
 def demo_qfufbv():
     # z3.set_param("verbose", 15)  #large number -> more detailed nfo
