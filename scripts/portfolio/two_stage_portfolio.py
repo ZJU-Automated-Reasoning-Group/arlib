@@ -49,6 +49,11 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
                 result = "unknown"
         result_queue.put(result)
 
+def solve_with_z3(fml, result_queue):
+    solver = z3.Solver()
+    solver.add(fml)
+    result_queue.push(solver.check())
+
 def main():
     parser = argparse.ArgumentParser(description="Solve given formula.")
     parser.add_argument("formula", metavar="formula_file", type=str,
@@ -72,6 +77,9 @@ def main():
                                                                 preamble,
                                                                 result_queue
                                                                 )))
+            # use z3 as a single process
+            g_process_queue.append(multiprocessing.Process(target=solve_with_z3,
+                                                           args=(fml, result_queue)))
 
     for process in g_process_queue:
         process.start()
