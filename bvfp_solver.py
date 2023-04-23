@@ -56,10 +56,30 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--timeout', dest='timeout', default=8, type=int, help='timeout')
-    parser.add_argument('--verbose', dest='verbosity', default=1, type=int, help='verbosity level')
-    parser.add_argument('--workers', dest='workers', default=1, type=int, help='number of threads/processes')
-    parser.add_argument('--logic', dest='logic', default='QF_BV', type=str, help='logic of the formula')
+    parser.add_argument(
+        '--timeout',
+        dest='timeout',
+        default=8,
+        type=int,
+        help='timeout')
+    parser.add_argument(
+        '--verbose',
+        dest='verbosity',
+        default=1,
+        type=int,
+        help='verbosity level')
+    parser.add_argument(
+        '--workers',
+        dest='workers',
+        default=1,
+        type=int,
+        help='number of threads/processes')
+    parser.add_argument(
+        '--logic',
+        dest='logic',
+        default='QF_BV',
+        type=str,
+        help='logic of the formula')
     parser.add_argument('--model', dest='model', default=False, action='store_true',
                         help='enable model generation or not')
     parser.add_argument('--unsat_core', dest='unsat_core', default=False, action='store_true',

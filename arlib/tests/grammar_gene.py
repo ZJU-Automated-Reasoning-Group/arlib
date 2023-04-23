@@ -57,29 +57,42 @@ def gen_cnf_numeric_clauses() -> List[List[int]]:
 
     logging.debug("Enter constraint generation")
     logging.debug(cmd)
+    # Create a subprocess and assign it to p_gene
     p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # Set is_timeout_gene to False
     is_timeout_gene = [False]
+    # Create a timer that will terminate the process after 15 seconds
     timer_gene = Timer(15, terminate, args=[p_gene, is_timeout_gene])
     timer_gene.start()
+    # Read the output of the process
     out_gene = p_gene.stdout.readlines()
+    # Decode the output from bytes to string
     out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
-    p_gene.stdout.close()  # close?
+    # Close the output stream
+    p_gene.stdout.close()
+    # Cancel the timer
     timer_gene.cancel()
+    # If the process did not time out, try to parse the output
     if not is_timeout_gene[0]:
         result = []
         try:
+            # Split the output by line
             for line in out_gene.split("\n"):
                 data = line.split(" ")
+                # If the first element is empty and there are more than one elements, append the integers to the result
                 if data[0] == '' and len(data) > 1:
                     result.append([int(dd) for dd in data[1:-1]])
+            # If the process is still running, terminate it
             if p_gene.poll() is None:
                 p_gene.terminate()
             return result
         except Exception as ex:
             print(ex)
+    # If the process is still running, terminate it
     if p_gene.poll() is None:
         p_gene.terminate()
-    return []  # if timeout or exception, then return []
+    # Return an empty list
+    return []
 
 
 def gene_smt2string(logic="QF_BV", incremental=False) -> str:
