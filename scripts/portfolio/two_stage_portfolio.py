@@ -9,7 +9,7 @@ sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                'g4', 'lgl', 'mcb', 'mpl', 'mg3',
                'mc', 'm22', 'msh']
 
-# todo : add about 4~5 kinds of z3 tictacs
+# todo : add about 4~5 kinds of z3 tactics
 preambles = []
 
 def solve_sat(solver_name : str, cnf : CNF, result_queue):

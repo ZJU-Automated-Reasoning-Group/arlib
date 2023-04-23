@@ -1,5 +1,5 @@
 """
-The entrance of the sequential SMT solving engine
+The entrance of the SMT solving engines for the following logics
 QF_BV, QF_UFBV, QF_AUFBV, QF_ABV
 QF_FP, QF_BVFP, QF_UFFP, QF_AUFBVFP
 """

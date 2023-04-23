@@ -1,6 +1,7 @@
 # Run regression tests
 SOLVER="$(pwd)/venv/bin/python3"
-TOOL="smt_main.py --logic "
+# TOOL="bvfp_solver.py --logic "
+TOOL="lira_solver.py --workers 3 --logic "
 BENCHMARK_DIR=$1
 TIMEOUT=$2
 

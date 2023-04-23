@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Some options to be configured (assuming use Z3 for now
 """
-m_simplify_blocking_clauses = True
+M_SIMPLIFY_BLOCKING_CLAUSES = True
 
 
 # End of options
@@ -117,7 +117,8 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager) -> List
     return blocking_clauses_core
 
 
-def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanFormulaManager) -> List[str]:
+def process_pysat_models(bool_models: List[List[int]],
+                         bool_manager: BooleanFormulaManager) -> List[str]:
     """
     Given a set of Boolean models, built the assumptions (to be checked by the theory solvers)
     :param bool_models: The set of Boolean models
@@ -138,7 +139,7 @@ def process_pysat_models(bool_models: List[List[int]], bool_manager: BooleanForm
     return all_assumptions
 
 
-def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
+def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10) -> SolverResult:
     """
     The main function of the parallel CDCL(T) SMT solving enigne
     :param smt2string: The formula to be solved
@@ -160,21 +161,21 @@ def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
 
-    init_theory_fml_str = " (set-logic {}) ".format(logic) + " (set-option :produce-unsat-cores true) " \
-                          + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
+    init_theory_fml_str = " (set-logic {}) ".format(logic) + \
+                          " (set-option :produce-unsat-cores true) " + \
+                          " ".join(th_manager.smt2_signature) + \
+                          "(assert {})".format(th_manager.smt2_init_cnt)
 
     # print(init_theory_fml_str)
-
-    """
-    According to https://stackoverflow.com/questions/17377426/shared-variable-in-pythons-multiprocessing
-    It seems Manger is slower than Value, but we cannot directly use Value for string? 
-    """
+    # According to https://stackoverflow.com/questions/17377426/shared-variable-in-pythons-multiprocessing
+    # It seems Manger is slower than Value, but we cannot directly use Value for string?
     manager = Manager()
     init_theory_fml_str_shared = manager.Value(c_char_p, init_theory_fml_str)
 
     logger.debug("Finish initializing Bool solvers")
 
     sample_number = 10
+    result = SolverResult.UNKNOWN
     try:
         while True:
             is_sat = bool_solver.check_sat()
@@ -200,7 +201,7 @@ def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
 
             # TODO: simplify the blocking clauses
             logger.debug("Blocking clauses from cores: {}".format(blocking_clauses))
-            if m_simplify_blocking_clauses:
+            if M_SIMPLIFY_BLOCKING_CLAUSES:
                 blocking_clauses = simplify_numeric_clauses(blocking_clauses)
                 logger.debug("Simplified blocking clauses: {}".format(blocking_clauses))
 
@@ -210,10 +211,10 @@ def parallel_cdclt_process(smt2string: str, logic: str) -> SolverResult:
         # print("One theory solver success!!")
         result = SolverResult.SAT
     except SMTLIBSolverError as ex:
-        print(ex)
+        # print(ex)
         result = SolverResult.ERROR
     except PySMTSolverError as ex:
-        print(ex)
+        # print(ex)
         result = SolverResult.ERROR
     # except Exception as ex:
     #    result = SolverResult.ERROR

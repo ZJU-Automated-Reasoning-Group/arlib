@@ -276,7 +276,7 @@ class Z3SolverPlus(z3.Solver):
 
         smtlib = SmtlibProc(self.omt_solver, debug=self.debug)
         smtlib.start()
-        if logic: smtlib.send("(set-logic {})".format(logic))
+        if logic: smtlib.send("(set-logic {0})".format(logic))
         smtlib.send(s.sexpr())  # interesting API sexpr()...
         smtlib.recv()
         smtlib.send("(get-objectives)")
@@ -294,8 +294,6 @@ class Z3SolverPlus(z3.Solver):
         return z3.And(z3.parse_smt2_string("\n".join(signature_vec) + cnt))
 
     def compute_min_max(self, fml: z3.ExprRef, minimize: List, maximize: List, logic=None):
-        """
-        """
         s = z3.Optimize()
         s.add(fml)
 

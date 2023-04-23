@@ -48,7 +48,7 @@ def parse(filename):
     Parses a QDIMACS file and outputs its equivalent in SMT-LIB2 format, using UFBV logic.
     """
     with open(filename) as f:
-        printedcomments = False
+        printed_comments = False
         seendesc = False
         overprefix = False
         mapping = {}
@@ -58,7 +58,7 @@ def parse(filename):
             trimmed = line.strip()
             if trimmed.startswith("c"):
                 # Comment
-                printedcomments = True
+                printed_comments = True
                 print("; %s" % trimmed[1:].strip())
             elif trimmed.startswith("p"):
                 # Problem definition
@@ -89,7 +89,7 @@ def parse(filename):
                 else:
                     clausecount = int(probccstr)
 
-                if printedcomments:
+                if printed_comments:
                     print(";")
 
                 print("; QBF variable count : %d" % varcount)

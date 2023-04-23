@@ -50,7 +50,7 @@ def to_qfbv(file):
     ous.close()
 
 
-def to_qfuf(dimacs_path):
+def to_qfuf(dimacs_path: str):
     # TODO: ignore comments
     with open(dimacs_path, "r") as f:
         clauses_lines = f.read().splitlines()[1:]

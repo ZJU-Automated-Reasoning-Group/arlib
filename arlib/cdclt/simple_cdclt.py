@@ -6,6 +6,7 @@ It may serve as a reference implementation of the main enigne.
 """
 import logging
 import re
+import sys
 from typing import List
 
 from arlib.cdclt import BooleanFormulaManager, SMTPreprocessor4Process
@@ -80,8 +81,9 @@ def simple_cdclt(smt2string: str):
     # theory_solver = PySMTTheorySolver()
 
     # " (set-logic ALL) " +  ....
-    init_theory_fml = " (set-option :produce-unsat-cores true) " \
-                      + " ".join(th_manager.smt2_signature) + "(assert {})".format(th_manager.smt2_init_cnt)
+    init_theory_fml = " (set-option :produce-unsat-cores true) " +  \
+                      " ".join(th_manager.smt2_signature) + \
+                      "(assert {})".format(th_manager.smt2_init_cnt)
 
     theory_solver.add(init_theory_fml)
     # print(theory_solver.check_sat())
@@ -113,4 +115,4 @@ def simple_cdclt(smt2string: str):
             print(ex)
             print(smt2string)
             # print("\n".join(theory_solver.assertions))
-            exit(0)
+            sys.exit(0)

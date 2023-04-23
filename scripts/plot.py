@@ -469,8 +469,8 @@ def test_box_plot():
     pp.get_box_plot_multi_groups(all_data)
 
 
-test_plot()
-# test_plot_multi_groups()
+# test_plot()
+test_plot_multi_groups()
 # test_plot_cactus()
 # test_plot_pinpoint()
 # test_plot_bar()

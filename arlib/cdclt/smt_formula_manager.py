@@ -104,10 +104,10 @@ class SMTPreprocessor4Process(object):
         # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
         if atom in atom2bool:
             return atom2bool[atom]
-        p = z3.Bool("p@%d" % self.index)
+        pred = z3.Bool("p@%d" % self.index)
         self.index += 1
-        atom2bool[atom] = p
-        return p
+        atom2bool[atom] = pred
+        return pred
 
     def abstract_lit(self, atom2bool, lit) -> z3.ExprRef:
         """Abstract a literal"""
@@ -172,12 +172,12 @@ class SMTPreprocessor4Process(object):
         g_atom2bool = {}
         self.bool_clauses = self.abstract_clauses(g_atom2bool, clauses)
 
-        s = z3.Solver()  # a container for collecting variable signatures
-        s.add(after_simp)
-        s.add(self.bool_clauses)
+        sol = z3.Solver()  # a container for collecting variable signatures
+        sol.add(after_simp)
+        sol.add(self.bool_clauses)
 
         # FIXME: currently, the theory solver also uses the Boolean variables
-        for line in s.sexpr().split("\n"):
+        for line in sol.sexpr().split("\n"):
             if line.startswith("(as"):
                 break
             if "p@" in line:
@@ -229,10 +229,10 @@ class SMTPreprocessor4Thread(object):
         # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
         if atom in atom2bool:
             return atom2bool[atom]
-        p = z3.Bool("p@%d" % self.index)
+        pred = z3.Bool("p@%d" % self.index)
         self.index += 1
-        atom2bool[atom] = p
-        return p
+        atom2bool[atom] = pred
+        return pred
 
     def abstract_lit(self, atom2bool, lit) -> z3.ExprRef:
         """Abstract a literal"""

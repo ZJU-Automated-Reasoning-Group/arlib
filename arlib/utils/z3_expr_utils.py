@@ -1,7 +1,3 @@
-from typing import List, Set
-import z3
-from z3.z3util import get_vars
-
 """
 - absolute_value_bv
 - absolute_value_int
@@ -28,8 +24,12 @@ from z3.z3util import get_vars
 - get_z3_logic
 """
 
+from typing import List, Set
+import z3
+from z3.z3util import get_vars
 
-def absolute_value_bv(bv):
+
+def absolute_value_bv(bv: z3.BitVecRef):
     """
     Based on: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
     Operation:
@@ -49,11 +49,11 @@ def absolute_value_bv(bv):
     return mask ^ (bv + mask)
 
 
-def absolute_value_int(x):
+def absolute_value_int(val):
     """
     Absolute value for integer encoding
     """
-    return z3.If(x >= 0, x, -x)
+    return z3.If(val >= 0, val, -val)
 
 
 def get_variables(exp: z3.ExprRef) -> [z3.ExprRef]:
@@ -65,43 +65,43 @@ def get_atoms(expr: z3.BoolRef):
     """
     Get all atomic predicates in a formula
     """
-    s = set()
+    a_set = set()
 
     def get_preds_(exp):
-        if exp in s:
+        if exp in a_set:
             return
         if z3.is_not(exp):
-            s.add(exp)
+            a_set.add(exp)
         if z3.is_and(exp) or z3.is_or(exp):
             for e_ in exp.children():
                 get_preds_(e_)
             return
         assert (z3.is_bool(exp))
-        s.add(exp)
+        a_set.add(exp)
 
     # convert to NNF and then look for preds
-    ep = z3.Tactic('nnf')(expr).as_expr()
-    get_preds_(ep)
-    return s
+    exp = z3.Tactic('nnf')(expr).as_expr()
+    get_preds_(exp)
+    return a_set
 
 
 def to_smtlib2(expr: z3.BoolRef) -> str:
     """"
     To SMT-LIB2 string
     """
-    s = z3.Solver()
-    s.add(expr)
-    return s.to_smt2()
+    sol = z3.Solver()
+    sol.add(expr)
+    return sol.to_smt2()
 
 
-def is_function_symbol(s: z3.ExprRef) -> bool:
+def is_function_symbol(exp: z3.ExprRef) -> bool:
     """Decide"""
-    if not z3.is_app(s):
+    if not z3.is_app(exp):
         return False
-    if z3.is_const(s):
+    if z3.is_const(exp):
         return False
 
-    func = s.decl()
+    func = exp.decl()
     if func.range() == z3.BoolSort():
         # predicate symbol
         return False
@@ -112,13 +112,13 @@ def is_function_symbol(s: z3.ExprRef) -> bool:
     return True
 
 
-def get_function_symbols(s: z3.ExprRef) -> Set[z3.FuncDeclRef]:
+def get_function_symbols(exp: z3.ExprRef) -> Set[z3.FuncDeclRef]:
     """Find function symbols in a Z3 expr"""
     fsymbols = set()
-    if is_function_symbol(s):
-        fsymbols.add(s.decl())
+    if is_function_symbol(exp):
+        fsymbols.add(exp.decl())
 
-    for child in s.children():
+    for child in exp.children():
         fsymbols.update(get_function_symbols(child))
 
     return fsymbols
@@ -126,10 +126,10 @@ def get_function_symbols(s: z3.ExprRef) -> Set[z3.FuncDeclRef]:
 
 def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
     """To Skolem normal form? (How about snf)"""
-    g = z3.Goal()
-    g.add(exp)
-    t = z3.Tactic('snf')
-    res = t(g)
+    goal = z3.Goal()
+    goal.add(exp)
+    tactic = z3.Tactic('snf')
+    res = tactic(goal)
     return res.as_expr()
 
 
@@ -140,18 +140,17 @@ def big_and(exp_list: List[z3.ExprRef]):
     return z3.And(*exp_list)
 
 
-def big_or(ll: List[z3.ExprRef]):
-    if len(ll) == 1:
-        return ll[0]
-    return z3.Or(*ll)
+def big_or(list_of_exp: List[z3.ExprRef]):
+    if len(list_of_exp) == 1:
+        return list_of_exp[0]
+    return z3.Or(*list_of_exp)
 
 
-def negate(f: z3.ExprRef) -> z3.ExprRef:
+def negate(fml: z3.ExprRef) -> z3.ExprRef:
     """Negate a formula"""
-    if z3.is_not(f):
-        return f.arg(0)
-    else:
-        return z3.Not(f)
+    if z3.is_not(fml):
+        return fml.arg(0)
+    return z3.Not(fml)
 
 
 def ctx_simplify(exp: z3.ExprRef):
@@ -159,7 +158,7 @@ def ctx_simplify(exp: z3.ExprRef):
     return z3.Tactic('ctx-solver-simplify')(exp).as_expr()
 
 
-def is_expr_var(a) -> bool:
+def is_expr_var(exp) -> bool:
     """
     Check if a is a variable. E.g. x is a var but x = 3 is not.
     Examples:
@@ -176,10 +175,10 @@ def is_expr_var(a) -> bool:
     >>> assert is_expr_var(SafetyInjection)
     """
 
-    return z3.is_const(a) and a.decl().kind() == z3.Z3_OP_UNINTERPRETED
+    return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
 
 
-def is_expr_val(a) -> bool:
+def is_expr_val(exp) -> bool:
     """
     Check if the input formula is a value. E.g. 3 is a value but x = 3 is not.
     Examples:
@@ -195,10 +194,10 @@ def is_expr_val(a) -> bool:
     >>> assert not is_expr_val(Block)
     >>> assert not is_expr_val(SafetyInjection)
     """
-    return z3.is_const(a) and a.decl().kind() != z3.Z3_OP_UNINTERPRETED
+    return z3.is_const(exp) and exp.decl().kind() != z3.Z3_OP_UNINTERPRETED
 
 
-def is_term(a) -> bool:
+def is_term(exp) -> bool:
     """
     Check if the input formula is a term. In FOL, terms are
     defined as term := const | var | f(t1,...,tn) where ti are terms.
@@ -217,47 +216,47 @@ def is_term(a) -> bool:
     >>> assert not is_term(Bool('x') == (Int('y')==Int('z')))
     """
 
-    if not z3.is_expr(a):
+    if not z3.is_expr(exp):
         return False
-    if z3.is_const(a):  # covers both const value and var
+    if z3.is_const(exp):  # covers both const value and var
         return True
-    else:  # covers f(t1,..,tn)
-        return not z3.is_bool(a) and all(is_term(c) for c in a.children())
+    return not z3.is_bool(exp) and all(is_term(c) for c in exp.children())
 
 
 CONNECTIVE_OPS = [z3.Z3_OP_NOT, z3.Z3_OP_AND, z3.Z3_OP_OR, z3.Z3_OP_IMPLIES,
                   z3.Z3_OP_IFF, z3.Z3_OP_ITE, z3.Z3_OP_XOR]
 
 
-def is_atom(a) -> bool:
+def is_atom(exp) -> bool:
     """
     Check if the input formula is an atom. In FOL, atoms are
     defined as atom := t1 = t2 | R(t1,..,tn) where ti are terms.
     In addition, this function also allows Bool variable to
     be terms (in propositional logic, a bool variable is considered term)
     """
-    if not z3.is_bool(a):
+    if not z3.is_bool(exp):
         return False
 
-    if is_expr_val(a):
+    if is_expr_val(exp):
         return False
 
-    if is_expr_var(a):
+    if is_expr_var(exp):
         return True
 
-    return z3.is_app(a) and a.decl().kind() not in CONNECTIVE_OPS and all(is_term(c) for c in a.children())
+    return z3.is_app(exp) and exp.decl().kind() not in CONNECTIVE_OPS and \
+        all(is_term(c) for c in exp.children())
 
 
-def is_pos_lit(a) -> bool:
+def is_pos_lit(fml) -> bool:
     """
     Check if the input formula is a positive literal,  i.e. an atom
     >>> is_pos_lit(z3.Not(z3.BoolVal(True)))
     False
     """
-    return is_atom(a)
+    return is_atom(fml)
 
 
-def is_neg_lit(a) -> bool:
+def is_neg_lit(exp) -> bool:
     """
     Check if the input formula is a negative literal
     EXAMPLES:
@@ -281,16 +280,16 @@ def is_neg_lit(a) -> bool:
     >>> is_neg_lit(Not(BoolVal(True)))
     False
     """
-    return z3.is_not(a) and is_pos_lit(a.children()[0])
+    return z3.is_not(exp) and is_pos_lit(exp.children()[0])
 
 
-def is_lit(a) -> bool:
+def is_lit(exp) -> bool:
     """
     Check if the input formula is a negative literal
     >>> is_lit(z3.Not(z3.BoolVal(True)))
     False
     """
-    return is_pos_lit(a) or is_neg_lit(a)
+    return is_pos_lit(exp) or is_neg_lit(exp)
 
 
 def create_function_body_str(funcname: str, varlist: List, body: z3.ExprRef) -> [str]:
@@ -366,16 +365,17 @@ def z3_value_to_python(value):
 
 
 class FormulaInfo:
+    """For formula info"""
     def __init__(self, fml):
         self.formula = fml
         self.has_quantifier = self.has_quantifier()
         self.logic = self.get_logic()
 
     def apply_probe(self, name):
-        g = z3.Goal()
-        g.add(self.formula)
-        p = z3.Probe(name)
-        return p(g)
+        goal = z3.Goal()
+        goal.add(self.formula)
+        probe = z3.Probe(name)
+        return probe(goal)
 
     def has_quantifier(self):
         return self.apply_probe('has-quantifiers')
@@ -391,41 +391,39 @@ class FormulaInfo:
             if not self.has_quantifier:
                 if self.apply_probe("is-propositional"):
                     return "QF_UF"
-                elif self.apply_probe("is-qfbv"):
+                if self.apply_probe("is-qfbv"):
                     return "QF_BV"
-                elif self.apply_probe("is-qfaufbv"):
+                if self.apply_probe("is-qfaufbv"):
                     return "QF_AUFBV"
-                elif self.apply_probe("is-qflia"):
+                if self.apply_probe("is-qflia"):
                     return "QF_LIA"
                 # elif self.apply_probe("is-quauflia"):
                 #    return "QF_AUFLIA"
-                elif self.apply_probe("is-qflra"):
+                if self.apply_probe("is-qflra"):
                     return "QF_LRA"
-                elif self.apply_probe("is-qflira"):
+                if self.apply_probe("is-qflira"):
                     return "QF_LIRA"
-                elif self.apply_probe("is-qfnia"):
+                if self.apply_probe("is-qfnia"):
                     return "QF_NIA"
-                elif self.apply_probe("is-qfnra"):
+                if self.apply_probe("is-qfnra"):
                     return "QF_NRA"
-                elif self.apply_probe("is-qfufnra"):
+                if self.apply_probe("is-qfufnra"):
                     return "QF_UFNRA"
-                else:
-                    return "ALL"
+                return "ALL"
             else:
                 if self.apply_probe("is-lia"):
                     return "LIA"
-                elif self.apply_probe("is-lra"):
+                if self.apply_probe("is-lra"):
                     return "LRA"
-                elif self.apply_probe("is-lira"):
+                if self.apply_probe("is-lira"):
                     return "LIRA"
-                elif self.apply_probe("is-nia"):
+                if self.apply_probe("is-nia"):
                     return "NIA"
-                elif self.apply_probe("is-nra"):
+                if self.apply_probe("is-nra"):
                     return "NRA"
-                elif self.apply_probe("is-nira"):
+                if self.apply_probe("is-nira"):
                     return "NIRA"
-                else:
-                    return "ALL"
+                return "ALL"
         except Exception as ex:
             print(ex)
             return "ALL"
@@ -436,17 +434,18 @@ def get_z3_logic(fml: z3.ExprRef):
     return fml_info.get_logic()
 
 
-def eval_predicates(m: z3.ModelRef, predicates: List[z3.BoolRef]):
+def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]):
     """ Let m be a model of a formula phi, preds be a set of predicates
     """
     res = []
-    for p in predicates:
-        if z3.is_true(m.eval(p)):
-            res.append(p)
-        elif z3.is_false(m.eval(p)):
-            res.append(negate(p))
+    for pred in predicates:
+        if z3.is_true(model.eval(pred)):
+            res.append(pred)
+        elif z3.is_false(model.eval(pred)):
+            res.append(negate(pred))
         else:
             pass
     return res
+
 
 

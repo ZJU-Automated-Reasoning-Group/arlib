@@ -11,7 +11,8 @@ from arlib.utils import SolverResult
 
 class CDCLTSolver(ABC):
     """
-    Abstract base class for a solver which implements the Conflict Driven Clause Learning (CDCL) algorithm for solving
+    Abstract base class for a solver which implements the
+    Conflict Driven Clause Learning (CDCL) algorithm for solving
     Satisfiability Modulo Theories (SMT) problems.
     """
 
@@ -33,7 +34,6 @@ class CDCLTSolver(ABC):
         SolverResult
             The result of the solver as a SolverResult object.
         """
-        pass
 
     @abstractmethod
     def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:
@@ -41,6 +41,8 @@ class CDCLTSolver(ABC):
 
 
 class SequentialCDCLTSolver(CDCLTSolver):
+    """Sequential solver"""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.smt2_file = None
@@ -49,20 +51,23 @@ class SequentialCDCLTSolver(CDCLTSolver):
         pass
 
     def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:
-
         pass
 
 
 def dump_bool_skeleton(numeric_clauses, output_file: str):
     """
-    Dump numerical clauses to a CNF file in output_file
+    Dump numerical clauses (the Boolean skeleton of an SMT formula)
+    to a CNF file in output_file.
+
+    This is used for profiling)
     """
     if len(numeric_clauses) == 0:
         return
 
     num_var = -1
     for cls in numeric_clauses:
-        num_var = max(num_var, max([abs(lit) for lit in cls]))
+        max_var_in_cls = max([abs(lit) for lit in cls])
+        num_var = max(num_var, max_var_in_cls)
 
     header = ["p cnf {0} {1}".format(num_var, len(numeric_clauses))]
     with open(output_file, 'w+') as file:
@@ -71,28 +76,31 @@ def dump_bool_skeleton(numeric_clauses, output_file: str):
         for cls in numeric_clauses:
             file.write(" ".join([str(l) for l in cls]) + " 0\n")
 
+
 class ParallelCDCLTSolver(CDCLTSolver):
+    """Parallel solver"""
+
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         """
         Mode
         -  process: process-based
         -  thread: thread-based
         -  preprocess: only perform preprocessing and dump the Boolean skeleton!
         """
+        super().__init__(**kwargs)
         self.parallel_mode = kwargs.get("mode", "process")
         self.smt2_file = "tmp.smt2"
 
     def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:
         if self.parallel_mode == "process":
             return parallel_cdclt_process(smt2string, logic)
-        elif self.parallel_mode == "thread":
+        if self.parallel_mode == "thread":
             return parallel_cdclt_thread(smt2string, logic)
-        elif self.parallel_mode == "preprocess":
+        if self.parallel_mode == "preprocess":
             cls = boolean_abstraction(smt2string)
-            dump_bool_skeleton(cls, self.smt2_file+".cnf")
-        else:
-            return parallel_cdclt_process(smt2string, logic)
+            dump_bool_skeleton(cls, self.smt2_file + ".cnf")
+            return
+        return parallel_cdclt_process(smt2string, logic)
 
     def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:
         self.smt2_file = filename

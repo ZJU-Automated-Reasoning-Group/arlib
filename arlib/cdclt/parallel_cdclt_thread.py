@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # Some options to be configured (assuming use Z3 for now
 """
-m_simplify_blocking_clauses = True
-m_logic = "ALL"
+M_SIMPLIFY_BLOCKING_CLAUSES = True
+M_LOGIC = "ALL"
 
 
 # End of options
@@ -116,8 +116,10 @@ class BooleanSolver:
         solver.add(z3.And(self.bool_abstraction))
         bool_models = []
         solutions = 0
-        for assignment in itertools.product(*[(x, z3.Not(x)) for x in self.variables]):  # all combinations
-            if solver.check(assignment) == z3.sat:  # conditional check (does not add assignment permanently)
+        # all combinations
+        for assignment in itertools.product(*[(x, z3.Not(x)) for x in self.variables]):
+            # conditional check (does not add assignment permanently)
+            if solver.check(assignment) == z3.sat:
                 bool_models.append(solver.model())
                 solutions = solutions + 1
                 if solutions == to_sample:
@@ -144,8 +146,8 @@ def parallel_cdclt_thread(smt2string: str, logic: str) -> SolverResult:
         logger.debug("Solved by the preprocessor")
         return preprocessor.status
 
-    global m_logic
-    m_logic = logic
+    global M_LOGIC
+    M_LOGIC = logic
 
     bool_solver = BooleanSolver(preprocessor.bool_abstraction, preprocessor.bool_variables)
     init_theory_fml = preprocessor.init_theory_fml
@@ -161,7 +163,8 @@ def parallel_cdclt_thread(smt2string: str, logic: str) -> SolverResult:
             if bool_solver.check_sat() == z3.unsat:
                 result = SolverResult.UNSAT
                 break
-            # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
+            # FIXME: should we identify and distinguish aux. vars
+            #  introduced by tseitin' transformation?
             #  Perhaps we should...
             logger.debug("Boolean abstraction is satisfiable")
             bool_models = bool_solver.sample_models(to_sample=sample_number)
@@ -170,7 +173,8 @@ def parallel_cdclt_thread(smt2string: str, logic: str) -> SolverResult:
             all_assumptions = []
             # logger.debug("Sampled Boolean models: {}".format(bool_models))
             for model in bool_models:
-                assumptions = [b if z3.is_true(model.eval(b)) else z3.Not(b) for b in preprocessor.bool_variables]
+                assumptions = [b if z3.is_true(model.eval(b))
+                               else z3.Not(b) for b in preprocessor.bool_variables]
                 all_assumptions.append(assumptions)
 
             # logger.debug("Assumptions from Boolean models: {}".format(all_assumptions))

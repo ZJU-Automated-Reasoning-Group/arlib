@@ -10,27 +10,27 @@ from pathlib import Path
 from threading import Timer
 from typing import List
 
-cnf_generator = str(Path(__file__).parent) + "/fuzzsat.py"
-qbf_generator = str(Path(__file__).parent) + "/fuzzqbf.py"
-smt_generator = str(Path(__file__).parent) + "/smtfuzz.py"
+CNF_GENERATOR = str(Path(__file__).parent) + "/fuzzsat.py"
+QBF_GENERATOR = str(Path(__file__).parent) + "/fuzzqbf.py"
+SMT_GENERATOR = str(Path(__file__).parent) + "/smtfuzz.py"
 
 
 def terminate(process, is_timeout: List):
     """
-        Terminates a process and sets the timeout flag to True.
+    Terminates a process and sets the timeout flag to True.
+    Parameters:
+    -----------
+    process : subprocess.Popen
+        The process to be terminated.
+    is_timeout : List
+        A list containing a single boolean item.
+        If the process exceeds the timeout limit, the boolean item will be
+        set to True.
 
-        Parameters:
-        -----------
-        process : subprocess.Popen
-            The process to be terminated.
-        is_timeout : List
-            A list containing a single boolean item. If the process exceeds the timeout limit, the boolean item will be
-            set to True.
-
-        Returns:
-        --------
-        None
-        """
+    Returns:
+    --------
+    None
+    """
     if process.poll() is None:
         try:
             process.terminate()
@@ -46,10 +46,14 @@ def gen_cnf_numeric_clauses() -> List[List[int]]:
     FIXME: fuzzsat generates a 0 at the end of each line
       but pysat does not like 0
     """
-    print(cnf_generator)
-    cmd = ['python3', cnf_generator, '-i', str(random.randint(1, 10)), '-I', str(random.randint(11, 50)), '-p',
-           str(random.randint(2, 10)), '-P', str(random.randint(11, 30)), '-l', str(random.randint(2, 10)), '-L',
-           str(random.randint(11, 30))]
+    print(CNF_GENERATOR)
+    cmd = ['python3', CNF_GENERATOR,
+           '-i', str(random.randint(1, 10)),
+           '-I', str(random.randint(11, 50)),
+           '-p', str(random.randint(2, 10)),
+           '-P', str(random.randint(11, 30)),
+           '-l', str(random.randint(2, 10)),
+           '-L', str(random.randint(11, 30))]
 
     logging.debug("Enter constraint generation")
     logging.debug(cmd)
@@ -95,7 +99,7 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
 
     # 'CNFexp'
 
-    cmd = ['python3', smt_generator,
+    cmd = ['python3', SMT_GENERATOR,
            '--strategy', strategy,
            '--cnfratio', str(cnfratio),
            '--cntsize', str(cntsize),
@@ -128,7 +132,7 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
     else:
         strategy = 'noinc'
 
-    cmd = ['python3', smt_generator,
+    cmd = ['python3', SMT_GENERATOR,
            '--strategy', strategy,
            '--cnfratio', str(cnfratio),
            '--cntsize', str(cntsize),
