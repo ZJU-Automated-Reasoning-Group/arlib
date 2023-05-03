@@ -10,7 +10,36 @@ sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                'mc', 'm22', 'msh']
 
 # todo : add about 4~5 kinds of z3 tactics
-preambles = []
+preambles = [
+    z3.AndThen(z3.With('simplify', flat_and_or=False),
+            z3.With('propagate-values', flat_and_or=False),
+            z3.Tactic('elim-uncnstr'),
+            z3.With('solve-eqs', solve_eqs_max_occs=2),
+            z3.Tactic('reduce-bv-size'),
+            z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                    local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+            z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
+            'max-bv-sharing',
+            'ackermannize_bv',
+            'bit-blast',
+            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+            z3.With('solve-eqs', solve_eqs_max_occs=2),
+            'aig',
+            'tseitin-cnf',
+        ),
+    z3.AndThen(z3.With('simplify', flat_and_or=False),
+            z3.With('propagate-values', flat_and_or=False),
+            z3.With('solve-eqs', solve_eqs_max_occs=2),
+            z3.Tactic('elim-uncnstr'),
+            z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                    local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+            z3.Tactic('max-bv-sharing'),
+            z3.Tactic('bit-blast'),
+            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+            'aig',
+            'tseitin-cnf',
+    )
+]
 
 def solve_sat(solver_name : str, cnf : CNF, result_queue):
     aux = Solver(name=solver_name, bootstrap_with=cnf)
@@ -52,7 +81,19 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
 def solve_with_z3(fml, result_queue):
     solver = z3.Solver()
     solver.add(fml)
-    result_queue.push(solver.check())
+    result_queue.put(solver.check())
+
+def benchmark_z3(file_name : str) :
+    start = time.process_time()
+    fml_vec = z3.parse_smt2_file(file_name)
+    if len(fml_vec) == 1:
+        fml = fml_vec[0]
+    else:
+        fml = z3.And(fml_vec)
+    s = z3.Solver()
+    s.add(fml)
+    end = time.process_time()
+    print("z3       : ", s.check(), end-start)
 
 def main():
     parser = argparse.ArgumentParser(description="Solve given formula.")
@@ -91,7 +132,8 @@ def main():
     for p in g_process_queue:
         p.terminate()
     end = time.process_time()
-    print("portfolio:", result, end - start)
+    print("portfolio: ", result, end - start)
+    benchmark_z3(args.formula)
 
 if __name__ == "__main__":
     main()
