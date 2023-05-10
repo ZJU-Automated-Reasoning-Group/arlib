@@ -1,0 +1,27 @@
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  cd takes 0.08762645721435547
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  cd15 takes 0.0031707286834716797
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  gc3 takes 0.002760171890258789
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  gc4 takes 0.002863645553588867
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  g3 takes 0.0026879310607910156
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  g4 takes 0.002660512924194336
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  lgl takes 0.009246826171875
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  mcb takes 0.0ctor/training-set/RWS/Example_1.txt-b36f92fb.cnf via  m22 takes 0.007381439208984375
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  mgh takes 0.007224559783935547
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  cd takes 0.5903282165527344
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  cd15 takes 0.09111762046813965
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  gc3 takes 0.1705150604248047
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  gc4 takes 0.1633741855621338
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  g3 takes 0.16508793830871582
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  g4 takes 0.1610100269317627
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  lgl takes 2.131775379180908
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  mcb takes 0.8203525543212891
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  mpl takes 0.32462334632873535
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  mg3 takes 0.26934266090393066
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  mc takes 0.09556436538696289
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  m22 takes 0.09467768669128418
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_10.txt-b36f92fb.cnf via  mgh takes 0.08768081665039062
+2731776237487793
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  mpl takes 0.005374908447265625
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  mg3 takes 0.004524707794189453
+Solving /home/jasonj/arlib/sat_selector/training-set/RWS/Example_1.txt-b36f92fb.cnf via  mc takes 0.007527589797973633
+Solving /home/jasonj/arlib/sat_sele
