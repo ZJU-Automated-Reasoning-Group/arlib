@@ -1,6 +1,7 @@
 backup
 bin_solvers/*
 !bin_solvers/download.py
+*.txt
 tmp.py
 *.prof
 .DS_Store
