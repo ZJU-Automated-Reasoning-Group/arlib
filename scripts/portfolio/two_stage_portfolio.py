@@ -3,13 +3,12 @@ from pysat.formula import CNF
 import z3
 import argparse
 import multiprocessing
-import time
 g_process_queue = []
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-               'mc', 'm22', 'msh']
+               'mc', 'm22']
 
-# todo : add about 4~5 kinds of z3 tactics
+# TODO : add about 4~5 kinds of z3 tactics
 preambles = [
     z3.AndThen(z3.With('simplify', flat_and_or=False),
             z3.With('propagate-values', flat_and_or=False),
@@ -27,6 +26,7 @@ preambles = [
             'aig',
             'tseitin-cnf',
         ),
+    # TODO : sometimes get wrong answer.
     z3.AndThen(z3.With('simplify', flat_and_or=False),
             z3.With('propagate-values', flat_and_or=False),
             z3.With('solve-eqs', solve_eqs_max_occs=2),
@@ -64,7 +64,7 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
         with multiprocessing.Manager() as manager:
             queue = multiprocessing.Queue()
             sub_processes = []
-            for solver in sat_solvers_in_pysat[0:9]:
+            for solver in sat_solvers_in_pysat:
                 sub_processes.append(multiprocessing.Process(target=solve_sat,
                                                             args=(solver,
                                                                     cnf,
@@ -83,24 +83,12 @@ def solve_with_z3(fml, result_queue):
     solver.add(fml)
     result_queue.put(solver.check())
 
-def benchmark_z3(file_name : str) :
-    start = time.process_time()
-    fml_vec = z3.parse_smt2_file(file_name)
-    if len(fml_vec) == 1:
-        fml = fml_vec[0]
-    else:
-        fml = z3.And(fml_vec)
-    s = z3.Solver()
-    s.add(fml)
-    end = time.process_time()
-    print("z3       : ", s.check(), end-start)
-
 def main():
     parser = argparse.ArgumentParser(description="Solve given formula.")
     parser.add_argument("formula", metavar="formula_file", type=str,
                         help="path to .smt2 formula file")
     parser.add_argument('--workers', dest='workers', default=8, type=int, help="num threads")
-    parser.add_argument('--timeout', dest='timeout', default=600, type=int, help="timeout")
+    parser.add_argument('--timeout', dest='timeout', default=1200, type=int, help="timeout")
 
     args = parser.parse_args()
     fml_vec = z3.parse_smt2_file(args.formula)
@@ -109,7 +97,6 @@ def main():
     else:
         fml = z3.And(fml_vec)
 
-    start = time.process_time()
     with multiprocessing.Manager() as manager:
         result_queue = multiprocessing.Queue()
         for preamble in preambles:
@@ -131,9 +118,8 @@ def main():
     # Terminate all
     for p in g_process_queue:
         p.terminate()
-    end = time.process_time()
-    print("portfolio: ", result, end - start)
-    benchmark_z3(args.formula)
+
+    print(result)
 
 if __name__ == "__main__":
     main()
