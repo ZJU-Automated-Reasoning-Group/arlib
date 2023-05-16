@@ -16,6 +16,6 @@ See `docs/index.md`
 ## Contact
 
 Primary contributors to this project:
-- rainoftime, rainoftime@gmail.com
+- rainoftime
 - JasonJ2021
 - ZelinMa557 
