@@ -1,10 +1,3 @@
-# coding: utf-8
-from typing import List
-
-import z3
-
-from .z3_expr_utils import get_atoms, big_and, eval_predicates
-
 """
 A few APIs that (typically) require SMT solving
 - is_valid
@@ -17,6 +10,12 @@ A few APIs that (typically) require SMT solving
 - exclusive_to_dnf
 - get_models
 """
+
+from typing import List
+
+import z3
+
+from .z3_expr_utils import get_atoms, big_and, eval_predicates
 
 
 def is_valid(phi: z3.ExprRef) -> bool:

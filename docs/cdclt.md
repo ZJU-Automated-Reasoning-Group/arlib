@@ -21,3 +21,4 @@ Refer to https://smtlib.cs.uiowa.edu/benchmarks.shtml for benchmarks.
 1. Build and install all binary solvers in the `bin_solvers` directory.
 2. Install the required packages according to `requirements.txt`.
 
+## References

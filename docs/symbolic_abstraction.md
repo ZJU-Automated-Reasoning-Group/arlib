@@ -10,3 +10,8 @@ The implementation from UC Davis's Automated Reasoning Group. For more details, 
 ## `omt_symabs`
 
 The implementation based on OMT solving.
+
+
+## References
+
+- Automating Abstract Interpretation, VMCAI'16

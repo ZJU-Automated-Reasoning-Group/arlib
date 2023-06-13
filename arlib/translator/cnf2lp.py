@@ -1,18 +1,21 @@
-from pysat.formula import CNF
+"""
+Converting CNF to Linear Programming
+"""
 import sys
+from pysat.formula import CNF
 
 
 def cnf2lp(inf=None, outf=None):
-    if inf == None:
+    if inf is None:
         return
     f = CNF(inf)
-    if outf != None:
+    if outf is not None:
         wf = open(outf, "w")
     else:
         wf = sys.stdout
-    for c in f.clauses:
-        head = ' | '.join(['p' + str(x) for x in c if x > 0])
-        body = ', '.join(['p' + str(-x) for x in c if x < 0])
+    for cls in f.clauses:
+        head = ' | '.join(['p' + str(x) for x in cls if x > 0])
+        body = ', '.join(['p' + str(-x) for x in cls if x < 0])
         if body != '':
             head = head + " :- "
         print(head + body + '.', file=wf)

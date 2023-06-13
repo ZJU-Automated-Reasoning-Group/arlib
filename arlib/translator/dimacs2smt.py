@@ -1,4 +1,6 @@
-# coding: utf-8
+"""
+Converting DIMACS to SMT2
+"""
 import sys
 
 

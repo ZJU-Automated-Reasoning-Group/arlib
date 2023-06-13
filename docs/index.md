@@ -26,4 +26,5 @@ an issue.
 
 ## Research Topics
 
-Summer Research, Honours/Master Thesis Project Topics
+For Summer Research, Honours/Master Thesis Project Topics, please refer to
+`topics.md`

@@ -1,5 +1,6 @@
 # Interpolant Generation
 
+## Introduction to Interpolation
 
 Given two contradictory formulas `A` and `B`, a Craig interpolant `I` is a formula that satisfies the following conditions:
 - `I` is a logical consequence of `A`.
@@ -12,5 +13,9 @@ Craig interpolants have several important applications in model checking
 - Approximating the image computation
 - ...?
 
-The computation of Craig interpolants is a challenging problem, and various algorithms and techniques have been developed to compute them efficiently. 
+The computation of Craig interpolants is a challenging problem, and various 
+algorithms and techniques have been developed to compute them efficiently. 
 
+## Interpolant Generation in Arlib
+
+## References

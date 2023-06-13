@@ -1,3 +1,6 @@
+"""
+Converting DIMACS to Z3 expr
+"""
 from typing import List
 
 import z3

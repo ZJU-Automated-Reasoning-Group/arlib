@@ -1,16 +1,8 @@
-# coding: utf-8
-from enum import Enum
-from typing import List
-import subprocess
-from threading import Timer
-
-import z3
-
-from arlib.utils.smtlib_solver import SmtlibProc
-
 """
+Call other SMT solvers to manipulate Z3's expr
+
 TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv, entail, etc)
-But use cvc5 and other solvers for specific queries, e.g.,
+ But use cvc5 and other solvers for specific queries, e.g.,
   - binary interpolant (cvc5, SMTInterpol, mathsat), sequence interpolant (SMTInterpol)
   - non-linear interpolant (Yices2)
   - abduction (cvc5)
@@ -19,6 +11,15 @@ But use cvc5 and other solvers for specific queries, e.g.,
   - OMT
   - MaxSMT
 """
+
+from enum import Enum
+from typing import List
+import subprocess
+from threading import Timer
+
+import z3
+
+from arlib.utils.smtlib_solver import SmtlibProc
 
 
 def terminate(process, is_timeout):

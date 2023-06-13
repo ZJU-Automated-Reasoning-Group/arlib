@@ -1,14 +1,13 @@
-# coding: utf-8
-import z3
-
 """
+Some APIs/functions for playing with Z3 expr (cont.)
+
 - absolute_value_bv
 - absolute_value_int
 - ground_quantifier
 - ground_quantifier_all
 - ctx_simplify
 """
-
+import z3
 
 def absolute_value_bv(bv):
     """
