@@ -63,12 +63,6 @@ if __name__ == '__main__':
         type=int,
         help='timeout')
     parser.add_argument(
-        '--verbose',
-        dest='verbosity',
-        default=1,
-        type=int,
-        help='verbosity level')
-    parser.add_argument(
         '--workers',
         dest='workers',
         default=1,
@@ -82,6 +76,7 @@ if __name__ == '__main__':
         help='logic of the formula')
     parser.add_argument('--model', dest='model', default=False, action='store_true',
                         help='enable model generation or not')
+    parser.add_argument('--verbose', dest='verbosity', default=0, type=int, help="verbosity")
     parser.add_argument('--unsat_core', dest='unsat_core', default=False, action='store_true',
                         help='enable core generation or not')
     parser.add_argument('--incremental', dest='incremental', default=False, action='store_true',
@@ -94,8 +89,15 @@ if __name__ == '__main__':
     parser.add_argument('infile', help='the input file (in SMT-LIB v2 format)')
 
     G_ARGS = parser.parse_args()
-    if G_ARGS.verbosity == 2:
-        logging.basicConfig(level=logging.DEBUG)
+
+    if G_ARGS.verbosity > 0:
+        if G_ARGS.verbosity == 1:
+            logging.basicConfig(level=logging.INFO)
+        elif G_ARGS.verbosity == 2:
+            logging.basicConfig(level=logging.WARNING)
+        else:
+            logging.basicConfig(level=logging.DEBUG)
+
     # Which signals should we?
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)

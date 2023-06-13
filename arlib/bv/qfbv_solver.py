@@ -162,6 +162,7 @@ class QFBVSolver:
         # pos.to_fp(sys.stdout)
         aux = Solver(name=QFBVSolver.sat_engine, bootstrap_with=pos)
         # print("solving via pysat")
+        logger.debug("Calling pysat")
         if aux.solve():
             return SolverResult.SAT
         return SolverResult.UNSAT

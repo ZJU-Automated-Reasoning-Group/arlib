@@ -90,6 +90,7 @@ class QFAUFBVSolver:
         qfaufbv_prep = z3.With(qfaufbv_preamble, elim_and=True, sort_store=True)
 
         after_simp = qfaufbv_prep(fml).as_expr()
+        logger.debug("Simplified!...")
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
         elif z3.is_true(after_simp):
@@ -105,12 +106,14 @@ class QFAUFBVSolver:
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
+            logger.debug("Start calling SAT solver...")
             aux = Solver(name=QFAUFBVSolver.sat_engine, bootstrap_with=pos)
             if aux.solve():
                 return SolverResult.SAT
             return SolverResult.UNSAT
         # the else part
         # sol = z3.Tactic('smt').solver()
+        logger.debug("Start calling Z3...")
         return self.solve_qfaufbv_via_z3(after_simp)
 
     def solve_qfaufbv_via_z3(self, fml: z3.ExprRef):

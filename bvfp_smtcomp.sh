@@ -1,14 +1,29 @@
-# Run regression tests
-PYTHON="$(pwd)/venv/bin/python3"
-TOOL="bvfp_solver.py --logic "
-BENCHMARK=$1
+# source ./bin/activate
+bench="$1"
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
+case "$logic" in
 
-trap "exit" INT
-LOGIC=$(expr "$(grep -m1 '^[^;]*set-logic' "$BENCHMARK")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
-OPTIONS=$TOOL$LOGIC
-# echo "Solving ${BENCHMARK}"
-${PYTHON} ${OPTIONS} ${BENCHMARK}
-
-# TODO: set the sat engine base on logic type
-
+QF_BV)
+  python3 bvfp_solver.py --logic QF_BV $1
+  ;;
+QF_UFBV)
+  python3 bvfp_solver.py --logic QF_UFBV $1
+  ;;
+QF_ABV)
+  python3 bvfp_solver.py --logic QF_ABV $1
+  ;;
+QF_AUFBV)
+  python3 bvfp_solver.py --logic QF_AUFBV $1
+  ;;
+QF_FP)
+  python3 bvfp_solver.py --logic QF_FP $1
+  ;;
+QF_BVFP)
+  python3 bvfp_solver.py --logic QF_BVFP $1
+  ;;
+*)
+  # just run the default
+  python3 bvfp_solver.py $1
+  ;;
+esac

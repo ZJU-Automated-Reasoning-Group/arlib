@@ -24,6 +24,6 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 Please let us know of any problem or possible improvements by opening
 an issue.
 
-## Installation
+## Research Topics
 
-## Usage
+Summer Research, Honours/Master Thesis Project Topics
