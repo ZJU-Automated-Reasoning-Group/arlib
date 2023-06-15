@@ -1,15 +1,13 @@
-FROM ubuntu:20.04
+# This Dockerfile is for SMT Comp 2023
+FROM satcomp-infrastructure:leader
+USER root
+RUN apt-get update -y --fix-missing \
+ && apt-get install -y python3 python3-pip
 
-RUN apt-get update \
+WORKDIR /
 
- && apt-get install -y python3 python3-pip \
-
- && pip3 install --upgrade pip \
-
- && pip3 install pyinstaller
-
-
-ENTRYPOINT ["/bin/bash", "setup.sh"]
-
-RUN pyinstaller -F scripts/portfolio/two_stage_portfolio.py \
- && cp dist/two_stage_portfolio solver
+COPY requirements.txt requirements.txt
+RUN pip3 install python-sat==0.1.8.dev1 z3-solver==4.12.0
+COPY scripts/portfolio/two_stage_portfolio.py /competition/solver
+RUN chmod 777 /competition/solver
+USER ecs-user

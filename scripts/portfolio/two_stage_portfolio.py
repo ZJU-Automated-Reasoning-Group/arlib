@@ -1,8 +1,12 @@
+#!/usr/bin/env python3
 from pysat.solvers import Solver
 from pysat.formula import CNF
 import z3
 import argparse
 import multiprocessing
+import json
+import sys
+import os
 g_process_queue = []
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                'g4', 'lgl', 'mcb', 'mpl', 'mg3',
@@ -26,7 +30,6 @@ preambles = [
             'aig',
             'tseitin-cnf',
         ),
-    # TODO : sometimes get wrong answer.
     z3.AndThen(z3.With('simplify', flat_and_or=False),
             z3.With('propagate-values', flat_and_or=False),
             z3.With('solve-eqs', solve_eqs_max_occs=2),
@@ -43,7 +46,7 @@ preambles = [
 
 def solve_sat(solver_name : str, cnf : CNF, result_queue):
     aux = Solver(name=solver_name, bootstrap_with=cnf)
-    ret = ""
+    print(solver_name, aux.solve())
     if aux.solve():
         ret = "sat"
     else:
@@ -56,6 +59,8 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
     # if z3 solve the problem directly
     if z3.is_true(after_simp):
         result_queue.put("sat")
+    elif z3.is_false(after_simp):
+        result_queue.put("unsat")
     # solve with sat solver
     else:
         g = z3.Goal()
@@ -81,17 +86,10 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
 def solve_with_z3(fml, result_queue):
     solver = z3.Solver()
     solver.add(fml)
-    result_queue.put(solver.check())
+    result_queue.put(solver.check().__str__())
 
-def main():
-    parser = argparse.ArgumentParser(description="Solve given formula.")
-    parser.add_argument("formula", metavar="formula_file", type=str,
-                        help="path to .smt2 formula file")
-    parser.add_argument('--workers', dest='workers', default=8, type=int, help="num threads")
-    parser.add_argument('--timeout', dest='timeout', default=1200, type=int, help="timeout")
-
-    args = parser.parse_args()
-    fml_vec = z3.parse_smt2_file(args.formula)
+def solve(file_name) -> str:
+    fml_vec = z3.parse_smt2_file(file_name)
     if len(fml_vec) == 1:
         fml = fml_vec[0]
     else:
@@ -106,20 +104,44 @@ def main():
                                                                 result_queue
                                                                 )))
             # use z3 as a single process
-            g_process_queue.append(multiprocessing.Process(target=solve_with_z3,
-                                                           args=(fml, result_queue)))
+        g_process_queue.append(multiprocessing.Process(target=solve_with_z3,
+                                                        args=(fml, result_queue)))
 
     for process in g_process_queue:
         process.start()
     try:
-        result = result_queue.get(timeout=int(args.timeout))
+        result = result_queue.get()
     except multiprocessing.queues.Empty:
         result = "unknown"
     # Terminate all
     for p in g_process_queue:
         p.terminate()
+    return result
 
-    print(result)
+def main():
+    request_directory = sys.argv[1]
+    input = os.path.join(request_directory, "input.json")
+    with open(input) as f:
+        input_json = json.loads(f.read())
+    formula_file = input_json.get("formula_file")
+    result = solve(formula_file)
+    if result == "sat":
+        res = 10
+    elif result == "unsat":
+        res = 20
+    else:
+        res = 0
+    print(result, res)
+    solver_output = {
+        "return_code": res,
+        "artifacts": {
+            "stdout_path": os.path.join(request_directory, "stdout.log"),
+            "stderr_path": os.path.join(request_directory, "stderr.log")
+        }
+    }
+    
+    with open(os.path.join(request_directory, "solver_out.json"), "w+") as f:
+        f.write(json.dumps(solver_output))
 
 if __name__ == "__main__":
     main()
