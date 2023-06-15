@@ -12,7 +12,7 @@ from typing import List
 
 from arlib.cdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
-from arlib.theory import SMTLibTheorySolver
+from arlib.cdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, parse_sexpr_string
 from arlib.cdclt.exceptions import TheorySolverSuccess, PySMTSolverError
 from arlib.utils.exceptions import SMTLIBSolverError
