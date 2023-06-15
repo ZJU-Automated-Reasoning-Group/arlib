@@ -5,13 +5,14 @@
 
 arlib is a toolkit for playing with various automated reasoning tasks, such as
 
-* Solving quantifier-free SMT formulas in parallel
+
 * Solving Exits-Forall SMT formulas
 * Solving general quantified SMT formulas
 * Quantifier elimination
 * Sampling solutions of SMT formulas
 * Counting the models of SMT formulas
-* Interolant generation
+* Optimization Modulo Theory (OMT) solving
+* Interpolant generation
 * Minimal satisfying assignment
 * Symbolic abstraction
 * Abductive inference
