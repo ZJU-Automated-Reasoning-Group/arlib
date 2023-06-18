@@ -1,23 +1,38 @@
 """
-Backbone generation for SMT problems
+Backbone clauses generation via lazy model enumeration
+  Consider a set of predicates S = {p1, ..., pn}
+  A clause C is the disjunction of a subset of literals, each of the literal
+   uses predicates from S (e.g., a literal can be p1, not p1, ....)
+
+  If F |= C, then we say C is a backbone clause of F w.r.t. S.
+   F |= C means Not(F -> C) is unsat, which means F and (not C) is unsat.
+
+   For example, let C be "p1 or p2 or p3". To check whether C is a backbone clause of F or not,
+   We need to show that "F and (not p1) and (not p2) and (not p3)" is unsatisfiable.
+   Then, maybe we can reduce to something like "unsat core enumeration"?
+
+   (FIXME: how to tell an SMT solver that "the unsat core must contain F")
+
+ - Generation (an arbitrary one?), or sampling (a set of backbones), or enumeration (all)?
+ - Restrict the length of the clause?
+ - Where is S from?
+
+TODO:
+  - Combination with predicate abstraction
+    + Predicate abstraction aims to compute the strongest consequence of F, which is expressible as a
+    Boolean combination of S. (e.g., p1 or (not p2))
+    + Backbone clauses enumeration aims to compute all blabla....?
+  - Comparison with SAT backbone
+    + SAT backbone:
+    + ...?
+  - Comparison with Unsat core enumeration? (Maybe we can reuse some existing algorithms)
 """
+
 from typing import List
 from z3 import *
 
-
-def entail(a: z3.ExprRef, b: z3.ExprRef):
-    """
-    The entail function takes in two arguments, a and b. It then checks if the negation of
-    a implies b. If it does not, then it returns true (i.e., entail(a,b) = True).
-    Otherwise it returns false.
-
-    :param a: Represent the knowledge base
-    :param b: Check if the negation of a is entailed by b
-    :return: `true` if `a` entails `b`, and `false` otherwise
-    """
-    s = Solver()
-    s.add(Not(Implies(a, b)))
-    return s.check() == unsat
+from arlib.utils.z3_solver_utils import is_entail
+from arlib.utils.z3_expr_utils import get_atoms
 
 
 def get_atoms(e: z3.ExprRef):
@@ -61,22 +76,6 @@ def enumerate_literals(exp: z3.ExprRef, atoms: List[z3.ExprRef]):
     then pi evaluates to true under every model of F.
     """
     res = []
-    for atom in atoms:
-            s1 = Solver()
-            s1.add(Not(Implies(exp, atom)))  # check for entailment
-            if s1.check() == unsat:
-                res.append(atom)
-            else:
-                m = s1.model()  # TODO: use m to prune other literals
-
-            s2 = Solver()
-            s2.add(Not(Implies(exp, Not(atom))))  # check for entailment
-            if s2.check() == unsat:
-                res.append(Not(atom))
-            else:
-                m = s2.model()  # TODO: use m to prune other literals
-
-    return res
 
 
 def get_backbone(exp):
