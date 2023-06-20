@@ -11,7 +11,7 @@ from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
 
-from arlib.cdclt.cdclt_solver import ParallelCDCLTSolver
+from arlib.pcdclt.cdclt_solver import ParallelCDCLTSolver
 from arlib.utils import SolverResult
 
 

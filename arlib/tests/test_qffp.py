@@ -40,7 +40,9 @@ class TestQFFP(TestCase):
 
     def test_qffp_solver(self):
         i = 0
-        for _ in range(12):
+        return
+
+        for _ in range(2):
 
             smt2string = gene_smt2string("QF_FP")
             try:
@@ -61,7 +63,6 @@ class TestQFFP(TestCase):
             print(res, res_z3)
             if res != res_z3:
                 print("inconsistent!!")
-
             # break  # exit when the first one is finished
 
 

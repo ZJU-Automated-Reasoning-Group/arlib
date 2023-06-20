@@ -13,8 +13,8 @@ from typing import List
 
 import z3
 
-from arlib.cdclt.cdclt_config import m_init_abstraction
-from arlib.cdclt.cdclt_config import InitAbstractionStrategy
+from arlib.pcdclt.cdclt_config import m_init_abstraction
+from arlib.pcdclt.cdclt_config import InitAbstractionStrategy
 from arlib.utils import SolverResult
 
 

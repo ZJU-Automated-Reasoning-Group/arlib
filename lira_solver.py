@@ -8,7 +8,7 @@ import signal
 import psutil
 import logging
 
-from arlib.cdclt.cdclt_solver import ParallelCDCLTSolver
+from arlib.pcdclt.cdclt_solver import ParallelCDCLTSolver
 from arlib.utils import SolverResult
 
 G_ARGS = None

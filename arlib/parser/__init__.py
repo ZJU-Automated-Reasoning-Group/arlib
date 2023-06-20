@@ -1,3 +1,0 @@
-"""
-Some Useful Parsers
-"""

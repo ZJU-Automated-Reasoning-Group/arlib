@@ -55,7 +55,8 @@ def bitblast(formula: z3.ExprRef):
     # TODO: Do we need to call 'simplify' before tseitin-cnf? (It seems that
     #  in some newer versions of z3, we need...
     # t = z3.Then('simplify', 'bit-blast', 'tseitin-cnf')
-    t = z3.Then('simplify', 'bit-blast', 'simplify', 'tseitin-cnf')
+    # t = z3.Then('simplify', 'bit-blast', 'simplify', 'tseitin-cnf')
+    t = z3.Then('simplify', 'bit-blast', 'simplify', 'aig', 'tseitin-cnf')
     blasted = t(g)[0]
     return blasted, id_table, bv2bool
 
@@ -100,8 +101,13 @@ def to_dimacs_numeric(cnf, table, proj_last):
     for clause_expr in cnf:
         # FIXME: should we add the following assertion?
         #  e.g., clause_expr could be False (or True)?
-        #   If it is Flase, then the formula is unsatisfiable, what should we return?
+        #   If it is False, then the formula is unsatisfiable, what should we return?
         #   If it is True, perhaps we can skip the clause directly?
+        if z3.is_false(clause_expr):
+            # is the following strategy correct?
+            dimacs_clause_numeric = [1, -1]
+            cnf_clauses.append(dimacs_clause_numeric)
+            continue
         assert z3.is_or(clause_expr) or z3.is_not(clause_expr) or is_literal(clause_expr)
         dimacs_clause_numeric = list(dimacs_visitor_numeric(clause_expr, table))
         cnf_clauses.append(dimacs_clause_numeric)
@@ -191,8 +197,6 @@ def dimacs_visitor_numeric(exp, table):
                 yield var
         return
     else:
-        if z3.is_true(exp): return  # correct?
-        # elif is_false(e): return ??
         raise Exception("Unhandled type: ", exp)
 
 

@@ -10,11 +10,11 @@ from multiprocessing import Manager
 from ctypes import c_char_p
 from typing import List
 
-from arlib.cdclt import SMTPreprocessor4Process, BooleanFormulaManager
+from arlib.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
-from arlib.cdclt.theory import SMTLibTheorySolver
+from arlib.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, parse_sexpr_string
-from arlib.cdclt.exceptions import TheorySolverSuccess, PySMTSolverError
+from arlib.pcdclt.exceptions import TheorySolverSuccess, PySMTSolverError
 from arlib.utils.exceptions import SMTLIBSolverError
 from arlib.config import m_smt_solver_bin
 

@@ -9,9 +9,9 @@ import re
 import sys
 from typing import List
 
-from arlib.cdclt import BooleanFormulaManager, SMTPreprocessor4Process
+from arlib.pcdclt import BooleanFormulaManager, SMTPreprocessor4Process
 from arlib.config import m_smt_solver_bin
-from arlib.cdclt.theory import SMTLibTheorySolver
+from arlib.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, RE_GET_EXPR_VALUE_ALL
 from arlib.utils.smtlib_solver import SMTLIBSolver
 
