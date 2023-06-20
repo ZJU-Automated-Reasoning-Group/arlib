@@ -1,4 +1,4 @@
-# This Dockerfile is for SMT Comp 2023
+# This Dockerfile is for SMT-COMP
 FROM satcomp-infrastructure:leader
 USER root
 RUN apt-get update -y --fix-missing \

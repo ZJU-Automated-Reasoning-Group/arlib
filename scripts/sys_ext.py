@@ -4,10 +4,6 @@ import subprocess
 from threading import Timer
 import zlib
 
-"""
-System related staff
-"""
-
 
 class bcolors:
     HEADER = '\033[95m'

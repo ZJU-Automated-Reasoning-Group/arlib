@@ -1,7 +1,9 @@
-# Welcome to arlib's documentation!
+Welcome to arlib's documentation!
+=================================
 
-
-## Introduction
+=============
+Introduction
+=============
 
 arlib is a toolkit for playing with various automated reasoning tasks, such as
 
@@ -25,7 +27,9 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 Please let us know of any problem or possible improvements by opening
 an issue.
 
-## Research Topics
+=============
+Research Topics
+=============
 
 For Summer Research, Honours/Master Thesis Project Topics, please refer to
 `topics.md`

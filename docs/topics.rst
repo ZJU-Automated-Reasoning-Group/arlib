@@ -1,9 +1,15 @@
-# Summer Research, Honours/Master Thesis Project Topics
+Summer Research, Honours/Master Thesis Project Topics
+==================
 
 
-## Beyond SMT Solving 
+=========
+Beyond SMT Solving
+=========
 
-### Parallel Bit-Vector Optimizations
+
+
+Parallel Bit-Vector Optimizations
+-------
 
 Optimization Modulo Theory (OMT) is an extension of SMT, which is used for checking the 
 satisfiability of logical formulas with respect to background theories such as 
@@ -18,7 +24,8 @@ Please refer to `arlib/bv/bvopt.py` for single-objective and multi-objectives op
 (In some algorithms, we may reduce a single-objective optimization problem to a special 
 multi-objectives optimization problem (e.g., "Bit-vector optimization, TACAS'16"))
 
-### Bit-Vector Interpolation
+Bit-Vector Interpolation
+-------
 
 Given two contradictory formulas `A` and `B`, a Craig interpolant `I` is a formula that satisfies the following conditions:
 - `I` is a logical consequence of `A`.
@@ -28,7 +35,8 @@ Given two contradictory formulas `A` and `B`, a Craig interpolant `I` is a formu
 Please refer to `arlib/bv/bvitp.py`.
 
 
-### Bit-Vector Model Counting
+Bit-Vector Model Counting
+-------
 
 Model counting is the problem of determining the number of possible solutions 
 (models) to a given formula. 
@@ -36,11 +44,16 @@ Model counting is the problem of determining the number of possible solutions
 
 Refer to `arlib/bv/bv_counting`.
 
-### Bit-Vector Model Sampling
+Bit-Vector Model Sampling
+-------
 
-## SMT Solving for Specific Theories
+=========
+SMT Solving for Specific Theories
+=========
 
-### SMT Solving for Galois Field
+
+SMT Solving for Galois Field
+--------
 
 A Galois Field, also known as a finite field, is a mathematical structure that 
 consists of a finite set of elements and two operations, typically addition 
@@ -49,8 +62,11 @@ computer science, and engineering, such as coding theory, cryptography, and
 digital signal processing.
 
 
-### SMT Solving for Exists-Forall Problems
+SMT Solving for Exists-Forall Problems
+--------
 
 
-## References
 
+=========
+References
+=========
