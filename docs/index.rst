@@ -27,6 +27,25 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 Please let us know of any problem or possible improvements by opening
 an issue.
 
+
+
+=============
+Installing and Using Arlib
+=============
+
+(TODO) Install arlib as a package
+--------
+
+::
+
+  git cone https://github.com/ZJU-Automated-Reasoning-Group/arlib
+  virtualenv --python=/usr/bin/...  venv
+  source venv/bin/activate
+  cd arlib
+  python setup.py install
+
+
+
 =============
 Research Topics
 =============

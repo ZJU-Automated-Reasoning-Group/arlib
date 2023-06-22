@@ -1,9 +1,15 @@
 """Utils for manipulating values"""
 
+import re
 from typing import List
 import itertools
 import z3
 from z3 import BitVecVal, Concat, Extract
+
+RE_GET_EXPR_VALUE_ALL = re.compile(
+    r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
+    r"\((p@[0-9]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
+)
 
 
 def powerset(elements: List):
@@ -31,12 +37,6 @@ def twos_complement(val: int, bits: int):
     if (val & (1 << (bits - 1))) != 0:  # if sign bit is set
         val = val - (2 ** bits)  # compute negative value
     return val
-
-
-# RE_GET_EXPR_VALUE_ALL = re.compile(
-# r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
-#   r"\((p@[0-9]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
-# )
 
 
 def convert_smtlib_models_to_python_value(v):
