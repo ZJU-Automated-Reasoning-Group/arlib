@@ -5,15 +5,15 @@ Exceptions related to oMT
 from pysmt.exceptions import PysmtException
 
 
-class PysmtInfinityError(PysmtException):
+class OMTInfinityError(PysmtException):
     """Infinite value in expressions."""
     pass
 
-class PysmtInfinitesimalError(PysmtException):
+class OMTInfinitesimalError(PysmtException):
     """Infinite value in expressions."""
     pass
 
-class PysmtUnboundedOptimizationError(PysmtException):
+class OMTUnboundedOptimizationError(PysmtException):
     """Infinite optimal value in optimization."""
     pass
 

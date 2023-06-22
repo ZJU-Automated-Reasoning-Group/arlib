@@ -1,7 +1,9 @@
+# Arithmetic
 
-# Some ideas to explore for non-linear real/integer
 
-## Incremental Linearization
+## Some ideas to explore for non-linear real/integer
+
+### Incremental Linearization
 
 Implemented in MathSAT5.
 
@@ -17,11 +19,11 @@ Basic idea: Abstraction/refinement to SMT(QF UFLA)
    + If the model is feasible in the non-linear world, then 
      the original formula is also satisfaible.
 
-## Local Search
+### Local Search
 Implemented in Z3++ by Shaowei Cai's Group
 
 
-## Fuzzing
+### Fuzzing
 
 - Convert the non-linear formula to a "program"
 - Fuzz the program to obtain a solution

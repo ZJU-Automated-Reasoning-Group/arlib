@@ -1,9 +1,12 @@
-# coding: utf-8
+"""
+Sampler for Boolean formulas
+"""
 
 from arlib.sampling.sampler import Sampler
 
 
 class BoolSampler(Sampler):
+    """For SAT formulas"""
 
     def __init__(self, **options):
         Sampler.__init__(self, **options)

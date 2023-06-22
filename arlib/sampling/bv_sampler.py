@@ -1,9 +1,12 @@
-# coding: utf-8
+"""
+Sampling for bit-vector formulas
+"""
 
 from arlib.sampling.sampler import Sampler
 
 
 class BitVecSampler(Sampler):
+    """For bit-vecs"""
 
     def __init__(self, **options):
         Sampler.__init__(self, **options)

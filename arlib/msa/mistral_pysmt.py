@@ -1,24 +1,15 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-#
-# mistral.py based on pysmt
-#
-#  Created on: Dec 18, 2015
-#     Author: Alessandro Previti, Alexey S. Ignatiev
-#     E-mail: alessandro.previti@ucdconnect.ie, aignatiev@ciencias.ulisboa.pt
-#
-
-#
-# ==============================================================================
+"""
+Computing Minimal Satisfying Assignment
+Based on the algorithm from Alessandro Previti, Alexey S. Ignatiev
+"""
 from pysmt.smtlib.parser import SmtLibParser
 from pysmt.exceptions import SolverReturnedUnknownResultError
 from pysmt.shortcuts import Bool, get_model, Not, Solver, qelim, ForAll
 
 
-# ==============================================================================
 def get_qmodel(x_univl, formula, maxiters=None, solver_name=None, verbose=False):
     """
-        A simple 2QBF CEGAR implementation for SMT.
+    A simple 2QBF CEGAR implementation for SMT.
     """
 
     x_univl = set(x_univl)

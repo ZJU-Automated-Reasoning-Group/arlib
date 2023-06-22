@@ -23,8 +23,8 @@ from __future__ import absolute_import
 from pysmt.solvers.z3 import Z3Solver, Z3Model
 from pysmt.exceptions import SolverAPINotFound
 
-from arlib.optimization.omt_exceptions import PysmtInfinityError, \
-    PysmtUnboundedOptimizationError, PysmtInfinitesimalError, GoalNotSupportedError
+from arlib.optimization.omt_exceptions import OMTInfinityError, \
+    OMTUnboundedOptimizationError, OMTInfinitesimalError, GoalNotSupportedError
 
 from arlib.optimization.optimizer import Optimizer, SUAOptimizerMixin, IncrementalOptimizerMixin
 
@@ -79,10 +79,10 @@ class Z3NativeOptimizer(Optimizer, Z3Solver):
                     self.converter.back(opt_value)
                     model = Z3Model(self.environment, self.z3.model())
                     return model, model.get_value(goal.term())
-            except PysmtInfinityError:
-                raise PysmtUnboundedOptimizationError("The optimal value is unbounded")
-            except PysmtInfinitesimalError:
-                raise PysmtUnboundedOptimizationError("The optimal value is infinitesimal")
+            except OMTInfinityError:
+                raise OMTUnboundedOptimizationError("The optimal value is unbounded")
+            except OMTInfinitesimalError:
+                raise OMTUnboundedOptimizationError("The optimal value is infinitesimal")
         else:
             return None
 

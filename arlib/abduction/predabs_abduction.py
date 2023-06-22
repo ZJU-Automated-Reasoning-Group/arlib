@@ -147,7 +147,7 @@ def abduction(precond, postcond, target_vars):
     return sufficient
 
 
-def test_abduction():
+def demo_abduction():
     a, b, c, d = z3.Bools("a b c d")
     precond = z3.Or(a, b, z3.And(c, d))
     postcond = b
@@ -159,5 +159,5 @@ def test_abduction():
     # check if the algo. works
     print(entail(z3.And(res, precond), postcond))
 
-
-test_abduction()
+if __name__ == "__main__":
+    demo_abduction()

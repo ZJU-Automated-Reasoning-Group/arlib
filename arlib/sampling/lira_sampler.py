@@ -1,4 +1,7 @@
-# coding: utf-8
+"""
+For linear integer and real formulas
+"""
+
 import z3
 from arlib.sampling.sampler import Sampler
 from arlib.sampling.linear_ira.dikin_walk import ConunctiveLRASampler

@@ -64,8 +64,9 @@ class OMTBVSolver:
     def bit_blast(self):
         """
         The bit_blast function converts a bit-vector formula to Boolean logic.
-        It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV variables to boolean expressions
-        and the mapping from boolean expressions to numerical IDs, respectively.
+        It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV
+        variables to boolean expressions and the mapping from boolean expressions
+        to numerical IDs, respectively.
         """
         logger.debug("Start translating to CNF...")
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)

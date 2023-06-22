@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 class QFAUFBVSolver:
     """
-    A class for solving QF_AUFBV (Quantifier-Free Array Theory with Uninterpreted Functions and Bit-Vectors) problems.
+    A class for solving QF_AUFBV (Quantifier-Free Array Theory with Uninterpreted
+    Functions and Bit-Vectors) problems.
     """
     sat_engine = 'mgh'
 
@@ -71,21 +72,23 @@ class QFAUFBVSolver:
             return self.solve_qfaufbv_via_z3(fml)
         logger.debug("Start translating to CNF...")
 
-        qfaufbv_preamble = z3.AndThen('simplify',
-                                      'propagate-values',
-                                      'solve-eqs',
-                                      'elim-uncnstr',
-                                      'reduce-bv-size',
-                                      z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False,
-                                              local_ctx=True, local_ctx_limit=10000000),
-                                      # 'bvarray2uf',  # this tactic is dangerous (it only handles specific arrays)
-                                      'max-bv-sharing',
-                                      'ackermannize_bv',
-                                      z3.If(z3.Probe('is-qfbv'),
-                                            z3.AndThen('bit-blast',
-                                                       z3.With('simplify', arith_lhs=False, elim_and=True)),
-                                            'simplify'),
-                                      )
+        qfaufbv_preamble = \
+            z3.AndThen(
+                'simplify',
+                'propagate-values',
+                'solve-eqs',
+                'elim-uncnstr',
+                'reduce-bv-size',
+                z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False,
+                        local_ctx=True, local_ctx_limit=10000000),
+                # 'bvarray2uf',  # this tactic is dangerous (it only handles specific arrays)
+                        'max-bv-sharing',
+                        'ackermannize_bv',
+                        z3.If(z3.Probe('is-qfbv'),
+                                z3.AndThen('bit-blast',
+                                z3.With('simplify', arith_lhs=False, elim_and=True)),
+                                'simplify'),
+                )
 
         qfaufbv_prep = z3.With(qfaufbv_preamble, elim_and=True, sort_store=True)
 

@@ -1,5 +1,5 @@
 class PySamplerException(Exception):
-    """Base class for all custom exceptions of PySampler"""
+    """Base class for all the custom exceptions of PySampler"""
     pass
 
 
@@ -14,7 +14,7 @@ class SolverReturnedUnknownResultError(PySamplerException):
 
 
 class UnknownSolverAnswerError(PySamplerException):
-    """Raised when the a solver returns an invalid response."""
+    """Raised when a solver returns an invalid response."""
     pass
 
 
@@ -44,7 +44,7 @@ class NoLogicAvailableError(PySamplerException):
 
 
 class SolverRedefinitionError(PySamplerException):
-    """Exception representing errors caused by multiple defintion of solvers
+    """Exception representing errors caused by multiple defintions of solvers
        having the same name."""
     pass
 

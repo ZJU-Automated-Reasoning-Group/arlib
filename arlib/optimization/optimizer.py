@@ -247,7 +247,7 @@ class OptSearchInterval(OptComparationFunctions):
 
     def empty(self):
         """True: remove this unit from optimization search"""
-        if self._upper == None or self._lower == None:
+        if self._upper is None or self._lower is None:
             return False
         return self._upper <= self._lower
 
@@ -336,7 +336,7 @@ class ExternalOptimizerMixin(Optimizer):
         for goal in goals:
             if goal.is_maximization_goal() or goal.is_minimization_goal() or goal.is_maxsmt_goal():
                 t = self.optimize(goal = goal,strategy = strategy)
-                if t != None:
+                if t is not None:
                     rt[goal] = t
                 else:
                     return None

@@ -1,7 +1,7 @@
 import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver
-from arlib.utils.types import SolverResult
+from arlib.utils.typing import SolverResult
 
 qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
                            z3.With('propagate-values', flat_and_or=False),

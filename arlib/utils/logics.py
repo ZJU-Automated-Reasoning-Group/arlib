@@ -1,3 +1,0 @@
-"""
-Logics in Arlib
-"""

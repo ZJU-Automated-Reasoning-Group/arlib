@@ -3,9 +3,6 @@ from enum import Enum
 
 
 class Logic(Enum):
-    """
-    Supported logic
-    """
     QF_BOOL = 0,
     QF_BV = 1,
     QF_LRA = 2,

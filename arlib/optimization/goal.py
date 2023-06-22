@@ -20,9 +20,64 @@
 from pysmt.environment import get_env
 from pysmt.oracles import get_logic
 from pysmt.logics import LIA, LRA, BV
+from pysmt.formula import FormulaManager
+
+class OMTFormulaManager(FormulaManager):
+
+    def __int__(self):
+        super.__init__()
+
+    def _MinWrap(self, le, *args):
+        """Returns the encoding of the minimum expression within args using the specified 'Lower-Equal' operator"""
+        exprs = self._polymorph_args_to_tuple(args)
+        assert len(exprs) > 0
+        if len(exprs) == 1:
+            return exprs[0]
+        elif len(exprs) == 2:
+            a, b = exprs
+            return self.Ite(le(a, b), a, b)
+        else:
+            h = len(exprs) // 2
+            return self._MinWrap(le, self._MinWrap(le, exprs[0:h]), self._MinWrap(le, exprs[h:]))
+
+    def _MaxWrap(self, le, *args):
+        """Returns the encoding of the maximum expression within args using the specified 'Lower-Equal' operator"""
+        exprs = self._polymorph_args_to_tuple(args)
+        assert len(exprs) > 0
+        if len(exprs) == 1:
+            return exprs[0]
+        elif len(exprs) == 2:
+            a, b = exprs
+            return self.Ite(le(a, b), b, a)
+        else:
+            h = len(exprs) // 2
+            return self._MaxWrap(le, self._MaxWrap(le, exprs[0:h]), self._MaxWrap(le, exprs[h:]))
+
+    def MinBV(self, sign, *args):
+        """Returns the encoding of the minimum expression within args"""
+        le = self.BVULE
+        if sign:
+            le = self.BVSLE
+        return self._MinWrap(le, *args)
+
+    def MaxBV(self, sign, *args):
+        """Returns the encoding of the maximum expression within args"""
+        le = self.BVULE
+        if sign:
+            le = self.BVSLE
+        return self._MaxWrap(le, *args)
+
+    def Min(self, *args):
+        """Returns the encoding of the minimum expression within args"""
+        return self._MinWrap(self.LE, *args)
+
+    def Max(self, *args):
+        """Returns the encoding of the maximum expression within args"""
+        return self._MaxWrap(self.LE, *args)
 
 
-class Goal(object):
+
+class Goal:
     """
     This class defines goals for solvers.
     Warning: this class is not instantiable
@@ -146,13 +201,19 @@ class MinMaxGoal(MinimizationGoal):
         """
         :param terms: List of FNode
         """
+        # TODO: a "hack" to create an object from a base class object
+        #  Maybe we have better ways..
+        omt_fml_manager = object.__new__(OMTFormulaManager)
+        omt_fml_manager.__dict__ = get_env().fomula_manager.__dict__.copy()
+
         if len(terms) > 0:
             if get_env().stc.get_type(terms[0]).is_bv_type():
-                formula = get_env().formula_manager.MaxBV(sign, terms)
+                formula = omt_fml_manager.MaxBV(sign, terms)
             else:
-                formula = get_env().formula_manager.Max(terms)
+                formula = omt_fml_manager.Max(terms)
         else:
-            formula = get_env().formula_manager.Max(terms)
+            formula = omt_fml_manager.Max(terms)
+
         MinimizationGoal.__init__(self, formula)
         self.terms = terms
         self._bv_signed = sign
@@ -173,13 +234,18 @@ class MaxMinGoal(MaximizationGoal):
         """
         :param terms: List of FNode
         """
+        # TODO: a "hack" to create an object from a base class object
+        #  Maybe we have better ways..
+        omt_fml_manager = object.__new__(OMTFormulaManager)
+        omt_fml_manager.__dict__ = get_env().fomula_manager.__dict__.copy()
+
         if len(terms) > 0:
             if get_env().stc.get_type(terms[0]).is_bv_type():
-                formula = get_env().formula_manager.MinBV(sign, terms)
+                formula = omt_fml_manager.MinBV(sign, terms)
             else:
-                formula = get_env().formula_manager.Min(terms)
+                formula = omt_fml_manager.Min(terms)
         else:
-            formula = get_env().formula_manager.Min(terms)
+            formula = omt_fml_manager.Min(terms)
         MaximizationGoal.__init__(self, formula)
         self.terms = terms
         self._bv_signed = sign

@@ -18,11 +18,11 @@ def is_literal(exp: z3.ExprRef):
     return z3.is_const(exp) and exp.decl().kind() == z3.Z3_OP_UNINTERPRETED
 
 
-def is_ite(exp: z3.ExprRef): return exp.decl().kind() == z3.Z3_OP_ITE
+def is_ite(exp: z3.ExprRef):
+    return exp.decl().kind() == z3.Z3_OP_ITE
 
-
-def is_iff(exp: z3.ExprRef): return exp.decl().kind() == z3.Z3_OP_IFF
-
+def is_iff(exp: z3.ExprRef):
+    return exp.decl().kind() == z3.Z3_OP_IFF
 
 def proj_id_last(var, n_proj_vars, n_vars):
     assert var != 0
@@ -170,7 +170,8 @@ def dimacs_visitor(exp, table):
                 yield var
         return
     else:
-        if z3.is_true(exp): return  # correct?
+        if z3.is_true(exp):
+            return  # correct?
         # elif is_false(e): return ??
         raise Exception("Unhandled type: ", exp)
 

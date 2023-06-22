@@ -1,4 +1,6 @@
-# coding: utf-8
+"""
+For formulas with different types of variables
+"""
 
 from arlib.sampling.sampler import Sampler
 

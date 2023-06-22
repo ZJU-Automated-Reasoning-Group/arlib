@@ -1,9 +1,11 @@
-import z3
-from arlib.sampling.lira_sampler import LRASampler
-
 """
 Command-line tools for sampling...
 """
+
+import z3
+from arlib.sampling.lira_sampler import LRASampler
+
+
 
 
 class SMTSampler(object):
@@ -27,6 +29,7 @@ class SMTSampler(object):
 
 
 class DIMACSSampler(object):
+    """For SAT"""
 
     def __init__(self):
         self.formula = None

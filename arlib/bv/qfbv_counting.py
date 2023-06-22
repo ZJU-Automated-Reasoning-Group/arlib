@@ -1,5 +1,6 @@
 """
-This module provides a BitVector model counter for Z3 formulas. It includes functions for counting models
+This module provides a BitVector model counter for Z3 formulas.
+It includes functions for counting models
 using enumeration, parallel enumeration, and sharpSAT. 
 """
 
