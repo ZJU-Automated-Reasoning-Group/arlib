@@ -97,7 +97,7 @@ def simple_cdclt(smt2string: str):
                 assumptions = bool_solver.get_cube_from_model()
                 # print(assumptions)
                 if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
-                    # E.g., (p @ 1(not p @ 2)(not p @ 9))
+                    # E.g., (p@1 (not p@2) (not p@9))
                     core = theory_solver.get_unsat_core()[1:-1]
                     blocking_clauses_core = "(assert (not (and {} )))\n".format(core)
                     # the following line uses the naive "blocking formula"
