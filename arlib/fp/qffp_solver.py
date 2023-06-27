@@ -76,6 +76,12 @@ class QFFPSolver:
                 # o_cnf = z3.With(to_cnf_impl, elim_and=True, push_ite_bv=True, blast_distinct=True)
                 to_cnf = to_cnf_impl
                 blasted = to_cnf(after_simp).as_expr()
+
+                if z3.is_false(blasted):
+                    return SolverResult.UNSAT
+                elif z3.is_true(blasted):
+                    return SolverResult.SAT
+
                 g_to_dimacs = z3.Goal()
                 g_to_dimacs.add(blasted)
                 pos = CNF(from_string=g_to_dimacs.dimacs())

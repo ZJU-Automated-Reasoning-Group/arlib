@@ -11,7 +11,8 @@ import z3
 
 
 class FormulaGenerator:
-    def __init__(self, init_vars):
+    def __init__(self, init_vars, bv_signed=True,
+                 bv_no_overflow=False, bv_no_underflow=False):
         self.bools = []
         self.use_int = False
         self.ints = []
@@ -23,9 +24,9 @@ class FormulaGenerator:
         # hard_bools are the cnts that must enforced
         # e.g., to enforce the absence of overflow and underflow!
         self.hard_bools = []
-        self.bv_signed = True
-        self.bv_no_overflow = False
-        self.bv_no_underflow = False
+        self.bv_signed = bv_signed
+        self.bv_no_overflow = bv_no_overflow
+        self.bv_no_underflow = bv_no_underflow
 
         for var in init_vars:
             if z3.is_int(var):
@@ -228,7 +229,7 @@ class FormulaGenerator:
 
     def generate_formula(self):
 
-        for i in range(random.randint(2, 5)):
+        for i in range(random.randint(3, 8)):
             if self.use_int:
                 self.bool_from_int()
             if self.use_real:
@@ -237,7 +238,7 @@ class FormulaGenerator:
                 self.bool_from_bv()
 
         for i in range(8):
-            if random.random() < 0.22:
+            if random.random() < 0.33:
                 if self.use_int:
                     self.int_from_int()
                 if self.use_real:
@@ -245,7 +246,7 @@ class FormulaGenerator:
                 if self.use_bv:
                     self.bv_from_bv()
 
-            if random.random() < 0.22:
+            if random.random() < 0.33:
                 if self.use_int:
                     self.bool_from_int()
                 if self.use_real:
@@ -253,7 +254,7 @@ class FormulaGenerator:
                 if self.use_bv:
                     self.bool_from_bv()
 
-            if random.random() < 0.22:
+            if random.random() < 0.33:
                 self.bool_from_bool()
 
         max_assert = random.randint(5, 30)
