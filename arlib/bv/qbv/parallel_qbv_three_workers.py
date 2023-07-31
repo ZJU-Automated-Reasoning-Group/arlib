@@ -18,7 +18,7 @@ Some tactics for creating solvers
    - simplify & smt?
 """
 
-import argparse
+# import argparse
 from enum import Enum
 import multiprocessing
 # import sys

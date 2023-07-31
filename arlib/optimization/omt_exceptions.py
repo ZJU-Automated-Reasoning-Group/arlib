@@ -2,23 +2,30 @@
 Exceptions related to oMT
 """
 
-from pysmt.exceptions import PysmtException
+class PyomtException(Exception):
+    """Base class for all custom exceptions of pySMT"""
+    pass
 
 
-class OMTInfinityError(PysmtException):
+class SolverAPINotFound(PyomtException):
+    """The Python API of the selected solver cannot be found."""
+    pass
+
+
+class OMTInfinityError(PyomtException):
     """Infinite value in expressions."""
     pass
 
-class OMTInfinitesimalError(PysmtException):
+class OMTInfinitesimalError(PyomtException):
     """Infinite value in expressions."""
     pass
 
-class OMTUnboundedOptimizationError(PysmtException):
+class OMTUnboundedOptimizationError(PyomtException):
     """Infinite optimal value in optimization."""
     pass
 
 
-class GoalNotSupportedError(PysmtException):
+class GoalNotSupportedError(PyomtException):
     """Goal not supported by the solver."""
     def __init__(self, current_solver, goal):
         self.current_solver = current_solver

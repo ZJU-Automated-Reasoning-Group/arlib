@@ -1,38 +1,20 @@
 """
 OMT based on Z3
 """
-# This file is part of pySMT.
-#
-#   Copyright 2014 Andrea Micheli and Marco Gario
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
 
 from __future__ import absolute_import
 
 from pysmt.solvers.z3 import Z3Solver, Z3Model
-from pysmt.exceptions import SolverAPINotFound
 
-from arlib.optimization.omt_exceptions import OMTInfinityError, \
+from arlib.optimization.omt_exceptions import OMTInfinityError, SolverAPINotFound, \
     OMTUnboundedOptimizationError, OMTInfinitesimalError, GoalNotSupportedError
 
-from arlib.optimization.optimizer import Optimizer, SUAOptimizerMixin, IncrementalOptimizerMixin
+from arlib.optimization.optimizer import Optimizer
 
 try:
     import z3
 except ImportError:
     raise SolverAPINotFound
-
 
 
 class Z3NativeOptimizer(Optimizer, Z3Solver):
@@ -55,7 +37,7 @@ class Z3NativeOptimizer(Optimizer, Z3Solver):
             ty = self.environment.stc.get_type(term)
             if goal.signed and ty.is_bv_type():
                 width = ty.width
-                term = self.mgr.BVAdd(term, self.mgr.BV(2**(width-1), width))
+                term = self.mgr.BVAdd(term, self.mgr.BV(2 ** (width - 1), width))
             obj = self.converter.convert(term)
             if goal.is_minimization_goal():
                 h = self.z3.minimize(obj)
@@ -63,7 +45,7 @@ class Z3NativeOptimizer(Optimizer, Z3Solver):
                 h = self.z3.maximize(obj)
             else:
                 raise GoalNotSupportedError("z3", goal.__class__)
-        return  h
+        return h
 
     def optimize(self, goal, **kwargs):
         h = self._assert_z3_goal(goal)
@@ -122,17 +104,3 @@ class Z3NativeOptimizer(Optimizer, Z3Solver):
             return model, [model.get_value(x.term()) for x in goals]
         else:
             return None, None
-
-
-class Z3SUAOptimizer(Z3Solver, SUAOptimizerMixin):
-    LOGICS = Z3Solver.LOGICS
-
-    def can_diverge_for_unbounded_cases(self):
-        return True
-
-class Z3IncrementalOptimizer(Z3Solver, IncrementalOptimizerMixin):
-    LOGICS = Z3Solver.LOGICS
-
-    def can_diverge_for_unbounded_cases(self):
-        return True
-

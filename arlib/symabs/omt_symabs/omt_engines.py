@@ -1,14 +1,13 @@
-# coding: utf-8
+"""
+TODO: use utils.z3_plus_smtlib_solver to integrate third-party engine
+"""
+
 import z3
 from typing import List
 from enum import Enum
 
 from arlib.utils.z3_plus_smtlib_solver import Z3SolverPlus
 from arlib.symabs.omt_symabs.z3opt_util import box_optimize, optimize
-
-"""
-TODO: use utils.z3_plus_smtlib_solver to integrate third-party engine
-"""
 
 
 class OMTEngineType(Enum):
