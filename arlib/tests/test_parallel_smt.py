@@ -3,15 +3,13 @@
 For testing CDCL(T)-based parallel SMT solving engine
 """
 
-import logging
-
 import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
 
-from arlib.pcdclt.cdclt_solver import ParallelCDCLTSolver
+from arlib.smt.pcdclt.cdclt_solver import ParallelCDCLTSolver
 from arlib.utils import SolverResult
 
 

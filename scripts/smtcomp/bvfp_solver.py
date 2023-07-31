@@ -7,11 +7,11 @@ import os
 import signal
 import logging
 import psutil
-from arlib.bv.qfbv_solver import QFBVSolver
-from arlib.bv.qfufbv_solver import QFUFBVSolver
-from arlib.bv.qfaufbv_solver import QFAUFBVSolver
-from arlib.fp.qffp_solver import QFFPSolver
-from arlib.fp.qfaufbvfp_solver import QFAUFBVFPSolver
+from arlib.smt.bv import QFBVSolver
+from arlib.smt.bv.qfufbv_solver import QFUFBVSolver
+from arlib.smt.bv import QFAUFBVSolver
+from arlib.smt.fp import QFFPSolver
+from arlib.smt.fp import QFAUFBVFPSolver
 from arlib.utils import SolverResult
 
 G_ARGS = None

@@ -1,0 +1,9 @@
+var bool:  b ::output_var;
+var int:   i ::output_var;
+var float: f ::output_var;
+
+constraint bool2int(b, i);
+constraint int2float(i, f);
+constraint int_eq(i, 1);
+
+solve maximize i;

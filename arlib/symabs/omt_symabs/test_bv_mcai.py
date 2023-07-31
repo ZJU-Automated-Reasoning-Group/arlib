@@ -3,7 +3,7 @@ import z3
 
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
-from arlib.bv.qfbv_counting import BVModelCounter
+from arlib.smt.bv.qfbv_counting import BVModelCounter
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 

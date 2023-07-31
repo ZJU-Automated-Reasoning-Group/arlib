@@ -5,7 +5,7 @@ For testing the QF_FP solver
 
 from arlib.tests import TestCase, main
 from arlib.tests.grammar_gene import gene_smt2string
-from arlib.fp.qffp_solver import QFFPSolver
+from arlib.smt.fp import QFFPSolver
 from arlib.utils import SolverResult
 
 import z3

@@ -1,0 +1,114 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% (ARRAY) PAR/VAR BOOL %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+bool: b0 ::output_var = true;
+var bool: b1 ::output_var = true;
+var bool:b2::output_var=false ;     % spacing test
+var bool: b3 ::output_var;          % unconstrained test
+var bool: b4 ::output_var = b1;
+var bool: b5 ::output_var;          % set by constraint
+
+array [1..3] of bool: ab0 ::output_array([1..3]) = [true, false, true];
+array [1..3] of var bool: ab1 ::output_array([1..3]) = [false, true, false];
+array [1..3] of var bool:ab2::output_array([1..3]) ;    % spacing + unconstrained test
+array [1..3] of var bool: ab3 ::output_array([1..3]) = ab1;
+array [1..3] of var bool: ab4 ::output_array([1..3]) = ab2;
+array [1..3] of var bool: ab5 ::output_array([1..3]);   % set by constraint
+array [1..3] of var bool: ab6 ::output_array([1..3]) = [b1, b3, b5];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% (ARRAY) PAR/VAR INT %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+int: i0 ::output_var = 1;
+var int: i1 ::output_var = -2;
+var -100..100: i2 ::output_var;
+var int:i3::output_var ;            % spacing + unconstrained test
+var int: i4 ::output_var = i1;
+var int: i5 ::output_var;           % set by constraint
+
+array [1..3] of int: ai0 ::output_array([1..3]) = [-1, 0, 1];
+array [1..3] of var int: ai1 ::output_array([1..3]) = [1, 0, -1];
+array [1..3] of var int:ai2::output_array([1..3]) ;    % spacing + unconstrained test
+array [1..3] of var int: ai3 ::output_array([1..3]) = ai1;
+array [1..3] of var int: ai4 ::output_array([1..3]) = ai2;
+array [1..3] of var int: ai5 ::output_array([1..3]);   % set by constraint
+array [1..3] of var int: ai6 ::output_array([1..3]) = [i1, i3, i5];
+array [1..3] of var -50..50: ai7 ::output_array([1..3]) ;
+array [1..3] of var int: ai8 ::output_array([1..3]) = [ai1[1], ai2[1], ai7[1]];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% (ARRAY) PAR/VAR FLOAT %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+float: f0 ::output_var = 0.5;
+var float: f1 ::output_var = -3.14;
+var -50.0..50.0: f2 ::output_var;
+var float:f3::output_var ;          % spacing + unconstrained test
+var float: f4 ::output_var = f1;
+var float: f5 ::output_var;         % set by constraint
+
+array [1..3] of float: af0 ::output_array([1..3]) = [-1.5, 0.0, 1.5];
+array [1..3] of var float: af1 ::output_array([1..3]) = [0.0001, 0.0, -0.00011];
+array [1..3] of var float:af2::output_array([1..3]) ;    % spacing + unconstrained test
+array [1..3] of var float: af3 ::output_array([1..3]) = af1;
+array [1..3] of var float: af4 ::output_array([1..3]) = af2;
+array [1..3] of var float: af5 ::output_array([1..3]);   % set by constraint
+array [1..3] of var float: af6 ::output_array([1..3]) = [f1, f3, f5];
+array [1..3] of var -50.0..50.0: af7 ::output_array([1..3]) ;
+array [1..3] of var float: af8 ::output_array([1..3]) = [af1[1], af2[1], af7[1]];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% (ARRAY) PAR/VAR SET (OF INT) %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+set of int: s0 ::output_var = {1, 2, 3};
+var set of int: s1 ::output_var = { -1, 0, 1 };
+var set of -5..5: s2 ::output_var;
+var set of -5..5:s3::output_var;        % spacing + unconstrained test
+var set of int: s4 ::output_var = s1;
+var set of int: s5 ::output_var = s3;
+var set of -5..5: s6 ::output_var;        % set by constraint
+var set of -5..5: s7 ::output_var;      % set by constraint
+
+array [1..3] of set of int: as0 ::output_array([1..3]) = [{1,2}, {5,6}, {-1, -2}];
+array [1..3] of var set of int: as1 ::output_array([1..3]) = [{1,3}, 5..6, {-1, -2}];
+array [1..3] of var set of -5..5:as2::output_array([1..3]) ;  % spacing + unconstrained test
+array [1..3] of var set of int: as3 ::output_array([1..3]) = as1;
+array [1..3] of var set of int: as4 ::output_array([1..3]) = as2;
+array [1..3] of var set of -5..5: as5 ::output_array([1..3]); % set by constraint
+array [1..3] of var set of int: as6 ::output_array([1..3]) = [s1, s3, s6];
+array [1..3] of var set of -5..5: as7 ::output_array([1..3]) ;
+array [1..3] of var set of int: as8 ::output_array([1..3]) = [as1[1], as2[1], as7[1]];
+
+%%%%%%%%%%%%%%%%%%%
+%%% CONSTRAINTS %%%
+%%%%%%%%%%%%%%%%%%%
+
+constraint bool_eq(b5, true);
+constraint bool_eq(ab5[1], true);
+constraint bool_eq(ab5[2], false);
+constraint bool_eq(ab5[3], true);
+
+constraint int_eq(i5, -8);
+constraint int_eq(ai5[1], 9);
+constraint int_eq(ai5[2], 0);
+constraint int_eq(ai5[3], -9);
+
+constraint float_eq(f5, 0.00000000000001);
+constraint float_eq(af5[1], 0.95);
+constraint float_eq(af5[2], 0.0);
+constraint float_eq(af5[3], -9.5);
+
+constraint set_eq(s6, {1, 2, 3});
+constraint set_card(s7, 5);
+constraint set_eq(as5[1], {-1, 0, 1});
+constraint set_card(as5[2], 5);
+constraint set_card(as5[3], 0);
+
+%%%%%%%%%%%%%%%%%%
+%%% SOLVE ITEM %%%
+%%%%%%%%%%%%%%%%%%
+
+solve satisfy;
