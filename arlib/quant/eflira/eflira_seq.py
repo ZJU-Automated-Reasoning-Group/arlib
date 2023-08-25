@@ -4,7 +4,7 @@ import time
 
 import z3
 
-from efsmt_parser import EFSMTParser, EFSMTZ3Parser
+from arlib.quant.efsmt_parser import EFSMTZ3Parser
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def solve_with_z3(y: List[z3.ExprRef], phi: z3.ExprRef):
 
 
 def test2():
-    file = "/Users/prism/Desktop/efbv.smt2"
+    file = "efbv.smt2"
     # ss = EFSMTParser()
     ss = EFSMTZ3Parser()
     exists_vars, forall_vars, qf_fml = ss.parse_smt2_file(file)

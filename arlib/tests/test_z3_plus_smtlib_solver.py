@@ -120,17 +120,11 @@ class TestZ3PlusSMTLIBSolver(TestCase):
         return
         x, y, z, w = z3.Ints("x y z w")
         ss = z3.Optimize()
-        ss.from_file("/Users/prism/Work/optimathsat/bin/xx.smt2")
+        ss.from_file("xx.smt2")
         fml = z3.And(ss.assertions())
-        # fml = And(x < 3, y < 8)
         s = Z3SolverPlus()
-        # ret = s.optimize(fml, x, minimize=False, logic="QF_LIA")
-        # print(ret)
         ret_mut = s.compute_min_max(fml, minimize=[y, z, w], maximize=[y, z, w])
         print(ret_mut)
-
-        # from bvopt.z3opt_util import box_optimize
-        # print(box_optimize(fml,  minimize=[x, y], maximize=[x, y]))
 
     def test_all_sat(self):
         # require SMTInterpol

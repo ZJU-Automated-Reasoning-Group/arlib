@@ -14,7 +14,7 @@ g_process_queue = []
 
 def solve_with_partitioned(formula_file, result_queue):
     print("one worker working")
-    cmd = ["/Users/prism/Work/cvc5/build/bin/cvc5", "-q", "--produce-models", formula_file]
+    cmd = ["cvc5", "-q", "--produce-models", formula_file]
     print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out = p.stdout.readlines()

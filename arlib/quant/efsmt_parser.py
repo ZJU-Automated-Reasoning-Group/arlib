@@ -270,17 +270,16 @@ def test_parser():
 (check-sat)
     """
     ss = EFSMTParser()
-    print(ss.parse_smt2_string(lia))
+    print(ss.parse_smt2_string(bv))
 
     ss2 = EFSMTZ3Parser()
-    print(ss2.parse_smt2_string(lia))
+    print(ss2.parse_smt2_string(bv))
 
 
 if __name__ == '__main__':
     test_parser()
     exit(0)
-    file = "/Users/prism/Desktop/4.smt2"
-    # file = "/Users/prism/Desktop/test.smt2"
+    file = "xx.smt2"
     ss = EFSMTParser()
     _, forall_vars, fml = ss.parse_smt2_file(file)
     # sol = z3.Solver()
