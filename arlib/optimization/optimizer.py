@@ -1,4 +1,6 @@
-"""Interfaces for Optimization Modulo Theory (OMT) Solving"""
+"""Interfaces for Optimization Modulo Theory (OMT) Solving
+
+"""
 
 
 class Optimizer:
@@ -19,7 +21,6 @@ class Optimizer:
         or negative infinite or if there is no optimum value because
         one can move arbitrarily close to the optimum without reching
         it (e.g. "x > 5" has no minimum for x, only an infimum)
-
         """
         raise NotImplementedError
 
@@ -85,27 +86,5 @@ class Optimizer:
         unbounded (infinite or infinitesimal).
         """
         raise NotImplementedError
+    
 
-
-    def _get_symbol_type(self, objective_formula):
-        raise NotImplementedError
-
-    def _get_or(self, objective_formula):
-        raise NotImplementedError
-
-
-    def _get_le(self, objective_formula):
-        raise NotImplementedError
-
-
-    def _get_lt(self, objective_formula):
-        raise NotImplementedError
-
-
-class OptComparationFunctions:
-
-    def _comparation_functions(self, goal):
-        """Internal utility function to get the proper cast, LT and LE
-        function for the given objective formula
-        """
-        raise NotImplementedError

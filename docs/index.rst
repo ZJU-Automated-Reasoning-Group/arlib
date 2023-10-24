@@ -21,13 +21,11 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 * Knowledge compilation
 * MaxSAT, MaxSMT, and OMT
 * QBF solving
-* Formula simplifications
+* Formula rewritings/simplifications
 * ...
 
 Please let us know of any problem or possible improvements by opening
 an issue.
-
-
 
 =============
 Installing and Using Arlib
@@ -51,4 +49,4 @@ Research Topics
 =============
 
 For Summer Research, Honours/Master Thesis Project Topics, please refer to
-`topics.md`
+`topics.rst`

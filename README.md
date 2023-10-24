@@ -16,9 +16,16 @@ Arlib is toolkit for automated reasoning.
 
 ## Usage
 
-See `docs/index.md`
+See `docs/index.rst`
 
-## Contact
+
+## Research Topics
+
+For Summer Research, Honours/Master Thesis Project Topics, please refer to
+`docs/topics.rst`
+
+
+## Contributors
 
 Primary contributors to this project:
 - rainoftime

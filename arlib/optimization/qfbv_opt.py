@@ -8,6 +8,22 @@ OMT(BV) Solver
 TODO:
   - Need to track the relations between bit-vector variables, boolean variables, and the numbers in pysat CNF
   - Integrated with a uniform interface?
+
+NOTE: in pysat, we can use different names
+    cadical103  = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
+    cadical153  = ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153')
+    gluecard3   = ('gc3', 'gc30', 'gluecard3', 'gluecard30')
+    gluecard4   = ('gc4', 'gc41', 'gluecard4', 'gluecard41')
+    glucose3    = ('g3', 'g30', 'glucose3', 'glucose30')
+    glucose4    = ('g4', 'g41', 'glucose4', 'glucose41')
+    lingeling   = ('lgl', 'lingeling')
+    maplechrono = ('mcb', 'chrono', 'chronobt', 'maplechrono')
+    maplecm     = ('mcm', 'maplecm')
+    maplesat    = ('mpl', 'maple', 'maplesat')
+    mergesat3   = ('mg3', 'mgs3', 'mergesat3', 'mergesat30')
+    minicard    = ('mc', 'mcard', 'minicard')
+    minisat22   = ('m22', 'msat22', 'minisat22')
+    minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
 import logging
 import random
@@ -24,26 +40,10 @@ from arlib.bool import MaxSATSolver
 
 logger = logging.getLogger(__name__)
 
-"""
-    cadical103  = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
-    cadical153  = ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153')
-    gluecard3   = ('gc3', 'gc30', 'gluecard3', 'gluecard30')
-    gluecard4   = ('gc4', 'gc41', 'gluecard4', 'gluecard41')
-    glucose3    = ('g3', 'g30', 'glucose3', 'glucose30')
-    glucose4    = ('g4', 'g41', 'glucose4', 'glucose41')
-    lingeling   = ('lgl', 'lingeling')
-    maplechrono = ('mcb', 'chrono', 'chronobt', 'maplechrono')
-    maplecm     = ('mcm', 'maplecm')
-    maplesat    = ('mpl', 'maple', 'maplesat')
-    mergesat3   = ('mg3', 'mgs3', 'mergesat3', 'mergesat30')
-    minicard    = ('mc', 'mcard', 'minicard')
-    minisat22   = ('m22', 'msat22', 'minisat22')
-    minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
-"""
+
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                         'g4', 'lgl', 'mcb', 'mpl', 'mg3',
                         'mc', 'm22', 'msh']
-
 
 class OMTBVSolver:
     """
@@ -61,12 +61,26 @@ class OMTBVSolver:
         self.fml = formula
         self.vars = get_vars(self.fml)
 
+    def from_smt2_file(self, file_name: str):
+        raise NotImplementedError
+
+    def from_smt2_string(self, smt2_str: str):
+        raise NotImplementedError
+
     def bit_blast(self):
         """
         The bit_blast function converts a bit-vector formula to Boolean logic.
         It sets the `bv2bool` and `bool2id` class attributes as the mapping from BV
         variables to boolean expressions and the mapping from boolean expressions
         to numerical IDs, respectively.
+        FIXME: To track the correlation between bit-vector and Boolean variables,
+          we use very restrictive pre-processing tactics in the function translate_smt2formula_to_cnf .
+          Unfortunately, the translated Boolean formula can be very complex.
+          In the OMT engine inside z3, it seems that more aggressive pre-processing can be used.
+          However, we need a method to track the relation. Consider the following example:
+          E.g., to encode a 4-bits bit-vector x, an aggressive pre-processing may result in
+          a Boolean formula with only three variables {b1, b2, b3}. We don't know which
+          bi corresponds to which bit of x.
         """
         logger.debug("Start translating to CNF...")
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.fml)
@@ -182,11 +196,20 @@ class OMTBVSolver:
     """
     NOTE: the following ones are the external interface
     """
-
     def maximize(self, obj: z3.ExprRef, is_signed=False):
         return self.maximize_with_maxsat(obj, is_signed)
 
-    def maximize_boxed(self, objs: List[z3.ExprRef], is_signed=False):
+    def boxed_optimize(self, goals: List[z3.ExprRef], is_signed=False):
+        """TODO"""
         res = []
-        for obj in objs:
+        for obj in goals:
             res.append(self.maximize(obj, is_signed))
+        raise NotImplementedError
+
+    def lexicographic_optimize(self, goals):
+        """TODO"""
+        raise NotImplementedError
+
+    def pareto_optimize(self, goals):
+        """TODO"""
+        raise NotImplementedError
