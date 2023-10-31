@@ -88,3 +88,28 @@ class MaxSATSolver:
             print(ex)
         # print("final assumptions: ", assumption_lits)
         return assumption_lits
+
+    def obv_bs(self):
+        result = []
+
+        bits = []
+        for i in reversed(range(len(self.soft))):
+            bits.append(self.soft[i][0])
+
+        s = Solver(name=self.sat_engine_name, bootstrap_with=self.hard, use_timer=True)
+
+        if s.solve():
+            m = s.get_model()
+        else:
+            print('UNSAT')
+            return result
+        for b in bits:
+            if m[b] > 0:
+                result.append(b)
+            else:
+                if s.solve(assumptions=result):
+                    m = s.get_model()
+                    result.append(b)
+                else:
+                    result.append(-b)
+        return result
