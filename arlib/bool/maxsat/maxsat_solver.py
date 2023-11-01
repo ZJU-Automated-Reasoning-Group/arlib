@@ -88,3 +88,34 @@ class MaxSATSolver:
             print(ex)
         # print("final assumptions: ", assumption_lits)
         return assumption_lits
+
+def obv_bs(clauses,n):
+    result = []
+
+    s = Solver(bootstrap_with=clauses)
+
+    if s.solve():
+        m = s.get_model()
+        #print(m)
+    else:
+        print('UNSAT')
+        return result
+    l = len(m)
+    for i in range(l):
+        if m[i] > 0:
+            result.append(i+1)
+        else:
+            result.append(i + 1)
+            if s.solve(assumptions=result):
+                m = s.get_model()
+            else:
+                result.pop()
+                result.append(-i-1)
+    if l < n:
+        while l < n:
+            result.append(l+1)
+            l = l + 1
+    #print(result)
+    return result
+
+obv_bs([[1,2],[-3,-4],[-5,-7]],8)
