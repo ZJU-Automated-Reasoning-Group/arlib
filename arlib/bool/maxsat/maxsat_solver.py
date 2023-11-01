@@ -12,6 +12,7 @@ from pysat.solvers import Solver
 
 from .fm import FM  # is the FM correct???
 from .rc2 import RC2
+from .bs import obv_bs
 
 
 class MaxSATSolver:
@@ -67,6 +68,7 @@ class MaxSATSolver:
 
         NOTE: we assume that each element in self.soft is a unary clause, i.e., self.soft is [[l1], [l2], ...]
         """
+        '''
         bits = []
         for i in reversed(range(len(self.soft))):
             bits.append(self.soft[i][0])
@@ -88,3 +90,5 @@ class MaxSATSolver:
             print(ex)
         # print("final assumptions: ", assumption_lits)
         return assumption_lits
+        '''
+        return obv_bs(self.hard, len(self.soft))
