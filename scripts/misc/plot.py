@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import rcParams
 
-
 def find_csv(path):
     file_list = []
     for root, dirs, files in os.walk(path):

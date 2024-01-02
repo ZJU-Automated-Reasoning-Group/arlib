@@ -2,7 +2,9 @@
 
 Arlib is toolkit for automated reasoning.
 
+## Milestones
 
+- Make setup.py work (release the repo as a Python library )
 
 ## Installation
 

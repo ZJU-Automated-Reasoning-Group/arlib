@@ -3,7 +3,7 @@ Summer Research, Honours/Master Thesis Project Topics
 
 
 =========
-Beyond SMT Solving
+1. Beyond SMT Solving
 =========
 
 
@@ -48,8 +48,12 @@ Bit-Vector Model Sampling
 -------
 
 =========
-SMT Solving for Specific Theories
+2. SMT Solving for Specific Theories
 =========
+
+SMT Solving for String Constraints
+--------
+
 
 
 SMT Solving for Galois Field
@@ -62,7 +66,7 @@ computer science, and engineering, such as coding theory, cryptography, and
 digital signal processing.
 
 
-SMT Solving for Exists-Forall Problems
+SMT Solving for Exists-Forall Problems over Bit-Vectors
 --------
 
 
