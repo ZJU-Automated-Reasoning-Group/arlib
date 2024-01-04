@@ -1,52 +1,87 @@
 """Parse an OMT instance"""
 
 import z3
+from z3.z3consts import *
 
 
 class OMTParser:
     """Currently, we focus on two modes
-    - Single-objective optimization
-    - Multi-objective optimization under the boxed mode (each obj is independent)"""
+    1. Single-objective optimization
+    2. Multi-objective optimization under the boxed mode (each obj is independent)"""
 
     def __init__(self):
-        self.objectives = None
+        """
+        For multi-objective optimization,
+        """
         self.assertions = None
+        self.objectives = []
+        self.to_max_obj = True  # convert all objectives to max
+        self.to_min_obj = False  # convert all objectives to min
+        self.debug = True
 
-    def parse_string(self, fml_str):
-        """FIXME: It sees that Z3 will convert each goal of the form "max f"  to "-f".
-            So, should the backend engines regard the converted objectives/goals as all "minimize
-            However, many of our queries are of th form "max x; min x; max y; min y; ...."
+    def parse_with_pysmt(self):
+        # pysmt does not support
+        raise NotImplementedError
+
+    def parse_with_z3(self, fml: str, is_file=False):
+        """FIXME: Should we convert all the objectives/goals as all "minimize goals" (as Z3 does)?
+            (or should we convert them to "maximize goals"?)
+            However, the queries can be of the form "max x; min x; max y; min y; ...."
         """
         s = z3.Optimize()
-        s.from_string(fml_str)
+        if is_file:
+            s.from_file(fml)
+        else:
+            s.from_string(fml)
         self.assertions = s.assertions()
-        self.objectives = s.objectives()
-        # for obj in s.objectives():
-        #    print("obj: ", obj)
-        #    print("decl: ", obj.decl().name())
-    def parse_file(self, fml_file_name):
-        s = z3.Optimize()
-        # s.set("opt.priority", "box")
-        s.from_file(fml_file_name)
-        self.assertions = s.assertions()
-        self.objectives = s.objectives()
+        # We cannot set both self.to_min_obj and self.to_max_obj to True
+        assert not (self.to_min_obj and self.to_max_obj)
+        if self.to_min_obj:
+            # It sees that Z3 will convert each goal of the form "max f"  to "-f".
+            # So, we just assign s.objectives() to self.objectives
+            self.objectives = s.objectives()
+        elif self.to_max_obj:
+            # the semantics of bvneg: [[(bvneg s)]] := nat2bv[m](2^m - bv2nat([[s]]))
+            #  Z3 will convert each goal of the form "max f"  to "-f".
+            #  So, we need to "convert them back"?
+            for obj in s.objectives():
+                # if calling z3.simplify(-obj), the obj may look a bit strange
+                if obj.decl().kind() == Z3_OP_BNEG:
+                    # self.objectives.append(-obj)
+                    # If the obj is of the form "-expr", we can just add "expr" instead of "--expr"?
+                    self.objectives.append(obj.children()[0])
+                else:
+                    self.objectives.append(-obj)
+        if self.debug:
+            for obj in self.objectives:
+                print("obj: ", obj)
 
 
 # (set-option :opt.priority box)
 def demo_omt_parser():
-    fml = """
-    (declare-const x (_ BitVec 16))
-    (declare-const y (_ BitVec 16))
-    (assert (bvult x (_ bv100 16)))
-    (assert (bvule y (_ bv98 16)))
-    (maximize (bvsub x y))
-    (minimize (bvadd x y))
-    (minimize (bvneg y))
-    (check-sat)
-    (get-objectives)
+    from arlib.optimization.qfbv_opt import BVOptimize
+    from arlib.symabs.omt_symabs.z3opt_util import box_optimize
+    fml_one = """
+    (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
+    (assert (bvult x (_ bv100 16))) \n (assert (bvule y (_ bv98 16))) \n
+    (maximize (bvsub x y)) \n (minimize (bvadd x y)) \n (minimize (bvneg y)) \n (check-sat)
+    """
+    fml_two = """
+    (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
+    (assert (bvult x (_ bv100 16))) \n (assert (bvuge y (_ bv98 16))) \n
+    (maximize x) \n (minimize x) \n (maximize y) \n (minimize y) \n (check-sat)
     """
     s = OMTParser()
-    s.parse_string(fml)
+    s.parse_with_z3(fml_two)
+
+    # use Z3
+    print(box_optimize(z3.And(s.assertions), minimize=[], maximize=s.objectives)[1])
+
+    # use our implementation
+    opt = BVOptimize()
+    opt.from_smt_formula(z3.And(s.assertions))
+    res = opt.boxed_optimize(goals=s.objectives, is_signed=False)
+    print(res)
 
 
 if __name__ == "__main__":

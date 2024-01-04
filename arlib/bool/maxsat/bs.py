@@ -12,9 +12,7 @@ def obv_bs(clauses, literals):
 
     """
     result = []
-
     s = Solver(bootstrap_with=clauses)
-
     if s.solve():
         m = s.get_model()
         # print(m)

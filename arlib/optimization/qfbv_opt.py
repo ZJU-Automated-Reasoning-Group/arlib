@@ -39,12 +39,20 @@ class BVOptimize:
 
     def boxed_optimize(self, goals: List[z3.ExprRef], is_signed=False):
         """TODO: How to distinguish min goals and max goals in a list of ExperRef (the current API
-            seems not to be a good idea)?
-            A possible strategy is to convert each max goal to a min goal (or the reverse direction)"""
-        result = []
+            seems not to be a good idea)? A possible strategy is to convert each max goal
+            to a min goal (or the reverse direction)"""
+        results = []
+        sol = BitBlastOMTBVSolver()
+        sol.from_smt_formula(self.fml)
         for obj in goals:
-            result.append(self.maximize(obj, is_signed))
-        raise result
+            assert z3.is_bv(obj)
+            # FIXME: currently, maximize_with_maxsat still calls bit-blasting many times.
+            #  It is because that, we create a fresh variable for each  goao/objective,
+            #   (e.g., we create an m to encode x - y), so that we can track the correlation of m and
+            #  its corresponding Boolean variables.
+            #   A simple "fixing strategy": create all the aux variables a the beginning
+            results.append(sol.maximize_with_maxsat(obj, is_signed=is_signed))
+        return results
 
     def lexicographic_optimize(self, goals):
         """TODO"""
