@@ -1,14 +1,7 @@
-# coding: utf-8
-import z3
+from z3 import *
 from typing import List
 
-"""
-Mode: pareto, lex, box
-Engine: farkas, symba, ...
-"""
-
-
-def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
+def optimize_as_long(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
     """
     The optimize function takes in a formula, an objective function, and whether the
      objective is to be minimized. It then adds the formula to a z3 solver object and sets
@@ -30,11 +23,10 @@ def optimize(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0)
     else:
         obj = s.maximize(obj)
     if s.check() == z3.sat:
-        # FIXME: is it possible that the value may exceed the max length of a bit-width?
-        return obj.value()
+        return obj.value().as_long()
 
 
-def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int = 0):
+def box_optimize_as_long(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int = 0):
     """
     Returns a model based on given constraints as a tuple
     :param fml: formula
@@ -51,26 +43,6 @@ def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int =
     min_objectives = [s.minimize(e) for e in minimize]
     max_objectives = [s.maximize(e) for e in maximize]
     if s.check() == z3.sat:
-        min_res = [obj.value() for obj in min_objectives]
-        max_res = [obj.value() for obj in max_objectives]
+        min_res = [obj.value().as_long() for obj in min_objectives]
+        max_res = [obj.value().as_long() for obj in max_objectives]
         return min_res, max_res
-
-
-def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=0) -> int:
-    """
-    Solving MaxSMT instances
-    :return:  sum of weight for unsatisfied soft clauses (following the MaxSAT literature?)
-    """
-    cost = 0
-    s = z3.Optimize()
-    s.add(hard)
-    if timeout > 0:
-        s.set("timeout", timeout)
-    for i in range(len(soft)):
-        s.add_soft(soft[i], weight=weight[i])
-    if s.check() == z3.sat:
-        m = s.model()
-        for i in range(len(soft)):
-            if z3.is_false(m.eval(soft[i], True)):
-                cost += weight[i]
-    return cost

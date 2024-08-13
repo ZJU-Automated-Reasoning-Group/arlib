@@ -101,7 +101,7 @@ class BitBlastOMTBVSolver:
 
         if obj not in self.vars:
             # print(obj, "is not a var in self.vars")
-            objvars = get_vars(obj)
+            objvars = get_vars(obj)  # FIXME: get_vars can be slow
             for v in objvars:
                 if v not in self.vars:
                     raise Exception(str(obj), "contains a var not in the hard formula")

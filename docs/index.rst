@@ -8,7 +8,7 @@ Introduction
 arlib is a toolkit for playing with various automated reasoning tasks, such as
 
 
-* Solving Exits-Forall SMT formulas
+* Solving exits-forall SMT formulas
 * Solving general quantified SMT formulas
 * Quantifier elimination
 * Sampling solutions of SMT formulas

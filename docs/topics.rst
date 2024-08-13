@@ -14,7 +14,7 @@ Parallel Bit-Vector Optimizations
 Optimization Modulo Theory (OMT) is an extension of SMT, which is used for checking the 
 satisfiability of logical formulas with respect to background theories such as 
 arithmetic, arrays, and bit vectors. 
-OMT extends this by adding optimization capabilities, enabling it to find solutions 
+OMT extends SMT by adding optimization capabilities, enabling it to find solutions
 that minimize or maximize a given objective function.
 
 Here, we are interested in OMT(BV) problems, where the solution space is characterized by a
@@ -47,6 +47,8 @@ Refer to `arlib/bv/bv_counting`.
 Bit-Vector Model Sampling
 -------
 
+Given a satisfiable formula `P`, how to generate multiple and diverse solutions `P`?
+
 =========
 2. SMT Solving for Specific Theories
 =========
@@ -54,7 +56,7 @@ Bit-Vector Model Sampling
 SMT Solving for String Constraints
 --------
 
-
+(We have an idea about parallel string constraint solving)
 
 SMT Solving for Galois Field
 --------

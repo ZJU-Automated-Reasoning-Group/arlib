@@ -41,9 +41,10 @@ class OMTParser:
             # So, we just assign s.objectives() to self.objectives
             self.objectives = s.objectives()
         elif self.to_max_obj:
-            # the semantics of bvneg: [[(bvneg s)]] := nat2bv[m](2^m - bv2nat([[s]]))
-            #  Z3 will convert each goal of the form "max f"  to "-f".
-            #  So, we need to "convert them back"?
+            # https://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml
+            # TODO: the semantics of bvneg: [[(bvneg s)]] := nat2bv[m](2^m - bv2nat([[s]]))
+            # Z3 will convert each goal of the form "max f"  to "-f".
+            # So, we need to "convert them back"?
             for obj in s.objectives():
                 # if calling z3.simplify(-obj), the obj may look a bit strange
                 if obj.decl().kind() == Z3_OP_BNEG:
@@ -60,28 +61,36 @@ class OMTParser:
 # (set-option :opt.priority box)
 def demo_omt_parser():
     from arlib.optimization.qfbv_opt import BVOptimize
-    from arlib.symabs.omt_symabs.z3opt_util import box_optimize
+    from arlib.optimization.opt_util import box_optimize_as_long, optimize_as_long
     fml_one = """
     (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
     (assert (bvult x (_ bv100 16))) \n (assert (bvule y (_ bv98 16))) \n
     (maximize (bvsub x y)) \n (minimize (bvadd x y)) \n (minimize (bvneg y)) \n (check-sat)
     """
     fml_two = """
-    (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
-    (assert (bvult x (_ bv100 16))) \n (assert (bvuge y (_ bv98 16))) \n
+    (declare-const x (_ BitVec 4)) \n (declare-const y (_ BitVec 4)) \n
+    (assert (bvult x (_ bv5 4))) \n (assert (bvuge y (_ bv3 4))) \n
     (maximize x) \n (minimize x) \n (maximize y) \n (minimize y) \n (check-sat)
     """
-    s = OMTParser()
-    s.parse_with_z3(fml_two)
-
-    # use Z3
-    print(box_optimize(z3.And(s.assertions), minimize=[], maximize=s.objectives)[1])
-
-    # use our implementation
-    opt = BVOptimize()
-    opt.from_smt_formula(z3.And(s.assertions))
-    res = opt.boxed_optimize(goals=s.objectives, is_signed=False)
-    print(res)
+    if True:
+        x, y = z3.BitVecs("x y", 4)
+        fml = z3.And(z3.ULT(x, 5), z3.UGE(y, 3))
+        print(optimize_as_long(fml=fml, obj=-x, minimize=False))  # 15?
+        # print(optimize_as_long(fml=fml, obj=x, minimize=True))
+        # print(optimize_as_long(fml=fml, obj=y, minimize=False))
+        # print(optimize_as_long(fml=fml, obj=y, minimize=True))
+        # print(box_optimize_as_long(fml, minimize=[], maximize=[x, -x, y, -y]))
+    else:
+        s = OMTParser()
+        s.parse_with_z3(fml_two)
+        print(s.objectives)
+        # use Z3
+        print(box_optimize_as_long(z3.And(s.assertions), minimize=[], maximize=s.objectives)[1])
+        # use our implementation
+        opt = BVOptimize()
+        opt.from_smt_formula(z3.And(s.assertions))
+        res = opt.boxed_optimize(goals=s.objectives, is_signed=False)
+        print(res)
 
 
 if __name__ == "__main__":
