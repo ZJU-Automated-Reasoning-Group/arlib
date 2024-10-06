@@ -8,8 +8,8 @@
 Implemented in MathSAT5.
 
 Basic idea: Abstraction/refinement to SMT(QF UFLA)
-- non-linear multiplication, sin() and exp() modeled by uninterpreted functions
-- incrementally axiomatized on demand by linear constraints
+- Non-linear multiplication, sin() and exp() modeled by uninterpreted functions
+- Incrementally axiomatized on demand by linear constraints
 
 1. Abstract a non-linear (e.g., QF_NRA) formula as a linear formula (QF_UFLRA)
 2. If the abstracted formula is UNSAT, then the original formula is also UNSAT
@@ -27,3 +27,5 @@ Implemented in Z3++ by Shaowei Cai's Group
 
 - Convert the non-linear formula to a "program"
 - Fuzz the program to obtain a solution
+
+## Related Work

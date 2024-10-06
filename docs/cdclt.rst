@@ -1,8 +1,9 @@
 Parallel SMT CDCL(T) Solving
 =================================
 
+We have designed and implemented a new parallel solving
+algorithm based on the CDCL(T) architecture.
 
-To optimize Z3 and reduce dependencies and bottlenecks, avoid using Z3's API.
 
 ==========
 Related Work
@@ -21,7 +22,7 @@ Refer to the following links for related work:
 Refer to https://smtlib.cs.uiowa.edu/benchmarks.shtml for benchmarks.
 
 ==========
-How to Install and Use
+How to Use
 ==========
 
 

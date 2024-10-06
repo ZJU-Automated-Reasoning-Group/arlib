@@ -1,12 +1,11 @@
-Welcome to arlib's documentation!
+Welcome to arlib's Documentation!
 =================================
 
 =============
 Introduction
 =============
 
-arlib is a toolkit for playing with various automated reasoning tasks, such as
-
+Arlib is a toolkit for playing with various automated reasoning tasks.  Some of its key features include:
 
 * Solving exits-forall SMT formulas
 * Solving general quantified SMT formulas
@@ -24,8 +23,7 @@ arlib is a toolkit for playing with various automated reasoning tasks, such as
 * Formula rewritings/simplifications
 * ...
 
-Please let us know of any problem or possible improvements by opening
-an issue.
+We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
 
 =============
 Installing and Using Arlib

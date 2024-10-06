@@ -17,8 +17,8 @@ Craig interpolant is a formula that captures the shared information
 between ``A`` and ``B``, and "explains" why they are contradictory.
 Craig interpolants have several important applications in model checking
 
-- Abstraction refinement
-- Approximating the image computation
+- Abstraction refinement in verification
+- Approximating the image computation in verification
 - ...?
 
 The computation of Craig interpolants is a challenging problem, and various 
@@ -29,3 +29,5 @@ Interpolant Generation in Arlib
 
 References
 =========
+
+- McMillan, K. L. (2003). "Interpolation and SAT-based Model Checking." In Proceedings of the International Conference on Formal Methods in Computer-Aided Design (FMCAD)

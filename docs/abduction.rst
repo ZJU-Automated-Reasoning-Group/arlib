@@ -15,6 +15,9 @@ the most plausible or likely explanation.
 Abduction in Arlib
 ==========
 
+- **Hypothesis Generation**: generate potential hypotheses from a given set of observations
+- **Evaluation and Ranking**: Once hypotheses are generated, evaluate them based on criteria such as simplicity, consistency, and explanatory power, ranking them to aid in selecting the most plausible explanation.
+
 
 =========
 References

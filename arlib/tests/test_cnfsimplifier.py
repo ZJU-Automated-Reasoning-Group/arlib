@@ -15,7 +15,7 @@ class TestCNFSimplifier(TestCase):
     def test_cnf_simp(self):
         clauses = [[1, 3], [-1, 2, -4], [2, 4], [4]]
         new_cls = simplify_numeric_clauses(clauses)
-        print(new_cls)
+        # print(new_cls)
         assert True
 
 

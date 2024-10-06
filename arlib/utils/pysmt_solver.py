@@ -1,3 +1,7 @@
+"""
+Call the solvers wrapped by pysmt
+"""
+
 import logging
 from typing import Any
 import z3

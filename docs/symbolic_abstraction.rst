@@ -18,5 +18,5 @@ The implementation based on OMT solving.
 References
 ===========
 
-
 - Automating Abstract Interpretation, VMCAI'16
+- Program Analysis via Efficient Symbolic Abstraction, OOPSLA'21

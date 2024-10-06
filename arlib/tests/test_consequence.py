@@ -12,7 +12,7 @@ class TestConsequence(TestCase):
         print(s.consequences([a, c],  # assumptions
                              [a, b, c, d]))  # what is implied?
 
-        assert (1 < 2)
+        assert True
 
 
 if __name__ == '__main__':

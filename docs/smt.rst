@@ -13,3 +13,7 @@ Linear Arithmetic
 
 See ``lira_solver.py``
 
+Strings
+-----
+
+TBD
