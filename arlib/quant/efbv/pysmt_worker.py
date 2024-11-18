@@ -20,15 +20,27 @@ def convert(zf: z3.ExprRef):
     FIXME: if we do not call "pysmt_vars = ...", z3 will report naming warning..
     """
     zvs = z3.z3util.get_vars(zf)
-    pysmt_vars = [Symbol(v.decl().name(), INT if v.is_int() else REAL) for v in zvs]
+    pysmt_vars = to_pysmt_vars(zvs)
     z3s = Solver(name='z3')
     pysmt_fml = z3s.converter.back(zf)
     return pysmt_vars, pysmt_fml
 
 
 def to_pysmt_vars(z3vars: [z3.ExprRef]):
-    return [Symbol(v.decl().name(),
-                   INT if v.is_int() else REAL) for v in z3vars]
+    res = []
+    for v in z3vars:
+        if z3.is_int(v):
+            res.append(Symbol(v.decl().name(), INT))
+        elif z3.is_real(v):
+            res.append(Symbol(v.decl().name(), REAL))
+        elif z3.is_bv(v):
+            res.append(Symbol(v.decl().name(), BVType(v.sort().size())))
+        elif z3.is_bool(v):
+            res.append(Symbol(v.decl().name(), BOOL))
+        else:
+            raise NotImplementedError
+    return res
+
 
 
 def check_sat_with_pysmt(fml):

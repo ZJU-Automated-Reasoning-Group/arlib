@@ -14,7 +14,7 @@ from pysmt.shortcuts import EqualsOrIff
 from pysmt.shortcuts import Portfolio
 from pysmt.shortcuts import Symbol, And
 from pysmt.shortcuts import binary_interpolant, sequence_interpolant
-from pysmt.typing import INT, REAL, BVType
+from pysmt.typing import INT, REAL, BVType, BOOL
 # BV1, BV8, BV16, BV32, BV64, BV128
 
 logger = logging.getLogger(__name__)
@@ -35,12 +35,11 @@ def to_pysmt_vars(z3vars: [z3.ExprRef]):
             res.append(Symbol(v.decl().name(), REAL))
         elif z3.is_bv(v):
             res.append(Symbol(v.decl().name(), BVType(v.sort().size())))
+        elif z3.is_bool(v):
+            res.append(Symbol(v.decl().name(), BOOL))
         else:
             raise NotImplementedError
     return res
-    # return [Symbol(v.decl().name(),
-    #              INT if v.is_int() else REAL) for v in z3vars]
-
 
 class PySMTSolver(z3.Solver):
 
@@ -53,7 +52,6 @@ class PySMTSolver(z3.Solver):
         FIXME: if we do not call "pysmt_vars = ...", z3 will report naming warning..
         """
         zvs = z3.z3util.get_vars(zf)
-        # pysmt_vars = [Symbol(v.decl().name(), INT if v.is_int() else REAL) for v in zvs]
         pysmt_vars = to_pysmt_vars(zvs)
         z3s = Solver(name='z3')
         pysmt_fml = z3s.converter.back(zf)
@@ -100,10 +98,8 @@ class PySMTSolver(z3.Solver):
     def all_smt(self, keys: [z3.ExprRef], bound=5):
         """Sample k models"""
         z3fml = z3.And(self.assertions())
-        _, pysmt_fml = PySMTSolver.convert(z3fml)
+        pysmt_var_keys, pysmt_fml = PySMTSolver.convert(z3fml)
         target_logic = get_logic(pysmt_fml)
-
-        pysmt_var_keys = to_pysmt_vars(keys)
         # print("Target Logic: %s" % target_logic)
 
         with Solver(logic=target_logic) as solver:

@@ -7,8 +7,8 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.smt.bv import OMTBVSolver
-
+# from arlib.smt.bv import OMTBVSolver
+from arlib.optimization.qfbv_opt import BitBlastOMTBVSolver
 
 def is_sat(e):
     s = z3.Solver()
@@ -23,7 +23,7 @@ def try_bvopt():
         fg = FormulaGenerator([x, y, z], bv_signed=False)
         fml = fg.generate_formula()
         if is_sat(fml):
-            omt = OMTBVSolver()
+            omt = BitBlastOMTBVSolver()
             omt.from_smt_formula(fml)
             print(omt.maximize(x, is_signed=False))
             print(" ")

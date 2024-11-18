@@ -34,7 +34,6 @@ from z3 import *
 from arlib.utils.z3_solver_utils import is_entail
 from arlib.utils.z3_expr_utils import get_atoms
 
-
 def get_atoms(e: z3.ExprRef):
     """
     The get_atoms function takes a Z3 expression as input and returns the set of all
@@ -76,6 +75,24 @@ def enumerate_literals(exp: z3.ExprRef, atoms: List[z3.ExprRef]):
     then pi evaluates to true under every model of F.
     """
     res = []
+    solver = Solver()
+
+    for atom in atoms:
+        # Check if the positive literal is a backbone
+        solver.push()
+        solver.add(exp)
+        solver.add(Not(atom))
+        if solver.check() == unsat:
+            res.append(atom)
+        solver.pop()
+
+        # Check if the negative literal is a backbone
+        solver.push()
+        solver.add(exp)
+        solver.add(atom)
+        if solver.check() == unsat:
+            res.append(Not(atom))
+        solver.pop()
 
 
 def get_backbone(exp):

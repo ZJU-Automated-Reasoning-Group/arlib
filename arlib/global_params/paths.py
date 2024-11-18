@@ -47,4 +47,3 @@ class GlobalConfig(metaclass=Singleton):
 
 
 global_config = GlobalConfig()
-
