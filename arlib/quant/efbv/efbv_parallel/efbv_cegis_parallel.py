@@ -15,10 +15,10 @@ limiting the number of calls to the verifier
 import logging
 import time
 from typing import List
-from arlib.quant.efbv.cegis_efbv.efbv_forall_solver import ForAllSolver
-from arlib.quant.efbv.cegis_efbv.efbv_exists_solver import ExistsSolver
-from arlib.quant.efbv.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
-from arlib.quant.efbv.cegis_efbv.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, \
+from arlib.quant.efbv.efbv_parallel.efbv_forall_solver import ForAllSolver
+from arlib.quant.efbv.efbv_parallel.efbv_exists_solver import ExistsSolver
+from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
+from arlib.quant.efbv.efbv_parallel.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, \
     ForAllSolverSuccess, ForAllSolverUnknown
 
 import z3

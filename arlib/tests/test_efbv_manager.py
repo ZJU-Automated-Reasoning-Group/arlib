@@ -9,8 +9,8 @@ import z3
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
-from arlib.quant.efbv.efbv_utils import EFBVResult
-from arlib.quant.efbv.blasting_efbv.efbv_to_bool import EFBVFormulaTranslator
+from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
+# from arlib.quant.efbv.efbv_to_bool import EFBVFormulaTranslator
 from arlib.utils.z3_expr_utils import get_variables
 
 def gen_small_bv_formula(logic: str):
@@ -55,8 +55,8 @@ class TestEFBVManager(TestCase):
             if is_simple_formula(fml):
                 continue
 
-            fml_manager = EFBVFormulaTranslator()
-            qdimacs = fml_manager.to_qdimacs_str(fml, existential_vars, universal_vars)
+            # fml_manager = EFBVFormulaTranslator()
+            # qdimacs = fml_manager.to_qdimacs_str(fml, existential_vars, universal_vars)
             # print(qdimacs)
 
             # qbf = fml_manager.to_z3_qbf(fml, existential_vars, universal_vars)

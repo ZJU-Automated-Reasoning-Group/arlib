@@ -18,9 +18,9 @@ from pysat.solvers import Solver
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.smt.bv import translate_smt2formula_to_cnf
 from arlib.utils import SolverResult
-from arlib.quant.efbv.cegis_efbv.exceptions import ForAllSolverSuccess
+from arlib.quant.efbv.efbv_parallel.exceptions import ForAllSolverSuccess
 
-from arlib.quant.efbv.efbv_utils import EFBVResult
+from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
 
 logger = logging.getLogger(__name__)
 

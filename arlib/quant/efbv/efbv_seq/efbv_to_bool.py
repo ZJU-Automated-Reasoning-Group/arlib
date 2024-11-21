@@ -16,9 +16,9 @@ import logging
 from typing import List
 
 import z3
+# from z3.z3util import get_vars
 
-from arlib.utils.z3_expr_utils import get_variables
-from arlib.smt.bv import translate_smt2formula_to_numeric_clauses
+from arlib.smt.bv.mapped_blast import translate_smt2formula_to_numeric_clauses
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,13 @@ class EFBV2BoolAux:
         self.universal_bools = []
         self.existential_bools = []
         self.bool_clauses = []
+
+    def flattening_qf_fml(self, fml: z3.ExprRef):
+        """
+        The flattening_af_fml function takes a bit-vector formula and translates it to a Boolean formula.
+        """
+        bv2bool, bool2id, header, bool_clauses = translate_smt2formula_to_numeric_clauses(fml)
+        return bool2id, bool_clauses
 
     def flattening(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
         """
@@ -74,7 +81,8 @@ class EFBV2BoolAux:
         expr_clauses = []
         universal_vars = []
         existential_vars = []
-        auxiliary_boolean_vars = []
+        aux_bool_vars = []
+
         for clause in self.bool_clauses:
             expr_cls = []
             for numeric_lit in clause:
@@ -90,6 +98,10 @@ class EFBV2BoolAux:
                         universal_vars.append(z3_var)
                     elif numeric_var in self.existential_bools:
                         existential_vars.append(z3_var)
+                    else:
+                        if z3_var not in aux_bool_vars:
+                            aux_bool_vars.append(z3_var)
+
                 z3_lit = z3.Not(z3_var) if numeric_lit < 0 else z3_var
                 expr_cls.append(z3_lit)
             expr_clauses.append(z3.Or(expr_cls))
@@ -102,6 +114,8 @@ class EFBV2BoolAux:
         # { NOET a trick for eliminating a subset of aux variables that are
         #     equivalent with existential or universal variables
         # FIXME: I forgot what algorithms the following code follow
+        """
+        auxiliary_boolean_vars = []
         replace_mappings = []
         cared_vars_length = len(self.existential_bools) + len(self.universal_bools)
 
@@ -119,17 +133,21 @@ class EFBV2BoolAux:
         # NOTE: the line below removes a subset of aux variables
         simplified_fml = z3.simplify(z3.substitute(fml, replace_mappings))
         # } End of the trick for eliminating a subset of aux variables.
-
+        
         # the following loop collects the remaining aux variables
-        for var in get_variables(simplified_fml):
+        for var in get_vars(simplified_fml):   # get_vars can be slow!!!!
             if not (var in universal_vars or var in existential_vars):
                 auxiliary_boolean_vars.append(var)
-
+        """
+        simplified_fml = fml  # do not use the above "fancy simplification"
         # TODO: remove universal vars that do not appear in simplified_fml?
-        if len(auxiliary_boolean_vars) >= 1:
-            cnt = z3.ForAll(universal_vars, z3.Exists(auxiliary_boolean_vars, simplified_fml))
+        if len(aux_bool_vars) >= 1:
+            # cnt = z3.ForAll(universal_vars, z3.Exists(aux_bool_vars, simplified_fml))
+            cnt = z3.Exists(existential_vars,
+                            z3.ForAll(universal_vars, z3.Exists(aux_bool_vars, simplified_fml)))
         else:
             cnt = z3.ForAll(universal_vars, simplified_fml)
+        print("Finishing generating QBF CNT...")
         return cnt
 
     def to_qbf_qdimacs(self) -> str:
@@ -161,11 +179,14 @@ class EFBV2BoolAux:
                         if numeric_var not in aux_bool_vars:
                             aux_bool_vars.append(numeric_var)
 
+        logger.debug("aux vars: {}".format(aux_bool_vars))
         num_vars = len(self.existential_bools) + len(self.universal_bools) + len(aux_bool_vars)
         num_clauses = len(self.bool_clauses)
         fml_str = ["c QBF from EFSMT(BV)",
                    "p cnf {0} {1}".format(str(num_vars), str(num_clauses)),
-                   "e {} 0".format(" ".join([str(v) for v in self.existential_bools])),
+                   # FIXME: should we keep the next line or not?
+                   #  i.e, Exits X . Forall Y. Exists Z . P(X, Y, Z)
+                   # "e {} 0".format(" ".join([str(v) for v in self.existential_bools])),
                    "a {} 0".format(" ".join([str(v) for v in self.universal_bools])),
                    "e {} 0".format(" ".join([str(v) for v in aux_bool_vars]))]
 
@@ -174,7 +195,8 @@ class EFBV2BoolAux:
             cls_str.append(" 0")
             fml_str.append(" ".join(cls_str))
 
-        return "\n".join(fml_str)
+        print("Finishing generating QBF CNT...")
+        return "\n".join(fml_str) + "\n"
 
 
 class EFBVFormulaTranslator:
@@ -195,7 +217,8 @@ class EFBVFormulaTranslator:
         self.qe_level = "word"  # { "bool", "word" }
         self.qe_tactic = "qe2"  # {"qe", "qe2"}
 
-    def to_z3_qbf(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+    def to_z3_qbf(self, fml: z3.ExprRef, existential_vars: List[z3.ExprRef],
+                  universal_vars: List[z3.ExprRef]) -> z3.ExprRef:
         """Translate an EFSMT(BV) formula to a QBF formula (in z3)
         :param fml: a quantifier-free bit-vector formula
         :param existential_vars: the set of existential quantified bit-vector variables
@@ -215,26 +238,45 @@ class EFBVFormulaTranslator:
         """Translate an EFSMT(BV) formula to a SAT formula
         :return: a quantifier-free Boolean formula (in z3)
         """
+        print("Translating to Boolean formula in Z3")
         if self.qe_level == "bool":
             # First, convert the EFBV formula to a QBF formula
-            # Second, perform Boolean-level quantifier elimination
-            qbf_fml = self.to_qbf(fml, existential_vars, universal_vars)
-            # second, use boolean-level QE to convert the QBF formula to SAT
+            # Second, perform Boolean-level quantifier elimination to obtin SAT
+            qbf_fml = self.to_z3_qbf(fml, existential_vars, universal_vars)
             sat_formula = z3.Then("simplify", self.qe_tactic)(qbf_fml).as_expr()
-            # finally, convert the SAT formula to CNF form
+            # Finally, convert the SAT formula to CNF form
             return z3.Then("simplify", "tseitin-cnf")(sat_formula).as_expr()
         else:
             qbv_fml = z3.ForAll(universal_vars, fml)
-            # first, use word-level QE to build a quantifier-free bit-vec formula
+            # First, use word-level QE to build a quantifier-free bit-vec formula
             qfbv_fml = z3.Then("simplify", self.qe_tactic)(qbv_fml).as_expr()
             # second, convert the bit-vec formula to CNF
-            return z3.Then("simplify", "bit-blast", "simplify", "tseitin-cnf")(qfbv_fml).as_expr()
+            # return z3.Then("simplify", "bit-blast", "simplify", "tseitin-cnf")(qfbv_fml).as_expr()
+            return z3.Then("simplify", "bit-blast")(qfbv_fml).as_expr()
 
-    def to_dimacs(self):
-        raise NotImplementedError
+    def to_dimacs_str(self, fml: z3.BoolRef, existential_vars: List[z3.ExprRef], universal_vars: List[z3.ExprRef]):
+        """Translate an EFSMT(BV) formula to a SAT formula
+        1. First, perform quantifier elimination (currently, at bit-vector level)
+        2. Second, perform bit-blasting
+        """
+        print("Translating to DIMACS")
+        z3_sat_fml = self.to_z3_sat(fml, existential_vars, universal_vars)
+        translator = EFBV2BoolAux()
+        bool2id, bool_clauses = translator.flattening_qf_fml(z3_sat_fml)
+        num_vars = len(bool2id)
+        num_clauses = len(bool_clauses)
 
-    def to_bdd(self):
-        raise NotImplementedError
+        fml_str = ["c SAT from EFSMT(BV)",
+                   "p cnf {0} {1}".format(str(num_vars), str(num_clauses)),
+                   ]
+
+        for cls in bool_clauses:
+            cls_str = [str(lit) for lit in cls]
+            cls_str.append(" 0")
+            fml_str.append(" ".join(cls_str))
+
+        print("Finishing generating SAT CNT...")
+        return "\n".join(fml_str) + "\n"
 
 
 def demo_efbv2bool():

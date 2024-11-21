@@ -27,9 +27,9 @@ import random
 import z3
 # from z3.z3util import get_vars
 
-from arlib.quant.qbv.reduction_types import zero_extension, right_zero_extension
-from arlib.quant.qbv.reduction_types import one_extension, right_one_extension
-from arlib.quant.qbv.reduction_types import sign_extension, right_sign_extension
+from arlib.quant.ufbv.reduction_types import zero_extension, right_zero_extension
+from arlib.quant.ufbv.reduction_types import one_extension, right_one_extension
+from arlib.quant.ufbv.reduction_types import sign_extension, right_sign_extension
 
 process_queue = []
 

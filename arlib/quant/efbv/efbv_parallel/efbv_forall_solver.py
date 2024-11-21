@@ -6,8 +6,8 @@ from typing import List
 
 import z3
 
-from arlib.quant.efbv.cegis_efbv.efbv_checker_utils import parallel_check_candidates
-from arlib.quant.efbv.efbv_utils import FSolverMode
+from arlib.quant.efbv.efbv_parallel.efbv_checker_utils import parallel_check_candidates
+from arlib.quant.efbv.efbv_parallel.efbv_utils import FSolverMode
 
 logger = logging.getLogger(__name__)
 

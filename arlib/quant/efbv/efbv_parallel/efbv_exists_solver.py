@@ -9,9 +9,9 @@ import random
 
 import z3
 
-from arlib.quant.efbv.cegis_efbv.exceptions import ExitsSolverUnknown
-from arlib.quant.efbv.cegis_efbv.efbv_sampler_utils import parallel_sample
-from arlib.quant.efbv.efbv_utils import ESolverMode
+from arlib.quant.efbv.efbv_parallel.exceptions import ExitsSolverUnknown
+from arlib.quant.efbv.efbv_parallel.efbv_sampler_utils import parallel_sample
+from arlib.quant.efbv.efbv_parallel.efbv_utils import ESolverMode
 
 logger = logging.getLogger(__name__)
 
