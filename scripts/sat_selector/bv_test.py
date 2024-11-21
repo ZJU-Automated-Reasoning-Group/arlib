@@ -2,8 +2,6 @@
 """
 Flattening-based QF_BV solver
 """
-import time
-
 import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver

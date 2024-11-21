@@ -20,11 +20,26 @@ Arlib is toolkit for automated reasoning.
 
 See `docs/index.rst`
 
+~~~~
+arlib/
+├── arlib/          # Main library code
+├── benchmarks/     # Benchmark files and test cases
+├── bin_solvers/    # Binary solver executables
+├── docs/           # Documentation files
+├── scripts/        # Utility scripts
+├── setup.py        # Package setup configuration
+├── setup.cfg       # Additional package configuration
+├── pytest.ini      # PyTest configuration
+└── requirements.txt # Project dependencies
+~~~~
 
 ## Research Topics
 
 For Summer Research, Honours/Master Thesis Project Topics, please refer to
 `docs/topics.rst`
+
+## Publications
+
 
 
 ## Contributors
