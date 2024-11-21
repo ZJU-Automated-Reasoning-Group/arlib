@@ -57,10 +57,28 @@ def absolute_value_int(val):
     """
     return z3.If(val >= 0, val, -val)
 
+def get_expr_vars(exp):
+    try:
+        syms = set()
+        stack = [exp]
+
+        while stack:
+            e = stack.pop()
+            if z3.is_app(e):
+                if e.num_args() == 0 and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+                    syms.add(e)
+                else:
+                    stack.extend(e.children())
+
+        return list(syms)
+    except z3.Z3Exception as ex:
+        print(ex)
+        return False
 
 def get_variables(exp: z3.ExprRef) -> [z3.ExprRef]:
     """Get variables of exp"""
-    return get_vars(exp)
+    # return get_vars(exp)  # this can be very slow
+    return get_expr_vars(exp)
 
 
 def get_atoms(expr: z3.BoolRef):

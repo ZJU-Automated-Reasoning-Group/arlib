@@ -11,7 +11,7 @@ from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.quant.efbv.cegis_efbv.efbv_cegis_parallel import ParallelEFBVSolver
 from arlib.quant.efbv.efbv_utils import EFBVResult
-
+from arlib.utils.z3_expr_utils import get_variables
 
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
@@ -47,12 +47,11 @@ def solve_with_z3(universal_vars, fml):
 class TestEFBVSolver(TestCase):
 
     def test_efbv_solver(self):
-        from z3.z3util import get_vars
 
         if True:
             for _ in range(15):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
-                vars_fml = [str(v) for v in get_vars(fml)]
+                vars_fml = [str(v) for v in get_variables(fml)]
                 if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
                     continue
                 if is_simple_formula(fml):

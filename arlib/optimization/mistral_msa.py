@@ -9,7 +9,8 @@ NOTE:
 from typing import FrozenSet
 
 import z3
-from z3.z3util import get_vars
+# from z3.z3util import get_vars
+from arlib.utils.z3_expr_utils import get_variables
 
 class MSASolver:
     """
@@ -28,7 +29,8 @@ class MSASolver:
     def init_from_file(self, filename: str) -> None:
         self.formula = z3.And(z3.parse_smt2_file(filename))
         # self.formula = simplify(self.formula)
-        self.fvars = frozenset(get_vars(self.formula))
+        # self.fvars = frozenset(get_vars(self.formula))
+        self.fvars = frozenset(get_variables(self.formula))
 
         if self.verb > 2:
             print('c formula: \'{0}\''.format(self.formula))
@@ -36,7 +38,8 @@ class MSASolver:
     def init_from_formula(self, formula: z3.BoolRef) -> None:
         self.formula = formula
         # self.formula = simplify(self.formula)
-        self.fvars = frozenset(get_vars(self.formula))
+        # self.fvars = frozenset(get_vars(self.formula))
+        self.fvars = frozenset(get_variables(self.formula))
 
         if self.verb > 2:
             print('c formula: \'{0}\''.format(self.formula))
@@ -45,7 +48,8 @@ class MSASolver:
         """Check whether a small model is a 'sufficient condition'"""
         decls = model.decls()
         model_cnts = []
-        for var in get_vars(self.formula):
+        # for var in get_vars(self.formula):
+        for var in get_variables(self.formula):
             if var.decl() in decls:
                 model_cnts.append(var == model[var])
         # print(model_cnts)

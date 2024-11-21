@@ -10,6 +10,7 @@ from pysmt.typing import INT, REAL, BOOL, BVType, BV1, BV8, BV16, BV32, BV64
 from pysmt.shortcuts import Not, Solver
 from pysmt.logics import QF_BV, QF_LRA, QF_LIA
 
+from arlib.utils.z3_expr_utils import get_variables
 
 # NOTE: both pysmt and z3 have a class "Solver"
 # logger = logging.getLogger(__name__)
@@ -19,7 +20,8 @@ def convert(zf: z3.ExprRef):
     """
     FIXME: if we do not call "pysmt_vars = ...", z3 will report naming warning..
     """
-    zvs = z3.z3util.get_vars(zf)
+    # zvs = z3.z3util.get_vars(zf)
+    zvs = get_variables(zf)
     pysmt_vars = to_pysmt_vars(zvs)
     z3s = Solver(name='z3')
     pysmt_fml = z3s.converter.back(zf)

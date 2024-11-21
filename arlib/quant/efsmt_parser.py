@@ -7,6 +7,7 @@ We provide two differnet implementations
 
 from typing import Tuple
 import z3
+from arlib.utils.z3_expr_utils import get_variables
 
 # Being explicit about Types
 Symbol = str
@@ -208,7 +209,7 @@ def ground_quantifier(qexpr):
     Seems this can only handle exists x . fml, or forall x.fml?
     FIXME: it seems that this can be very slow?
     """
-    from z3.z3util import get_vars
+    # from z3.z3util import get_vars
     body = qexpr.body()
     forall_vars = list()
     for i in range(qexpr.num_vars()):
@@ -219,7 +220,7 @@ def ground_quantifier(qexpr):
 
     # Substitute the free variables in body with the expression in var_list.
     body = z3.substitute_vars(body, *forall_vars)
-    exists_vars = [x for x in get_vars(body) if x not in forall_vars]
+    exists_vars = [x for x in get_variables(body) if x not in forall_vars]
     return exists_vars, forall_vars, body
 
 

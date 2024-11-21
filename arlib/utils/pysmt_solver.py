@@ -17,6 +17,8 @@ from pysmt.shortcuts import binary_interpolant, sequence_interpolant
 from pysmt.typing import INT, REAL, BVType, BOOL
 # BV1, BV8, BV16, BV32, BV64, BV128
 
+from arlib.utils.z3_expr_utils import get_variables
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +53,7 @@ class PySMTSolver(z3.Solver):
         """
         FIXME: if we do not call "pysmt_vars = ...", z3 will report naming warning..
         """
-        zvs = z3.z3util.get_vars(zf)
+        zvs = get_variables(zf)
         pysmt_vars = to_pysmt_vars(zvs)
         z3s = Solver(name='z3')
         pysmt_fml = z3s.converter.back(zf)

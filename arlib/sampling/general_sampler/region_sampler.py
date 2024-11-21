@@ -2,7 +2,8 @@
 # coding: utf-8
 
 from z3 import *
-from z3.z3util import get_vars
+# from z3.z3util import get_vars
+from arlib.utils.z3_expr_utils import get_variables
 import random
 
 
@@ -27,7 +28,7 @@ class RegionSampler:
             print(e)
             return None
 
-        self.vars = get_vars(self.formula)
+        self.vars = get_variables(self.formula)
         for i in range(len(self.vars)):
             self.lower_bounds.append(0)
             self.upper_bounds.append(255)
@@ -75,7 +76,7 @@ class RegionSampler:
         x = BitVec("x", 8)
         y = BitVec("y", 8)
         self.formula = And(x > 0, y > 0, x < 10, y < 10)
-        self.vars = get_vars(self.formula)
+        self.vars = get_variables(self.formula)
         for i in range(len(self.vars)):
             self.lower_bounds.append(0)
             self.upper_bounds.append(255)

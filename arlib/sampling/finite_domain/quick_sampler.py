@@ -5,8 +5,7 @@ import random
 import z3
 import itertools
 from functools import reduce
-from z3.z3util import get_vars
-
+from arlib.utils.z3_expr_utils import get_variables
 
 # Approach taken from:
 #   Rafael Dutra, Kevin Laeufer, Jonathan Bachrach and Koushik Sen:
@@ -125,7 +124,7 @@ def quicksampler_for_file(fname):
     try:
         fvec = z3.parse_smt2_file(fname)
         formula = z3.And(fvec)
-        vars = get_vars(formula)
+        vars = get_variables(formula)
         print("start")
         sample = bvsampler(formula, vars[0])
         for x in sample:

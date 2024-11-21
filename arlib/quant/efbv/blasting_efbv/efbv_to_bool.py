@@ -16,8 +16,8 @@ import logging
 from typing import List
 
 import z3
-from z3.z3util import get_vars
 
+from arlib.utils.z3_expr_utils import get_variables
 from arlib.smt.bv import translate_smt2formula_to_numeric_clauses
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class EFBV2BoolAux:
         # } End of the trick for eliminating a subset of aux variables.
 
         # the following loop collects the remaining aux variables
-        for var in get_vars(simplified_fml):
+        for var in get_variables(simplified_fml):
             if not (var in universal_vars or var in existential_vars):
                 auxiliary_boolean_vars.append(var)
 

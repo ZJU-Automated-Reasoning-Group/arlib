@@ -17,8 +17,9 @@ import time
 import z3
 from pysat.formula import CNF, WCNF
 from pysat.solvers import Solver
-from z3.z3util import get_vars
+# from z3.z3util import get_vars
 
+from arlib.utils.z3_expr_utils import get_variables
 from arlib.smt.bv import translate_smt2formula_to_cnf
 from arlib.bool import MaxSATSolver
 
@@ -43,7 +44,8 @@ class BitBlastOMTBVSolver:
 
     def from_smt_formula(self, formula: z3.BoolRef):
         self.fml = formula
-        self.vars = get_vars(self.fml)
+        # self.vars = get_vars(self.fml)
+        self.vars = get_variables(self.fml)
     def bit_blast(self):
         """
         The bit_blast function converts a bit-vector formula to Boolean logic.
@@ -101,7 +103,8 @@ class BitBlastOMTBVSolver:
 
         if obj not in self.vars:
             # print(obj, "is not a var in self.vars")
-            objvars = get_vars(obj)  # FIXME: get_vars can be slow
+            # objvars = get_vars(obj)  # FIXME: get_vars can be slow
+            objvars = get_variables(obj)  # FIXME: get_vars can be slow
             for v in objvars:
                 if v not in self.vars:
                     raise Exception(str(obj), "contains a var not in the hard formula")

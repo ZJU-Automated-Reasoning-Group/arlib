@@ -10,6 +10,7 @@ import z3
 from z3.z3util import get_vars
 
 from arlib.quant.efsmt_utils import solve_with_bin_smt
+from arlib.utils.z3_expr_utils import get_variables
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,8 @@ class EFSMTStrategy(Enum):
 def simple_cegar_efsmt(logic: str, y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
     """ Solves exists x. forall y. phi(x, y) with simple CEGAR
     """
-    x = [item for item in get_vars(phi) if item not in y]
+    # x = [item for item in get_vars(phi) if item not in y]   # can be slow
+    x = [item for item in get_variables(phi) if item not in y]
     # set_param("verbose", 15)
     # set_param("smt.arith.solver", 3)
     if "IA" in logic:
