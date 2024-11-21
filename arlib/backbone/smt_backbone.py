@@ -31,7 +31,6 @@ TODO:
 from typing import List
 from z3 import *
 
-from arlib.utils.z3_solver_utils import is_entail
 from arlib.utils.z3_expr_utils import get_atoms
 
 def get_atoms(e: z3.ExprRef):

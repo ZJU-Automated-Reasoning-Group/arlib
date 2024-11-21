@@ -4,6 +4,9 @@ import time
 
 class Stopwatch:
 
+    def __init__(self):
+        self.start_time = None
+
     def start(self):
         self.start_time = time.process_time()
 

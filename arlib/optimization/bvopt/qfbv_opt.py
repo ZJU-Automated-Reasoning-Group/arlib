@@ -4,7 +4,7 @@ from typing import List
 
 import z3
 
-from arlib.optimization.qfbv_opt_blast import BitBlastOMTBVSolver
+from arlib.optimization.bvopt.qfbv_opt_blast import BitBlastOMTBVSolver
 
 logger = logging.getLogger(__name__)
 

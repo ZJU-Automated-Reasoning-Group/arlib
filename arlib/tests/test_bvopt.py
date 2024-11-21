@@ -8,7 +8,7 @@ import z3
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 # from arlib.smt.bv import OMTBVSolver
-from arlib.optimization.qfbv_opt import BitBlastOMTBVSolver
+from arlib.optimization.bvopt.qfbv_opt import BitBlastOMTBVSolver
 
 def is_sat(e):
     s = z3.Solver()

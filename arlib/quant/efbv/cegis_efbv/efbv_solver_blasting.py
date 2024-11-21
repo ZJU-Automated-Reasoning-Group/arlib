@@ -14,7 +14,6 @@ from typing import List, Tuple
 import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver
-# from z3.z3util import get_vars
 
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.smt.bv import translate_smt2formula_to_cnf
@@ -157,7 +156,6 @@ class SeqEFBVSolver:
 
     def from_smt_formula(self, formula: z3.BoolRef):
         self.fml = formula
-        # self.vars = get_vars(self.fml)
         self.vars = get_variables(self.fml)
 
     def solve_internal(self, models):

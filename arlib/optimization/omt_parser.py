@@ -60,8 +60,7 @@ class OMTParser:
 
 # (set-option :opt.priority box)
 def demo_omt_parser():
-    from arlib.optimization.qfbv_opt import BVOptimize
-    from arlib.optimization.opt_util import box_optimize_as_long, optimize_as_long
+    from arlib.optimization.opt_util import optimize_as_long
     fml_one = """
     (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
     (assert (bvult x (_ bv100 16))) \n (assert (bvule y (_ bv98 16))) \n

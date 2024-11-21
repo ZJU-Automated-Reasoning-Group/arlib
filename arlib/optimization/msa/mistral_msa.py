@@ -9,7 +9,6 @@ NOTE:
 from typing import FrozenSet
 
 import z3
-# from z3.z3util import get_vars
 from arlib.utils.z3_expr_utils import get_variables
 
 class MSASolver:
@@ -48,7 +47,6 @@ class MSASolver:
         """Check whether a small model is a 'sufficient condition'"""
         decls = model.decls()
         model_cnts = []
-        # for var in get_vars(self.formula):
         for var in get_variables(self.formula):
             if var.decl() in decls:
                 model_cnts.append(var == model[var])
