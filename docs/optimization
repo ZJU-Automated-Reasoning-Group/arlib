@@ -1,0 +1,16 @@
+Optimization Modulo Theory
+=================================
+
+
+=========
+Introduction
+=========
+
+
+
+==========
+OMT in Arlib
+==========
+
+Currently, we rely on the `pyomt` library for solving OMT problems. (TBD: need
+to add it as a requirement)
