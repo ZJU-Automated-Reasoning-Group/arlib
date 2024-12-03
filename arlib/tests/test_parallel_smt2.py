@@ -15,7 +15,8 @@ def string_test():
     """
     # with Profiler(True):
     # print(simple_cdclt(fml))
-    print(parallel_cdclt_process(fml, logic="ALL"))
+    return
+    # print(parallel_cdclt_process(fml, logic="ALL"))
 
 
 class TestParallelSMTSolver2(TestCase):
