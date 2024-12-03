@@ -10,11 +10,14 @@ Quantifiers
 Quantifiers in Arlib
 =======
 
-Solving Quantified Problems
+Solving General Quantified Problems
 -----
 
 The basic idea of quantifier instantiation is to replace a quantified formula with
 a finite set of instances that are obtained by substituting concrete terms for the quantified variables.
+
+Solving Exists-Forall Problems
+-----
 
 
 Quantifier Elimination

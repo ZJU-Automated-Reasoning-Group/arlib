@@ -45,7 +45,8 @@ For Summer Research, Honours/Master Thesis Project Topics, please refer to
 ## Contributors
 
 Primary contributors to this project:
-- rainoftime
+- rainoftime / cutelimination
 - JasonJ2021
 - ZelinMa557 
 - Harrywwq
+- Jiening Siow

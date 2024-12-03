@@ -11,7 +11,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'arlib'
+NAME = 'py-arlib'
 DESCRIPTION = 'A library for various automated reasoning tasks.'
 URL = ' https://github.com/ZJU-Automated-Reasoning-Group/arlib'
 EMAIL = 'rainoftime@gmail.com'
