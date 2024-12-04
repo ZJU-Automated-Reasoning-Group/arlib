@@ -26,9 +26,8 @@ arlib/
 ├── benchmarks/     # Benchmark files and test cases
 ├── bin_solvers/    # Binary solver executables
 ├── docs/           # Documentation files
-├── scripts/        # Utility scripts
+├── examples/       # Utility scripts
 ├── setup.py        # Package setup configuration
-├── setup.cfg       # Additional package configuration
 ├── pytest.ini      # PyTest configuration
 └── requirements.txt # Project dependencies
 ~~~~
