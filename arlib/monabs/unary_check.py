@@ -8,6 +8,13 @@ import z3
 def unary_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
     """
     Solve precond \land cnt_i \in cnt_list one-by-one
+    >>> import z3
+    >>> x = z3.Int('x')
+    >>> y = z3.Int('y')
+    >>> precond = x >= 0
+    >>> cnt_list = [x < -1, x <= 3, x <= 4]
+    >>> unary_check_cached(precond, cnt_list)
+    [0, 1, 1]
     """
     results = []
     solver = z3.Solver()

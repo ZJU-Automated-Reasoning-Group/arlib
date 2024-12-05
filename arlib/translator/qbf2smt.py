@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Converting QDIMACS format to smtlib
 This one is a bit tricky, as it uses bit-vector variables to "compactly" encode several Booleans.
