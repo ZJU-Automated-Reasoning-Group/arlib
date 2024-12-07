@@ -1,4 +1,8 @@
 # import numpy as np
+"""
+DNNF (Decomposable Negation Normal Form) is a form of propositional logic formula
+that provides efficient support for many logical operations.
+"""
 import copy
 
 
@@ -109,7 +113,6 @@ class DNF_Node:
     #     return DNF_Node(node_type='A', left_child=self.conditioning(instanciation), 
     #           right_child=create_term_node(term=instanciation))
     """
-
 
 class DNNF_Compiler:
     def __init__(self, dtree):

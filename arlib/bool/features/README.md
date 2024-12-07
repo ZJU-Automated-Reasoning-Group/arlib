@@ -1,4 +1,4 @@
-# Feature extraction implementation
+# Feature Extraction for SAT Instances
 
 This file documents the features that can be extracted by this software, and gives a brief explanation of each feature.
 
@@ -9,17 +9,17 @@ the
 feature extraction on non pre-processed CNF, although many SATzilla features make assumptions based on conditions that
 the preprocessing ensures.
 
-## SATzilla paper features
+## SATzilla Paper Features
 
 Numbers refer to the feature number within [1].
 
-### Size features
+### Size Features
 
 - Number of clauses: _c_ (1.)
 - Number of variables: _v_ (2.)
 - Ratio of clauses to variables c/v: _clauses_vars_ratio_ (3.)
 
-### Variable-Clause Graph features
+### Variable-Clause Graph Features
 
 *A variable-clause graph (VCG) is a bipartite graph with a node for each variable, a node for each clause,
 and an edge between them whenever a variable occurs in a clause.*
@@ -29,14 +29,14 @@ and an edge between them whenever a variable occurs in a clause.*
 - Clause nodes degree statistics: mean, coefficient of variation, min, max and entropy. *vcg_clause_**statistic*** (
   9-13. )
 
-### Variable Graph features
+### Variable Graph Features
 
 **A variable graph (VG) has a node for each variable, and an edge between variables that occur together in at least one
 clause**
 
 - Nodes degree statistics: mean , coefficient of variation, min and max. *vg_**statistic*** (14-17. )
 
-### Balance features
+### Balance Features
 
 - Ratio of positive and negative literals in each clause: mean, variation coefficient and entropy (see extra notes).
   *pnc_ratio_**statistic*** (18-20.)
@@ -81,7 +81,7 @@ clause**
 ***alg**_FirstLocalMinStep_Q.90*, ***alg**_BestAvgImprovement_Mean*, ***alg**_BestAvgImprovement_CoeffVariance*,
 ***alg**_FirstLocalMinRatio_Mean*, ***alg**_FirstLocalMinRatio_CoeffVariance*, ***alg**_EstACL_Mean*
 
-### Features from Structure features for SAT instances classification (Ansotegui)
+### Features from Structure Features for SAT Instances Classification (Ansotegui)
 
 4 structure features
 
@@ -154,7 +154,7 @@ weights_min, weights_max, weights_mode, weights_mean, weights_std, weights_zeros
 weights_q2, weights_q3, weights_val_rate,
 **where** node represents the degrees of the nodes, and weights represents the weights of the edges.
 
-### Extra Notes on aggregation and statistical references
+### Extra Notes on Aggregation and Statistical References
 
 - Coefficient of variation (variation coefficient in paper):
   The coefficient of variation represents the ratio of the standard deviation to the mean
