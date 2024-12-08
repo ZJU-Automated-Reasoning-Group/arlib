@@ -9,6 +9,7 @@ Some APIs/functions for playing with Z3 expr (cont.)
 """
 import z3
 
+
 def absolute_value_bv(bv):
     """
     Based on: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs

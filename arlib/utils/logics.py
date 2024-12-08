@@ -1,3 +1,6 @@
+"""
+Defining the logics
+"""
 from arlib.utils.exceptions import UndefinedLogicError, NoLogicAvailableError
 
 

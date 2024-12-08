@@ -58,6 +58,8 @@ def absolute_value_int(val):
     return z3.If(val >= 0, val, -val)
 
 def get_expr_vars(exp):
+    """z3.z3util.get_vars can be very slow; so we use the
+    cutomized version"""
     try:
         syms = set()
         stack = [exp]

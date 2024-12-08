@@ -40,7 +40,7 @@ def convert(zf: z3.ExprRef):
 
 def all_smt_with_pysmt(fml, keys, bound):
     """
-    Sample k models
+    Sample k models (TBD: use random seeds to improve the diversity?)
     """
     z3fml = z3.And(fml)
     pysmt_var_keys, pysmt_fml = convert(z3fml)

@@ -105,6 +105,7 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager) -> List
     :return: The blocking clauses built from the unsat core
     """
     parsed_core = parse_sexpr_string(core)
+    print(parsed_core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
     blocking_clauses_core = []  # map the core to a numerical clause

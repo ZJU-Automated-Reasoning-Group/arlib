@@ -1,64 +1,122 @@
-# coding: utf-8
 """
-Simple facilities for dealing with s-expr strings.
+Utilities for parsing and manipulating S-expressions.
+
+S-expressions are symbolic expressions that represent nested lists of atoms,
+commonly used in Lisp-like languages. This module provides tools to parse
+string representations of S-expressions into Python data structures.
+
+Example:
+    "(+ 1 (* 2 3))" -> ['+', 1, ['*', 2, 3]]
 """
 
-# Being explicit about Types
+from typing import Union, List, Optional
+from dataclasses import dataclass
+
+# Type definitions
 Symbol = str
-Number = (int, float)
-Atom = (Symbol, Number)
-List = list
-Expr = (Atom, List)
+Number = Union[int, float]
+Atom = Union[Symbol, Number]
+SExpr = Union[Atom, List['SExpr']]
 
+@dataclass
+class ParseError(Exception):
+    """Exception raised for S-expression parsing errors."""
+    message: str
+    position: int
+    expression: str
 
-def input_to_list(string: str) -> [str]:
-    """Parse a string into a list of S-Expressions."""
-    n: int = 0
-    result: [str] = []
-    s: str = ""
-    for c in string:
-        if c == "(":
-            n += 1
-        if c == ")":
-            n -= 1
-        if c != "\n":
-            s += c
-        if n == 0 and s != "":
-            result.append(s)
-            s = ""
-    return result
+    def __str__(self) -> str:
+        return f"{self.message} at position {self.position}: {self.expression}"
 
+def tokenize(expression: str) -> list[str]:
+    """
+    Convert a string into a list of S-expression tokens.
 
-def tokenize(chars: str) -> list:
-    """Convert a string of characters into a list of tokens."""
-    return chars.replace('(', ' ( ').replace(')', ' ) ').replace('" "', 'space').split()
+    Args:
+        expression: String containing S-expression
 
+    Returns:
+        List of tokens (parentheses, atoms, etc.)
 
-def parse_sexpr_string(program: str) -> Expr:
-    """Read an S-expression from a string."""
-    return read_from_tokens(tokenize(program))
+    Example:
+        >>> tokenize("(+ 1 2)")
+        ['(', '+', '1', '2', ')']
+    """
+    return (expression.replace('(', ' ( ')
+                     .replace(')', ' ) ')
+                     .replace('" "', 'space')
+                     .split())
 
+def parse(expression: str) -> Optional[SExpr]:
+    """
+    Parse a string into an S-expression.
 
-def read_from_tokens(tokens: list) -> Expr:
-    """Read an expression from a sequence of tokens."""
-    if len(tokens) == 0:
-        return
-        # raise SyntaxError('unexpected EOF') # is this OK?
-    token = tokens.pop(0)
+    Args:
+        expression: String containing S-expression
+
+    Returns:
+        Parsed S-expression as nested Python lists/atoms
+
+    Raises:
+        ParseError: If the expression is malformed
+
+    Example:
+        >>> parse("(+ 1 (* 2 3))")
+        ['+', 1, ['*', 2, 3]]
+    """
+    tokens = tokenize(expression)
+    if not tokens:
+        return None
+    try:
+        result, remaining = _parse_tokens(tokens, 0)
+        if remaining:
+            raise ParseError("Unexpected trailing tokens", len(tokens) - len(remaining), expression)
+        return result
+    except (IndexError, ValueError) as e:
+        raise ParseError(str(e), len(tokens), expression)
+
+def _parse_tokens(tokens: list[str], depth: int) -> tuple[SExpr, list[str]]:
+    """
+    Recursively parse a list of tokens into an S-expression.
+
+    Args:
+        tokens: List of remaining tokens to parse
+        depth: Current nesting depth
+
+    Returns:
+        Tuple of (parsed expression, remaining tokens)
+    """
+    if not tokens:
+        raise ValueError("Unexpected end of expression")
+
+    token = tokens[0]
+    remaining = tokens[1:]
+
     if token == '(':
-        L = []
-        while tokens[0] != ')':
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0)  # pop off ')'
-        return L
+        lst: List[SExpr] = []
+        while remaining and remaining[0] != ')':
+            expr, remaining = _parse_tokens(remaining, depth + 1)
+            lst.append(expr)
+        if not remaining:
+            raise ValueError("Missing closing parenthesis")
+        return lst, remaining[1:]  # Skip closing paren
+
     elif token == ')':
-        raise SyntaxError('unexpected )')
+        raise ValueError("Unexpected closing parenthesis")
+
     else:
-        return atom(token)
+        return parse_atom(token), remaining
 
+def parse_atom(token: str) -> Atom:
+    """
+    Convert a token string into an atomic value (number or symbol).
 
-def atom(token: str) -> Atom:
-    """Numbers become numbers; every other token is a symbol."""
+    Args:
+        token: String token to parse
+
+    Returns:
+        Parsed atomic value
+    """
     try:
         return int(token)
     except ValueError:
@@ -68,29 +126,15 @@ def atom(token: str) -> Atom:
             return Symbol(token)
 
 
-class ResultParser:
+def parse_sexpr_string(program: str) -> Optional[SExpr]:
     """
-    parse what？
+    Read an S-expression from a string.
+    This is a legacy API wrapper around parse().
+
+    Args:
+        program: String containing S-expression
+
+    Returns:
+        Parsed S-expression as nested Python lists/atoms
     """
-
-    def __init__(self):
-        return
-
-    def to_sexpr_misc(self, lines: [str]):
-        """
-        E.g.,
-        ['and', ['=', 'x', 1], ['=', 'y', 1]]
-        ['and', ['=', 'x!', ['+', 'x', 'y']], ['=', 'y!', ['+', 'x', 'y']]]
-        """
-        res = ["("]
-        for element in lines:
-            if isinstance(element, list):
-                for e in self.to_sexpr_misc(element):
-                    res.append(e)
-            else:
-                res.append(str(element))
-        res.append(")")
-        return res
-
-    def to_sexpr(self, lines: [str]):
-        return " ".join(self.to_sexpr_misc(lines))
+    return parse(program)
