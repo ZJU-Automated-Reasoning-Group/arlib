@@ -1,12 +1,21 @@
-# coding: utf-8
+"""
+Quantifier Elimination via Lazy Model Enumeration (LME-QE)
+
+Implementation based on the paper:
+"Quantifier elimination via lazy model enumeration" (CAV)
+
+The algorithm eliminates existential quantifiers through iterative model enumeration
+and projection. It works by:
+1. Finding a model of the formula
+2. Creating a minterm from the model
+3. Projecting away quantified variables
+4. Blocking the current solution
+5. Repeating until no more models exist
+"""
+
 from typing import List
 
 import z3
-
-"""
-Implementation of the QE algorithm in the following paper:
- Quantifier elimination via lazy model enumeration, CAV??
-"""
 
 
 def negate(f: z3.ExprRef) -> z3.ExprRef:
