@@ -14,12 +14,10 @@ Additional Features:
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple, Optional, Dict, Set
+from typing import List, Dict, Set
 
 import z3
 
-from arlib.smt.bv.qfbv_counting import BVModelCounter
-from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 from arlib.tests.formula_generator import FormulaGenerator
 
 # Configure logging
@@ -57,23 +55,6 @@ class OverflowResults:
     def __post_init__(self):
         if self.affected_vars is None:
             self.affected_vars = set()
-
-
-@dataclass
-class AbstractionResults:
-    """
-    Stores results from different abstraction domains.
-
-    Attributes:
-        interval_fp_rate: False positive rate for interval domain
-        zone_fp_rate: False positive rate for zone domain
-        octagon_fp_rate: False positive rate for octagon domain
-        overflow_results: Results from overflow analysis
-    """
-    interval_fp_rate: float = 0.0
-    zone_fp_rate: float = 0.0
-    octagon_fp_rate: float = 0.0
-    overflow_results: Optional[OverflowResults] = None
 
 
 class OverflowAnalyzer:
@@ -159,7 +140,6 @@ class OverflowAnalyzer:
 class WrappedArithmetic:
     """
     Handles wrapped vs unwrapped arithmetic comparisons.
-
     Args:
         bit_width: Width of bit-vectors
     """
@@ -199,96 +179,6 @@ class WrappedArithmetic:
         return results
 
 
-class ModelCounter:
-    """Handles model counting operations"""
-
-    def __init__(self, timeout_ms: int = 6000):
-        self.timeout_ms = timeout_ms
-
-    def is_sat(self, expression) -> bool:
-        """Check if the expression is satisfiable"""
-        solver = z3.Solver()
-        solver.set("timeout", self.timeout_ms)
-        solver.add(expression)
-        return solver.check() == z3.sat
-
-    def count_models(self, formula) -> int:
-        """Count models using sharpSAT"""
-        counter = BVModelCounter()
-        counter.init_from_fml(formula)
-        return counter.count_models_by_sharp_sat()
-
-
-class AbstractionAnalyzer:
-    """Analyzes different abstraction domains"""
-
-    def __init__(self, formula, variables: List[z3.BitVecRef]):
-        self.formula = formula
-        self.variables = variables
-        self.sa = BVSymbolicAbstraction()
-        self.sa.init_from_fml(formula)
-        self.overflow_analyzer = OverflowAnalyzer(variables, variables[0].size())
-
-    def compute_false_positives(self, abs_formula) -> Tuple[bool, float]:
-        """Compute false positive rate for an abstraction"""
-        solver = z3.Solver()
-        solver.add(z3.And(abs_formula, z3.Not(self.formula)))
-
-        has_false_positives = solver.check() != z3.unsat
-        if not has_false_positives:
-            return False, 0.0
-
-        mc = BVModelCounter()
-        mc.init_from_fml(abs_formula)
-        abs_count = mc.count_models_by_sharp_sat()
-
-        mc_fp = BVModelCounter()
-        mc_fp.init_from_fml(z3.And(abs_formula, z3.Not(self.formula)))
-        fp_count = mc_fp.count_models_by_sharp_sat()
-
-        return True, fp_count / abs_count
-
-    def analyze_abstractions(self) -> Optional[AbstractionResults]:
-        """Analyze all abstraction domains"""
-        try:
-            self.sa.interval_abs()
-            self.sa.zone_abs()
-            self.sa.octagon_abs()
-
-            results = AbstractionResults()
-
-            # Analyze each domain
-            for domain, formula in [
-                ("Interval", self.sa.interval_abs_as_fml),
-                ("Zone", self.sa.zone_abs_as_fml),
-                ("Octagon", self.sa.octagon_abs_as_fml)
-            ]:
-                has_fp, fp_rate = self.compute_false_positives(formula)
-                logger.info(f"{domain} domain: {'has FP rate %.4f' % fp_rate if has_fp else 'no false positives'}")
-
-                if domain == "Interval":
-                    results.interval_fp_rate = fp_rate
-                elif domain == "Zone":
-                    results.zone_fp_rate = fp_rate
-                else:
-                    results.octagon_fp_rate = fp_rate
-
-            # Analyze overflow/underflow
-            results.overflow_results = self.overflow_analyzer.analyze_arithmetic_operations(self.formula)
-
-            # Log overflow analysis results
-            logger.info(f"Overflow count: {results.overflow_results.overflow_count}")
-            logger.info(f"Underflow count: {results.overflow_results.underflow_count}")
-            logger.info(f"Affected variables: {results.overflow_results.affected_vars}")
-            logger.info(f"Impact ratio: {results.overflow_results.impact_ratio:.4f}")
-
-            return results
-
-        except Exception as e:
-            logger.error(f"Error analyzing abstractions: {str(e)}")
-            return None
-
-
 def main():
     """Main entry point"""
     try:
@@ -298,19 +188,6 @@ def main():
         variables = [x, y, z]
 
         formula = FormulaGenerator(variables).generate_formula()
-        counter = ModelCounter()
-
-        if not counter.is_sat(formula):
-            logger.info("Formula is unsatisfiable")
-            return False
-
-        # Count models
-        model_count = counter.count_models(formula)
-        logger.info(f"SharpSAT model count: {model_count}")
-
-        # Analyze abstractions and overflow/underflow
-        analyzer = AbstractionAnalyzer(formula, variables)
-        results = analyzer.analyze_abstractions()
 
         # Compare wrapped vs unwrapped arithmetic
         wrapped_arithmetic = WrappedArithmetic(bit_width)
@@ -320,10 +197,6 @@ def main():
         logger.info("Wrapped vs Unwrapped Arithmetic Comparison:")
         for var in wrapped_results:
             logger.info(f"{var}: wrapped={wrapped_results[var]}, unwrapped={unwrapped_results[var]}")
-
-        if results:
-            logger.info("Analysis completed successfully")
-            return True
 
         return False
 

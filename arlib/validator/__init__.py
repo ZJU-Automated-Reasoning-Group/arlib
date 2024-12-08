@@ -1,0 +1,1 @@
+"""Validating the results"""

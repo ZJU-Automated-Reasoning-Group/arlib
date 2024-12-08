@@ -2,13 +2,13 @@
 From SMT-COMP
 https://github.com/SMT-COMP/postprocessors/tree/master/model-validation-track
 """
-import sys
 import argparse
+import sys
 from os import path
 
+from pysmt.exceptions import PysmtSyntaxError
 from pysmt.shortcuts import get_env
 from pysmt.smtlib.parser import SmtLibParser
-from pysmt.exceptions import PysmtSyntaxError
 from pysmt.smtlib.utils import SmtLibModelValidationSimplifier
 
 get_env().allow_empty_var_names = True
