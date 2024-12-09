@@ -11,6 +11,7 @@ Author:
 from typing import List
 
 import z3
+from z3 import BoolRef, Solver, unsat
 
 
 def negate(f: z3.BoolRef) -> z3.BoolRef:
@@ -70,12 +71,19 @@ def prime_implicant(ps: List[z3.ExprRef], e: z3.ExprRef):
     return res
 
 
-def entail(a: z3.BoolRef, b: z3.BoolRef):
-    """Check if a entails b (for testing whether the abduction algo. works)
+def check_entailment(antecedent: BoolRef, consequent: BoolRef) -> bool:
+    """Check if antecedent entails consequent.
+
+    Args:
+        antecedent: Formula that might entail
+        consequent: Formula that might be entailed
+
+    Returns:
+        True if antecedent entails consequent, False otherwise
     """
-    s = z3.Solver()
-    s.add(z3.Not(z3.Implies(a, b)))
-    return s.check() == z3.unsat
+    solver = Solver()
+    solver.add(z3.Not(z3.Implies(antecedent, consequent)))
+    return solver.check() == unsat
 
 
 def predicate_abstraction(fml, preds):
@@ -112,7 +120,7 @@ def sample_k_implicants(fml, preds, k=-1):
         if s.check() == z3.sat:
             m = s.model()
             proj = z3.And(eval_preds(m, preds))
-            print("implicant? ", entail(proj, fml))
+            print("implicant? ", check_entailment(proj, fml))
             res.append(proj)
     print(res)
     return z3.simplify(z3.Or(res))
@@ -157,7 +165,8 @@ def demo_abduction():
         print("cannot find the hypothesis using target_vars!")
         exit(0)
     # check if the algo. works
-    print(entail(z3.And(res, precond), postcond))
+    print(check_entailment(z3.And(res, precond), postcond))
+
 
 if __name__ == "__main__":
     demo_abduction()
