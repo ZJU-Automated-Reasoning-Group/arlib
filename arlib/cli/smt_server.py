@@ -2,6 +2,11 @@
 A Python program that can be called via IPC. It can take SMT-LIB2 commands
 (e.g., declare-const, assert, check-sat, push/pop, get-model, get-value, etc)
 from another program, and response to those commands.
+
+There are several benefits:
+- We can use other tools (e.g, pySMT) to extend the capability of Z3.
+- Many program analysis tools (e.g., Manticore) already interact with SMT solvers
+ in this way
 """
 import os
 from typing import Dict, Any
@@ -86,6 +91,8 @@ class SmtServer:
             return "success"
 
         elif cmd == "pop":
+            # It seems that we need to update self.variables (e.g., maintain
+            # the scope information for the declared variables)
             self.solver.pop()
             return "success"
 

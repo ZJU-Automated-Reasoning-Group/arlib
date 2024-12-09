@@ -28,7 +28,7 @@ def negate(f: z3.ExprRef) -> z3.ExprRef:
         return z3.Not(f)
 
 
-def eval_preds(m: z3.ModelRef, preds: List[z3.ExprRef]):
+def eval_preds(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
     """
     Let m be a model of a formula phi
     preds be a set of predicates
@@ -81,10 +81,16 @@ def qelim_exists_lme(phi, qvars):
     # similar to lazy DPLL(T)...
     while s.check() == z3.sat:
         m = s.model()
+
+        # Create minterm from current mode
         minterm = z3.And(eval_preds(m, preds))
+
+        # Project away quantified variables
         proj = qe_for_conjunction(z3.Exists(qvars, minterm)).as_expr()  # "forget" x in minterm
         res.append(proj)
-        s.add(negate(proj))  # block the current one
+
+        # block the current one
+        s.add(negate(proj))
 
     return z3.simplify(z3.Or(res))
 

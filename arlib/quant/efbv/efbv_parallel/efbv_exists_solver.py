@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class IncrementalMode(Enum):
     PUSHPOP = 0  # use push/pop
     ASSUMPTION = 1  # use assumption literal
-    NOINC = 2  # non incremental, every time, create a new solver
+    NOINC = 2  # non-incremental, every time, create a new solver
 
 
 m_incremental_mode = IncrementalMode.ASSUMPTION

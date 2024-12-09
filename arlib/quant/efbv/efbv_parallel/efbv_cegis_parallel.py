@@ -15,23 +15,38 @@ limiting the number of calls to the verifier
 import logging
 import time
 from typing import List
-from arlib.quant.efbv.efbv_parallel.efbv_forall_solver import ForAllSolver
+
+import z3
+
 from arlib.quant.efbv.efbv_parallel.efbv_exists_solver import ExistsSolver
+from arlib.quant.efbv.efbv_parallel.efbv_forall_solver import ForAllSolver
 from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult, EFBVTactic, EFBVSolver
 from arlib.quant.efbv.efbv_parallel.exceptions import ExitsSolverSuccess, ExitsSolverUnknown, \
     ForAllSolverSuccess, ForAllSolverUnknown
-
-import z3
 
 logger = logging.getLogger(__name__)
 
 g_efbv_tactic = EFBVTactic.Z3_QBF
 
 
-def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None):
+def bv_efsmt_with_uniform_sampling(
+        exists_vars,
+        forall_vars,
+        phi,
+        maxloops=None,
+        num_samples: int = 5):
     """
-    Solves exists x. forall y. phi(x, y)
-    FIXME: inconsistent with efsmt
+    Solves exists x. forall y. phi(x, y) using uniform sampling
+
+    Args:
+        exists_vars: List of existential variables
+        forall_vars: List of universal variables
+        phi: Formula to solve
+        max_iterations: Maximum number of iterations (None for unlimited)
+        num_samples: Number of samples to generate per iteration
+
+    Returns:
+        EFBVResult indicating SAT/UNSAT/UNKNOWN
     """
     # x = [item for item in get_vars(phi) if item not in y]
 
@@ -40,15 +55,16 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
     # fsolver.vars = forall_vars
     # fsolver.phi = phi
 
-    loops = 0
+    iterations = 0
     result = EFBVResult.UNKNOWN
     try:
-        while maxloops is None or loops <= maxloops:
-            logger.debug("  Round: {}".format(loops))
-            loops += 1
+        while maxloops is None or iterations <= maxloops:
+            logger.debug(f"Iteration: {iterations}")
+            iterations += 1
             # TODO: need to make the fist and the subsequent iteration different???
             # TODO: in the uniform sampler, I always call the solver once before xx...
-            e_models = esolver.get_models(5)
+            # Get multiple exist models
+            e_models = esolver.get_models(num_samples)
 
             if len(e_models) == 0:
                 logger.debug("  Success with UNSAT")
@@ -69,6 +85,7 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
                     logger.debug("  Success with SAT")
                     result = EFBVResult.SAT  # fsolver tells sat
                     break
+                # Add new constraints from forall models
                 for fmodel in fmodels:
                     # sigma = [model.eval(vy, True) for vy in self.forall_vars]
                     y_mappings = [(y, fmodel.eval(y, model_completion=True)) for y in forall_vars]
@@ -83,19 +100,20 @@ def bv_efsmt_with_uniform_sampling(exists_vars, forall_vars, phi, maxloops=None)
 
     except ForAllSolverSuccess as ex:
         # print(ex)
-        logger.debug("  Forall solver SAT")
+        logger.debug("Forall solver success - SAT")
         result = EFBVResult.SAT
     except ForAllSolverUnknown as ex:
         logger.debug("  Forall solver UNKNOWN")
         result = EFBVResult.UNKNOWN
     except ExitsSolverSuccess as ex:
-        logger.debug("  Exists solver UNSAT")
+        logger.debug("Exists solver success - UNSAT")
         result = EFBVResult.UNSAT
     except ExitsSolverUnknown as ex:
         logger.debug("  Exists solver UNKNOWN")
         result = EFBVResult.UNKNOWN
     except Exception as ex:
-        print("XX")
+        logger.error(f"Unexpected error: {ex}")
+        result = EFBVResult.UNKNOWN
 
     return result
 
@@ -122,9 +140,12 @@ def test_efsmt():
     #
     start = time.time()
     solver = ParallelEFBVSolver(mode="canary")
-    print(solver.solve_efsmt_bv([x], [y], fmla))
-    print(time.time() - start)
+    result = solver.solve_efsmt_bv([x], [y], fmla)
+    duration = time.time() - start
+    print(f"Result: {result}")
+    print(f"Time: {duration:.3f}s")
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     test_efsmt()
