@@ -1,6 +1,6 @@
 """
 A Python program that can be called via IPC. It can take SMT-LIB2 commands
-(e.g., delcare-const, assert, check-sat, push/pop, get-model, get-value, etc)
+(e.g., declare-const, assert, check-sat, push/pop, get-model, get-value, etc)
 from another program, and response to those commands.
 """
 import os

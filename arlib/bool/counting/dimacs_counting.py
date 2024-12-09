@@ -71,7 +71,7 @@ def call_sharp_sat(cnf_filename: str):
     """
 
     solutions = -1
-    cmd = [global_config.sharp_sat_exec, cnf_filename]
+    cmd = [global_config.get_solver_path("sharp_sat"), cnf_filename]
     print("Calling sharpSAT")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     is_timeout = [False]

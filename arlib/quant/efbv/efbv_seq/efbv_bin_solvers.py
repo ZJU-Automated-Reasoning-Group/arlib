@@ -16,16 +16,16 @@ from arlib.global_params.paths import global_config
 
 g_bin_solver_timeout = 100
 
-z3_exec = global_config.z3_exec
-cvc5_exec = global_config.cvc5_exec
-yices_exec = global_config.yices2_exec
+z3_exec = global_config.get_solver_path("z3")
+cvc5_exec = global_config.get_solver_path("cvc5")
+yices_exec = global_config.get_solver_path("yices2")
 
-# the followings do not exist
-caqe_exec = global_config.caqe_exec
-btor_exec = global_config.btor_exec
-bitwuzla_exec = global_config.bitwualz_exec
-math_exec = global_config.math_exec
-q3b_exec = global_config.q3b_exec
+# FIXME: the followings do not exist
+caqe_exec =  global_config.get_solver_path("caqe")
+btor_exec = global_config.get_solver_path("btor")
+bitwuzla_exec = global_config.get_solver_path("bitwuzla")
+math_exec = global_config.get_solver_path("mathsat")
+q3b_exec = global_config.get_solver_path("q3b")
 # caqe_exec, \   btor_exec, bitwuzla_exec, math_exec, q3b_exec
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-# MCAI
+# Model Counting Meets Abstract Interpretation (MCA)I
 
 ## DONE
 - Compute the abstractions

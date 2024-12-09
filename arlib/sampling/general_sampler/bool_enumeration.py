@@ -1,7 +1,7 @@
-'''
+"""
 Enumeration
 NOTE: this is for Boolean!!
-'''
+"""
 
 from z3 import *
 

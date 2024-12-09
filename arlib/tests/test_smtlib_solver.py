@@ -34,7 +34,7 @@ def gen_small_formula(logic: str):
 class TestSMTLIBSolver(TestCase):
 
     def test_smtlib_solver(self):
-        bin_cmd = global_config.cvc5_exec + " -q"
+        bin_cmd = global_config.get_solver_path("cvc5") + " -q"
         # print(bin_cmd)
         bin_solver = SMTLibTheorySolver(bin_cmd)
         # smt2string = gen_small_formula("int")
