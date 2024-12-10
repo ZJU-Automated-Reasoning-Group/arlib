@@ -5,6 +5,12 @@ Playing wth Quantifiers
 Quantifiers
 =======
 
+Quantifiers are fundamental logical operators that express properties over sets of values:
+
+- Universal Quantifier (∀): expresses that a property holds for all values
+- Existential Quantifier (∃): expresses that a property holds for at least one value
+
+
 
 =======
 Quantifiers in Arlib
@@ -16,6 +22,15 @@ Solving General Quantified Problems
 The basic idea of quantifier instantiation is to replace a quantified formula with
 a finite set of instances that are obtained by substituting concrete terms for the quantified variables.
 
+Instantiation Techniques
+
+
+1. **E-matching**:
+2. **Model-based**:
+3. **Enumerative**:
+0 ...?
+
+
 Solving Exists-Forall Problems
 -----
 
@@ -26,10 +41,16 @@ Quantifier Elimination
 Quantifier elimination refers to the process of eliminating the quantifiers from a formula by
  constructing an equivalent quantifier-free formula.
 
-
+======
 Related Work
------
+======
 
-- A Polymorphic Intermediate Verification Language: Design and Logical Encoding
+- Ge, Y., & De Moura, L. (2009). Complete instantiation for quantified formulas in
+       satisfiabiliby modulo theories. In Computer Aided Verification (pp. 306-320).
+- de Moura, L., & Bjørner, N. (2007). Efficient E-matching for SMT solvers.
+       In International Conference on Automated Deduction (pp. 183-198)
 - Reasoning with Triggers, SMT'12
+- Reynolds, A., Deters, M., Kuncak, V., Tinelli, C., & Barrett, C. (2015).
+       Counterexample-guided quantifier instantiation for synthesis in SMT.
+       In Computer Aided Verification (pp. 198-216).
 - Counterexample-Guided Model Synthesis, TACAS'17

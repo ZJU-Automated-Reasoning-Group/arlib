@@ -12,10 +12,6 @@ from arlib.smt.bv import translate_smt2formula_to_cnf
 
 logger = logging.getLogger(__name__)
 
-"""
-Bit-Vector Interpolant
-"""
-
 
 def is_inconsistent(fml_a, fml_b):
     s = z3.Solver()

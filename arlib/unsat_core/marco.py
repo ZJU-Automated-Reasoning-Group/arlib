@@ -173,12 +173,12 @@ def enumerate_sets(csolver, map):
             return
         if csolver.check_subset(seed):
             MSS = csolver.grow(seed)
-            yield ("MSS", csolver.to_c_lits(MSS))
+            yield "MSS", csolver.to_c_lits(MSS)
             map.block_down(MSS)
         else:
             seed = csolver.seed_from_core()
             MUS = csolver.shrink(seed)
-            yield ("MUS", csolver.to_c_lits(MUS))
+            yield "MUS", csolver.to_c_lits(MUS)
             map.block_up(MUS)
 
 

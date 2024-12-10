@@ -68,6 +68,24 @@ def get_atoms(expr: z3.ExprRef) -> List[z3.ExprRef]:
     return list(s)
 
 
+def process_model(phi, qvars, preds, shared_models):
+    """Worker function to process a single model"""
+    s = z3.Solver()
+    s.add(phi)
+
+    # Block already found models
+    for model in shared_models:
+        s.add(negate(model))
+
+    if s.check() == z3.sat:
+        m = s.model()
+        minterm = z3.And(eval_preds(m, preds))
+        qe_for_conjunction = z3.Tactic('qe2')
+        proj = qe_for_conjunction(z3.Exists(qvars, minterm)).as_expr()
+        return proj
+    return None
+
+
 def qelim_exists_lme(phi, qvars):
     """
     Existential Quantifier Elimination

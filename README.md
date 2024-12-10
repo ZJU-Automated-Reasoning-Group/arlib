@@ -37,6 +37,10 @@ arlib/
 For Summer Research, Honours/Master Thesis Project Topics, please refer to
 `docs/topics.rst`
 
+## Contributing
+Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
+
+
 ## Publications
 
 
