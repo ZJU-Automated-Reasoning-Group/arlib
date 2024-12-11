@@ -25,6 +25,12 @@ class QFAUFBVFPSolver:
         self.fml = None
         # self.vars = []
         self.verbose = 0
+        self._setup_logging()
+
+    def _setup_logging(self):
+        """Configure logging based on verbosity level."""
+        level = logging.DEBUG if self.verbose else logging.INFO
+        logging.basicConfig(level=level)
 
     def solve_smt_file(self, filepath: str):
         """
