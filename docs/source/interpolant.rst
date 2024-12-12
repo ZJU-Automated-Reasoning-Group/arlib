@@ -62,5 +62,5 @@ References
 =========
 
 - McMillan, K. L. (2003). "Interpolation and SAT-based Model Checking." In Proceedings of the International Conference on Formal Methods in Computer-Aided Design (FMCAD)
-- Henzinger, T. A., Jhala, R., Majumdar, R., & McMillan, K. L. (2004). "Abstractions from proofs." In Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages
-- D'Silva, V., Kroening, D., Purandare, M., & Weissenbacher, G. (2010). "Interpolant strength." In International Workshop on Verification, Model Checking, and Abstract Interpretation
+- Henzinger, T. A., Jhala, R., Majumdar, R., & McMillan, K. L. (2004). "Abstractions from proofs." In Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)
+- D'Silva, V., Kroening, D., Purandare, M., & Weissenbacher, G. (2010). "Interpolant strength." In International Workshop on Verification, Model Checking, and Abstract Interpretation (VMCAI)

@@ -41,7 +41,9 @@ For Summer Research, Honours/Master Thesis Project Topics, please refer to
 Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
 
 
-## Publications
+## Documentation
+We release the docs here:
+https://pyarlib.readthedocs.io/en/latest/
 
 
 

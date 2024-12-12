@@ -40,16 +40,17 @@ Quantifier Elimination
 ------------------------
 
 Quantifier elimination refers to the process of eliminating the quantifiers from a formula by
- constructing an equivalent quantifier-free formula.
+constructing an equivalent quantifier-free formula.
 
 
-We can apply Skolemization to remove the :math:\exists quantifiers. After that it is sufficient to
-instantiate the :math:\forall quantifiers for each constant.
-For example :math:\forall x: T\ A becomes :math:A[c_1/x]\land A[c_2/x]\land \ldots.
+We can apply Skolemization to remove the :math:`\exists` quantifiers. After that, it is sufficient to
+instantiate the :math:`\forall` quantifiers for each constant.
+For example, :math:`\forall x: T\ A` becomes :math:`A[c_1/x] \land A[c_2/x] \land \ldots`.
 The result is equi-satisfiable and quantifier-free.
 
 
 It is important to understand the differences between Skolemization and quantifier elimination:
+
 - Skolemization does not preserve the formula's meaning (it preserves satisfiabilty, but not equivalence)
 - QE replaces a formula with an equivalent but quantifier-free formula
 - QE is only possible for specific theories, and is generally very expensive
