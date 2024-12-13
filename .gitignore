@@ -6,7 +6,6 @@ bin_solvers/*
 tmp.py
 *.prof
 .DS_Store
-arlib/test/.pytest_cache
 *.qdimacs
 *.dot
 !test

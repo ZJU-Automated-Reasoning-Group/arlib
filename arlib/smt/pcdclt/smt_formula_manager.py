@@ -1,10 +1,10 @@
 # coding: utf-8
 """ Formula manager for the CDCL(T) SMT engine
 
-The main class is SMTPreprocess, which is used to
-  - Convert an SMT formula fml to CNF (using Z3's tactics)
-  - Build the Boolean skeleton P of the SMT formula fml
-  - ...
+This module provides classes for preprocessing SMT formulas and managing Boolean and theory components:
+- SMTPreprocessor4Process: Converts SMT formulas to CNF and builds Boolean abstractions
+- BooleanFormulaManager: Tracks mappings between Boolean variables and theory atoms
+- TheoryFormulaManager: Maintains theory-specific information
 
 """
 
@@ -13,8 +13,8 @@ from typing import List
 
 import z3
 
-from arlib.smt.pcdclt.cdclt_config import m_init_abstraction
 from arlib.smt.pcdclt.cdclt_config import InitAbstractionStrategy
+from arlib.smt.pcdclt.cdclt_config import m_init_abstraction
 from arlib.utils import SolverResult
 
 
@@ -31,16 +31,17 @@ def extract_literals_square(clauses: List) -> List[List]:
     Thus, this function aims to build such a CNF
     """
     # FIXME: the naive strategy is not good...
-    res = []
-    for cls in clauses:
-        if z3.is_or(cls):
-            tmp_cls = []
-            for lit in cls.children():
-                tmp_cls.append(lit)
-            res.append(tmp_cls)
+    result = []
+    for clause in clauses:
+        if z3.is_or(clause):
+            # tmp_cls = []
+            # for lit in cls.children():
+            #    tmp_cls.append(lit)
+            # res.append(tmp_cls)
+            result.append(list(clause.children()))
         else:
-            res.append([cls])
-    return res
+            result.append([clause])
+    return result
 
 
 class BooleanFormulaManager(object):

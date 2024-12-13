@@ -1,4 +1,6 @@
 # source ./bin/activate
+#!/usr/bin/env bash
+set -euo pipefail
 bench="$1"
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 

@@ -13,19 +13,7 @@ from typing import List
 import z3
 from z3 import BoolRef, Solver, unsat
 
-
-def negate(f: z3.BoolRef) -> z3.BoolRef:
-    """
-    The negate function takes a z3.BoolRef and returns the negation of it.
-    If f is already a negation, then it returns the argument of that negation.
-
-    :param f:z3.BoolRef: Specify the formula that is to be negated
-    :return: The negation of the input boolean expression
-    """
-    if z3.is_not(f):
-        return f.arg(0)
-    else:
-        return z3.Not(f)
+from arlib.utils.z3_expr_utils import negate
 
 
 def eval_preds(m: z3.ModelRef, preds: List[z3.BoolRef]):

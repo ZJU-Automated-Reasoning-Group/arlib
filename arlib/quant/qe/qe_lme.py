@@ -17,21 +17,11 @@ from typing import List
 
 import z3
 
-
-def negate(f: z3.ExprRef) -> z3.ExprRef:
-    """
-    negate, avoid double negation
-    """
-    if z3.is_not(f):
-        return f.arg(0)
-    else:
-        return z3.Not(f)
+from arlib.utils.z3_expr_utils import negate
 
 
 def eval_preds(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
-    """
-    Let m be a model of a formula phi
-    preds be a set of predicates
+    """Let m be a model of a formula phi preds be a set of predicates
     """
     res = []
     for p in preds:
@@ -45,11 +35,9 @@ def eval_preds(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
 
 
 def get_atoms(expr: z3.ExprRef) -> List[z3.ExprRef]:
-    """
-    Get all atomic predicates in a formula
+    """Get all atomic predicates in a formula
     """
     s = set()
-
     def get_preds_(exp):
         if exp in s:
             return
@@ -99,14 +87,11 @@ def qelim_exists_lme(phi, qvars):
     # similar to lazy DPLL(T)...
     while s.check() == z3.sat:
         m = s.model()
-
         # Create minterm from current mode
         minterm = z3.And(eval_preds(m, preds))
-
         # Project away quantified variables
         proj = qe_for_conjunction(z3.Exists(qvars, minterm)).as_expr()  # "forget" x in minterm
         res.append(proj)
-
         # block the current one
         s.add(negate(proj))
 
@@ -114,7 +99,8 @@ def qelim_exists_lme(phi, qvars):
 
 
 def test_qe():
-    x, y, z = z3.BitVecs("x y z", 16)
+    # x, y, z = z3.BitVecs("x y z", 16)
+    x, y, z = z3.Reals("x y z")
     fml = z3.And(z3.Or(x > 2, x < y + 3), z3.Or(x - z > 3, z < 10))  # x: 4, y: 1
     qf = qelim_exists_lme(fml, [x, y])
     print(qf)

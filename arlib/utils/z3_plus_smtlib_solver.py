@@ -12,10 +12,10 @@ TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equi
   - MaxSMT
 """
 
-from enum import Enum
-from typing import List
 import subprocess
+from enum import Enum
 from threading import Timer
+from typing import List
 
 import z3
 
@@ -23,14 +23,28 @@ from arlib.utils.smtlib_solver import SmtlibProc
 
 
 def terminate(process, is_timeout):
+    """
+    Terminates a given process if it is still running.
+    Args:
+        process (subprocess.Popen): The process to terminate.
+        is_timeout (list): A list containing a single boolean element.
+                           It will be set to True if the process is terminated.
+    """
     if process.poll() is None:
         try:
             process.terminate()
             is_timeout[0] = True
-        except Exception:
+        except Exception as ex:
             # print("error for interrupting")
             # print(ex)
-            pass
+            # pass
+            print(f"Error while attempting to terminate the process: {ex}")
+            try:
+                # Attempt to forcefully kill the process as a fallback
+                process.kill()
+                print("Process forcefully killed.")
+            except Exception as kill_ex:
+                print(f"Error while attempting to kill the process: {kill_ex}")
 
 
 def solve_with_bin_solver(cmd, timeout=300):
@@ -347,11 +361,25 @@ class Z3SolverPlus(z3.Solver):
 
     def all_sat(self, fml: z3.ExprRef, bools: List[z3.ExprRef]):
         """
-        enumerate all the consistent assignments (i.e. solutions) for the given list of predicates.
-        Notice that the arguments to check-allsat can only be Boolean constants.
+         Enumerate all the consistent assignments (i.e. solutions) for the given
+        list of predicates. Notice that the arguments to check-allsat can only be
+        Boolean constants. If you need to enumerate over arbitrary theory atoms,
+        you can always "label" them with constants, as done above for
+        "(> (+ x y) 0)", labeled by "a"
+        ; from https://mathsat.fbk.eu/smt2examples.html
+        (declare-fun x () Int)
+        (declare-fun y () Int)
 
-        TODO: maybe we can use solve_with_bin_solver for other interfaces...
-              why solve_with_
+        (declare-fun a () Bool)
+        (declare-fun b () Bool)
+        (declare-fun c () Bool)
+        (declare-fun d () Bool)
+
+        (assert (= (> (+ x y) 0) a))
+        (assert (= (< (+ (* 2 x) (* 3 y)) (- 10)) c))
+        (assert (and (or a b) (or c d)))
+
+        (check-allsat (a b))
         """
         # a trick to avoid (check-sat)
         cmd = self.all_sat_solver.split(" ")

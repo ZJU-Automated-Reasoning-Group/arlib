@@ -31,7 +31,7 @@ def run_single_test(logic_type: str, timeout: int) -> Tuple[str, List[int], floa
         init_vars = [x, y, z]
     elif logic_type == "real":
         x, y, z = z3.Reals('x y z')
-        init_vars = [x, y,z]
+        init_vars = [x, y, z]
     else:  # bitvector
         x, y, z = z3.BitVecs('x y z', 32)
         init_vars = [x, y, z]

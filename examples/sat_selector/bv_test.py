@@ -182,7 +182,7 @@ if __name__ == "__main__":
     for dir in dataset_to_build:
         dataset_path = cnf_path + dir
         files = os.listdir(dataset_path)
-        if (len(files)):
+        if len(files):
             process_pool.apply_async(building_thread, (files[:], dataset_path,))
 
     process_pool.close()

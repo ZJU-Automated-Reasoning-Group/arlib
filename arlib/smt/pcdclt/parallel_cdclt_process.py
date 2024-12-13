@@ -8,7 +8,7 @@ import multiprocessing
 from multiprocessing import cpu_count
 from multiprocessing import Manager
 from ctypes import c_char_p
-from typing import List
+from typing import List, Optional, Tuple, Set
 
 from arlib.smt.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Some options to be configured (assuming use Z3 for now
 """
 M_SIMPLIFY_BLOCKING_CLAUSES = True
-
+DEFAULT_SAMPLE_SIZE = 10
 
 # End of options
 
@@ -45,8 +45,7 @@ def check_theory_consistency(init_theory_fml,
     theory_solver = SMTLibTheorySolver(bin_solver)
     theory_solver.add(init_theory_fml.value)
     if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
-        core = theory_solver.get_unsat_core()
-        return core
+        return theory_solver.get_unsat_core()
     raise TheorySolverSuccess()
     # return ""  # empty core indicates SAT?
 
