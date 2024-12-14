@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-smtcomp_ = """
+"""
 Translated from
 https://github.com/cvc5/cvc5/blob/c645d256b82f3391d83e96a910f9cf0573016fca/contrib/competitions/smt-comp/run-script-smtcomp2024
 
@@ -12,8 +12,9 @@ from pathlib import Path
 
 
 def get_cvc5_path():
-    script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
-    return str(script_dir / "cvc5")
+    script_dir = Path(os.path.dirname(os.path.realpath(__file__))).parent.parent
+    print(script_dir)
+    return str(script_dir / "bin_solvers/cvc5")
 
 
 def get_logic(bench_file):

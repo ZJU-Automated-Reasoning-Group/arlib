@@ -17,11 +17,18 @@ Dependencies:
 - arlib.symabs: Symbolic abstraction implementations
 """
 
+import argparse
 import logging
+import multiprocessing as mp
+import sys
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import List, Optional
+from typing import Tuple
 
 import z3
+from z3 import parse_smt2_file
 
 from arlib.smt.bv.qfbv_counting import BVModelCounter
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
@@ -127,9 +134,137 @@ class AbstractionAnalyzer:
             logger.error(f"Error analyzing abstractions: {str(e)}")
             return None
 
+def setup_logging(log_file: Optional[str] = None):
+    """Configure logging to both file and console"""
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'
+
+    if log_file:
+        logging.basicConfig(
+            level=logging.INFO,
+            format=log_format,
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler(sys.stdout)
+            ]
+        )
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format=log_format
+        )
+    return logging.getLogger(__name__)
+
+def process_smt_file(file_path: str) -> bool:
+    """Process a single SMT-LIB2 file"""
+    try:
+        # Parse SMT-LIB2 file
+        formula = parse_smt2_file(file_path)
+
+        # Extract variables from formula
+        # FIXME: is the following one correct?
+        variables = [var for var in formula.children()
+                     if var.sort().kind() == z3.Z3_BV_SORT]
+
+        if not variables:
+            logger.warning(f"No bit-vector variables found in {file_path}")
+            return False
+
+        counter = ModelCounter()
+        if not counter.is_sat(formula):
+            logger.info(f"{file_path}: Formula is unsatisfiable")
+            return False
+
+        # Count models
+        model_count = counter.count_models(formula)
+        logger.info(f"{file_path}: SharpSAT model count: {model_count}")
+
+        # Analyze abstractions
+        analyzer = AbstractionAnalyzer(formula, variables)
+        results = analyzer.analyze_abstractions()
+
+        # TODO: also save the results in the log file (or some csv file)
+        if results:
+            logger.info(f"{file_path}: Analysis completed successfully")
+            return True
+
+        return False
+
+    except Exception as e:
+        logger.error(f"Error processing {file_path}: {str(e)}")
+        return False
+
+
+def process_directory(dir_path: str, num_processes: int) -> None:
+    """Process all SMT-LIB2 files in directory using parallel processing"""
+    smt_files = [
+        str(f) for f in Path(dir_path).glob("**/*.smt2")
+    ]
+
+    if not smt_files:
+        logger.warning(f"No SMT-LIB2 files found in {dir_path}")
+        return
+
+    logger.info(f"Found {len(smt_files)} SMT-LIB2 files to process")
+
+    # TODO: also allow for sequential processing
+    with mp.Pool(processes=num_processes) as pool:
+        results = pool.map(process_smt_file, smt_files)
+
+    successful = sum(1 for r in results if r)
+    logger.info(f"Successfully processed {successful}/{len(smt_files)} files")
+
 
 def main():
-    """Main entry point"""
+    """Main entry point with command line argument handling"""
+    parser = argparse.ArgumentParser(
+        description="Model counting and abstract interpretation analysis"
+    )
+
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        "-f", "--file",
+        help="Path to SMT-LIB2 file to analyze"
+    )
+    input_group.add_argument(
+        "-d", "--directory",
+        help="Path to directory containing SMT-LIB2 files"
+    )
+
+    parser.add_argument(
+        "-l", "--log",
+        help="Path to log file (optional)",
+        default=f"analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
+    )
+
+    parser.add_argument(
+        "-p", "--processes",
+        help="Number of parallel processes for directory processing",
+        type=int,
+        default=mp.cpu_count()
+    )
+
+    args = parser.parse_args()
+
+    # Setup logging
+    global logger
+    logger = setup_logging(args.log)
+
+    try:
+        if args.file:
+            logger.info(f"Processing single file: {args.file}")
+            success = process_smt_file(args.file)
+            sys.exit(0 if success else 1)
+
+        elif args.directory:
+            logger.info(f"Processing directory: {args.directory}")
+            process_directory(args.directory, args.processes)
+
+    except Exception as e:
+        logger.error(f"Fatal error: {str(e)}")
+        sys.exit(1)
+
+
+def demo():
     try:
         # Create test variables and formula
         x, y, z = z3.BitVecs("x y z", 8)
