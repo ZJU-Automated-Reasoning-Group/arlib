@@ -9,6 +9,12 @@ import zipfile
 import requests
 from tqdm import tqdm
 
+# yices2_mac_arm64 = "https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.4/yices-2.6.4-arm-apple-darwin20.6.0.tar.gz"
+# yices2_mac = "https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.4/yices-2.6.4-x86_64-apple-darwin20.6.0.tar.gz"
+# yices2_win64 = "https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.4/yices-2.6.4-x86_64-unknown-mingw32-static-gmp.zip"
+# yices2_linux = "https://github.com/SRI-CSL/yices2/releases/download/Yices-2.6.4/yices-2.6.4-x86_64-pc-linux-gnu.tar.gz"
+
+
 SOLVER_URLS = {
     'mac_arm64': {
         'cvc5': "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.3/cvc5-macOS-arm64",
