@@ -4,6 +4,7 @@ backup
 bin_solvers/*
 !bin_solvers/download.py
 tmp.py
+tmp
 *.prof
 .DS_Store
 *.qdimacs
