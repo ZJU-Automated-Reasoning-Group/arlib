@@ -10,5 +10,3 @@ class SolverResult(Enum):
     UNKNOWN = 0
     SAT = 1
     ERROR = 2
-
-

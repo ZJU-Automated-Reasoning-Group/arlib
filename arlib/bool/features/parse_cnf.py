@@ -2,14 +2,19 @@
 Yet another parser
 """
 from typing import List
+
+
 def parse_cnf_string(cnf_str: str):
     raise NotImplementedError
+
 
 def parse_cnf_numeric_clauses(clauses: List[List[int]]):
     raise NotImplementedError
 
+
 def parse_pysat_cnf(cnf):
     raise NotImplementedError
+
 
 def parse_cnf_file(cnf_path: str):
     """

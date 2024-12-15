@@ -13,6 +13,7 @@ class SMTSuccess(ArlibException):
     """Flag for good state"""
     pass
 
+
 class SMTError(ArlibException):
     """TBD"""
     pass

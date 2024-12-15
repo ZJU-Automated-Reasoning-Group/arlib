@@ -6,8 +6,6 @@ import z3
 from arlib.sampling.lira_sampler import LRASampler
 
 
-
-
 class SMTSampler(object):
 
     def __init__(self):

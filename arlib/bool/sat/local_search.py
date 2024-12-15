@@ -7,7 +7,6 @@ import time
 
 
 def evaluate_clauses(clauses, variable_assignments):
-
     """
     Define a function to evaluate a set of clauses with a given set of variable assignments
     """
@@ -27,7 +26,8 @@ def local_search_solve_sat(clauses, max_iterations=10000):
     """
     Define the local search solver function
     """
-    variable_assignments = {i: random.choice([True, False]) for i in range(1, max([abs(v) for clause in clauses for v in clause]) + 1)}
+    variable_assignments = {i: random.choice([True, False]) for i in
+                            range(1, max([abs(v) for clause in clauses for v in clause]) + 1)}
     for i in range(max_iterations):
         if evaluate_clauses(clauses, variable_assignments):
             return variable_assignments
@@ -47,5 +47,6 @@ def test():
     local_search_solve_sat(example_clauses, 100)
     end_time = time.time()
     print("Time taken: {} seconds".format(end_time - start_time))
+
 
 test()

@@ -38,6 +38,7 @@ def get_atoms(expr: z3.ExprRef) -> List[z3.ExprRef]:
     """Get all atomic predicates in a formula
     """
     s = set()
+
     def get_preds_(exp):
         if exp in s:
             return

@@ -450,9 +450,7 @@ def solve_sequential(formula):
     print(s.check())
 
 
-
 def solve_qbv_parallel(formula):
-
     # global process_queue
     # logging.basicConfig(level=logging.DEBUG)
     # reduction_types = [ReductionType.ONE_EXTENSION,
@@ -467,8 +465,6 @@ def solve_qbv_parallel(formula):
     if workers == 1:
         solve_sequential(formula)
         exit(0)
-
-
 
     # Parallel run of original and approximated formula
     with multiprocessing.Manager() as manager:
@@ -525,6 +521,7 @@ def solve_qbv_file_parallel(formula_file: str):
     formula = z3.And(z3.parse_smt2_file(formula_file))
     return solve_qbv_parallel(formula)
 
+
 def solve_qbv_str_parallel(fml_str: str):
     # Parse SMT2 formula to Z3 format
     formula = z3.And(z3.parse_smt2_string(fml_str))
@@ -540,7 +537,6 @@ def demo_qbv():
 (check-sat)
 '''
     solve_qbv_str_parallel(fml_str)
-
 
 
 if __name__ == "__main__":

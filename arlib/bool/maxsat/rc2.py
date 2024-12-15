@@ -1612,7 +1612,7 @@ def parse_options():
     block = bmap[block]
 
     return adapt, blo, block, cmode, to_enum, exhaust, incr, minz, \
-           solver, trim, verbose, vnew, args
+        solver, trim, verbose, vnew, args
 
 
 #
@@ -1649,7 +1649,7 @@ def usage():
 # ==============================================================================
 if __name__ == '__main__':
     adapt, blo, block, cmode, to_enum, exhaust, incr, minz, solver, trim, \
-    verbose, vnew, files = parse_options()
+        verbose, vnew, files = parse_options()
 
     if files:
         # parsing the input formula

@@ -1,4 +1,3 @@
-
 from arlib.utils.exceptions import SMTSuccess, SMTError, SMTUnknown
 
 
@@ -10,6 +9,7 @@ class ExitsSolverSuccess(SMTSuccess):
 class ForAllSolverSuccess(SMTSuccess):
     """The Forall Solver validates the candidate as feasible(?)"""
     pass
+
 
 class ExitsSolverUnknown(SMTUnknown):
     """TBD"""

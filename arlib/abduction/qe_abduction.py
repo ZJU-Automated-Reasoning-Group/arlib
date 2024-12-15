@@ -2,7 +2,6 @@
 Abudciton via Quantifier Elimiination
 """
 
-
 # This module provides methods for performing abduction via quantifier elimination.
 # Quantifier elimination is a technique used in automated theorem proving and symbolic computation
 # to eliminate quantifiers from a given formula, resulting in a quantifier-free formula.
@@ -10,6 +9,7 @@ Abudciton via Quantifier Elimiination
 # equivalent formula.
 
 import z3
+
 
 def quantifier_eliminiation(fml: z3.ExprRef):
     """
@@ -41,7 +41,3 @@ def abduction(precond, postcond, target_vars):
     """
     fml = z3.Implies(precond, postcond)
     raise NotImplementedError()
-
-
-
-

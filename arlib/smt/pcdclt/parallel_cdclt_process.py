@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 M_SIMPLIFY_BLOCKING_CLAUSES = True
 DEFAULT_SAMPLE_SIZE = 10
 
+
 # End of options
 
 
@@ -165,7 +166,6 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
                           " (set-option :produce-unsat-cores true) " + \
                           " ".join(th_manager.smt2_signature) + \
                           "(assert {})".format(th_manager.smt2_init_cnt)
-
 
     # print(init_theory_fml_str)
     # According to https://stackoverflow.com/questions/17377426/shared-variable-in-pythons-multiprocessing

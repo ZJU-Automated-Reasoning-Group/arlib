@@ -67,4 +67,3 @@ def unary_check_cached(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
         solver.pop()  # Restore the state
 
     return results
-

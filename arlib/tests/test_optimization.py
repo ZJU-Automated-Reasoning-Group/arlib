@@ -3,6 +3,7 @@
 from pysmt.test import TestCase
 from pysmt.test import main
 
+
 class TestOptimization(TestCase):
 
     def test_minimization_basic(self):

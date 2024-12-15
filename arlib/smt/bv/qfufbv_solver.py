@@ -98,6 +98,7 @@ class QFUFBVSolver:
         else:
             return SolverResult.UNKNOWN
 
+
 def demo_qfufbv():
     # z3.set_param("verbose", 15)  #large number -> more detailed nfo
     fml_str = """

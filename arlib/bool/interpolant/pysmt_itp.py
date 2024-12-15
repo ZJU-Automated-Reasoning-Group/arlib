@@ -10,6 +10,7 @@ from pysmt.typing import BOOL
 
 from arlib.utils.z3_expr_utils import get_variables
 
+
 def to_pysmt_fml(fml: z3.ExprRef):
     # the following two lines are just for "fixing" some warnings
     # zvs = z3.z3util.get_vars(fml) # can be slow

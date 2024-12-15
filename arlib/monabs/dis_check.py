@@ -7,17 +7,17 @@ import z3
 
 def compact_check_misc(precond: z3.ExprRef, cnt_list: [z3.ExprRef], res_label: List):
     f = z3.BoolVal(False)
-    
+
     conditions = []
     for i in range(len(res_label)):
         if res_label[i] == 2:
             conditions.append(cnt_list[i])
 
     if len(conditions) == 0:
-        return 
+        return
 
     f = z3.Or(conditions)
-    
+
     if z3.is_false(f):
         return
 
@@ -58,9 +58,10 @@ def disjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List[i
     return res
 
 
-def compact_check_misc_incremental(solver: z3.Solver, precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_label: List[int]):
+def compact_check_misc_incremental(solver: z3.Solver, precond: z3.ExprRef, cnt_list: List[z3.ExprRef],
+                                   res_label: List[int]):
     f = z3.BoolVal(False)
-    
+
     conditions = []
     for i, label in enumerate(res_label):
         if label == 2:

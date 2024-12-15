@@ -51,7 +51,7 @@ class BooleanSamplerStrategy(Enum):
     UNIGEN = 1  # use unigen
 
 
- # Set the Parallel Mode
+# Set the Parallel Mode
 m_parallel_mode = ParallelMode.USE_MULIT_PROCESSING
 
 # Set the Theory Solver Incremental Type

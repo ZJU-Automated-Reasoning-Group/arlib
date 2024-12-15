@@ -30,8 +30,6 @@ class TestCase(unittest.TestCase):
         assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 
-
-
 # Export a main function
 main = unittest.main
 

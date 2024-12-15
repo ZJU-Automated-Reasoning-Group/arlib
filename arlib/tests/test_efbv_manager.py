@@ -13,6 +13,7 @@ from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
 # from arlib.quant.efbv.efbv_to_bool import EFBVFormulaTranslator
 from arlib.utils.z3_expr_utils import get_variables
 
+
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
     x, y = z3.BitVecs("x y", 2)

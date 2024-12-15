@@ -536,6 +536,7 @@ def solve_qbv_file_parallel(formula_file: str):
     formula = z3.And(z3.parse_smt2_file(formula_file))
     return solve_qbv_parallel(formula)
 
+
 def solve_qbv_str_parallel(fml_str: str):
     # Parse SMT2 formula to Z3 format
     formula = z3.And(z3.parse_smt2_string(fml_str))

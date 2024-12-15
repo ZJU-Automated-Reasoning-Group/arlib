@@ -8,6 +8,7 @@ from arlib.bool.counting.z3py_expr_counting import count_z3_solutions, \
 from arlib.bool.counting.pysmt_expr_counting import count_pysmt_solutions, \
     count_pysmt_models_by_enumeration
 
+
 class TestModelCounting(unittest.TestCase):
     def test_z3_simple(self):
         # Simple formula: (a or b) and (not a or not b)

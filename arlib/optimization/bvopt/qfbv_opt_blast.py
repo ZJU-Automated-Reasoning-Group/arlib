@@ -25,10 +25,10 @@ from arlib.bool import MaxSATSolver
 
 logger = logging.getLogger(__name__)
 
-
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                         'g4', 'lgl', 'mcb', 'mpl', 'mg3',
                         'mc', 'm22', 'msh']
+
 
 class BitBlastOMTBVSolver:
     """
@@ -46,6 +46,7 @@ class BitBlastOMTBVSolver:
         self.fml = formula
         # self.vars = get_vars(self.fml)
         self.vars = get_variables(self.fml)
+
     def bit_blast(self):
         """
         The bit_blast function converts a bit-vector formula to Boolean logic.

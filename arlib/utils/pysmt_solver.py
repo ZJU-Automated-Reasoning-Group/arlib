@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # NOTE: both pysmt and z3 have a class "Solver"
 
 def is_qfree(formula: Any) -> bool:
-    return QuantifierOracle().is_qf(formula) # type: ignore
+    return QuantifierOracle().is_qf(formula)  # type: ignore
 
 
 def to_pysmt_vars(z3vars: [z3.ExprRef]):
@@ -42,6 +42,7 @@ def to_pysmt_vars(z3vars: [z3.ExprRef]):
         else:
             raise NotImplementedError
     return res
+
 
 class PySMTSolver(z3.Solver):
 
@@ -150,7 +151,7 @@ class PySMTSolver(z3.Solver):
             loops = 0
             result = "unknown"
             while maxloops is None or loops <= maxloops:
-            # while True:
+                # while True:
                 loops += 1
                 eres = esolver.solve()
                 if not eres:
@@ -172,6 +173,7 @@ class PySMTSolver(z3.Solver):
                         if verbose: print("%d: Sigma = %s" % (loops, sigma))
                         esolver.add_assertion(sub_phi)
             return result
+
 
 def test():
     x, y, z = z3.Ints("x y z")

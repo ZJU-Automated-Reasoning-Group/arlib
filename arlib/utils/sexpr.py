@@ -18,6 +18,7 @@ Number = Union[int, float]
 Atom = Union[Symbol, Number]
 SExpr = Union[Atom, List['SExpr']]
 
+
 @dataclass
 class ParseError(Exception):
     """Exception raised for S-expression parsing errors."""
@@ -27,6 +28,7 @@ class ParseError(Exception):
 
     def __str__(self) -> str:
         return f"{self.message} at position {self.position}: {self.expression}"
+
 
 def tokenize(expression: str) -> list[str]:
     """
@@ -43,9 +45,10 @@ def tokenize(expression: str) -> list[str]:
         ['(', '+', '1', '2', ')']
     """
     return (expression.replace('(', ' ( ')
-                     .replace(')', ' ) ')
-                     .replace('" "', 'space')
-                     .split())
+            .replace(')', ' ) ')
+            .replace('" "', 'space')
+            .split())
+
 
 def parse(expression: str) -> Optional[SExpr]:
     """
@@ -74,6 +77,7 @@ def parse(expression: str) -> Optional[SExpr]:
         return result
     except (IndexError, ValueError) as e:
         raise ParseError(str(e), len(tokens), expression)
+
 
 def _parse_tokens(tokens: list[str], depth: int) -> tuple[SExpr, list[str]]:
     """
@@ -106,6 +110,7 @@ def _parse_tokens(tokens: list[str], depth: int) -> tuple[SExpr, list[str]]:
 
     else:
         return parse_atom(token), remaining
+
 
 def parse_atom(token: str) -> Atom:
     """

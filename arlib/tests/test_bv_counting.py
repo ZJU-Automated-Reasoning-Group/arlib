@@ -7,6 +7,7 @@ import z3
 from arlib.tests import TestCase, main
 from arlib.smt.bv.qfbv_counting import BVModelCounter
 
+
 class TestBVCounter(TestCase):
     def test_bv_counger(self):
         mc = BVModelCounter()
@@ -20,7 +21,6 @@ class TestBVCounter(TestCase):
 
 if __name__ == '__main__':
     main()
-
 
 """
 def feat_test():

@@ -7,6 +7,7 @@ import itertools
 from functools import reduce
 from arlib.utils.z3_expr_utils import get_variables
 
+
 # Approach taken from:
 #   Rafael Dutra, Kevin Laeufer, Jonathan Bachrach and Koushik Sen:
 #   Efficient Sampling of SAT Solutions for Testing, ICSE 2018.
@@ -140,4 +141,3 @@ def quicksampler_for_file(fname):
 if __name__ == '__main__':
     # test_sampler()
     quicksampler_for_file('../test/t1.smt2')
-    

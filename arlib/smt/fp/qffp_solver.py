@@ -21,6 +21,7 @@ class QFFPSolver:
     to translate the formula to CNF and then use PySAT to solve it.
     """
     sat_engine = 'mgh'
+
     def __init__(self):
         self.fml = None
         # self.vars = []
@@ -120,7 +121,8 @@ class QFFPSolver:
         elif res == z3.unsat:
             return SolverResult.UNSAT
         else:
-            return  SolverResult.UNKNOWN
+            return SolverResult.UNKNOWN
+
 
 def demo_qffp():
     z3.set_param("verbose", 15)

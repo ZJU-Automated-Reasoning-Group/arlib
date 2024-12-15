@@ -4,11 +4,11 @@ For testing OMT(BV) solving engine
 """
 import z3
 
-
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
 # from arlib.smt.bv import OMTBVSolver
 from arlib.optimization.bvopt.qfbv_opt import BitBlastOMTBVSolver
+
 
 def is_sat(e):
     s = z3.Solver()
@@ -38,12 +38,13 @@ class TestBVOMT(TestCase):
     """
     Test the OMT(BV) solver
     """
+
     def test_bvopt1(self):
-        #x, y, z = z3.BitVecs("x y z", 8)
-        #fml = z3.And(z3.ULT(x, 100), x + y == 20)
-        #omt = OMTBVSolver()
-        #omt.from_smt_formula(fml)
-        #print(omt.maximize(x, is_signed=False))
+        # x, y, z = z3.BitVecs("x y z", 8)
+        # fml = z3.And(z3.ULT(x, 100), x + y == 20)
+        # omt = OMTBVSolver()
+        # omt.from_smt_formula(fml)
+        # print(omt.maximize(x, is_signed=False))
         assert True
 
     def test_bvopt2(self):
@@ -51,7 +52,6 @@ class TestBVOMT(TestCase):
             if try_bvopt():
                 break
         assert True
-
 
 
 if __name__ == '__main__':

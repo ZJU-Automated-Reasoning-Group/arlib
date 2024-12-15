@@ -21,7 +21,7 @@ cvc5_exec = global_config.get_solver_path("cvc5")
 yices_exec = global_config.get_solver_path("yices2")
 
 # FIXME: the followings do not exist
-caqe_exec =  global_config.get_solver_path("caqe")
+caqe_exec = global_config.get_solver_path("caqe")
 btor_exec = global_config.get_solver_path("btor")
 bitwuzla_exec = global_config.get_solver_path("bitwuzla")
 math_exec = global_config.get_solver_path("mathsat")
@@ -109,7 +109,6 @@ def solve_with_bin_smt(logic: str, x: List[z3.ExprRef], y: List[z3.ExprRef], phi
                 exits_vars_names.add(name)
                 fml_str += "(declare-const {0} {1})\n".format(v.sexpr(), v.sort().sexpr())
         # print(exits_vars_names)
-
 
         quant_vars = "("
         for v in y:

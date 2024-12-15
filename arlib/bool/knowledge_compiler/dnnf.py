@@ -114,6 +114,7 @@ class DNF_Node:
     #           right_child=create_term_node(term=instanciation))
     """
 
+
 class DNNF_Compiler:
     def __init__(self, dtree):
         self.dtree = dtree
@@ -133,7 +134,7 @@ class DNNF_Compiler:
         :param literal: The literal to propagate through the dtree.
         :return: A modified decision tree after BCP.
         """
-        
+
         modified = copy.deepcopy(dtree)
         if modified.is_leaf():
             # print(literal)
@@ -165,7 +166,6 @@ class DNNF_Compiler:
             modified.clause_key = modified.left_child.clause_key + modified.right_child.clause_key
             modified.lit_key += 2 ** (abs(literal) - 1)
         return modified
-        
 
     # def pure_literals(dtree):
     #     counter = dtree.get_counter()

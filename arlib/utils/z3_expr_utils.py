@@ -57,6 +57,7 @@ def absolute_value_int(val):
     """
     return z3.If(val >= 0, val, -val)
 
+
 def get_expr_vars(exp):
     """z3.z3util.get_vars can be very slow; so we use the
     cutomized version"""
@@ -76,6 +77,7 @@ def get_expr_vars(exp):
     except z3.Z3Exception as ex:
         print(ex)
         return False
+
 
 def get_variables(exp: z3.ExprRef) -> [z3.ExprRef]:
     """Get variables of exp"""
@@ -388,6 +390,7 @@ def z3_value_to_python(value):
 
 class FormulaInfo:
     """For formula info"""
+
     def __init__(self, fml):
         self.formula = fml
         self.has_quantifier = self.has_quantifier()
@@ -468,6 +471,3 @@ def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]):
         else:
             pass
     return res
-
-
-

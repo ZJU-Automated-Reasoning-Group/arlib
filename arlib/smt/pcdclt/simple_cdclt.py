@@ -61,7 +61,6 @@ def boolean_abstraction(smt2string: str) -> List:
     return bool_manager.numeric_clauses
 
 
-
 def simple_cdclt(smt2string: str):
     preprocessor = SMTPreprocessor4Process()
     bool_manager, th_manager = preprocessor.from_smt2_string(smt2string)
@@ -81,7 +80,7 @@ def simple_cdclt(smt2string: str):
     # theory_solver = PySMTTheorySolver()
 
     # " (set-logic ALL) " +  ....
-    init_theory_fml = " (set-option :produce-unsat-cores true) " +  \
+    init_theory_fml = " (set-option :produce-unsat-cores true) " + \
                       " ".join(th_manager.smt2_signature) + \
                       "(assert {})".format(th_manager.smt2_init_cnt)
 

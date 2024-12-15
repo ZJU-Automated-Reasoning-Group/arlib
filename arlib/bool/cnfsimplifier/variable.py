@@ -2,6 +2,7 @@
 Variable
 """
 
+
 class Variable:
     """
     A Boolean variable

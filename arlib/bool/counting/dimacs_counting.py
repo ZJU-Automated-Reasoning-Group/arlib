@@ -18,6 +18,7 @@ from pysat.solvers import Solver
 from arlib.bool.pysat_cnf import gen_cubes
 
 from arlib.global_params import global_config
+
 sharp_sat_timeout = 600
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,6 @@ def terminate(process, is_timeout: List):
         except Exception as ex:
             print("error for interrupting")
             print(ex)
-
 
 
 def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str):
@@ -169,7 +169,6 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
     for cube in cubes:
         if check_sat(cnf, assumptions=cube):
             satisfaible_cubes.append(cube)
-
 
     cnf_tasks = []
     for cube in satisfaible_cubes:

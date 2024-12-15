@@ -227,8 +227,8 @@ class CDCLTSolver:
 
 
 def parallel_cdclt_process_new(smt2string: str,
-                           logic: str,
-                           num_samples_per_round: int = DEFAULT_SAMPLE_SIZE) -> SolverResult:
+                               logic: str,
+                               num_samples_per_round: int = DEFAULT_SAMPLE_SIZE) -> SolverResult:
     """Main entry point for parallel CDCL(T) solving."""
     solver = CDCLTSolver(sample_size=num_samples_per_round)
     return solver.solve(smt2string, logic)

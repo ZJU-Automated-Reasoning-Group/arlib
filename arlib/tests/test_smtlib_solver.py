@@ -3,7 +3,6 @@
 For testing the smtlib-based solver (used for interacting with binary solvers)
 """
 
-
 import z3
 
 from arlib.tests import TestCase, main
@@ -11,6 +10,7 @@ from arlib.tests.formula_generator import FormulaGenerator
 from arlib.tests.grammar_gene import gene_smt2string
 from arlib.utils.smtlib_theory_solver import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 from arlib.global_params.paths import global_config
+
 
 def gen_small_formula(logic: str):
     """

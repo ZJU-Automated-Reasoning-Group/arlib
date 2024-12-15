@@ -21,8 +21,10 @@ def is_literal(exp: z3.ExprRef):
 def is_ite(exp: z3.ExprRef):
     return exp.decl().kind() == z3.Z3_OP_ITE
 
+
 def is_iff(exp: z3.ExprRef):
     return exp.decl().kind() == z3.Z3_OP_IFF
+
 
 def proj_id_last(var, n_proj_vars, n_vars):
     assert var != 0

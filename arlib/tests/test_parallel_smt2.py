@@ -4,7 +4,6 @@ from arlib.smt.pcdclt.parallel_cdclt_process_new import parallel_cdclt_process_n
 from arlib.tests import TestCase, main
 
 
-
 class TestParallelSMTSolver2(TestCase):
 
     def test_par_solver2(self):
@@ -21,7 +20,6 @@ class TestParallelSMTSolver2(TestCase):
         # print(simple_cdclt(fml))
         # print(parallel_cdclt_process(fml, logic="ALL"))
         print(parallel_cdclt_process_new(fml, logic="ALL"))
-
 
 
 if __name__ == '__main__':

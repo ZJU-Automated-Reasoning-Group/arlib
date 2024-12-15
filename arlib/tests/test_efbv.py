@@ -11,6 +11,7 @@ from arlib.quant.efbv.efbv_parallel.efbv_cegis_parallel import ParallelEFBVSolve
 from arlib.quant.efbv.efbv_parallel.efbv_utils import EFBVResult
 from arlib.utils.z3_expr_utils import get_variables
 
+
 def gen_small_bv_formula(logic: str):
     assert logic == "bv"
     w, x, y, z = z3.BitVecs("w x y z", 3)

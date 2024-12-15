@@ -146,7 +146,7 @@ def smtlib_to_sympy_constraint(
         smtlib_input: str,
         interpreted_constants: Dict[str, Callable] = default_interpreted_constants,
         interpreted_unary_functions: Dict[str,
-                                          Callable] = default_interpreted_unary_functions):
+        Callable] = default_interpreted_unary_functions):
     """Convert SMTLIB(v2) constraints into sympy constraints analyzable via SYMPAIS.
     This function is experimental and introduced as an example.
     It is implemented on top of PySMT (https://github.com/pysmt/pysmt).
@@ -190,7 +190,7 @@ def smtlib_to_sympy_constraint(
 
 
 def test_example_smt_transformation():
-  smt01 = '''
+    smt01 = '''
     (declare-fun x () Real)
     (declare-fun y () Real)
     (declare-const PI Real)
@@ -207,13 +207,12 @@ def test_example_smt_transformation():
         (> x 20)
     )
     '''
-  x = sympy.Symbol('x')
-  y = sympy.Symbol('y')
-  expected_result = (y * sympy.sqrt(y) + sympy.sin(x) <= 1) & (x > 20)
-  print(expected_result)
-  assert sympy.logic.boolalg.Equivalent(expected_result,
-                                        smtlib_to_sympy_constraint(smt01))
-
+    x = sympy.Symbol('x')
+    y = sympy.Symbol('y')
+    expected_result = (y * sympy.sqrt(y) + sympy.sin(x) <= 1) & (x > 20)
+    print(expected_result)
+    assert sympy.logic.boolalg.Equivalent(expected_result,
+                                          smtlib_to_sympy_constraint(smt01))
 
 
 test_example_smt_transformation()

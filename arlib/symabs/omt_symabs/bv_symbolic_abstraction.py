@@ -2,7 +2,6 @@
 This module provides a symbolic abstraction for bit-vector formulas.
 It supports interval, zone, and octagon abstractions.
 """
-       
 
 import z3
 import itertools
@@ -12,6 +11,7 @@ from typing import List
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.utils.z3_solver_utils import is_entail
 from arlib.symabs.omt_symabs.z3opt_util import box_optimize
+
 
 # import argparse
 

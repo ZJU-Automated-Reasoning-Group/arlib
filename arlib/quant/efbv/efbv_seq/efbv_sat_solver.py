@@ -5,7 +5,6 @@ from pysat.solvers import Solver
 
 logger = logging.getLogger(__name__)
 
-
 """
     cadical103  = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
     cadical153  = ('cd15', 'cd153', 'cdl15', 'cdl153', 'cadical153')

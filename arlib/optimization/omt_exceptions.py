@@ -2,6 +2,7 @@
 Exceptions related to oMT
 """
 
+
 class PyomtException(Exception):
     """Base class for all custom exceptions of pySMT"""
     pass
@@ -16,9 +17,11 @@ class OMTInfinityError(PyomtException):
     """Infinite value in expressions."""
     pass
 
+
 class OMTInfinitesimalError(PyomtException):
     """Infinite value in expressions."""
     pass
+
 
 class OMTUnboundedOptimizationError(PyomtException):
     """Infinite optimal value in optimization."""
@@ -27,6 +30,7 @@ class OMTUnboundedOptimizationError(PyomtException):
 
 class GoalNotSupportedError(PyomtException):
     """Goal not supported by the solver."""
+
     def __init__(self, current_solver, goal):
         self.current_solver = current_solver
         self.goal = goal
@@ -36,4 +40,3 @@ class GoalNotSupportedError(PyomtException):
 
     def goal(self):
         return self.goal
-

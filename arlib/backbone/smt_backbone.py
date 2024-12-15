@@ -33,6 +33,7 @@ from z3 import *
 
 from arlib.utils.z3_expr_utils import get_atoms
 
+
 def get_atoms(e: z3.ExprRef):
     """
     The get_atoms function takes a Z3 expression as input and returns the set of all

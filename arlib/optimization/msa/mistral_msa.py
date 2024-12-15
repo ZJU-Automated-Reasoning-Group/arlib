@@ -11,6 +11,7 @@ from typing import FrozenSet
 import z3
 from arlib.utils.z3_expr_utils import get_variables
 
+
 class MSASolver:
     """
     Mistral solver class.

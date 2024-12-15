@@ -6,8 +6,9 @@ FIXME: to validate
 from typing import List
 import z3
 
-from arlib.bool.counting.dimacs_counting import count_dimacs_solutions,\
+from arlib.bool.counting.dimacs_counting import count_dimacs_solutions, \
     count_dimacs_solutions_parallel
+
 
 def count_z3_models_by_enumeration(formula: z3.BoolRef, max_models: int = None) -> int:
     """
@@ -58,8 +59,8 @@ def z3_to_dimacs(formula: z3.BoolRef) -> tuple[List[str], List[str]]:
     goal = z3.Goal()
     goal.add(formula)
     tactic = z3.Then(z3.Tactic('simplify'),
-                    z3.Tactic('tseitin-cnf'),
-                    z3.Tactic('simplify'))
+                     z3.Tactic('tseitin-cnf'),
+                     z3.Tactic('simplify'))
     result = tactic(goal)[0]
 
     # Handle tautology

@@ -34,6 +34,7 @@ sat_solvers = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                'g4', 'lgl', 'mcb', 'mpl', 'mg3',
                'mc', 'm22', 'msh']
 
+
 def internal_single_solve(solver_name, clauses, assumptions):
     """Used by parallel solving"""
     solver = Solver(name=solver_name, bootstrap_with=clauses)
@@ -47,6 +48,7 @@ class PySATSolver:
     """
     Wrapper of PySAT
     """
+
     def __init__(self, solver="cd"):
         self.solver_name = solver
         self._solver = Solver(name=solver)

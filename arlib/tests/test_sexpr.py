@@ -1,6 +1,7 @@
 import unittest
 from arlib.utils.sexpr import *
 
+
 class TestSExprParser(unittest.TestCase):
     """Test cases for S-expression parser."""
 

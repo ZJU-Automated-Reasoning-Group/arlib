@@ -3,6 +3,7 @@ import os
 import sys
 import linecache
 
+
 def parse_model(file_name):
     status = linecache.getline(file_name, 1)
     status = status[:-1]

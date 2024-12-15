@@ -70,4 +70,5 @@ def test():
     q_list = [(1, ['x']), (-1, ['y'])]
     qbf = QBF(prop_formula, q_list)
 
+
 test()

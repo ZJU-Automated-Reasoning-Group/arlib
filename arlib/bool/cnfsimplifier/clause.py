@@ -5,6 +5,7 @@ import uuid
 
 from .variable import Variable
 
+
 # from typing import Set
 
 def create_id():
@@ -13,6 +14,7 @@ def create_id():
 
 class Clause:
     """Representation of a Boolean clause"""
+
     def __init__(self, variable_list: list):
         """
         :complexity: O(n) where n is the number of variables in the clause

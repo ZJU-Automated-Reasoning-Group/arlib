@@ -134,6 +134,7 @@ class AbstractionAnalyzer:
             logger.error(f"Error analyzing abstractions: {str(e)}")
             return None
 
+
 def setup_logging(log_file: Optional[str] = None):
     """Configure logging to both file and console"""
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
@@ -153,6 +154,7 @@ def setup_logging(log_file: Optional[str] = None):
             format=log_format
         )
     return logging.getLogger(__name__)
+
 
 def process_smt_file(file_path: str) -> bool:
     """Process a single SMT-LIB2 file"""

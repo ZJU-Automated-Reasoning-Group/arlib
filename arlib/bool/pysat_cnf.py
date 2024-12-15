@@ -3,7 +3,8 @@ import sys
 import random
 from copy import deepcopy
 from typing import List
-from pysat.formula import CNF  #IDPool
+from pysat.formula import CNF  # IDPool
+
 
 def simplify_cnf(fml: CNF, assumptions: List):
     """ given a formula, return a new formula simplified by the assumptions"""

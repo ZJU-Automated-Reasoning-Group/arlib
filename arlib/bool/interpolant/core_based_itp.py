@@ -13,13 +13,13 @@ from pysat.solvers import Solver
 
 
 class BooleanInterpolant:
-    
+
     def __init__(self):
         """
         Initialize the BooleanInterpolant class.
         """
         pass
-        
+
     @staticmethod
     def mk_lit(m: z3.ModelRef, x: z3.ExprRef):
         if z3.is_true(m.eval(x)):

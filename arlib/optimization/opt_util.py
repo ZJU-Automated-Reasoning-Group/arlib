@@ -1,6 +1,7 @@
 from z3 import *
 from typing import List
 
+
 def optimize_as_long(fml: z3.ExprRef, obj: z3.ExprRef, minimize=False, timeout: int = 0):
     """
     The optimize function takes in a formula, an objective function, and whether the
