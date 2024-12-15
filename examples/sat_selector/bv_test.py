@@ -36,8 +36,8 @@ from concurrent.futures import *
     minisat22   = ('m22', 'msat22', 'minisat22')
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
-sat_solvers_in_pysat = [ 'gc3', 'gc4', 'g3',
-                        'g4',  'mcb', 'mpl', 'mg3',
+sat_solvers_in_pysat = ['gc3', 'gc4', 'g3',
+                        'g4', 'mcb', 'mpl', 'mg3',
                         'mc', 'm22', 'mgh']
 
 qfbv_preamble = z3.AndThen(z3.With('simplify', flat_and_or=False),
@@ -63,12 +63,15 @@ qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_dist
 import signal
 from contextlib import contextmanager
 
+
 class TimeoutException(Exception): pass
+
 
 @contextmanager
 def time_limit(seconds):
     def signal_handler(signum, frame):
         raise TimeoutException("Timed out!")
+
     signal.signal(signal.SIGALRM, signal_handler)
 
     signal.alarm(seconds)
@@ -76,6 +79,7 @@ def time_limit(seconds):
         yield
     finally:
         signal.alarm(0)
+
 
 # sat_solver_name = "minisat22"
 # max solving time is limited to 2500s
@@ -87,6 +91,7 @@ def solve_smt_file(self, filepath: str):
     print(fml_vec)
     return self.check_sat(z3.And(fml_vec))
 
+
 # 还没跑完的
 # dataset_to_build = ["uum", "VS3", "2018-Goel-hwbench", "bench_ab", "bmc-bv","20190311-bv-term-small-rw-Noetzli",
 #                     "bmc-bv-svcomp14","brummayerbiere","brummayerbiere2","brummayerbiere3",
@@ -95,11 +100,11 @@ def solve_smt_file(self, filepath: str):
 
 # dataset_to_build = ["calypto" , "float","galois", "mcm"]
 
-dataset_hard_to_solve = ["uum" ]
+dataset_hard_to_solve = ["uum"]
 
-dataset_to_build = ["log-slicing" , "gulwani-pldi08" , "Booth", "VS3", "2018-Goel-hwbench" , "bench_ab" ,
-                    "20190311-bv-term-small-rw-Noetzli" , "bmc-bv-svcomp14" , "brummayerbiere" , "brummayerbiere2",
-                    "brummayerbiere3" , "fft" , "pspace" ,
+dataset_to_build = ["log-slicing", "gulwani-pldi08", "Booth", "VS3", "2018-Goel-hwbench", "bench_ab",
+                    "20190311-bv-term-small-rw-Noetzli", "bmc-bv-svcomp14", "brummayerbiere", "brummayerbiere2",
+                    "brummayerbiere3", "fft", "pspace",
                     ]
 
 # dataset_to_build = ["Sage2_1" , "Sage2_2" , "Sage2_3" , "Sage2_4" , "Sage2_5" , "Sage2_6" , "Sage2_7"
@@ -107,23 +112,24 @@ dataset_to_build = ["log-slicing" , "gulwani-pldi08" , "Booth", "VS3", "2018-Goe
 #                     ]
 
 
-dataset_has_been_built = ["2017-BuchwaldFried","RWS","2019-Mann","bmc-bv-svcomp14","lfsr","2018-Mann",
-                          "simple_processor" , "uclid_contrib_smtcomp09" , "2019A" , "ecc" ,"2018E", "stp_samples",
-                          "rubik" ,
+dataset_has_been_built = ["2017-BuchwaldFried", "RWS", "2019-Mann", "bmc-bv-svcomp14", "lfsr", "2018-Mann",
+                          "simple_processor", "uclid_contrib_smtcomp09", "2019A", "ecc", "2018E", "stp_samples",
+                          "rubik",
                           ]
 
 
 def interrupt(s):
     s.interrupt()
 
-def check_sat(solver_name : str , filepath: str) -> (int, int):
+
+def check_sat(solver_name: str, filepath: str) -> (int, int):
     # parsing cnf files
     pos = CNF(from_file=filepath)
-    aux = Solver(name=solver_name, bootstrap_with=pos,use_timer=True)
+    aux = Solver(name=solver_name, bootstrap_with=pos, use_timer=True)
     timer = Timer(MAX_WAIT, interrupt, [aux])
     timer.start()
     is_solved = aux.solve_limited(expect_interrupt=True)
-    if is_solved is None :
+    if is_solved is None:
         raise TimeoutException
     solving_time = aux.time()
     res = (SolverResult.SAT, solving_time) if is_solved else (SolverResult.UNSAT, solving_time)
@@ -135,7 +141,7 @@ def building_thread(files, dir_path):
     data_file = open(dir_path + "/text.txt", "a")
     log_file = open(dir_path + "/log.txt", "a")
     for file in files:
-        if not file.endswith(".cnf") : continue
+        if not file.endswith(".cnf"): continue
         file_path = os.path.join(dir_path, file)
         sat_inst = get_base_features(file_path)
         for k, v in sat_inst.features_dict.items():
@@ -144,7 +150,7 @@ def building_thread(files, dir_path):
         min_time_solver_idx = -1
         for idx, sat_solver in enumerate(sat_solvers_in_pysat):
             try:
-                (res, solving_time) = check_sat(solver_name=sat_solver,filepath=file_path)
+                (res, solving_time) = check_sat(solver_name=sat_solver, filepath=file_path)
                 log_file.write(f"Solving {file_path} via  {sat_solver} takes {solving_time}\n")
                 log_file.flush()
                 if solving_time < min_time_solver_taken:
@@ -155,8 +161,6 @@ def building_thread(files, dir_path):
                 log_file.flush()
         data_file.write(f"{min_time_solver_idx},\n")
         data_file.flush()
-
-
 
 
 if __name__ == "__main__":

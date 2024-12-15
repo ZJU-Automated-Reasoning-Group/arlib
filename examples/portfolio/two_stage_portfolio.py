@@ -7,44 +7,46 @@ import multiprocessing
 import json
 import sys
 import os
+
 g_process_queue = []
 sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
-               'g4', 'lgl', 'mcb', 'mpl', 'mg3',
-               'mc', 'm22']
+                        'g4', 'lgl', 'mcb', 'mpl', 'mg3',
+                        'mc', 'm22']
 
 # TODO : add about 4~5 kinds of z3 tactics
 preambles = [
     z3.AndThen(z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.Tactic('elim-uncnstr'),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('reduce-bv-size'),
-            z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
-                    local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-            z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
-            'max-bv-sharing',
-            'ackermannize_bv',
-            'bit-blast',
-            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            'aig',
-            'tseitin-cnf',
-        ),
+               z3.With('propagate-values', flat_and_or=False),
+               z3.Tactic('elim-uncnstr'),
+               z3.With('solve-eqs', solve_eqs_max_occs=2),
+               z3.Tactic('reduce-bv-size'),
+               z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                       local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+               z3.With('simplify', hoist_mul=False, som=False, flat_and_or=False),
+               'max-bv-sharing',
+               'ackermannize_bv',
+               'bit-blast',
+               z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+               z3.With('solve-eqs', solve_eqs_max_occs=2),
+               'aig',
+               'tseitin-cnf',
+               ),
     z3.AndThen(z3.With('simplify', flat_and_or=False),
-            z3.With('propagate-values', flat_and_or=False),
-            z3.With('solve-eqs', solve_eqs_max_occs=2),
-            z3.Tactic('elim-uncnstr'),
-            z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
-                    local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
-            z3.Tactic('max-bv-sharing'),
-            z3.Tactic('bit-blast'),
-            z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
-            'aig',
-            'tseitin-cnf',
-    )
+               z3.With('propagate-values', flat_and_or=False),
+               z3.With('solve-eqs', solve_eqs_max_occs=2),
+               z3.Tactic('elim-uncnstr'),
+               z3.With('simplify', som=True, pull_cheap_ite=True, push_ite_bv=False, local_ctx=True,
+                       local_ctx_limit=10000000, flat=True, hoist_mul=False, flat_and_or=False),
+               z3.Tactic('max-bv-sharing'),
+               z3.Tactic('bit-blast'),
+               z3.With('simplify', local_ctx=True, flat=False, flat_and_or=False),
+               'aig',
+               'tseitin-cnf',
+               )
 ]
 
-def solve_sat(solver_name : str, cnf : CNF, result_queue):
+
+def solve_sat(solver_name: str, cnf: CNF, result_queue):
     aux = Solver(name=solver_name, bootstrap_with=cnf)
     print(solver_name, aux.solve())
     if aux.solve():
@@ -53,7 +55,8 @@ def solve_sat(solver_name : str, cnf : CNF, result_queue):
         ret = "unsat"
     result_queue.put(ret)
 
-def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
+
+def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue):
     qfbv_tactic = z3.With(qfbv_preamble, elim_and=True, push_ite_bv=True, blast_distinct=True)
     after_simp = qfbv_tactic(fml).as_expr()
     # if z3 solve the problem directly
@@ -71,10 +74,10 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
             sub_processes = []
             for solver in sat_solvers_in_pysat:
                 sub_processes.append(multiprocessing.Process(target=solve_sat,
-                                                            args=(solver,
-                                                                    cnf,
-                                                                    queue
-                                                                    )))
+                                                             args=(solver,
+                                                                   cnf,
+                                                                   queue
+                                                                   )))
             for process in sub_processes:
                 process.start()
             try:
@@ -83,10 +86,12 @@ def preprocess_and_solve_sat(fml, qfbv_preamble, result_queue) :
                 result = "unknown"
         result_queue.put(result)
 
+
 def solve_with_z3(fml, result_queue):
     solver = z3.Solver()
     solver.add(fml)
     result_queue.put(solver.check().__str__())
+
 
 def solve(file_name) -> str:
     fml_vec = z3.parse_smt2_file(file_name)
@@ -99,13 +104,13 @@ def solve(file_name) -> str:
         result_queue = multiprocessing.Queue()
         for preamble in preambles:
             g_process_queue.append(multiprocessing.Process(target=preprocess_and_solve_sat,
-                                                        args=(fml,
-                                                                preamble,
-                                                                result_queue
-                                                                )))
+                                                           args=(fml,
+                                                                 preamble,
+                                                                 result_queue
+                                                                 )))
             # use z3 as a single process
         g_process_queue.append(multiprocessing.Process(target=solve_with_z3,
-                                                        args=(fml, result_queue)))
+                                                       args=(fml, result_queue)))
 
     for process in g_process_queue:
         process.start()
@@ -117,6 +122,7 @@ def solve(file_name) -> str:
     for p in g_process_queue:
         p.terminate()
     return result
+
 
 def main():
     request_directory = sys.argv[1]
@@ -139,9 +145,10 @@ def main():
             "stderr_path": os.path.join(request_directory, "stderr.log")
         }
     }
-    
+
     with open(os.path.join(request_directory, "solver_out.json"), "w+") as f:
         f.write(json.dumps(solver_output))
+
 
 if __name__ == "__main__":
     main()

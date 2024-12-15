@@ -17,6 +17,7 @@
 ## Tactic
 
 Example
+
 ~~~~
 # coding: utf-8
 from z3 import *
@@ -61,7 +62,6 @@ AndThen(With('simplify',blast_distinct=False,elim_and=False,flat=False,hoist_mul
 
 ~~~~
 
-
 #### Parameter for "sat" tactic
 
 - gc: psm, glue, glue_psm, dyn_psm
@@ -75,7 +75,6 @@ AndThen(With('simplify',blast_distinct=False,elim_and=False,flat=False,hoist_mul
 - phase_selection: 0, 1, 2, 3, 4, 5, 6 (default 3)
 - restart_strategy: 0, 1, 2, 3, 4 (default 1)
 - ..
-
 
 #### Parameter for "simplify" tactic
 

@@ -10,9 +10,10 @@ from collections import Counter
 
 # df = pd.read_csv('dataset.csv' , sep=',',header=None)
 # print(df.to_string())
-sat_solvers_in_pysat = [ 'gc3', 'gc4', 'g3',
-                        'g4',  'mcb', 'mpl', 'mg3',
+sat_solvers_in_pysat = ['gc3', 'gc4', 'g3',
+                        'g4', 'mcb', 'mpl', 'mg3',
                         'mc', 'm22', 'mgh']
+
 
 def analyze_data():
     df = pd.read_csv('dataset.csv', sep=',', header=None)
@@ -22,11 +23,10 @@ def analyze_data():
     # print(label_count)
     print(f"Total {len(labels)} cnf")
     for idx, value in label_count.items():
-        if idx < 0 :
+        if idx < 0:
             print(f"{value} cnf unsolvable")
-        else :
+        else:
             print(f"{sat_solvers_in_pysat[idx]} can solve {value} cnf files")
-
 
 
 def synthetic_data():
@@ -169,7 +169,7 @@ class Animator:  # @save
         display.clear_output(wait=True)
 
 
-def train_ch3(net, train_iter, test_iter, loss, num_epochs, updater):  #@save
+def train_ch3(net, train_iter, test_iter, loss, num_epochs, updater):  # @save
     animator = Animator(xlabel='epoch', xlim=[1, num_epochs], ylim=[0.3, 0.9],
                         legend=['train loss', 'train acc', 'test acc'])
     for epoch in range(num_epochs):
@@ -182,7 +182,9 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, updater):  #@save
     # assert test_acc <= 1 and test_acc > 0.7, test_acc
     d2l.plt.show()
 
+
 batch_size = 10
+
 
 def train_main():
     train_features, train_labels, test_features, test_labels = synthetic_data()
