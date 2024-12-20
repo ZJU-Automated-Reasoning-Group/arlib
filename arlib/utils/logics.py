@@ -256,10 +256,10 @@ class Logic(object):
                 self.quantifier_free >= other.quantifier_free)
 
     def __ge__(self, other):
-        return (other.__le__(self))
+        return other.__le__(self)
 
     def __gt__(self, other):
-        return (other.__lt__(self))
+        return other.__lt__(self)
 
     def __hash__(self):
         return hash(self.name)
