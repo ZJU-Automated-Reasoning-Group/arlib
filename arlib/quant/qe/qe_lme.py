@@ -20,7 +20,7 @@ import z3
 from arlib.utils.z3_expr_utils import negate
 
 
-def eval_preds(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
+def eval_predicates(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
     """Let m be a model of a formula phi preds be a set of predicates
     """
     res = []
@@ -68,7 +68,7 @@ def process_model(phi, qvars, preds, shared_models):
 
     if s.check() == z3.sat:
         m = s.model()
-        minterm = z3.And(eval_preds(m, preds))
+        minterm = z3.And(eval_predicates(m, preds))
         qe_for_conjunction = z3.Tactic('qe2')
         proj = qe_for_conjunction(z3.Exists(qvars, minterm)).as_expr()
         return proj
@@ -89,7 +89,7 @@ def qelim_exists_lme(phi, qvars):
     while s.check() == z3.sat:
         m = s.model()
         # Create minterm from current mode
-        minterm = z3.And(eval_preds(m, preds))
+        minterm = z3.And(eval_predicates(m, preds))
         # Project away quantified variables
         proj = qe_for_conjunction(z3.Exists(qvars, minterm)).as_expr()  # "forget" x in minterm
         res.append(proj)

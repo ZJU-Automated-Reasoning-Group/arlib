@@ -17,17 +17,17 @@ from z3 import BoolRef, Solver, unsat
 from arlib.utils.z3_expr_utils import negate
 
 
-def eval_preds(m: z3.ModelRef, preds: List[z3.BoolRef]):
+def eval_predicates(m: z3.ModelRef, predicates: List[z3.BoolRef]):
     """
     The eval_preds function takes in a model m and a list of predicates preds.
     It returns the set of predicates that are true in m, or false if they are not.
 
     :param m:z3.ModelRef: Evaluate the predicates in the list of predicates
-    :param preds:List[z3.BoolRef]: Specify the set of predicates that we want to evaluate
+    :param predicates:List[z3.BoolRef]: Specify the set of predicates that we want to evaluate
     :return: A list of predicates that are true in the model m
     """
     res = []
-    for p in preds:
+    for p in predicates:
         if z3.is_true(m.eval(p, True)):
             res.append(p)
         elif z3.is_false(m.eval(p, True)):
@@ -75,7 +75,7 @@ def check_entailment(antecedent: BoolRef, consequent: BoolRef) -> bool:
     return solver.check() == unsat
 
 
-def predicate_abstraction(fml, preds):
+def predicate_abstraction(fml: z3.ExprRef, predicates: List[z3.ExprRef]) -> z3.ExprRef:
     """Compute the strongest necessary condition of fml that is the Boolean combination of preds
 
     Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
@@ -90,7 +90,7 @@ def predicate_abstraction(fml, preds):
     while s.check() == z3.sat:
         m = s.model()
         # i.e., compute a prime/minimal implicant (using the agove prime_implicant function)
-        projs = z3.And(eval_preds(m, preds))
+        projs = z3.And(eval_predicates(m, predicates))
         # projs = prime_implicant(projs, fml) # this is for further possible optimization
         # print(projs)
         res.append(projs)

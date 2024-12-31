@@ -61,3 +61,4 @@ Installing and Using Arlib
    sampling
    smt
    symbolic_abstraction
+   predicate_abstraction
