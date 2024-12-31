@@ -1,8 +1,12 @@
 """
 
-
 Existing SMT Solvers that support allsmt queries
 
 - MathSAT
-- SMTInterpol
+- SMTInterpol: the check-allsat command
+
+Applications:
+- Predicate abstraction (e.g.,CAV'06)
+- Combinatory Interaction Theory (CIT)
+- ...?
 """
