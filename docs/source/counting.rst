@@ -10,8 +10,12 @@ Model counting is the problem of determining the number of possible solutions
 (models) to a given formula. It is a fundamental problem in computer 
 science and has applications in various fields such as artificial intelligence, cryptography, and verification.
 
+
+
 The complexity of model counting varies depending on the logic and constraints involved.
 For Boolean satisfiability (SAT), model counting is #P-complete.
+
+
 
 ==========
 Model Counting in Arlib

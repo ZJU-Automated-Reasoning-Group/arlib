@@ -6,16 +6,21 @@ Abduction
 Introduction to Abduction
 ===============
 
+Abduction is a type of logical inference that plays a crucial role in various fields, including artificial intelligence, philosophy, and scientific reasoning. It is distinct from induction and deduction, as it aims to generate hypotheses to explain observed facts, rather than proving or generalizing from given premises.
+
 There are three major types of logical inference: induction, deduction, and abduction.
-The concept of abduction has been introduced by Peirce.
-In deduction, everything inferred is necessarily true,
+
+- In deduction, everything inferred is necessarily true,
 while it is not the case with the remaining two types of inference.
-Induction tries to infer general rules based on individual instances.
-The aim of abduction is to produce additional hypotheses to explain observed facts.
+- Induction tries to infer general rules based on individual instances.
+- The aim of abduction is to produce additional hypotheses to explain observed facts.
+
 Abduction has a wide spectrum of implicit or explicit applications
 – in everyday life, in education, and in scientific reasoning, including in
 building mathematical theories, or in software verification.
 One definition of abduct is given below.
+
+
 
 .. math::
 
@@ -51,6 +56,26 @@ Algebraic methods can also be used to generate more general abducts.
 ==========
 Abduction in Arlib
 ==========
+
+Code Example
+------------
+
+Here is an example of how to use Arlib to perform abductive reasoning:
+
+.. code-block:: python
+
+   from arlib import abduction (TO FIX)
+
+   # Define the theory and goal
+   theory = ["p(X) :- q(X)", "q(a)"]
+   goal = "p(b)"
+
+   # Perform abduction
+   abducts = abduction.generate_abducts(theory, goal)
+
+   # Print the abducts
+   for abduct in abducts:
+       print(abduct)
 
 
 =========

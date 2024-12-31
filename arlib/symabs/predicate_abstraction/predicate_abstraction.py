@@ -1,3 +1,14 @@
+"""
+Predicate Abstraction
+
+INPUT: a formula f and a set of predicates P = {p1, ..., pn}
+OUTPUT: a formula g such that
+        (1) g is a Boolean combination of P,
+        (2) g is the strongest consequence of f.
+
+     That is, f |= g and or any g' that is a Boolean combination of P, we have g |= g'.
+"""
+
 from typing import List
 
 import z3
@@ -69,6 +80,9 @@ def predicate_abstraction(fml, preds):
 
     Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
     (at least from my understanding...)
+
+    TODO: indeed, the algorithm in the paper relies on the ``all-sat'' feature of MathSAT.
+     So, the following code does not strictly follow the paper.
     """
     s = z3.Solver()
     s.add(fml)

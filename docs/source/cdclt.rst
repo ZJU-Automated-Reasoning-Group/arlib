@@ -1,6 +1,9 @@
 Parallel SMT CDCL(T) Solving
 =================================
 
+CDCL(T) is a state-of-the-art SAT/SMT solving framework.
+
+
 We have designed and implemented a new parallel solving
 algorithm based on the CDCL(T) architecture.
 
