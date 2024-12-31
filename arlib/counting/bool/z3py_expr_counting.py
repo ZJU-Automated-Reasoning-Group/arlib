@@ -6,7 +6,7 @@ FIXME: to validate
 from typing import List
 import z3
 
-from arlib.bool.counting.dimacs_counting import count_dimacs_solutions, \
+from arlib.counting.bool.dimacs_counting import count_dimacs_solutions, \
     count_dimacs_solutions_parallel
 
 
