@@ -22,19 +22,19 @@ See `docs/index.rst`
 
 ~~~~
 arlib/
-├── arlib/          # Main library code
-├── benchmarks/     # Benchmark files and test cases
-├── bin_solvers/    # Binary solver executables
-├── docs/           # Documentation files
-├── examples/       # Utility scripts
-├── setup.py        # Package setup configuration
-├── pytest.ini      # PyTest configuration
+├── arlib/           # Main library code
+├── benchmarks/      # Benchmark files and test cases
+├── bin_solvers/     # Binary solver executables
+├── docs/            # Documentation files
+├── examples/        # Utility scripts
+├── setup.py         # Package setup configuration
+├── pytest.ini       # PyTest configuration
 └── requirements.txt # Project dependencies
 ~~~~
 
 ## Research Topics
 
-For Summer Research, Honours/Master Thesis Project Topics, please refer to
+For Summer Research, Final Year Project Topics, please refer to
 `docs/topics.rst`
 
 ## Contributing
@@ -44,7 +44,6 @@ Contributions are welcome. Please refer to the repository for detailed instructi
 ## Documentation
 We release the docs here:
 https://pyarlib.readthedocs.io/en/latest/
-
 
 
 ## Contributors

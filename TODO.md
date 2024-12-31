@@ -1,7 +1,11 @@
-# TODOLIST
+# TODO IST
 
+## Interfaces
 
-## More Problems
+- Python API
+- CLI
+
+## Features
 
 ### Quadratic Programming
 
@@ -10,3 +14,13 @@
 ### Projection
 
  - Fourier-Motzkin elimination
+
+## Documentation
+
+## Applications
+
+- `Testing`: CIT
+- `Verification`
+- `Synthesis`
+- `Optimization`
+

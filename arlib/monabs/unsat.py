@@ -1,6 +1,7 @@
-'''
-先处理unsat_core给出的最小冲突子集，剩下的很有可能是sat，如果已经没有可利用的最小冲突子集，但是剩下的不是sat，那么就用一般方法检测剩下的
-'''
+"""
+先处理unsat_core给出的最小冲突子集，剩下的很有可能是sat，如果已经没有可利用的最小冲突子集，
+但是剩下的不是sat，那么就用一般方法检测剩下的
+"""
 import z3
 from typing import List
 from itertools import chain, combinations
