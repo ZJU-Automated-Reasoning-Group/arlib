@@ -2,7 +2,6 @@
 Backbone literals generation via lazy model enumeration
 
 A backbone literal is a literal that is entailed by the formula.
-
 For example, in the formula "p1 or p2 or p3", "p1" is a backbone literal.
 
 TODO:
@@ -88,7 +87,10 @@ def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef], alg: str)
     This function takes an expression and a list of atoms.
     It returns a list of all the literals that are entailed by the expression,
     including both positive and negative literals.
+
     :param fml: The SMT formula F
+    :param literals: The set of literals to be considered {l1,...,ln}
+    :param alg: The algorithm to use
     """
     # allow for choosing different implementations in this file
     if alg == 'sequence_checking':
