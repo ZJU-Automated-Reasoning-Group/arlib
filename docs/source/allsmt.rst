@@ -1,14 +1,14 @@
-==========================================================
-allsmt
-==========================================================
 
-===================
+AllSMT
+==========================
+
+==============
 Introduction
-===================
+==============
 
-===================
+==============
 Related Work
-===================
+==============
 
 A closely relate problem is AllSAT, which can be categorized into
 two main types: blocking solvers and non-blocking solvers.
@@ -18,23 +18,16 @@ two main types: blocking solvers and non-blocking solvers.
 - Non-blocking AllSAT solvers address the inefficiencies associated with blocking clauses by avoiding their use altogether. Instead, these solvers employ chronological backtracking (CB)
 
 
-===================
+===============
 allsmt in Arlib
-===================
+===============
 
 
-Usage Examples
----------------
-
-.. code-block:: python
-
-    from arlib import allsmt
-    # TBD
 
 
-===================
+==============
 References
-===================
+==============
 
 - **SAT '23**: Gabriele Masina, Giuseppe Spallita, Roberto Sebastiani. *On CNF Conversion for Disjoint SAT Enumeration*.
 - **TACAS '05**: H. Jin, H. Han, F. Somenzi. *Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit*.

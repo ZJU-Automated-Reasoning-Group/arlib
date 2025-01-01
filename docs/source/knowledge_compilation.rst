@@ -1,5 +1,5 @@
 Knowledge Compilation
-==============
+=======================
 
 
 =======
@@ -137,9 +137,9 @@ Probabilistic Inference
    - MAP inference
 
 
-=======
+==========
 References
-=======
+===========
 
 - Darwiche, A., & Marquis, P. (2002). "A Knowledge Compilation Map."
   Journal of Artificial Intelligence Research, 17, 229-264.
