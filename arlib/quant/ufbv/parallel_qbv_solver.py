@@ -64,7 +64,7 @@ def approximate(formula, reduction_type, bit_places):
     """Approximate given formula.
 
     Arguments:
-        formula     formula to approximate
+        formula formula to approximate
         reduction_type approximation type (0, 1, 2)
         bit_places  new bit width
     """

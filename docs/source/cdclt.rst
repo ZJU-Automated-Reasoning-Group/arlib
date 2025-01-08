@@ -1,16 +1,41 @@
 Parallel SMT CDCL(T) Solving
 =================================
 
-CDCL(T) is a state-of-the-art SAT/SMT solving framework.
+
+==========
+CDCL(T)
+==========
 
 
-We have designed and implemented a new parallel solving
-algorithm based on the CDCL(T) architecture.
+CDCL(T) stands for Conflict-Driven Clause Learning modulo Theory, which is a powerful
+algorithm for solving Satisfiability Modulo Theories (SMT) problems.
+It extends the CDCL algorithm used in SAT solving to handle theories beyond
+pure propositional logic.
+
+- Combines boolean reasoning (SAT) with theory reasoning
+- Maintains a boolean abstraction of the formula
+- Performs theory-specific consistency checks
+- Learns new clauses from conflicts
+
 
 
 ==========
+Parallel CDCL(T)
+==========
+
+
+==========
+How to Use
+==========
+
+
+1. Build and install all binary solvers in the ``bin_solvers`` directory.
+2. Install the required packages according to ``requirements.txt``.
+
+
+============
 Related Work
-==========
+=============
 
 
 Refer to the following links for related work:
@@ -24,15 +49,3 @@ Refer to the following links for related work:
 
 Refer to https://smtlib.cs.uiowa.edu/benchmarks.shtml for benchmarks.
 
-==========
-How to Use
-==========
-
-
-1. Build and install all binary solvers in the ``bin_solvers`` directory.
-2. Install the required packages according to ``requirements.txt``.
-
-
-==========
-References
-==========

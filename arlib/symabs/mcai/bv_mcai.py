@@ -30,7 +30,7 @@ from typing import Tuple
 import z3
 from z3 import parse_smt2_file
 
-from arlib.smt.bv.qfbv_counting import BVModelCounter
+from arlib.counting.qfbv_counting import BVModelCounter
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 from arlib.tests.formula_generator import FormulaGenerator
 

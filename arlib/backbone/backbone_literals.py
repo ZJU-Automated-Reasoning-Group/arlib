@@ -82,11 +82,22 @@ def get_backbone_literals_by_monadic_predicate_abstraction(fml: z3.ExprRef, lite
     raise NotImplementedError
 
 
-def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef]):
+def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef], alg: str):
     """
     This function takes an expression and a list of atoms.
     It returns a list of all the literals that are entailed by the expression,
     including both positive and negative literals.
+
     :param fml: The SMT formula F
+    :param literals: The set of literals to be considered {l1,...,ln}
+    :param alg: The algorithm to use
     """
-    return get_backbone_literals_by_model_enumeration(fml, literals)
+    # allow for choosing different implementations in this file
+    if alg == 'sequence_checking':
+        return get_backbone_literals_by_sequence_checking(fml, literals)
+    elif alg == 'model_enumeration':
+        return get_backbone_literals_by_model_enumeration(fml, literals)
+    elif alg =='unsat_core_enumeration':
+        return get_backbone_literals_by_unsat_core_enumeration(fml, literals)
+    else :
+        raise NotImplementedError

@@ -1,5 +1,5 @@
 """
-Abudciton via Quantifier Elimiination
+Abduction via Quantifier Elimination
 """
 
 # This module provides methods for performing abduction via quantifier elimination.

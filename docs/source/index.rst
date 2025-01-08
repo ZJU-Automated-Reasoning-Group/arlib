@@ -8,17 +8,20 @@ Introduction
 
 Arlib is a toolkit for playing with various automated reasoning tasks.  Some of its key features include:
 
-* Solving exits-forall SMT formulas (``arlib/quant``)
-* Solving general quantified SMT formulas (``arlib/quant``)
+* Abductive inference (``arlib/abduction``)
+* AllSMT (``arlib/allsmt``)
+* Backbone (``arlib/backbone``)
+* Exits-forall SMT formulas (``arlib/quant``)
+* General quantified SMT formulas (``arlib/quant``)
 * Quantifier elimination (``arlib/quant/qe``)
 * Sampling solutions of SMT formulas (``arlib/smt/sampling``)
 * Counting the models of SMT formulas (``arlib/smt/bv/qfbv_counting``)
-* Optimization Modulo Theory (OMT) solving (``arlib/optimization``)
-* Interpolant generation (``arlib/bool/interpolant'')
-* Minimal satisfying assignment (``arlib/optimization``)
-* Symbolic abstraction (``arlib/symabs'')
-* Abductive inference (``arlib/abduction``)
-* Backbone (``arlib/backbone``)
+* Optimization Modulo Theory (OMT) (``arlib/optimization``)
+* Minimal satisfying assignment (``arlib/optimization/msa``)
+* Interpolant generation (``arlib/bool/interpolant``)
+* Symbolic abstraction (``arlib/symabs``)
+* Predicate abstraction (``arlib/symabs/predicate_abstraction``)
+* Monadic predicate abstraction (``arlib/monabs``)
 * Knowledge compilation (``arlib/bool/knowledge_compiler``)
 * (Weighted) MaxSAT (``arlib/bool/maxsat``)
 * QBF solving
@@ -27,12 +30,12 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
 
-=============
+==========================
 Installing and Using Arlib
-=============
+==========================
 
 (TODO) Install arlib as a package
---------
+---------------------------------------
 
 ::
 
@@ -61,3 +64,6 @@ Installing and Using Arlib
    sampling
    smt
    symbolic_abstraction
+   predicate_abstraction
+   allsmt
+   applications

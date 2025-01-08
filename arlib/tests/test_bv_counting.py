@@ -5,7 +5,7 @@ For testing the model counting engine
 import z3
 
 from arlib.tests import TestCase, main
-from arlib.smt.bv.qfbv_counting import BVModelCounter
+from arlib.counting.qfbv_counting import BVModelCounter
 
 
 class TestBVCounter(TestCase):

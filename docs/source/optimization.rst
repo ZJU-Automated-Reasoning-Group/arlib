@@ -1,17 +1,15 @@
 Optimization Modulo Theory
 =============================
 
+============
+Introduction
+============
+
 Optimization Modulo Theories (OMT) extends Satisfiability Modulo Theories (SMT)
 by adding optimization capabilities. While SMT focuses on finding satisfying
 assignments to formulas in first-order logic with respect to background theories,
 OMT additionally allows for finding optimal solutions according to objective
 functions.
-
-
-============
-Introduction
-============
-
 
 
 =============

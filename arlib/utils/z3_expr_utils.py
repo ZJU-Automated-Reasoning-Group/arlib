@@ -26,7 +26,7 @@ Some APIs/functions for playing with Z3 exper
 - get_z3_logic
 """
 
-from typing import List, Set
+from typing import List, Set, Union, Tuple
 import z3
 from z3.z3util import get_vars
 
@@ -58,7 +58,7 @@ def absolute_value_int(val):
     return z3.If(val >= 0, val, -val)
 
 
-def get_expr_vars(exp):
+def get_expr_vars(exp) -> List[z3.ExprRef]:
     """z3.z3util.get_vars can be very slow; so we use the
     cutomized version"""
     try:
@@ -79,13 +79,13 @@ def get_expr_vars(exp):
         return False
 
 
-def get_variables(exp: z3.ExprRef) -> [z3.ExprRef]:
+def get_variables(exp: z3.ExprRef) -> List[z3.ExprRef]:
     """Get variables of exp"""
     # return get_vars(exp)  # this can be very slow
     return get_expr_vars(exp)
 
 
-def get_atoms(expr: z3.BoolRef):
+def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
     """
     Get all atomic predicates in a formula
     """
@@ -371,7 +371,7 @@ def z3_string_decoder(z3str: z3.StringVal) -> str:
     return python_string
 
 
-def z3_value_to_python(value):
+def z3_value_to_python(value) -> any:
     if z3.is_true(value):
         return True
     elif z3.is_false(value):
@@ -454,12 +454,12 @@ class FormulaInfo:
             return "ALL"
 
 
-def get_z3_logic(fml: z3.ExprRef):
+def get_z3_logic(fml: z3.ExprRef) -> str:
     fml_info = FormulaInfo(fml)
     return fml_info.get_logic()
 
 
-def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]):
+def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:
     """ Let m be a model of a formula phi, preds be a set of predicates
     """
     res = []

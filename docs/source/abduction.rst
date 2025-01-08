@@ -2,9 +2,9 @@
 Abduction
 =================================
 
-===============
+==========================
 Introduction to Abduction
-===============
+==========================
 
 Abduction is a type of logical inference that plays a crucial role in various fields, including artificial intelligence, philosophy, and scientific reasoning. It is distinct from induction and deduction, as it aims to generate hypotheses to explain observed facts, rather than proving or generalizing from given premises.
 
@@ -53,12 +53,12 @@ Wu's method can produce non-degeneracy conditions.
 Algebraic methods can also be used to generate more general abducts.
 
 
-==========
+======================
 Abduction in Arlib
-==========
+======================
 
 Code Example
-------------
+--------------
 
 Here is an example of how to use Arlib to perform abductive reasoning:
 
@@ -78,9 +78,9 @@ Here is an example of how to use Arlib to perform abductive reasoning:
        print(abduct)
 
 
-=========
+=============
 References
-=========
+=============
 
 - Kakas, A. C., Kowalski, R. A., & Toni, F. (1992). Abductive logic programming. Journal of logic and computation, 2(6), 719-770.
 

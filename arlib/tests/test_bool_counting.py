@@ -2,10 +2,10 @@ import unittest
 import z3
 from pysmt.shortcuts import Symbol, And, Or, Not
 
-from arlib.bool.counting.z3py_expr_counting import count_z3_solutions, \
+from arlib.counting.bool.z3py_expr_counting import count_z3_solutions, \
     count_z3_models_by_enumeration
 
-from arlib.bool.counting.pysmt_expr_counting import count_pysmt_solutions, \
+from arlib.counting.bool.pysmt_expr_counting import count_pysmt_solutions, \
     count_pysmt_models_by_enumeration
 
 

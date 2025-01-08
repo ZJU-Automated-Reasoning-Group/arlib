@@ -10,3 +10,10 @@ class SolverResult(Enum):
     UNKNOWN = 0
     SAT = 1
     ERROR = 2
+
+
+class OSType(Enum):
+    LINUX = 0
+    WINDOWS = 1
+    MAC = 2
+    UNKNOWN = 3

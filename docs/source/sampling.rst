@@ -15,6 +15,12 @@ This technique is crucial in various applications including:
 - Probabilistic inference
 - Verification and validation
 
+Model sampling is a challenging problem due to the following factors:
+- The complexity of the underlying logical formulas or constraints.
+- The need for generating a large number of diverse solutions.
+- Ensuring the uniformity and independence of the samples.
+- ...
+
 
 Key Concepts
 -----------

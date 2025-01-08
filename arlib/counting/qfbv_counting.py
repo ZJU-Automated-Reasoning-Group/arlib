@@ -15,7 +15,7 @@ from timeit import default_timer as counting_timer
 import z3
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.smt.bv.mapped_blast import translate_smt2formula_to_cnf
-from arlib.bool.counting.dimacs_counting import count_dimacs_solutions_parallel
+from arlib.counting.bool.dimacs_counting import count_dimacs_solutions_parallel
 
 
 def split_list(alist, wanted_parts=1):

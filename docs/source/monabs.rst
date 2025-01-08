@@ -12,6 +12,6 @@ Monadic Predicate Abstraction in Arlib
 ==========
 
 
-=========
+========
 References
-=========
+========
