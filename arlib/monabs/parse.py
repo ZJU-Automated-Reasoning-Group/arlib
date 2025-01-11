@@ -1,6 +1,7 @@
-from z3 import *
 import re
 from typing import List, Any
+from functools import reduce
+from z3 import *
 
 
 class SMTLIBParser:
@@ -48,6 +49,7 @@ class SMTLIBParser:
                 range_sort = self.get_sort(sort_expr[2])
                 return ArraySort(domain, range_sort)
         raise ValueError(f"Invalid sort expression: {sort_expr}")
+
     def current_scope_level(self) -> int:
         """Return the current scope level (0 is global scope)"""
         return len(self.constraints_stack) - 1
@@ -98,7 +100,7 @@ class SMTLIBParser:
 
         if isinstance(z3_sort, BitVecSortRef):
             return BitVec(name, z3_sort.size())
-        elif isinstance(z3_sort, FloatSortRef):
+        elif isinstance(z3_sort, FPSortRef):
             return FP(name, z3_sort)
         elif isinstance(z3_sort, ArraySortRef):
             return Array(name, z3_sort.domain(), z3_sort.range())
@@ -319,7 +321,8 @@ class SMTLIBParser:
         elif op == 'bvsrem':
             return SRem(args[0], args[1])
         elif op == 'bvsmod':
-            return SMod(args[0], args[1])
+            # return SMod(args[0], args[1])
+            return args[0] % args[1]
 
         # Bitwise operations
         elif op == 'bvand':

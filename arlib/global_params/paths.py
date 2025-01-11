@@ -44,6 +44,7 @@ class GlobalConfig(metaclass=SolverRegistry):
     SOLVERS = {
         "z3": SolverConfig("z3", "z3"),
         "cvc5": SolverConfig("cvc5", "cvc5"),
+        "mathsat": SolverConfig("mathsat", "mathsat"),
         "yices2": SolverConfig("yices2", "yices-smt2"),
         "sharp_sat": SolverConfig("sharp_sat", "sharpSAT")
     }
