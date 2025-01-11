@@ -1,7 +1,11 @@
-# TODO IST
+# TODO LIST
+
+## Research 
+
+- Parallel CDCL(T)
+- SMT for finite field
 
 ## Interfaces
-
 
 - Python API
 - CLI
