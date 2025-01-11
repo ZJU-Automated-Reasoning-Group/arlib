@@ -7,11 +7,47 @@ class SMTLIBParser:
     def __init__(self):
         self.solver = Solver()
         self.variables = {}
+        self.functions = {}  # Store declared functions
         self.logic = None
         # Stack of constraints for each scope level
         # First list (index 0) contains global constraints
         self.constraints_stack: List[List[Any]] = [[]]
 
+    def flatten_sort(self, sort_expr):
+        """Flatten sort expression appropriately"""
+        if isinstance(sort_expr, list):
+            # If it's a single-element list containing another list, unwrap it
+            if len(sort_expr) == 1 and isinstance(sort_expr[0], list):
+                return self.flatten_sort(sort_expr[0])
+            # Otherwise, keep the list structure but flatten its elements
+            return [self.flatten_sort(x) if isinstance(x, list) else x for x in sort_expr]
+        return sort_expr
+
+    def get_sort(self, sort_expr) -> Sort:
+        """Parse sort expressions into z3 sorts"""
+        # Flatten the sort expression first
+        sort_expr = self.flatten_sort(sort_expr)
+
+        if isinstance(sort_expr, str):
+            if sort_expr == 'Bool':
+                return BoolSort()
+            elif sort_expr == 'Int':
+                return IntSort()
+            elif sort_expr == 'Real':
+                return RealSort()
+            else:
+                raise ValueError(f"Unknown sort: {sort_expr}")
+        elif isinstance(sort_expr, list):
+            if sort_expr[0] == '_':
+                if sort_expr[1] == 'BitVec':
+                    return BitVecSort(int(sort_expr[2]))
+                elif sort_expr[1] == 'FP' or sort_expr[1] == 'FloatingPoint':
+                    return FPSort(int(sort_expr[2]), int(sort_expr[3]))
+            elif sort_expr[0] == 'Array':
+                domain = self.get_sort(sort_expr[1])
+                range_sort = self.get_sort(sort_expr[2])
+                return ArraySort(domain, range_sort)
+        raise ValueError(f"Invalid sort expression: {sort_expr}")
     def current_scope_level(self) -> int:
         """Return the current scope level (0 is global scope)"""
         return len(self.constraints_stack) - 1
@@ -56,24 +92,24 @@ class SMTLIBParser:
         else:
             return tokens.pop(0)
 
-    def create_variable(self, name, sort):
+    def create_variable(self, name: str, sort) -> Any:
         """Create a variable of the specified sort"""
-        if isinstance(sort, str):
-            if sort == 'Real':
-                return Real(name)
-            elif sort == 'Int':
-                return Int(name)
-            else:
-                raise ValueError(f"Unsupported sort: {sort}")
-        elif isinstance(sort, list):
-            # Handle BitVec sort: (_ BitVec N)
-            if len(sort) == 3 and sort[0] == '_' and sort[1] == 'BitVec':
-                width = int(sort[2])
-                return BitVec(name, width)
-            else:
-                raise ValueError(f"Unsupported sort format: {sort}")
+        z3_sort = self.get_sort(sort)
+
+        if isinstance(z3_sort, BitVecSortRef):
+            return BitVec(name, z3_sort.size())
+        elif isinstance(z3_sort, FloatSortRef):
+            return FP(name, z3_sort)
+        elif isinstance(z3_sort, ArraySortRef):
+            return Array(name, z3_sort.domain(), z3_sort.range())
+        elif z3_sort.kind() == Z3_BOOL_SORT:
+            return Bool(name)
+        elif z3_sort.kind() == Z3_INT_SORT:
+            return Int(name)
+        elif z3_sort.kind() == Z3_REAL_SORT:
+            return Real(name)
         else:
-            raise ValueError(f"Invalid sort specification: {sort}")
+            raise ValueError(f"Unsupported sort kind: {z3_sort.kind()}")
 
     def process_command(self, command):
         if not isinstance(command, list):
@@ -86,14 +122,15 @@ class SMTLIBParser:
 
         elif cmd == 'declare-const':
             name = command[1]
-            # Handle different sort formats
-            if isinstance(command[2], list):
-                # This is for (_ BitVec N) case
-                sort = command[2]
-            else:
-                # This is for simple sorts like Real or Int
-                sort = command[2]
+            sort = command[2] if isinstance(command[2], str) else command[2:]
             self.variables[name] = self.create_variable(name, sort)
+
+        elif cmd == 'declare-fun':
+            # Handle function declarations
+            name = command[1]
+            domain_sorts = [self.get_sort(s) for s in command[2]]
+            range_sort = self.get_sort(command[3])
+            self.functions[name] = Function(name, *domain_sorts, range_sort)
 
         elif cmd == 'assert':
             expr = self.build_expression(command[1])
@@ -124,54 +161,69 @@ class SMTLIBParser:
             for original, _ in self.get_current_scope_constraints():
                 print(f"  {original}")
 
-    def parse_constant(self, value, sort=None):
-        """Parse a constant value based on the current logic"""
+    def parse_constant(self, value):
+        """Parse constants based on the current logic"""
         try:
-            if self.logic == 'QF_LRA':
-                return float(value)
-            elif self.logic == 'QF_LIA':
-                return int(value)
-            elif self.logic == 'QF_BV':
+            if self.logic and 'FP' in self.logic:
+                # Handle floating point constants
+                if value.startswith('#b'):
+                    # Binary format
+                    return FPVal(value[2:], self.get_default_fp_sort())
+                elif value.startswith('('):
+                    # Special values like +oo, -oo, NaN
+                    return self.parse_special_fp_value(value)
+            elif self.logic and 'BV' in self.logic:
+                # Handle bit-vector constants
                 if value.startswith('#b'):
                     return BitVecVal(int(value[2:], 2), len(value[2:]))
                 elif value.startswith('#x'):
                     return BitVecVal(int(value[2:], 16), len(value[2:]) * 4)
-                else:
-                    return BitVecVal(int(value), 32)  # Default to 32 bits
-            else:
-                return value
+
+            # Try parsing as regular numeric constant
+            return float(value) if '.' in value else int(value)
         except ValueError:
             return value
 
     def build_expression(self, expr):
         if not isinstance(expr, list):
+            # Handle constants and variables
             if expr in self.variables:
                 return self.variables[expr]
+            elif expr in self.functions:
+                return self.functions[expr]
             return self.parse_constant(expr)
 
         op = expr[0]
         args = [self.build_expression(arg) for arg in expr[1:]]
 
-        if op in ['+', '-', '*', '/', '>', '<', '>=', '<=', '=']:
-            return self.build_arithmetic_expression(op, args)
+        # Theory-specific operations
+        if op in self.functions:
+            # Function application
+            return self.functions[op](*args)
+        elif op == 'select':
+            # Array select
+            return Select(args[0], args[1])
+        elif op == 'store':
+            # Array store
+            return Store(args[0], args[1], args[2])
+        elif op.startswith('fp.'):
+            # Floating point operations
+            return self.build_fp_expression(op, args)
         elif op.startswith('bv'):
+            # Bit-vector operations
             return self.build_bitvector_expression(op, args)
         else:
-            raise ValueError(f"Unknown operator: {op}")
+            # Standard operations
+            return self.build_standard_expression(op, args)
 
-    def build_arithmetic_expression(self, op, args):
-        """Build arithmetic expression based on the current logic"""
+    def build_standard_expression(self, op, args):
+        """Build expression for standard operations"""
         if op == '+':
             return sum(args)
         elif op == '-':
-            if len(args) == 1:
-                return -args[0]
-            return args[0] - args[1]
+            return args[0] - args[1] if len(args) == 2 else -args[0]
         elif op == '*':
-            result = args[0]
-            for arg in args[1:]:
-                result *= arg
-            return result
+            return reduce(lambda x, y: x * y, args)
         elif op == '/':
             return args[0] / args[1]
         elif op == '>':
@@ -184,6 +236,50 @@ class SMTLIBParser:
             return args[0] <= args[1]
         elif op == '=':
             return args[0] == args[1]
+        elif op == 'and':
+            return And(*args)
+        elif op == 'or':
+            return Or(*args)
+        elif op == 'not':
+            return Not(args[0])
+        elif op == '=>':
+            return Implies(args[0], args[1])
+        else:
+            raise ValueError(f"Unknown operator: {op}")
+
+    def build_fp_expression(self, op, args):
+        """Build floating-point expressions"""
+        rm = RNE()  # Default rounding mode
+        if op == 'fp.add':
+            return fpAdd(rm, args[0], args[1])
+        elif op == 'fp.sub':
+            return fpSub(rm, args[0], args[1])
+        elif op == 'fp.mul':
+            return fpMul(rm, args[0], args[1])
+        elif op == 'fp.div':
+            return fpDiv(rm, args[0], args[1])
+        elif op == 'fp.neg':
+            return fpNeg(args[0])
+        elif op == 'fp.abs':
+            return fpAbs(args[0])
+        elif op == 'fp.lt':
+            return fpLT(args[0], args[1])
+        elif op == 'fp.gt':
+            return fpGT(args[0], args[1])
+        elif op == 'fp.leq':
+            return fpLEQ(args[0], args[1])
+        elif op == 'fp.geq':
+            return fpGEQ(args[0], args[1])
+        elif op == 'fp.eq':
+            return fpEQ(args[0], args[1])
+        elif op == 'fp.isNaN':
+            return fpIsNaN(args[0])
+        elif op == 'fp.isInfinite':
+            return fpIsInf(args[0])
+        elif op == 'fp.isZero':
+            return fpIsZero(args[0])
+        else:
+            raise ValueError(f"Unknown FP operator: {op}")
 
     def build_bitvector_expression(self, op, args):
         """Build bit-vector expression with comprehensive operation support"""
@@ -263,15 +359,35 @@ class SMTLIBParser:
 # Example usage
 smt_content_bv = """
 (set-logic QF_BV)
-(declare-const x (_ BitVec 8))
-(declare-const y (_ BitVec 8))
-(assert (= (bvadd x y) #x0F))
-(push)
-(assert (bvult x (bvsub x y)))
+(declare-const state (_ BitVec 8))
+(declare-const input (_ BitVec 8))
+(declare-const output (_ BitVec 8))
+
+;; Initial state constraints
+(assert (= state #x00))
+(assert (bvult input #x10))
+
+;; First transition
+(push 1)
+(assert (= output (bvadd state input)))
+(assert (= state output))
 (check-sat)
-(pop)
-(assert (bvult x y))
+(get-model)
+
+;; Second transition, new constraints
+(push 1)
+(assert (bvuge input #x08))
+(assert (= output (bvmul state #x02)))
 (check-sat)
+(get-model)
+(pop 1)
+
+;; Alternative second transition
+(assert (bvult input #x08))
+(assert (= output (bvudiv state #x02)))
+(check-sat)
+(get-model)
+(pop 1)
 """
 
 parser = SMTLIBParser()
