@@ -1,5 +1,5 @@
 (set-info :smt-lib-version 2.6)
-(set-info :status "sat")
+(set-info :status 'sat')
 (set-logic QF_FFA)
 (define-sort FF0 () (_ FiniteField 3))
 (declare-fun x0 () FF0)

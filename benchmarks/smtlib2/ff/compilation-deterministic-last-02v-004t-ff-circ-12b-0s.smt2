@@ -1,6 +1,6 @@
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
-(set-info :status "sat")
+(set-info :status 'sat')
 (set-logic QF_FFA)
 (define-sort FF0 () (_ FiniteField 2053))
 (declare-fun a_n2_alt () FF0)

@@ -1,6 +1,6 @@
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
-(set-info :status "unsat")
+(set-info :status 'unsat')
 (set-logic QF_FFA)
 (define-sort FF0 () (_ FiniteField 17))
 (declare-fun a () Bool)

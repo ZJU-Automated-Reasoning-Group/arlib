@@ -418,12 +418,19 @@ class EnhancedSMTParser:
                 _, var_name, args, sort = command
                 if args:  # We only support nullary functions
                     raise FieldError(f"Non-nullary functions not supported: {var_name}")
-
                 # Handle different sorts
-                if sort == 'Bool':
+                if isinstance(sort, list) and sort[0] == '_' and sort[1] == 'FiniteField':
+                    # Use the current field sort
+                    if self.ctx.current_field is None:
+                        raise FieldError("No finite field sort defined")
+                    sort_name = self.ctx.current_field
+                else:
+                    sort_name = sort
+
+                if sort_name == 'Bool':
                     self.ctx.add_variable(var_name, 'Bool')
-                elif sort in self.ctx.sorts:  # Field sort
-                    self.ctx.add_variable(var_name, sort)
+                elif sort_name in self.ctx.sorts:  # Field sort
+                    self.ctx.add_variable(var_name, sort_name)
                 else:
                     raise FieldError(f"Unknown sort: {sort}")
             elif cmd_type == 'assert':
@@ -441,21 +448,42 @@ class EnhancedSMTParser:
         return self.parse_commands(commands)
 
 
+def regress(dir: str):
+    # read and process each fle in the directory
+    for filename in os.listdir(dir):
+        if filename.endswith(".smt2"):
+            with open(os.path.join(dir, filename), 'r') as file:
+                smt_input = file.read()
+                parser = EnhancedSMTParser()
+                result = parser.parse_smt(smt_input)
+                if "(set-info :status 'sat')" in smt_input:
+                    expected_result = sat
+                elif "(set-info :status 'unsat')" in smt_input:
+                    expected_result = unsat
+                else:
+                    expected_result = unknown
+                print("handling file:", filename)
+                print(f"Expected result: {expected_result}")
+                print(f"Result: {result}")
+                # if result == sat:
+                #    print("Model:", parser.ctx.solver.model())
+
 def demo():
     """Demonstration of the enhanced parser."""
     smt_input = """
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
-(set-info :status "unsat")
-(set-logic QF_FFA)
-(define-sort FF0 () (_ FiniteField 17))
-(declare-fun a () Bool)
-(declare-fun b () Bool)
-(declare-fun return_n0 () FF0)
-(declare-fun mul_n3 () FF0)
-(declare-fun a_n2 () FF0)
-(declare-fun mul_n4 () FF0)
-(declare-fun b_n1 () FF0)
+(set-logic QF_FF)
+(declare-fun x () (_ FiniteField 17))
+(declare-fun m () (_ FiniteField 17))
+(declare-fun is_zero () (_ FiniteField 17))
+(assert (not (=>
+  (and (= #f0m17 (ff.add (ff.mul m x) #f16m17 is_zero))
+       (= #f0m17 (ff.mul is_zero x)))
+  (and (or (= #f0m17 is_zero) (= #f1m17 is_zero))
+       (= (= #f1m17 is_zero) (= x #f0m17)))
+)))
+(check-sat)
     """
     parser = EnhancedSMTParser()
     result = parser.parse_smt(smt_input)
@@ -465,4 +493,5 @@ def demo():
 
 
 if __name__ == '__main__':
-    demo()
+    # demo()
+    regress("../../../benchmarks/smtlib2/ff")

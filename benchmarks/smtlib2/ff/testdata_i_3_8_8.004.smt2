@@ -1,6 +1,6 @@
 (set-info :smt-lib-version 2.6)
 (set-logic QF_FFA)
-(set-info :status "unsat")
+(set-info :status 'unsat')
 (define-sort FF0 () (_ FiniteField 3))
 (declare-fun x0 () FF0)
 (declare-fun x1 () FF0)
