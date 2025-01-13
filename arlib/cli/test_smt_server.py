@@ -9,7 +9,9 @@ class TestSmtServer(unittest.TestCase):
 
     def setUp(self):
         # Start the SMT server in a separate process before each test
-        self.server_process = subprocess.Popen(['python3', 'smt_server.py'])
+        # get the current dir 
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.server_process = subprocess.Popen(['python3', current_dir + '/smt_server.py'])
         time.sleep(1)  # Give the server time to start
 
     def tearDown(self):
@@ -51,6 +53,7 @@ class TestSmtServer(unittest.TestCase):
             pass
 
     def send_command(self, command: str) -> str:
+        # Is this a good iea (We shoud ue IPC)?
         with open('/tmp/smt_input', 'w') as f:
             f.write(command + '\n')
             f.flush()
@@ -69,6 +72,8 @@ class TestSmtServer(unittest.TestCase):
         # Assert constraints
         response = self.send_command('assert x > y')
         self.assertEqual(response, 'success')
+
+        self.send_command('(push)')
 
         # Check satisfiability
         response = self.send_command('check-sat')

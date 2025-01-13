@@ -4,10 +4,11 @@ A Python program that can be called via IPC. It can take SMT-LIB2 commands
 from another program, and response to those commands.
 
 There are several benefits:
-- We can use other tools (e.g, pySMT) to extend the capability of Z3.
+- We can use other tools (e.g, pySMT) to extend the capability of Z3 (e.g., ITP, AllSMT, etc.)
 - Many program analysis tools (e.g., Manticore) already interact with SMT solvers
  in this way
 """
+
 import logging
 import os
 import sys

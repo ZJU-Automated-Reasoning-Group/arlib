@@ -86,8 +86,31 @@ def get_variables(exp: z3.ExprRef) -> List[z3.ExprRef]:
 
 
 def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
-    """
-    Get all atomic predicates in a formula
+    """Get all atomic predicates in a Z3 formula.
+
+    This function extracts all atomic boolean predicates from a Z3 formula by first converting it
+    to Negation Normal Form (NNF) and then recursively traversing the formula structure.
+
+    Args:
+        expr (z3.BoolRef): A Z3 boolean formula
+
+    Returns:
+        Set[z3.BoolRef]: A set containing all atomic predicates found in the formula
+
+    Examples:
+        >>> import z3
+        >>> x, y = z3.Ints('x y')
+        >>> f = z3.And(x > 1, z3.Or(y < 0, z3.Not(x == 2)))
+        >>> atoms = get_atoms(f)
+        >>> len(atoms)
+        3
+        >>> print(atoms)
+        {x > 1, Not(x == 2), y < 0}
+
+    Notes:
+        - The function first converts the input formula to NNF using Z3's 'nnf' tactic
+        - Atomic predicates include arithmetic comparisons and their negations
+        - The function handles AND/OR operations by recursively processing their children
     """
     a_set = set()
 
@@ -105,6 +128,7 @@ def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
 
     # convert to NNF and then look for preds
     exp = z3.Tactic('nnf')(expr).as_expr()
+    # exp = z3.Then('simplify', 'nnf')(expr).as_expr()
     get_preds_(exp)
     return a_set
 
