@@ -1,40 +1,66 @@
-
 AllSMT
-==========================
+===========================
 
-==============
+
+=====================
 Introduction
-==============
+=====================
+AllSMT (All-Solutions Satisfiability Modulo Theories) extends AllSAT to SMT formulas, 
+aiming to enumerate all satisfying assignments of an SMT formula. This problem is 
+fundamental in various applications, including:
 
-AllSMT is a problem that generalizes AllSAT to SMT formulas. Given an SMT formula, the goal is to find all satisfying assignments. This problem is important in many applications, such as combinational iteeration testing, quantitative program analysis,
-and constrained test generation.
+* Combinational iteration testing
+* Quantitative program analysis
+* Constrained test generation
+* Program synthesis
+* Formal verification
 
 
-==============
+=====================
 Related Work
-==============
+=====================
 
-A closely relate problem is AllSAT. The AllSAT problem is NP-hard, and it is known that the problem is not fixed-parameter tractable unless P=NP.
-Existing AllSAT solvers can be categorized into
-two main types: blocking solvers and non-blocking solvers.
+The closely related AllSAT problem (finding all satisfying assignments for Boolean formulas) 
+serves as a foundation for AllSMT. AllSAT is NP-hard and not fixed-parameter tractable 
+unless P=NP.
 
-- Blocking AllSAT solvers  are built on top of Conflict-Driven Clause Learning (CDCL) and non-chronological backtracking (NCB).
+Current AllSAT approaches fall into two categories:
 
-- Non-blocking AllSAT solvers address the inefficiencies associated with blocking clauses by avoiding their use altogether. Instead, these solvers employ chronological backtracking (CB)
+Blocking Solvers
+~~~~~~~~~~~~~~~
+* Built on CDCL (Conflict-Driven Clause Learning)
+* Uses non-chronological backtracking (NCB)
+* Adds blocking clauses to prevent duplicate solutions
 
-===============
-allsmt in Arlib
-===============
+Non-blocking Solvers
+~~~~~~~~~~~~~~~~~~~
+* Avoids blocking clauses overhead
+* Employs chronological backtracking (CB)
+* Generally more memory-efficient
+
+AllSMT in Arlib
+--------------
+[Content to be added]
 
 
-
-==============
+=====================
 References
-==============
+=====================
+.. [SAT23] Masina, G., Spallita, G., Sebastiani, R. (2023). 
+    *On CNF Conversion for Disjoint SAT Enumeration*. SAT 2023.
 
-- **SAT '23**: Gabriele Masina, Giuseppe Spallita, Roberto Sebastiani. *On CNF Conversion for Disjoint SAT Enumeration*.
-- **TACAS '05**: H. Jin, H. Han, F. Somenzi. *Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit*.
-- **CAV '02**: K. L. McMillan. *Applying SAT Methods in Unbounded Symbolic Model Checking*.
-- **FMCAD '04**: O. Grumberg, A. Schuster, A. Yadgar. *Memory Efficient All-Solutions SAT Solver and Its Application for Reachability Analysis*.
-- **DATE '04**: B. Li, M. S. Hsiao, S. Sheng. *A Novel SAT All-Solutions Solver for Efficient Preimage Computation*.
-- *Disjoint Projected Enumeration for SAT and SMT without Blocking Clauses*. Giuseppe Spallitta, Roberto Sebastiani, Armin Biere. `GitHub Repository <https://github.com/giuspek/tabularAllSAT>`_.
+.. [TACAS05] Jin, H., Han, H., Somenzi, F. (2005). 
+    *Efficient Conflict Analysis for Finding All Satisfying Assignments of a Boolean Circuit*. TACAS 2005.
+
+.. [CAV02] McMillan, K. L. (2002). 
+    *Applying SAT Methods in Unbounded Symbolic Model Checking*. CAV 2002.
+
+.. [FMCAD04] Grumberg, O., Schuster, A., Yadgar, A. (2004). 
+    *Memory Efficient All-Solutions SAT Solver and Its Application for Reachability Analysis*. FMCAD 2004.
+
+.. [DATE04] Li, B., Hsiao, M. S., Sheng, S. (2004). 
+    *A Novel SAT All-Solutions Solver for Efficient Preimage Computation*. DATE 2004.
+
+.. [DPBS] Spallitta, G., Sebastiani, R., Biere, A. 
+    *Disjoint Projected Enumeration for SAT and SMT without Blocking Clauses*. 
+    `GitHub Repository <https://github.com/giuspek/tabularAllSAT>`_

@@ -1,3 +1,21 @@
+"""
+An example of using MathSAT to enumerate all satisfying assignments.
+(declare-fun x () Int)
+(declare-fun y () Int)
+(declare-fun a () Bool)
+(declare-fun b () Bool)
+(declare-fun c () Bool)
+(declare-fun d () Bool)
+(assert (= (> (+ x y) 0) a))
+(assert (= (< (+ (* 2 x) (* 3 y)) (- 10)) c))
+(assert (and (or a b) (or c d)))
+;; enumerate all the consistent assignments (i.e. solutions) for the given
+;; list of predicates. Notice that the arguments to check-allsat can only be
+;; Boolean constants. If you need to enumerate over arbitrary theory atoms,
+;; you can always "label" them with constants, as done above for
+;; "(> (+ x y) 0)", labeled by "a"
+(check-allsat (a b)
+"""
 import tempfile
 import subprocess
 import os
@@ -5,25 +23,44 @@ from z3 import *
 
 
 def z3_to_smtlib2(solver, keys):
-    """Convert Z3 constraints to SMT-LIB2 format"""
-    # Get all assertions
-    assertions = solver.assertions()
+    """Convert Z3 constraints to SMT-LIB2 format with proper all-SAT tracking"""
+    smtlib2 = "(set-logic QF_LIA)\n\n"
 
-    # Start with setting logic and declaring variables
-    smtlib2 = "(set-logic QF_LIA)\n"
-
-    # Declare variables
+    # First declare all original variables
     for k in keys:
         smtlib2 += f"(declare-fun {k} () Int)\n"
+    smtlib2 += "\n"
 
-    # Add assertions
-    for assertion in assertions:
+    # Create Boolean labels for tracking conditions
+    bool_labels = []
+    assertion_labels = {}
+    label_counter = 0
+
+    # Analyze assertions to create Boolean labels
+    # FIXME: should only label assertions the user wants to track
+    for assertion in solver.assertions():
+        label_name = f"b{label_counter}"
+        bool_labels.append(label_name)
+        assertion_labels[label_name] = assertion
+        smtlib2 += f"(declare-fun {label_name} () Bool)\n"
+        label_counter += 1
+    smtlib2 += "\n"
+
+    # Add assertions with labels
+    for label, assertion in assertion_labels.items():
+        smtlib2 += f"(assert (= {label} {assertion.sexpr()}))\n"
+
+    # Add original assertions
+    for assertion in solver.assertions():
         smtlib2 += f"(assert {assertion.sexpr()})\n"
+    smtlib2 += "\n"
 
-    # Add check-sat
-    smtlib2 += "(check-sat)\n"
+    # Add check-allsat command with Boolean labels
+    # FIXME: should only label assertions the user wants to track
+    bool_labels_str = " ".join(bool_labels)
+    smtlib2 += f"(check-allsat ({bool_labels_str}))\n"
+
     return smtlib2
-
 
 def all_smt_mathsat(solver, keys):
     # Create temporary file for SMT-LIB2 instance
@@ -43,7 +80,7 @@ def all_smt_mathsat(solver, keys):
                 print("MathSAT not found")
                 exit(1)
             # Call MathSAT with all-sat option
-            cmd = [mathsat_bin, "-all-sat", "-all-sat-vars", var_list, tmp.name]
+            cmd = [mathsat_bin, tmp.name]
 
             # Run MathSAT and capture output
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
