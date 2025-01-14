@@ -25,6 +25,7 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * Knowledge compilation (``arlib/bool/knowledge_compiler``)
 * (Weighted) MaxSAT (``arlib/bool/maxsat``)
 * QBF solving
+* Finite Field Solving (`arlib/smt/ff`)
 * Formula rewritings/simplifications
 * ...
 
@@ -56,6 +57,7 @@ Installing and Using Arlib
    abduction
    cdclt
    counting
+   ff
    interpolant
    knowledge_compilation
    monabs

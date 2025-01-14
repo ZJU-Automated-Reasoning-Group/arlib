@@ -25,22 +25,19 @@ RUN apt-get update && apt-get install -y \
     default-jre \
     zip
 
-# install Rust for caqe
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-SHELL ["/bin/bash", "-c"]
-RUN source $HOME/.cargo/env
-ENV PATH="/root/.cargo/bin:${PATH}"
-
 RUN mkdir arlib
 COPY . /arlb
 
 # install efmc package requirements
 RUN pip install -r /arlib/requirements.txt
 
+#
+RUN python bin_solvers/download.py
+
 # install cudd library
-RUN git clone -b 3val https://github.com/martinjonas/cudd.git
-RUN cd cudd && ./configure --enable-silent-rules --enable-obj --enable-shared && make -j4 && make install
+# RUN git clone -b 3val https://github.com/martinjonas/cudd.git
+# RUN cd cudd && ./configure --enable-silent-rules --enable-obj --enable-shared && make -j4 && make install
 # install antlr
-RUN wget https://www.antlr.org/download/antlr-4.11.1-complete.jar -P /usr/share/java
+# RUN wget https://www.antlr.org/download/antlr-4.11.1-complete.jar -P /usr/share/java
 
 WORKDIR /
