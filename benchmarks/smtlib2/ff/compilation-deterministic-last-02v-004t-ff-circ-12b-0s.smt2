@@ -1,3 +1,4 @@
+; from Yices2
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status 'sat')
