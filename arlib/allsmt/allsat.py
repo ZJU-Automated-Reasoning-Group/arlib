@@ -133,28 +133,28 @@ def parse_options():
         usage()
         sys.exit(1)
 
-    to_enum = 1
-    solver = 'g3'
-    warm = False
+    to_enum_t = 1
+    solver_t = 'g3'
+    warm_t = False
 
     for opt, arg in opts:
         if opt in ('-e', '--enum'):
-            to_enum = str(arg)
-            if to_enum == 'all':
-                to_enum = -1
+            to_enum_t = str(arg)
+            if to_enum_t == 'all':
+                to_enum_t = -1
             else:
-                to_enum = int(to_enum)
+                to_enum_t = int(to_enum_t)
         elif opt in ('-h', '--help'):
             usage()
             sys.exit(0)
         elif opt in ('-s', '--solver'):
-            solver = str(arg)
+            solver_t = str(arg)
         elif opt in ('-w', '--warm'):
-            warm = True
+            warm_t = True
         else:
             assert False, 'Unhandled option: {0} {1}'.format(opt, arg)
 
-    return to_enum, solver, warm, args
+    return to_enum_t, solver_t, warm_t, args
 
 
 #

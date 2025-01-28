@@ -1,3 +1,6 @@
+"""
+"Forall" solver for EF problems over Boolean variables
+"""
 import logging
 from typing import List
 

@@ -2,14 +2,14 @@
 
 ## Some ideas to explore for non-linear real/integer
 
-### Incremental Linearization
+### Incremental Lineralization
 
 Implemented in MathSAT5.
 
 Basic idea: Abstraction/refinement to SMT(`QF_UFLLA`/`QF_UFLRA`)
 
 - Non-linear multiplication, sin() and exp() modeled by uninterpreted functions
-- Incrementally aimatized on demand by linear constraints
+- Incrementally axiomatization on demand by linear constraints
 
 1. Abstract a non-linear (e.g., `QF_NRA`) formula as a linear formula (`QF_UFLRA`)
 2. If the abstracted formula is UNSAT, then the original formula is also UNSAT

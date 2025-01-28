@@ -6,10 +6,21 @@ This will allow us to easily call the solvers supported by pySMT
 Note that we only use it for dealing with a conjunction of formulas.
 """
 
-import logging
+# coding: utf-8
+"""
+Use PySMT as the theory solver of the parallel CDCL(T) engine.
 
-from pysmt.shortcuts import Solver
+This will allow us to easily call the solvers supported by pySMT.
+Note that we only use it for dealing with a conjunction of formulas.
+"""
+
+import logging
+from typing import List
+
+from pysmt.shortcuts import Solver, And, TRUE, FALSE
 from pysmt.smtlib.parser import SmtLibParser
+from pysmt.exceptions import SolverReturnedUnknownResultError
+from pysmt.fnode import FNode
 
 try:  # for Python2
     from cStringIO import StringIO
@@ -19,10 +30,8 @@ except ImportError:  # for Python3
 logger = logging.getLogger(__name__)
 
 
-class PySMTTheorySolver(object):
-
+class PySMTTheorySolver:
     def __init__(self):
-        # TODO: do we need to explicitly manager the context of pySMT?
         self.solver = Solver()
 
     def add(self, smt2string: str):
@@ -32,18 +41,38 @@ class PySMTTheorySolver(object):
         fml = script.get_last_formula()
         self.solver.add_assertion(fml)
 
-    def add_assertion_from_z3expr(self, expr):
-        """In some cases, we may need this interface.
-        However, since a z3 expr can be very expressive,
-        we may need to check whether pysmt can handle it."""
-        raise NotImplementedError
+    def add_assertion(self, assertion: FNode):
+        """Add a PySMT formula assertion to the solver."""
+        self.solver.add_assertion(assertion)
 
-    def check_sat(self):
-        """Check sat"""
-        return self.solver.solve()
+    def check_sat(self) -> bool:
+        """Check satisfiability of the assertions in the solver."""
+        try:
+            return self.solver.solve()
+        except SolverReturnedUnknownResultError:
+            logger.warning("Solver returned unknown result. Assuming UNSAT.")
+            return False
 
-    def check_sat_assuming(self, assumptions):
-        raise NotImplementedError
+    def check_sat_assuming(self, assumptions: List[FNode]) -> bool:
+        """Check satisfiability of the assertions assuming the given assumptions."""
+        try:
+            return self.solver.solve(assumptions)
+        except SolverReturnedUnknownResultError:
+            logger.warning("Solver returned unknown result. Assuming UNSAT.")
+            return False
 
-    def get_unsat_core(self):
+    def get_unsat_core(self) -> List[FNode]:
+        """Get the unsat core after an UNSAT check_sat call."""
         return self.solver.get_unsat_core()
+
+    def reset(self):
+        """Reset the solver, removing all assertions."""
+        self.solver.reset_assertions()
+
+    def push(self):
+        """Push the current context of the solver."""
+        self.solver.push()
+
+    def pop(self):
+        """Pop the current context of the solver."""
+        self.solver.pop()

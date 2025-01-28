@@ -17,7 +17,7 @@ from typing import List
 
 import z3
 
-from arlib.utils.z3_expr_utils import negate
+from arlib.utils.z3_expr_utils import negate, get_atoms
 
 
 def eval_predicates(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]:
@@ -32,30 +32,6 @@ def eval_predicates(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]
         else:
             pass
     return res
-
-
-def get_atoms(expr: z3.ExprRef) -> List[z3.ExprRef]:
-    """Get all atomic predicates in a formula
-    """
-    s = set()
-
-    def get_preds_(exp):
-        if exp in s:
-            return
-        if z3.is_not(exp):
-            s.add(exp)
-        if z3.is_and(exp) or z3.is_or(exp):
-            for e_ in exp.children():
-                get_preds_(e_)
-            return
-        assert (z3.is_bool(exp))
-        s.add(exp)
-
-    # convert to NNF and then look for preds
-    ep = z3.Tactic('nnf')(expr).as_expr()
-    get_preds_(ep)
-    return list(s)
-
 
 def process_model(phi, qvars, preds, shared_models):
     """Worker function to process a single model"""

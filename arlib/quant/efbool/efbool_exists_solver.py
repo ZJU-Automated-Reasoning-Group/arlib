@@ -1,3 +1,6 @@
+"""
+"Exists" solver for EF problems over Boolean variables
+"""
 import logging
 import random
 from typing import List
