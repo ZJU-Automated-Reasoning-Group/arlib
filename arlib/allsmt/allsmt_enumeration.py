@@ -1,6 +1,9 @@
 from z3 import *
 
 def all_smt(solver, keys):
+    """
+    Enumerate all models of the given SMT solver.
+    """
     model_count = 0
     while solver.check() == sat:
         model = solver.model()

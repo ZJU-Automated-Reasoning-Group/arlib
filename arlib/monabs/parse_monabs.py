@@ -1,3 +1,10 @@
+"""
+Parse Monadic Predicate Abstraction Queries
+
+Given a formula and a set of predicates {P1,...,Pn},
+decide for each Pi, whether F and Pi is satisfiable or not.
+"""
+
 import re
 from typing import List, Any
 from functools import reduce
@@ -393,5 +400,10 @@ smt_content_bv = """
 (pop 1)
 """
 
-parser = SMTLIBParser()
-parser.parse_file(smt_content_bv)
+def main():
+    parser = SMTLIBParser()
+    parser.parse_file(smt_content_bv)
+
+if __name__ == "__main__":
+    main()
+

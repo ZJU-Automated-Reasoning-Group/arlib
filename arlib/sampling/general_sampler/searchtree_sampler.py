@@ -53,7 +53,7 @@ def findall_var(formula, variable):
             m = s.model()
             res.append(m)
             value = m[variable]
-            if value == None:
+            if value is None:
                 return res
             s.add(variable != value)
         else:
@@ -64,7 +64,7 @@ def project_soln(variables, model):
     """Given a list of VARIABLES that occur in MODEL,
     produce a conjunction restricting those variables
     to their values in the MODEL."""
-    if variables == []:
+    if not variables:
         return True
     res = []
     for variable in variables:
@@ -101,7 +101,7 @@ def search_tree_sample(variables, formula, samples):
     used_vars = []
     solns = [None]
 
-    while to_use != []:
+    while to_use:
         next_var = to_use[0]
         to_use = to_use[1:]
 

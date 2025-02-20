@@ -87,7 +87,7 @@ def hit_and_run(a, b, x0):
         d = np.random.normal(size=a.shape[1])
         d /= np.linalg.norm(d)
 
-        # Find closest boundary in the direction
+        # Find the closest boundary in the direction
         dist = np.divide(b - a.dot(x), a.dot(d))
         closest = dist[dist > 0].min()
 
