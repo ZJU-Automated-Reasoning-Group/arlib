@@ -27,7 +27,7 @@ pip install -r "${SCRIPT_DIR}/requirements.txt"
 
 # 3. Download solver binaries
 echo "Downloading solver binaries..."
-python "${SCRIPT_DIR}/bin_solvers/download.py"
+pytho3 "${SCRIPT_DIR}/bin_solvers/download.py"
 # TODO: check where the binary solvers have been downloaded in `bin_solver`, 
 # cvc5, mathsat, z3.
 

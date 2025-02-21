@@ -6,9 +6,7 @@ Model Sampling
 Introduction
 =========
 
-Model sampling, also known as solution sampling or witness enumeration, is the process
-of generating multiple distinct solutions to a logical formula or constraint system.
-This technique is crucial in various applications including:
+Model sampling, also known as solution sampling or witness enumeration, is the process of generating multiple distinct solutions to a logical formula or constraint system. This technique is crucial in various applications including:
 
 - Test case generation
 - Statistical analysis
