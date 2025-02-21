@@ -34,10 +34,4 @@ RUN pip install -r /arlib/requirements.txt
 #
 RUN python bin_solvers/download.py
 
-# install cudd library
-# RUN git clone -b 3val https://github.com/martinjonas/cudd.git
-# RUN cd cudd && ./configure --enable-silent-rules --enable-obj --enable-shared && make -j4 && make install
-# install antlr
-# RUN wget https://www.antlr.org/download/antlr-4.11.1-complete.jar -P /usr/share/java
-
 WORKDIR /

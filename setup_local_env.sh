@@ -1,5 +1,5 @@
 # Set up the working environment without Dockerfile
-# To be tested
+# FIXME: be tested
 #!/bin/bash
 
 # Exit on any error
@@ -11,6 +11,7 @@ VENV_DIR="${SCRIPT_DIR}/venv"
 echo "Setting up arlib environment..."
 
 # 1. Create virtual environment if it doesn't exist
+# shoud we allow for choosing the version of Python (in an os, there may be multiple Python versions)
 if [ ! -d "${VENV_DIR}" ]; then
     echo "Creating virtual environment..."
     python3 -m venv "${VENV_DIR}"
