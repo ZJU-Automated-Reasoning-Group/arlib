@@ -85,3 +85,18 @@ class PySATInterpolant:
             else:
                 print("expecting unsat")
                 break
+
+
+def demo_itp():
+    x = z3.Bool("x")
+    y = z3.Bool("y")
+    # A: x and not y
+    fml_a = z3.And(x, z3.Not(y))
+    # B: not x and y
+    fml_b = z3.And(z3.Not(x), y)
+    itp = BooleanInterpolant.compute_itp(fml_a, fml_b, [x, y])
+    print(list(itp))
+
+
+if __name__ == '__main__':
+    demo_itp()

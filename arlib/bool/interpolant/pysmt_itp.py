@@ -43,7 +43,7 @@ def pysmt_sequence_itp(formulas: [z3.ExprRef]):
 """
 
 
-def test():
+def demo_pysmt_itp():
     x, y, z = z3.Bools("x y z")
     fml_a = z3.And(x, y)
     fml_b = z3.And(z3.Not(x), z3.Not(y), z)
@@ -51,5 +51,5 @@ def test():
     if isinstance(itp, z3.ExprRef):
         print("success!")
 
-
-test()
+if __name__ == '__main__':
+    demo_pysmt_itp()

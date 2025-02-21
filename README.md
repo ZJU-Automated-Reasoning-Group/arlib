@@ -6,19 +6,23 @@ Arlib is toolkit for automated reasoning.
 
 - Make setup.py work (release the repo as a Python library )
 
-## Installation
+## Setup a Local Development Environment
 
-- Install the requirement packages following `requirements.txt`
-    ~~~~
-    pip install -r requirements.txt
-    ~~~~
-- (Optional) Download all binary solvers in the dir `bin_solvers`
+~~~~
+bash setup_local_env.sh
+~~~~
 
+The script will:
+- Create a Python virtual environment if it doesn't exist
+- Activate the virtual environment and install dependencies from requirements.txt
+- Download required solver binaries (cvc5, mathsat, z3)
+- Run unit tests if available
 
+TBD:
+- Test the scripts for different platforms, editors, etc.
 
 ## Usage
 
-See `docs/index.rst`
 
 ~~~~
 arlib/
