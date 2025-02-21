@@ -27,16 +27,15 @@ pip install -r "${SCRIPT_DIR}/requirements.txt"
 
 # 3. Download solver binaries
 echo "Downloading solver binaries..."
-pytho3 "${SCRIPT_DIR}/bin_solvers/download.py"
-# TODO: check where the binary solvers have been downloaded in `bin_solver`, 
+(cd "${SCRIPT_DIR}/bin_solvers" && python "download.py")
 # cvc5, mathsat, z3.
 
 # 4. Run tests
 echo "Running tests..."
-if [ -f "${SCRIPT_DIR}/unit_tests.sh" ]; then
-    bash "${SCRIPT_DIR}/unit_tests.sh"
+if [ -f "${SCRIPT_DIR}/unit_test.sh" ]; then
+    bash "${SCRIPT_DIR}/unit_test.sh"
 else
-    echo "Warning: unit_tests.sh not found"
+    echo "Warning: unit_test.sh not found"
 fi
 
 echo "Setup completed successfully!"

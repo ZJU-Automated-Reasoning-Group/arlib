@@ -77,7 +77,7 @@ def download_file(url, output_file=None):
         total_size = int(response.headers.get('content-length', 0))
 
         with open(output_file, 'wb') as file, tqdm(
-                desc=f"Downloading {output_file}",
+                desc=f"Downloading {os.path.basename(output_file)}",
                 total=total_size,
                 unit='iB',
                 unit_scale=True,
@@ -141,6 +141,7 @@ def get_extracted_dir(solver_name, archive_name):
 
 
 def setup_solvers():
+    DOWNLOAD_DIR = os.path.dirname(os.path.abspath(__file__))
     os_type = get_os_type()
     if os_type not in SOLVER_URLS:
         print(f"Unsupported operating system: {platform.system()}")
@@ -153,6 +154,12 @@ def setup_solvers():
     print(f"Setting up {total_steps} solvers...\n")
 
     for solver_name, url in SOLVER_URLS[os_type].items():
+        target_path = os.path.join(DOWNLOAD_DIR, solver_name)
+        # skip if the binary already exists
+        if os.path.exists(target_path):
+            print(f"\nSolver '{solver_name}' binary already exists in {DOWNLOAD_DIR}. Skipping download.")
+            continue
+
         print(f"\n{'=' * 50}")
         print(f"Setting up {solver_name.upper()}:")
         print(f"{'=' * 50}")
