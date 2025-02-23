@@ -21,8 +21,16 @@ The script will:
 TBD:
 - Test the scripts for different platforms, editors, etc.
 
-## Usage
 
+## Research Topics
+
+For Summer Research, Final Year Project Topics, please refer to
+`docs/topics.rst` or `TODO.md`.
+
+
+
+## Contributing
+Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
 
 ~~~~
 arlib/
@@ -31,19 +39,10 @@ arlib/
 ├── bin_solvers/     # Binary solver executables
 ├── docs/            # Documentation files
 ├── examples/        # Utility scripts
-├── setup.py         # Package setup configuration
+├── setup.py         # Package setup configuration (not ready)
 ├── pytest.ini       # PyTest configuration
 └── requirements.txt # Project dependencies
 ~~~~
-
-## Research Topics
-
-For Summer Research, Final Year Project Topics, please refer to
-`docs/topics.rst`
-
-## Contributing
-Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
-
 
 ## Documentation
 We release the docs here:
