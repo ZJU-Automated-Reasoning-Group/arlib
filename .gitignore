@@ -5,6 +5,7 @@ docs/build
 backup
 bin_solvers/*
 !bin_solvers/download.py
+!bin_solvers/build_sharpsat.py
 tmp.py
 tmp
 *.prof

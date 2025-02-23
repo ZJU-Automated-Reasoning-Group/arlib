@@ -8,7 +8,8 @@ SMT Solving for Finite Field
 Overview
 ================
 
-[You can add an overview/introduction section here]
+
+Finite filed arithmetic is a fundamental component of many cryptographic protocols.
 
 
 Recent works have significantly advanced SMT solving for finite fields, including:

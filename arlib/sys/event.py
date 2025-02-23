@@ -1,3 +1,4 @@
+"""Event"""
 import copy
 import functools
 import inspect

@@ -46,7 +46,7 @@ Example usage: (to implement)
     print(f"Number of solutions: {count}")
 
 Model Counting for QF_BV Formulas
------
+----------------------------------
 
 QF_BV stands for the quantifier-free bit-vector logic. It is a subset of the SMT-LIB standard and is commonly used in the analysis and verification
 of computer hardware and software systems.
@@ -85,7 +85,7 @@ Projected model counting involves counting models while considering only a subse
 This is useful when you're only interested in specific variables' solutions.
 
 Approximate Model Counting
-------
+-------
 
 For large formulas where exact counting is impractical, approximate model counting can be used.
 
