@@ -39,6 +39,7 @@ arlib/
 ├── bin_solvers/     # Binary solver executables
 ├── docs/            # Documentation files
 ├── scripts/         # Utility scripts
+├── examples/        # A few applications
 ├── setup.py         # Package setup configuration (not ready)
 ├── pytest.ini       # PyTest configuration
 └── requirements.txt # Project dependencies
@@ -57,3 +58,4 @@ Primary contributors to this project:
 - ZelinMa557 
 - Harrywwq
 - little-d1d1
+- ljcppp

@@ -1,6 +1,10 @@
 # coding: utf-8
 """
-Generating SMT-LIB2 formulas
+Randomly generating SMT-LIB2 formulas
+
+This file is the one usd by the "smtfuzz" Python library..
+You may install the tool by
+    pip install smtfuzz
 """
 import argparse
 import itertools

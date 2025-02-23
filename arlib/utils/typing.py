@@ -2,18 +2,18 @@
 """
 Common types for different components of arlib
 """
-from enum import Enum
+from enum import Enum, auto
 
 
 class SolverResult(Enum):
-    UNSAT = -1
-    UNKNOWN = 0
-    SAT = 1
-    ERROR = 2
+    UNSAT = auto()
+    UNKNOWN = auto()
+    SAT = auto()
+    ERROR = auto()
 
 
 class OSType(Enum):
-    LINUX = 0
-    WINDOWS = 1
-    MAC = 2
-    UNKNOWN = 3
+    LINUX = auto()
+    WINDOWS = auto()
+    MAC = auto()
+    UNKNOWN = auto()

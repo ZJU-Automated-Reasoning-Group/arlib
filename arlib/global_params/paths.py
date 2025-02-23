@@ -1,8 +1,6 @@
 """
 Configuration manager for SMT and SAT solvers.
 Provides a singleton class to manage solver paths and availability.
-
-# FIXME: Allow the user to specify the path to one ore more SMT solvers
 """
 
 from pathlib import Path

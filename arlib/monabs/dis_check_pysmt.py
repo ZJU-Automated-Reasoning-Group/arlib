@@ -1,3 +1,4 @@
+""" """
 from typing import List
 from pysmt.shortcuts import Symbol, Or, And, Solver, Not, TRUE, is_unsat, FALSE
 from pysmt.typing import BOOL

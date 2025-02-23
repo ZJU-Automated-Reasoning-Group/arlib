@@ -11,6 +11,8 @@ import z3
 
 
 class FormulaGenerator:
+    """A class for generating formulas"""
+    
     def __init__(self, init_vars, bv_signed=True,
                  bv_no_overflow=False, bv_no_underflow=False):
         self.bools = []
@@ -284,6 +286,7 @@ class FormulaGenerator:
         return smt2_string
 
     def get_preds(self, k):
+        """"""
         res = []
         for _ in range(k):
             res.append(random.choice(self.bools))

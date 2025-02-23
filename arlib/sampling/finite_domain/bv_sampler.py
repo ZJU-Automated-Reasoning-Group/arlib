@@ -2,7 +2,7 @@
 Sampling for bit-vector formulas
 """
 
-from arlib.sampling.sampler import Sampler
+from arlib.sampling.utils.sampler import Sampler
 
 
 class BitVecSampler(Sampler):

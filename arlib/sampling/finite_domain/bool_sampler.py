@@ -2,9 +2,8 @@
 Sampler for Boolean formulas
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any
-from arlib.sampling.sampler import Sampler
+from typing import List, Dict
+from arlib.sampling.utils.sampler import Sampler
 
 
 class BoolSampler(Sampler):

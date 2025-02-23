@@ -1,7 +1,4 @@
 """Miscellaneous stuff that does not really fit anywhere else.
-Copyright (c) 2006-2023 SymPy Development Team
-
-All rights reserved.
 """
 
 from __future__ import annotations
