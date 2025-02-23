@@ -1,6 +1,8 @@
 # A Few (Independent) Scripts
 
-- `eval`: scripts for evaluating solvers
+- `chctools`: for managing CHC (Constraint Horn Clauses)
+- `eval`:  for evaluating solvers
+- `model_validator`: for validating models
 - `portoflio`: 
    + `qfbv_portfolio`: two-stage portfolio solver for QF_BV
    + `qfbv_sat_selector`: SAT solver selector for QF_BV

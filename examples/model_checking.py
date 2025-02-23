@@ -1,27 +1,20 @@
-"""
-Translated from https://github.com/pysmt/pysmt/blob/master/examples/model_checking.py by LLM
+"""Demo for model checking using different algorithms.
 
-# It provides a simple implementation of Bounded Model Checking [1]
-# with K-Induction [2], and PDR [3,4], and applies it on a simple
-# transition system.
-#
-# [1] Biere, Cimatti, Clarke, Zhu,
-#     "Symbolic Model Checking without BDDs",
-#     TACAS 1999
-#
-# [2] Sheeran, Singh,  Stalmarck,
-#     "Checking  safety  properties  using  induction  and  a SAT-solver",
-#     FMCAD 2000
-#
-# [3] Bradley
-#     "SAT-Based Model Checking without Unrolling",
-#     VMCAI 2011
-#
-# [4] Een, Mischenko, Brayton
-#     "Efficient implementation of property directed reachability",
-#     FMCAD 2011
+This module implements and demonstrates three major model checking approaches:
+1. Bounded Model Checking (BMC)
+2. k-induction
+3. IC3/PDR (Property Directed Reachability)
 
+Key References:
+-------------
+For BMC and k-induction:
+- FMCAD 2000:  "Checking safety properties using induction and a SAT-solver". Sheeran, Singh, Stalmarck.
+
+For IC3/PDR:
+- VMCAI 2011: "SAT-Based Model Checking without Unrolling". Bradley
+- FMCAD 2011: "Efficient implementation of property directed reachability". Een, Mishchenko, Brayton
 """
+
 from z3 import *
 
 
