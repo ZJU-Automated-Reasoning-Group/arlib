@@ -74,24 +74,7 @@ pip install z3-solver --user
 
 ## Usage
 
-```python
-from arlib.sampling import sample_formula, Logic, SamplingOptions, SamplingMethod
 
-# Create a formula
-x, y = z3.Reals('x y')
-formula = z3.And(x + y > 0, x - y < 1)
-
-# Configure sampling options
-options = SamplingOptions(
-    method=SamplingMethod.MCMC,
-    num_samples=10,
-    timeout=60
-)
-
-# Sample solutions
-result = sample_formula(formula, Logic.QF_LRA, options)
-print(f"Found {len(result.samples)} samples")
-```
 
 ## References
 

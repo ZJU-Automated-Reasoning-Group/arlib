@@ -142,3 +142,13 @@ class FFParser:
         # Implementation of expression parsing
         # Similar to the original evaluate_expr but returns only the AST
         pass
+
+
+def parse_qfff_file(ff_file: str):
+    with open(ff_file, "r") as f:
+        ff_smt2 = f.read()
+
+    parser = FFParser()
+    parsed_formula = parser.parse_formula(ff_smt2)
+    return parsed_formula
+

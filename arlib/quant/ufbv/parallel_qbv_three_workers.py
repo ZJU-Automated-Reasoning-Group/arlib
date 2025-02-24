@@ -364,150 +364,88 @@ def next_approx(reduction_type, bit_places):
     return reduction_type, bit_places
 
 
-def solve_with_approx(formula, reduction_type, q_type, bit_places, polarity,
-                      result_queue):
-    """Recursively go through `formula` and approximate it. Check
-    satisfiability of the approximated formula. Put the result to
-    the `result_queue`.
-    """
-
-    # Approximate until maximal bit width is reached
-    while (bit_places < (max_bit_width - 2) or
-           max_bit_width == 0):
-
-        # Approximate the formula
-        approximated_formula = rec_go(formula,
-                                      [],
-                                      reduction_type,
-                                      q_type,
-                                      bit_places,
-                                      polarity)
-
+def solve_with_approx(formula_str, reduction_type, q_type, bit_places, polarity, result_queue):
+    """Modified to accept formula as string instead of Z3 formula object"""
+    # Parse formula string in the worker process
+    formula = z3.And(z3.parse_smt2_string(formula_str))
+    
+    while (bit_places < (max_bit_width - 2) or max_bit_width == 0):
+        approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
+        
         logging.debug("approximation generation success!")
-        # Solve the approximated formula
-        # s = z3.Solver()
         s = z3.Tactic("ufbv").solver()
         s.add(approximated_formula)
         result = s.check()
 
-        # print("approximation solving result: ", result)
-
-        # Continue with approximation or return the result
         if q_type == Quantification.UNIVERSAL:
-            # Over-approximation of the formula is SAT or unknown
-            # TODO: when over-approx is SAT, we may try the model to see if it
-            #   really satisfies the orignal formula (not easy to implement as \
-            #   the vars have been changed
-            # Approximation continues
-            if (result == z3.CheckSatResult(z3.Z3_L_TRUE) or
-                    result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
-                # Update reduction type and increase bit width
-                (reduction_type, bit_places) = next_approx(reduction_type,
-                                                           bit_places)
-
-            # Over-approximation of the formula is UNSAT
-            # Original formula is UNSAT
+            if (result == z3.CheckSatResult(z3.Z3_L_TRUE) or 
+                result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
+                (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
             elif result == z3.CheckSatResult(z3.Z3_L_FALSE):
-                result_queue.put(result)
+                result_queue.put(str(result))  # Convert result to string
                 logging.debug('over-appro success')
                 return
         else:
-            # Under-approximation of the formula is SAT
-            # Original formula is SAT
             if result == z3.CheckSatResult(z3.Z3_L_TRUE):
-                result_queue.put(result)
+                result_queue.put(str(result))  # Convert result to string
                 logging.debug('under-appro success')
                 return
-
-            # Under-approximation of the formula is UNSAT or unknown
-            # Approximation continues
-            elif (result == z3.CheckSatResult(z3.Z3_L_FALSE) or
+            elif (result == z3.CheckSatResult(z3.Z3_L_FALSE) or 
                   result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
+                (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
 
-                # Update reduction type and increase bit width
-                (reduction_type, bit_places) = next_approx(reduction_type,
-                                                           bit_places)
+    solve_without_approx(formula_str, result_queue)
 
-    solve_without_approx(formula, result_queue)  # why do we need this???
-
-
-def solve_without_approx(formula, result_queue):
-    """Solve the given formula without any preprocessing.
-    """
+def solve_without_approx(formula_str, result_queue):
+    """Modified to accept formula as string"""
     logging.debug('solve without approximation')
-    # s = z3.Solver()
+    formula = z3.And(z3.parse_smt2_string(formula_str))
     s = z3.Tactic("ufbv").solver()
     s.add(formula)
-    result_queue.put(s.check())
-
-
-def solve_sequential(formula):
-    z3.set_param("verbose", 15)
-    # s = z3.Solver()
-    s = z3.Tactic("ufbv").solver()
-    # TODO: try more tactics, e.g., 'bv', 'smt', 'qe2'...
-    s.add(formula)
-    print(s.check())
-
+    result_queue.put(str(s.check()))  # Convert result to string
 
 def solve_qbv_parallel(formula):
-    # global process_queue
-    # logging.basicConfig(level=logging.DEBUG)
-    # reduction_types = [ReductionType.ONE_EXTENSION,
-    #                    ReductionType.SIGN_EXTENSION,
-    #                   ReductionType.ZERO_EXTENSION]
-
+    # Convert formula to string for passing to workers
+    formula_str = formula.sexpr()
+    
     reduction_type = ReductionType.ZERO_EXTENSION
-    timeout = 60
-    workers = 4
+    timeout = 1200  # 20 minutes timeout
 
-    # TODO: Not correct, should consider quant?
-    if workers == 1:
-        solve_sequential(formula)
-        exit(0)
-
-    # Parallel run of original and approximated formula
     with multiprocessing.Manager() as manager:
         result_queue = multiprocessing.Queue()
 
-        # ORIGINAL FORMULA: Create process
-        p0 = multiprocessing.Process(target=solve_without_approx, args=(formula, result_queue))
+        # Create processes with formula string
+        p0 = multiprocessing.Process(target=solve_without_approx, 
+                                   args=(formula_str, result_queue))
 
-        # APPROXIMATED FORMULA - Over-approximation: Create process
         p1 = multiprocessing.Process(target=solve_with_approx,
-                                     args=(formula,
-                                           reduction_type,
-                                           Quantification.UNIVERSAL,
-                                           1,
-                                           Polarity.POSITIVE,
-                                           result_queue))
+                                   args=(formula_str, reduction_type,
+                                        Quantification.UNIVERSAL, 1,
+                                        Polarity.POSITIVE, result_queue))
 
-        # APPROXIMATED FORMULA - Under-approximation: Create process
         p2 = multiprocessing.Process(target=solve_with_approx,
-                                     args=(formula,
-                                           reduction_type,
-                                           Quantification.EXISTENTIAL,
-                                           1,
-                                           Polarity.POSITIVE,
-                                           result_queue))
+                                   args=(formula_str, reduction_type,
+                                        Quantification.EXISTENTIAL, 1,
+                                        Polarity.POSITIVE, result_queue))
 
-        # Start all
+        # Start processes
         p0.start()
         p1.start()
         p2.start()
 
-        # Get result
         try:
-            # Wait at most 60 seconds for a return
-            result = result_queue.get(timeout=1200)
-            # 从队列中取出并返回对象。如果可选参数 block 是 True (默认值) 而且 timeout 是 None (默认值),
-            # 将会阻塞当前进程，直到队列中出现可用的对象。如果 timeout 是正数，将会在阻塞了最多 timeout 秒
-            # 之后还是没有可用的对象时抛出 queue.Empty 异常
+            result_str = result_queue.get(timeout=timeout)
+            # Convert string result back to Z3 result
+            if result_str == "sat":
+                result = z3.CheckSatResult(z3.Z3_L_TRUE)
+            elif result_str == "unsat":
+                result = z3.CheckSatResult(z3.Z3_L_FALSE)
+            else:
+                result = z3.CheckSatResult(z3.Z3_L_UNDEF)
         except multiprocessing.queues.Empty:
-            # If queue is empty, set result to undef
             result = z3.CheckSatResult(z3.Z3_L_UNDEF)
 
-        # Terminate all
+        # Terminate processes
         p0.terminate()
         p1.terminate()
         p2.terminate()

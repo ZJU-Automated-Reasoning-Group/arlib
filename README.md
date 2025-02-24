@@ -4,8 +4,9 @@ Arlib is toolkit for automated reasoning.
 
 
 
-## Preparing for a Local Development Environment
+## Local Development Environment
 
+Run
 ~~~~
 bash setup_local_env.sh
 ~~~~
@@ -17,17 +18,16 @@ The script will:
 - Run unit tests if available
 
 TBD:
-- Test the scripts for different platforms, editors, etc.
+- Test the scripts on different platforms, editors/IDEs, etc.
 
-
-## Installing the Library Localy
+## Install the Library Locally
 
 Local installziation via setup.py
 ~~~~
 pip install -e .
 ~~~~
 
-## Releasing the Repo as a Python Library
+## Release the Repo to PyPI
 
 TBD
 
@@ -35,8 +35,6 @@ TBD
 
 For Summer Research, Final Year Project Topics, please refer to
 `docs/topics.rst` or `TODO.md`.
-
-
 
 ## Contributing
 Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 

@@ -92,3 +92,10 @@ def count_lia_models(formula: z3.ExprRef) -> int:
     return counter.count_models(formula)
 
     
+if __name__ == "__main__":
+    # Example usage
+    x, y = z3.Ints('x y')
+    formula = z3.And(x > 0, y < 10, x + y == 5)
+    count = count_lia_models(formula)
+    print(f"Number of models: {count}")
+    

@@ -1,3 +1,5 @@
+
+import logging
 from z3 import *
 
 fml_str = ''' \n

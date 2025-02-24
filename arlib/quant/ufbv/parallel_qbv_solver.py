@@ -318,157 +318,81 @@ def extract_max_bits_for_formula(fml):
     return get_max_bit_width()
 
 
-def solve_with_approx_partitioned(formula, reduction_type, q_type, bit_places, polarity,
-                                  result_queue, local_max_bit_width):
-    """Recursively go through `formula` and approximate it. Check
-    satisfiability of the approximated formula. Put the result to
-    the `result_queue`.
-    """
-    # print(local_max_bit_width)
-    # Approximate until maximal bit width is reached
-    # TODO: what if local_max_bit_width - 2 < 0?
-    while (bit_places < (local_max_bit_width - 2) or
-           max_bit_width == 0):
-
-        # Approximate the formula
-        approximated_formula = rec_go(formula,
-                                      [],
-                                      reduction_type,
-                                      q_type,
-                                      bit_places,
-                                      polarity)
-
-        # logging.debug("approximation generation success!")
-        # Solve the approximated formula
-        # s = z3.Solver()
+def solve_with_approx_partitioned(formula_str, reduction_type, q_type, bit_places, polarity,
+                                result_queue, local_max_bit_width):
+    """Modified to accept formula as string"""
+    # Parse formula string in worker process
+    formula = z3.And(z3.parse_smt2_string(formula_str))
+    
+    while (bit_places < (local_max_bit_width - 2) or max_bit_width == 0):
+        approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
+        
+        # Create new context and solver
         new_ctx = z3.Context()
         new_ctx_fml = approximated_formula.translate(new_ctx)
-        s = z3.Tactic(new_ctx, "ufbv").solver()
+        # Fix: Create tactic and solver correctly with context
+        t = z3.Tactic("ufbv", ctx=new_ctx)
+        s = t.solver()
         s.add(new_ctx_fml)
-
+        
         result = s.check()
+        # Convert result to string for queue
+        result_str = str(result)
+        
         if q_type == Quantification.UNIVERSAL:
-            logging.debug("over-appro solving finished")
-        else:
-            logging.debug("under-appro solving finished")
-
-        # print("approximation solving result: ", result)
-
-        # Continue with approximation or return the result
-        if q_type == Quantification.UNIVERSAL:
-            # Over-approximation of the formula is SAT or unknown
-            # TODO: when over-approx is SAT, we may try the model to see if it
-            #   really satisfies the orignal formula (not easy to implement as \
-            #   the vars have been changed
-            # Approximation continues
-            if (result == z3.CheckSatResult(z3.Z3_L_TRUE) or
-                    result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
-                # Update reduction type and increase bit width
-                (reduction_type, bit_places) = next_approx(reduction_type,
-                                                           bit_places)
-
-            # Over-approximation of the formula is UNSAT
-            # Original formula is UNSAT
+            if result == z3.CheckSatResult(z3.Z3_L_TRUE) or result == z3.CheckSatResult(z3.Z3_L_UNDEF):
+                (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
             elif result == z3.CheckSatResult(z3.Z3_L_FALSE):
-                logging.debug('over-appro success')
-                result_queue.put(result)
+                result_queue.put(result_str)
                 return
         else:
-            # Under-approximation of the formula is SAT
-            # Original formula is SAT
             if result == z3.CheckSatResult(z3.Z3_L_TRUE):
-                logging.debug('under-appro success')
-                result_queue.put(result)
+                result_queue.put(result_str)
                 return
+            elif result == z3.CheckSatResult(z3.Z3_L_FALSE) or result == z3.CheckSatResult(z3.Z3_L_UNDEF):
+                (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
 
-            # Under-approximation of the formula is UNSAT or unknown
-            # Approximation continues
-            elif (result == z3.CheckSatResult(z3.Z3_L_FALSE) or
-                  result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
+    solve_without_approx(formula_str, result_queue, True)
 
-                # Update reduction type and increase bit width
-                (reduction_type, bit_places) = next_approx(reduction_type,
-                                                           bit_places)
+def solve_without_approx(formula_str, result_queue, randomness=False):
+    """Modified to accept formula as string"""
+    formula = z3.And(z3.parse_smt2_string(formula_str))
+    s = z3.Tactic("ufbv").solver()
+    if randomness:
+        s.set("smt.random_seed", random.randint(0, 10))
+    s.add(formula)
+    result_queue.put(str(s.check()))
 
-    solve_without_approx(formula, result_queue,
-                         True)  # why do we need this? because the appro cannot cover all sub-spaces?
-
-
-def solve_without_approx(formula, result_queue, randomness=False):
-    """Solve the given formula without any preprocessing.
+def split_list(lst, n):
+    """Split a list into n approximately equal chunks.
+    
+    Args:
+        lst: List to split
+        n: Number of chunks
+    Returns:
+        List of n sublists
     """
-    # TODO: some tactic may return `unknown'
-    logging.debug('solve without approximation')
-    s = z3.Tactic("ufbv").solver()
-    if randomness: s.set("smt.random_seed", random.randint(0, 10))
-    s.add(formula)
-    result_queue.put(s.check())
+    k, m = divmod(len(lst), n)
+    return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
 
-
-def solve_sequential(formula):
-    # z3.set_param("verbose", 15)
-    # s = z3.Solver()
-    s = z3.Tactic("ufbv").solver()
-    # TODO: try more tactics, e.g., 'bv', 'smt', 'qe2'...
-    s.add(formula)
-    return s.check()
-
-
-def split_list(a, n):
-    k, m = divmod(len(a), n)
-    return list(a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
-
-def signal_handler(sig, frame):
-    global process_queue
-    try:
-        # glock.acquire()
-        for p in process_queue:
-            if p: p.terminate()
-        # print("processes cleaned!!")
-        logging.debug("processes cleaned!")
-    except Exception as e:
-        # glock.release()
-        pass
-    # finally:
-    #    glock.release() 
-    # print("We finish here, have a good day!")
-
-
-def solve_qbv_parallel(formula: z3.ExprRef):
-    global process_queue
-    # logging.basicConfig(level=logging.DEBUG)
-    # reduction_types = [ReductionType.ONE_EXTENSION,
-    #                    ReductionType.SIGN_EXTENSION,
-    #                   ReductionType.ZERO_EXTENSION]
-
+def solve_qbv_parallel(formula):
+    # Convert formula to string
+    formula_str = formula.sexpr()
+    
     reduction_type = ReductionType.ZERO_EXTENSION
     timeout = 60
     workers = 4
 
-    # TODO: Not correct, should consider quant?
     if workers == 1:
-        solve_sequential(formula)
-        exit(0)
+        return solve_sequential(formula)
 
-    # Get max bit
-    # TODO: is the computed width correct???
     m_max_bit_width = extract_max_bits_for_formula(formula)
-    # m_max_bit_width = 24
-    partitioned_bits_lists = []
-    logging.debug("max width: {}".format(m_max_bit_width))
-
-    for i in range(1, m_max_bit_width + 1):
-        partitioned_bits_lists.append(i)
-
-    # logging.debug("max bit: ", m_max_bit_width)
+    partitioned_bits_lists = list(range(1, m_max_bit_width + 1))
     over_parts = split_list(partitioned_bits_lists, int(workers / 2))
     under_parts = split_list(partitioned_bits_lists, int(workers / 2))
 
     with multiprocessing.Manager() as manager:
         result_queue = multiprocessing.Queue()
-
-        # process_queue = []
 
         for nth in range(int(workers)):
             bits_id = int(nth / 2)
@@ -479,18 +403,13 @@ def solve_qbv_parallel(formula: z3.ExprRef):
                 else:
                     start_width = 1
                     end_width = m_max_bit_width
-                # Over-approximation workers
-                process_queue.append(multiprocessing.Process(target=solve_with_approx_partitioned,
-                                                             args=(formula,
-                                                                   reduction_type,
-                                                                   Quantification.UNIVERSAL,
-                                                                   start_width,
-                                                                   # 1,
-                                                                   Polarity.POSITIVE,
-                                                                   result_queue,
-                                                                   end_width
-                                                                   # m_max_bit_width
-                                                                   )))
+                process_queue.append(
+                    multiprocessing.Process(
+                        target=solve_with_approx_partitioned,
+                        args=(formula_str, reduction_type, Quantification.UNIVERSAL,
+                              start_width, Polarity.POSITIVE, result_queue, end_width)
+                    )
+                )
             else:
                 if len(over_parts[bits_id]) > 0:
                     start_width = under_parts[bits_id][0]
@@ -498,36 +417,32 @@ def solve_qbv_parallel(formula: z3.ExprRef):
                 else:
                     start_width = 1
                     end_width = m_max_bit_width
-                # Under-approximation workers
-                process_queue.append(multiprocessing.Process(target=solve_with_approx_partitioned,
-                                                             args=(formula,
-                                                                   reduction_type,
-                                                                   Quantification.EXISTENTIAL,
-                                                                   start_width,
-                                                                   # 1,
-                                                                   Polarity.POSITIVE,
-                                                                   result_queue,
-                                                                   end_width,
-                                                                   # m_max_bit_width
-                                                                   )))
+                process_queue.append(
+                    multiprocessing.Process(
+                        target=solve_with_approx_partitioned,
+                        args=(formula_str, reduction_type, Quantification.EXISTENTIAL,
+                              start_width, Polarity.POSITIVE, result_queue, end_width)
+                    )
+                )
 
-        # Start all
         for p in process_queue:
             p.start()
 
-        # Get result
         try:
-            # Wait at most 60 seconds for a return
-            result = result_queue.get(timeout=int(timeout))
+            result_str = result_queue.get(timeout=timeout)
+            # Convert string result back to Z3 result
+            if result_str == "sat":
+                result = z3.CheckSatResult(z3.Z3_L_TRUE)
+            elif result_str == "unsat":
+                result = z3.CheckSatResult(z3.Z3_L_FALSE)
+            else:
+                result = z3.CheckSatResult(z3.Z3_L_UNDEF)
         except multiprocessing.queues.Empty:
-            # If queue is empty, set result to undef
             result = z3.CheckSatResult(z3.Z3_L_UNDEF)
 
-        # Terminate all
         for p in process_queue:
             p.terminate()
 
-    print(result)
     return result
 
 
