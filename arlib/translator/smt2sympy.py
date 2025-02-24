@@ -215,4 +215,5 @@ def test_example_smt_transformation():
                                           smtlib_to_sympy_constraint(smt01))
 
 
-test_example_smt_transformation()
+if __name__ == '__main__':
+    test_example_smt_transformation()

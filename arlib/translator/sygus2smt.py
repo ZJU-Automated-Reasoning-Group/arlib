@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
-import argparse
-import re
-
 """
 This files takes a SyGuS instance in bit-vector theory and convert it to SMT instance
 TODO: is this finished?
 """
+
+
+from __future__ import print_function
+import argparse
+import re
 
 
 def convert_to_smt(slfile, smtfile):

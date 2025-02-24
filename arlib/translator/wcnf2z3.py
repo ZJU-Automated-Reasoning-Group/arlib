@@ -1,6 +1,7 @@
 """
 A hack for constructing partial weighted max sat instances from wcnf files
 for z3.
+
 Authors: Anthony Lin, Matt Hague
 
 Modified from https://github.com/matthewhague/sat-css-tool/blob/master/wcnf2z3.py
@@ -90,5 +91,6 @@ def main():
     print(opt.model())
     print(h.value())
 
-    if __name__ == '__main__':
-        main()
+
+if __name__ == '__main__':
+    main()
