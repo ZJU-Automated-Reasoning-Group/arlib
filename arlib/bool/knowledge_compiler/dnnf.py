@@ -1,8 +1,6 @@
 # import numpy as np
 """
-DNNF (Decomposable Negation Normal Form) is a form of propositional logic formula
-that provides efficient support for many logical operations.
-
+DNNF (Decomposable Negation Normal Form) is a form of propositional logic formula that provides efficient support for many logical operations.
 """
 import copy
 

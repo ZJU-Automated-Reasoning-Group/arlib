@@ -393,6 +393,7 @@ smt_content_bv = """
 (pop 1)
 
 ;; Alternative second transition
+； what if we declare new variables?
 (assert (bvult input #x08))
 (assert (= output (bvudiv state #x02)))
 (check-sat)
@@ -403,6 +404,7 @@ smt_content_bv = """
 def main():
     parser = SMTLIBParser()
     parser.parse_file(smt_content_bv)
+
 
 if __name__ == "__main__":
     main()

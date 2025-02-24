@@ -1,3 +1,4 @@
+"""Regression tests for monadic predicate abstraction"""
 import argparse
 import logging
 import multiprocessing as mp
@@ -10,6 +11,7 @@ import z3
 
 from arlib.monabs.dis_check import disjunctive_check, disjunctive_check_incremental
 from arlib.monabs.unary_check import unary_check, unary_check_cached
+from arlib.monabs.unsat import unsat_check
 from arlib.tests.formula_generator import FormulaGenerator
 
 
@@ -24,8 +26,10 @@ def check_identical(*lists):
     return mismatched_pairs
 
 
-def run_single_test(logic_type: str, timeout: int) -> Tuple[str, List[int], float]:
+def run_single_test(logic_type: str, timeout: int) -> Tuple[str, float, dict]:
     """Run a single test case with specified logic type and timeout"""
+    # FIXME: here, we use the random generator for generating a test case.
+    # Later, may need to parse inputs dumpted from real-world clients.
     if logic_type == "int":
         x, y, z = z3.Ints('x y z')
         init_vars = [x, y, z]
@@ -45,41 +49,62 @@ def run_single_test(logic_type: str, timeout: int) -> Tuple[str, List[int], floa
     s.set("timeout", 3000)
     s.add(precond)
     if s.check() != z3.sat:
-        # the precond is unsat/unknown; no need to test
-        return "invalid", -1
+        return "invalid", -1, {}
 
-    # Measure execution time
-    start_time = time.time()
+    # Store timing stats for each approach
+    stats = {}
+    total_start_time = time.time()
     try:
+        # Unary check
+        start = time.time()
         res_unary = unary_check(precond, constraints)
+        stats['unary'] = time.time() - start
+
+        # Unary check with cache
+        start = time.time()
         res_unary_cached = unary_check_cached(precond, constraints)
+        stats['unary_cached'] = time.time() - start
+
+        # Disjunctive check
+        start = time.time()
         res_dis = disjunctive_check(precond, constraints)
+        stats['disjunctive'] = time.time() - start
+
+        # Disjunctive check incremental
+        start = time.time()
         res_dis_inc = disjunctive_check_incremental(precond, constraints)
+        stats['disjunctive_inc'] = time.time() - start
 
-        # FIXME: has bugs...
-        # res_con = intersection_based_check(precond, constraints)
+        # New: unsat check
+        start = time.time()
+        res_unsat = unsat_check(precond, constraints)
+        stats['unsat'] = time.time() - start
 
-        # check for inconsistency
+        # Check for inconsistency
         check_res = check_identical(res_unary, res_unary_cached,
-                                    res_dis, res_dis_inc)
+                                  res_dis, res_dis_inc, res_unsat)
 
-        if len(check_res) > 0:
-            # find inconsistent results
-            status = "failure"
-        else:
-            status = "success"
+        status = "failure" if len(check_res) > 0 else "success"
+        
+        # Add result stats
+        stats['num_constraints'] = len(constraints)
+        stats['consistent'] = len(check_res) == 0
+        
     except z3.Z3Exception as e:
         status = f"error: {str(e)}"
-    execution_time = time.time() - start_time
+        stats['error'] = str(e)
 
-    return status, execution_time
+    total_time = time.time() - total_start_time
+    return status, total_time, stats
 
 
-def worker(args: Tuple[int, str, int, str]) -> Tuple[int, str, List[int], float]:
-    """Worker function for parallel execution"""
+def worker(args: Tuple[int, str, int, str]) -> Tuple[int, str, float, dict]:
+    """Worker function for parallel execution
+    """
+    # FIXME: In case of timeout, shoud we start a new process to call the APIs? (instead of calling the API via Python directly.)
     test_id, logic_type, timeout, _ = args
-    status, execution_time = run_single_test(logic_type, timeout)
-    return test_id, status, execution_time
+    status, execution_time, stats = run_single_test(logic_type, timeout)
+    return test_id, status, execution_time, stats
 
 
 def main():
@@ -108,21 +133,32 @@ def main():
     with mp.Pool(args.workers) as pool:
         results = pool.map(worker, test_params)
 
-    # Write results to CSV
-    """
-    with open(args.output, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['test_id', 'logic_type', 'status', 'results', 'execution_time'])
-        for test_id, status, test_results, exec_time in results:
-            writer.writerow([test_id, args.logic_type, status, test_results, exec_time])
+    # Collect statistics
+    total_stats = {
+        'unary': [], 'unary_cached': [], 'disjunctive': [],
+        'disjunctive_inc': [], 'unsat': [], 'num_constraints': []
+    }
+    
+    for _, status, _, stats in results:
+        if status == "success":
+            for key in total_stats:
+                if key in stats:
+                    total_stats[key].append(stats[key])
 
-    logger.info(f"Results written to {args.output}")
-    """
+    # Print detailed statistics
+    logger.info("\nPerformance Statistics:")
+    for method in ['unary', 'unary_cached', 'disjunctive', 'disjunctive_inc', 'unsat']:
+        times = total_stats[method]
+        if times:
+            avg_time = sum(times) / len(times)
+            max_time = max(times)
+            min_time = min(times)
+            logger.info(f"{method:15s}: avg={avg_time:.3f}s, min={min_time:.3f}s, max={max_time:.3f}s")
 
     # Print summary
     success_count = sum(1 for r in results if r[1] == "success")
     invalid_count = sum(1 for r in results if r[1] == "invalid")
-    logger.info(f"Tests completed: {len(results)}")
+    logger.info(f"\nTests completed: {len(results)}")
     logger.info(f"Successful: {success_count}")
     logger.info(f"Invalid: {invalid_count}")
     logger.info(f"Failed: {len(results) - success_count - invalid_count}")

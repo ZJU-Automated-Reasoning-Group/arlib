@@ -1,3 +1,6 @@
+"""
+OBDD: Ordered Binary Decision Diagrams
+"""
 import copy
 import itertools
 

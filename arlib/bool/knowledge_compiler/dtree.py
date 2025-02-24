@@ -1,4 +1,6 @@
-# coding: utf-8
+"""
+Dtree
+"""
 
 class Node:
     def __init__(self, node_id=None, left_child=None, right_child=None, clause=None):

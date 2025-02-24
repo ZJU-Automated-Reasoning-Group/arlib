@@ -4,6 +4,7 @@ For testing the model counting engine
 """
 import z3
 
+from arlib.global_params import global_config
 from arlib.tests import TestCase, main
 from arlib.counting.qfbv_counting import BVModelCounter
 
@@ -15,9 +16,14 @@ class TestBVCounter(TestCase):
         y = z3.BitVec("y", 4)
         fml = z3.And(z3.UGT(x, 0), z3.UGT(y, 0), z3.ULT(x - y, 10))
         mc.init_from_fml(fml)
-        # mc.count_model_by_bv_enumeration()
-        mc.count_models_by_sharp_sat()
-
+        # Check if sharpSAT is available
+        if global_config.is_solver_available("sharp_sat"):
+            count = mc.count_models_by_sharp_sat()
+        else:
+            print("Warning: sharpSAT not available, falling back to enumeration")
+            count = mc.count_model_by_bv_enumeration()
+        self.assertTrue(count > 0)
+        
 
 if __name__ == '__main__':
     main()

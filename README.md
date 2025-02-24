@@ -2,11 +2,9 @@
 
 Arlib is toolkit for automated reasoning.
 
-## Milestones
 
-- Make setup.py work (release the repo as a Python library )
 
-## Setup a Local Development Environment
+## Preparing for a Local Development Environment
 
 ~~~~
 bash setup_local_env.sh
@@ -21,6 +19,17 @@ The script will:
 TBD:
 - Test the scripts for different platforms, editors, etc.
 
+
+## Installing the Library Localy
+
+Local installziation via setup.py
+~~~~
+pip install -e .
+~~~~
+
+## Releasing the Repo as a Python Library
+
+TBD
 
 ## Research Topics
 
