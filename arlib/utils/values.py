@@ -129,3 +129,32 @@ def right_sign_extension(formula: z3.BitVecRef, bit_places: int) -> z3.BitVecRef
                              formula),
                      complement)
     return formula
+
+
+def absolute_value_bv(bv: z3.BitVecRef):
+    """
+    Based on: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
+    Operation:
+        Desired behavior is by definition (bv < 0) ? -bv : bv
+        Now let mask := bv >> (bv.size() - 1)
+        Note because of sign extension:
+            bv >> (bv.size() - 1) == (bv < 0) ? -1 : 0
+        Recall:
+            -x == ~x + 1 => ~(x - 1) == -(x - 1) -1 == -x
+            ~x == -1^x
+             x ==  0^x
+        now if bv < 0 then -bv == -1^(bv - 1) == mask ^ (bv + mask)
+        else bv == 0^(bv + 0) == mask^(bv + mask)
+        hence for all bv, absolute_value(bv) == mask ^ (bv + mask)
+    """
+    mask = bv >> (bv.size() - 1)
+    return mask ^ (bv + mask)
+
+
+def absolute_value_int(val):
+    """
+    Absolute value for integer encoding
+    """
+    return z3.If(val >= 0, val, -val)
+
+    

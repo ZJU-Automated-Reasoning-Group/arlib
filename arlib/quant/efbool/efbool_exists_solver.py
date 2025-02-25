@@ -8,16 +8,26 @@ from typing import List
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
+import multiprocessing
+from multiprocessing import Pool
+
 logger = logging.getLogger(__name__)
 
 
 class BoolExistsSolver(object):
-    def __init__(self, exists_vars, clauses):
-        self.solver_name = "m22"
+    def __init__(self, exists_vars, clauses, solver_name="m22"):
+        """Initialize exists solver with configurable SAT solver
+        
+        Args:
+            exists_vars: List of existential variables
+            clauses: List of clauses
+            solver_name: SAT solver to use (default: m22)
+                Supported solvers: cd, g3, g4, gh, lgl, m22, mc, mgh, mpl
+        """
+        self.solver_name = solver_name
         self.solver = Solver(name=self.solver_name, bootstrap_with=clauses)
         self.existential_bools = exists_vars
-        # self.universal_bool = forall_vars
-        self.clauses = []  # just for debugging?
+        self.clauses = []
 
     def get_random_assignment(self):
         return [v if random.random() < 0.5 else -v for v in self.existential_bools]
@@ -49,6 +59,38 @@ class BoolExistsSolver(object):
                 results.append(existential_model)
                 if i == num:
                     break
+        return results
+
+    def get_models_parallel(self, num=1, num_processes=None):
+        """Generate candidate models in parallel
+        
+        Args:
+            num: Number of models to generate
+            num_processes: Number of parallel processes (default: CPU count)
+        Returns:
+            List of candidate models
+        """
+        if len(self.clauses) == 0:
+            return [self.get_random_assignment() for _ in range(num)]
+
+        if num_processes is None:
+            num_processes = min(num, multiprocessing.cpu_count())
+
+        def solve_worker(solver_name):
+            solver = Solver(name=solver_name, bootstrap_with=self.clauses)
+            if solver.solve():
+                model = solver.get_model()
+                return [val for val in model if abs(val) in self.existential_bools]
+            return None
+
+        results = []
+        with Pool(processes=num_processes) as pool:
+            for model in pool.map(solve_worker, [self.solver_name] * num):
+                if model is not None:
+                    results.append(model)
+                    if len(results) >= num:
+                        break
+
         return results
 
     def add_clause(self, clause: List[int]):

@@ -30,3 +30,4 @@ if __name__ == '__main__':
         cnf2lp(sys.argv[1])
     else:
         cnf2lp(sys.argv[1], sys.argv[2])
+

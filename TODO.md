@@ -29,10 +29,17 @@ See  `arlib/docs`
 ## Applications
 You are welcome to contribute to the following applications:
 
+### General
+
 - `Testing`: CIT, symbolic execution, translation validation
 - `Static Bug Finding`: value-flow analysis, path-sensitive data-flow analysis
 - `Verification`: K-induction, BMC, temlate-based verification, symbolic abstraction
 - `Synthesis`: enumerative, deductive
 - `Optimization`: superoptimization, polyhedral compilation
-- `Security`: deobfuscation, cryptanalysis
+
+### Domaina Specific
+
+- `Dobfuscation`,
+- `Cryptanalysis`, e.g., https://github.com/ranea/CASCADA, https://github.com/kste/cryptosmt, https://github.com/hadipourh/zero
 - `ML/LLM`: kernal fusion
+

@@ -1,3 +1,6 @@
+"""
+Solving exists-forall problem over Boolean formulas, sequentially
+"""
 import logging
 from typing import List
 

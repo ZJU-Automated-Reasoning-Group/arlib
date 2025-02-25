@@ -46,7 +46,7 @@ class SATSolver(Enum):
     
 class EFBoolResult(Enum):
     """Result of EFBool Checking"""
-    UNSAT = 0
-    SAT = 1
-    UNKNOWN = 2
-    ERROR = 3
+    UNSAT = auto()
+    SAT = auto()
+    UNKNOWN = auto()
+    ERROR = auto()

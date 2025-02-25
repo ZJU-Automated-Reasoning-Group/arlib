@@ -1,563 +1,246 @@
+"""
+FIXME: sort missmatch problem for bit-vectors..
+"""
 import random
-import string
-from z3 import *
+import z3
+from typing import List, Optional, Union, Tuple
 
+class SMTFuzzer:
+    """Enhanced formula generator supporting various SMT theories"""
+    
+    def __init__(self, logic: str = "ALL", 
+                 min_depth: int = 3,
+                 max_depth: int = 8,
+                 max_terms: int = 30):
+        self.logic = logic
+        self.min_depth = min_depth
+        self.max_depth = max_depth
+        self.max_terms = max_terms
+        
+        # Theory-specific variables
+        self.arrays: List[z3.ArrayRef] = []
+        self.ints: List[z3.ArithRef] = []
+        self.reals: List[z3.ArithRef] = []
+        self.bvs: List[z3.BitVecRef] = []
+        self.array_sorts = []
+        self.strings: List[z3.SeqRef] = []
+        self.fp_nums: List[z3.FPRef] = []
+        self.fp_sorts = [z3.Float16(), z3.Float32(), z3.Float64()]
+        
+        # Initialize variables based on logic
+        if any(x in logic for x in ["LIA", "AUFLIA"]) or logic == "ALL":
+            for i in range(5):
+                self.ints.append(z3.Int(f'x_{i}'))
+        
+        if "BV" in logic or logic == "ALL":
+            for i in range(5):
+                width = random.choice([8, 16, 32, 64])
+                self.bvs.append(z3.BitVec(f'bv_{i}', width))
 
-class Randomness(object):
-    def __init__(self, seed):
-        self.seed = seed
-        random.seed(self.seed)
+    def generate_bv_expr(self, depth: int = 0, width: Optional[int] = None) -> z3.BitVecRef:
+        """Generate bit-vector expressions with matching widths"""
+        # Set default width if none provided
+        if width is None and self.bvs:
+            width = random.choice(self.bvs).size()
+        elif width is None:
+            width = random.choice([8, 16, 32, 64])
 
-    def get_random_integer(self, low, high):
-        # high is inclusive
-        return random.randint(low, high)
-
-    def get_random_alpha_string(self, length):
-        return "".join(random.choice(string.ascii_letters) for i in range(length))
-
-    def get_random_alpha_numeric_string(self, length):
-        return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
-
-    def get_seed(self):
-        return self.seed
-
-    def random_choice(self, list):
-        return random.choice(list)
-
-    def get_random_float(self, low, high):
-        return str(self.get_random_integer(low, high)) + "." + str(self.get_random_integer(1, 999))
-
-    def shuffle_list(self, list):
-        random.shuffle(list)
-
-    def get_a_non_prime_integer(self, max):
-        while True:
-            number = self.get_random_integer(4, max)
-            for i in range(2, number):
-                if number % i == 0:
-                    return number
-
-    def get_random_alpha(self):
-        return random.random()
-
-
-# generated formula snippets
-# simple rules
-
-def generate_nodes(assignment, randomness, theory):
-    generated_list = list()
-    flag = [None] * 20000
-    int_nodes = list()
-    real_nodes = list()
-    string_nodes = list()
-    bv_nodes = list()
-    temp_int = list()
-    temp_real = list()
-    temp_str = list()
-    temp_bv = list()
-    for i in range(len(assignment)):
-        var = assignment[i]
-        flag[i] = var
-        if type(assignment[flag[i]]) == z3.z3.IntNumRef:
-            int_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.SeqRef:
-            string_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.RatNumRef:
-            real_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.BitVecNumRef:
-            bv_nodes.append(flag[i])
-
-    if len(int_nodes) != 0:
-        for i in range(10):
-            x_index = randomness.get_random_integer(0, len(int_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(int_nodes) - 1)
-            if theory in ["AUFNIA", "AUFNIRA", "NIA", "NRA", "QF_ANIA", "QF_AUFNIA", "QF_NIA", "QF_NIRA", "QF_NRA",
-                          "QF_UFNIA", "QF_UFNRA", "UFNIA", "UFNRA"]:
-                operate = randomness.random_choice(["plus", "mul", "mul_and_plus"])
-            elif theory in ["QF_IDL", "QF_RDL", "QF_UFIDL", "UFIDL"]:
-                operate = "diff"
-            else:
-                operate = randomness.random_choice(["plus", "mul_and_plus"])
-            x = Int("%s" % int_nodes[x_index])
-            y = Int("%s" % int_nodes[y_index])
-            x_value = assignment[x].as_long()
-            y_value = assignment[y].as_long()
-            if operate == "plus":
-                has_constant = randomness.random_choice([True, False])
-                if has_constant:
-                    a = randomness.get_random_integer(1, 10000)
-                    result = x_value + y_value + a
-                    temp_int.append(x + y + a == result)
-                else:
-                    result = x_value + y_value
-                    temp_int.append(x + y == result)
-            elif operate == "mul":
-                result = x_value * y_value
-                temp_int.append(x * y == result)
-            elif operate == "diff":
-                a = randomness.get_random_integer(1, 10)
-                b = randomness.get_random_integer(1, 10)
-                max_result_x = x_value + a
-                min_result_x = x_value - a
-                max_result_y = y_value + b
-                min_result_y = y_value - b
-                temp_int.append(And(x < max_result_x, x > min_result_x, y < max_result_y, y > min_result_y))
-            elif operate == "mul_and_plus":
-                a = randomness.get_random_integer(1, 100)
-                b = randomness.get_random_integer(1, 100)
-                c = randomness.get_random_integer(1, 10000)
-                result = a * x_value + b * y_value + c
-                temp_int.append(a * x + b * y + c == result)
-
-    if len(real_nodes) != 0:
-        for i in range(10):
-            x_index = randomness.get_random_integer(0, len(real_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(real_nodes) - 1)
-            if theory in ["AUFNIA", "AUFNIRA", "NIA", "NRA", "QF_ANIA", "QF_AUFNIA", "QF_NIA", "QF_NIRA", "QF_NRA",
-                          "QF_UFNIA", "QF_UFNRA", "UFNIA", "UFNRA"]:
-                operate = randomness.random_choice(["plus", "mul", "mul_and_plus"])
-            elif theory in ["QF_IDL", "QF_RDL", "QF_UFIDL", "UFIDL"]:
-                operate = "diff"
-            else:
-                operate = randomness.random_choice(["plus", "mul_and_plus"])
-            x = Real("%s" % real_nodes[x_index])
-            y = Real("%s" % real_nodes[y_index])
-            x_value = assignment[x]
-            y_value = assignment[y]
-
-            if operate == "plus":
-                has_constant = randomness.random_choice([True, False])
-                if has_constant:
-                    a = float(randomness.get_random_float(1, 10000))
-                    result = x_value + y_value + a
-                    temp_real.append(x + y + a == result)
-                else:
-                    result = x_value + y_value
-                    temp_real.append(x + y == result)
-            elif operate == "mul":
-                result = x_value * y_value
-                temp_real.append(x * y == result)
-            elif operate == "diff":
-                a = float(randomness.get_random_float(0, 2))
-                b = float(randomness.get_random_float(0, 2))
-                max_result_x = x_value + a
-                min_result_x = x_value - a
-                max_result_y = y_value + b
-                min_result_y = y_value - b
-                temp_real.append(And(x < max_result_x, x > min_result_x, y < max_result_y, y > min_result_y))
-            elif operate == "mul_and_plus":
-                a = float(randomness.get_random_float(0, 100))
-                b = float(randomness.get_random_float(0, 100))
-                c = float(randomness.get_random_float(0, 10000))
-                result = a * x_value + b * y_value + c
-                temp_real.append(a * x + b * y + c == result)
-
-    if len(string_nodes) != 0:
-        for i in range(10):
-            x_index = randomness.get_random_integer(0, len(string_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(string_nodes) - 1)
-            x = String("%s" % string_nodes[x_index])
-            y = String("%s" % string_nodes[y_index])
-            x_value = assignment[x].as_string()
-            y_value = assignment[y].as_string()
-            has_constant = randomness.random_choice([True, False])
-            if has_constant:
-                a = randomness.get_random_alpha_numeric_string(randomness.get_random_integer(1, 20))
-                result = StringVal(x_value + a + y_value)
-                temp_str.append(x + a + y == result)
-            else:
-                result = StringVal(x_value + y_value)
-                temp_str.append(x + y == result)
-
-    if len(bv_nodes) != 0:
-        for i in range(10):
-            x_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-            chosen_num = 0
-            size = assignment[bv_nodes[x_index]].size()
-            while assignment[bv_nodes[y_index]].size() != size and chosen_num < 5:
-                y_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-            if assignment[bv_nodes[y_index]].size() == size:
-                x = BitVec("%s" % bv_nodes[x_index], size)
-                y = BitVec("%s" % bv_nodes[y_index], size)
-                x_value = assignment[x]
-                y_value = assignment[y]
-                a = randomness.get_random_integer(1, 100)
-                add_res = x_value.as_long() + y_value.as_long() + a
-                if add_res < (2 ** size) - 1:
-                    result = BitVecVal(add_res, size)
-                    constant = BitVecVal(a, size)
-                    temp_bv.append(x + constant + y == result)
-                elif x_value.as_long() - y_value.as_long() > 0:
-                    sub_res = x_value.as_long() - y_value.as_long() + a
-                    result = BitVecVal(sub_res, size)
-                    constant = BitVecVal(a, size)
-                    temp_bv.append(x + constant - y == result)
-                elif x_value.as_long() - y_value.as_long() < 0:
-                    sub_res = y_value.as_long() - x_value.as_long() + a
-                    result = BitVecVal(sub_res, size)
-                    constant = BitVecVal(a, size)
-                    temp_bv.append(y + constant - x == result)
-
-    if len(int_nodes) == 0 and len(real_nodes) == 0 and len(string_nodes) == 0 and len(bv_nodes) == 0:
-        generated_list = None
-    else:
-        generated_list = temp_str + temp_real + temp_int + temp_bv
-    return generated_list
-
-
-def complete_generate_nodes(assignment, randomness, theory):
-    # global exp2, exp1, v1, v2
-
-    def generate_comparison_operator(tp, comparision_operator, expression, value):
-        if tp == "int":
-            if comparision_operator == "=":
-                temp_int.append(expression == value)
-            elif comparision_operator == ">":
-                m = randomness.get_random_integer(1, 5)
-                temp_int.append(expression > value - m)
-            elif comparision_operator == ">=":
-                m = randomness.get_random_integer(0, 3)
-                temp_int.append(expression >= value - m)
-            elif comparision_operator == "<":
-                m = randomness.get_random_integer(1, 5)
-                temp_int.append(expression < value + m)
-            elif comparision_operator == "<=":
-                m = randomness.get_random_integer(0, 3)
-                temp_int.append(expression <= value + m)
-        elif tp == "real":
-            m = float(randomness.get_random_float(0, 2))
-            if comparision_operator == "=":
-                temp_real.append(expression == value)
-            elif comparision_operator == ">":
-                temp_real.append(expression > value - m)
-            elif comparision_operator == ">=":
-                temp_real.append(expression >= value - m)
-            elif comparision_operator == "<":
-                temp_real.append(expression < value + m)
-            elif comparision_operator == "<=":
-                temp_real.append(expression <= value + m)
-        elif tp == "fp":
-            m = randomness.get_random_integer(1, 8)
-            if comparision_operator == "=":
-                temp_fp.append(expression == value)
-            elif comparision_operator == ">":
-                temp_fp.append(expression > value - m)
-            elif comparision_operator == ">=":
-                temp_fp.append(expression >= value - m)
-            elif comparision_operator == "<":
-                temp_fp.append(expression < value + m)
-            elif comparision_operator == "<=":
-                temp_fp.append(expression <= value + m)
-
-    generated_list = list()
-    flag = [None] * 20000
-    int_nodes = list()
-    real_nodes = list()
-    string_nodes = list()
-    fp_nodes = list()
-    bv_nodes = list()
-    temp_int = list()
-    temp_real = list()
-    temp_str = list()
-    temp_bv = list()
-    temp_fp = list()
-    for i in range(len(assignment)):
-        var = assignment[i]
-        flag[i] = var
-        if type(assignment[flag[i]]) == z3.z3.IntNumRef:
-            int_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.SeqRef:
-            string_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.RatNumRef:
-            real_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.BitVecNumRef:
-            bv_nodes.append(flag[i])
-        elif type(assignment[flag[i]]) == z3.z3.FPNumRef:
-            fp_nodes.append(flag[i])
-
-    times = 10
-    if len(int_nodes) != 0:
-        for i in range(times):
-            x_index = randomness.get_random_integer(0, len(int_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(int_nodes) - 1)
-            x = Int("%s" % int_nodes[x_index])
-            y = Int("%s" % int_nodes[y_index])
-            x_value = assignment[x].as_long()
-            y_value = assignment[y].as_long()
-            if "LI" in theory:
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "=", "=", "=", "="])
-                op2 = randomness.random_choice(["+", "-"])
-                if x_value > 0 and y_value > 0:
-                    op3 = randomness.random_choice(["*", "/", "%"])
-                else:
-                    op3 = "*"
-                a = randomness.get_random_integer(1, 10000)
-                b = randomness.get_random_integer(1, 10000)
-                c = randomness.get_random_integer(1, 10000)
-                if op3 == "*":
-                    exp1 = a * x
-                    exp2 = b * y
-                    v1 = a * x_value
-                    v2 = b * y_value
-                elif op3 == "/":
-                    exp1 = x / a
-                    exp2 = y / b
-                    v1 = x_value // a
-                    v2 = y_value // b
-                else:
-                    exp1 = x % a
-                    exp2 = y % b
-                    v1 = x_value % a
-                    v2 = y_value % b
-
-                if op2 == "+":
-                    exp = exp1 + c + exp2
-                    v = v1 + v2 + c
-                else:
-                    exp = exp1 - c - exp2
-                    v = v1 - v2 - c
-                generate_comparison_operator("int", op1, exp, v)
-
-            elif "NI" in theory:
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "=", "=", "=", "="])
-                if x_value > 0:
-                    op2 = randomness.random_choice(["*", "/", "%"])
-                else:
-                    op2 = "*"
-                if y_value > 0:
-                    op3 = randomness.random_choice(["*", "/", "%"])
-                else:
-                    op3 = "*"
-                c = randomness.get_random_integer(1, 10000)
-                if op2 == "*":
-                    exp1 = c * x
-                    v1 = c * x_value
-                elif op2 == "/":
-                    exp1 = c / x
-                    v1 = c // x_value
-                else:
-                    exp1 = c % x
-                    v1 = c % x_value
-                if op3 == "*":
-                    exp = exp1 * y
-                    v = v1 * y_value
-                elif op3 == "/":
-                    exp = exp1 / y
-                    v = v1 // y_value
-                else:
-                    exp = exp1 % y
-                    v = v1 % y_value
-                generate_comparison_operator("int", op1, exp, v)
-
-            elif "IDL" in theory:
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "="])
-                exp = x - y
-                v = x_value - y_value
-                generate_comparison_operator("int", op1, exp, v)
-
-    if len(real_nodes) != 0:
-        for i in range(times):
-            x_index = randomness.get_random_integer(0, len(real_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(real_nodes) - 1)
-            x = Real("%s" % real_nodes[x_index])
-            y = Real("%s" % real_nodes[y_index])
-            x_value = assignment[x]
-            y_value = assignment[y]
-            if "L" in theory and "R" in theory:
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "=", "=", "=", "="])
-                op2 = randomness.random_choice(["+", "-"])
-                op3 = randomness.random_choice(["*", "/"])
-                a = float(randomness.get_random_float(1, 10000))
-                b = float(randomness.get_random_float(1, 10000))
-                c = float(randomness.get_random_float(1, 10000))
-                if op3 == "*":
-                    exp1 = a * x
-                    exp2 = b * y
-                    v1 = a * x_value
-                    v2 = b * y_value
-                else:
-                    exp1 = x / a
-                    exp2 = y / b
-                    v1 = x_value / a
-                    v2 = y_value / b
-                if op2 == "+":
-                    exp = exp1 + c + exp2
-                    v = v1 + v2 + c
-                else:
-                    exp = exp1 - c - exp2
-                    v = v1 - v2 - c
-                generate_comparison_operator("real", op1, exp, v)
-
-            elif "N" in theory and "R" in theory:
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "=", "=", "=", "="])
-                if x_value.as_string() != "0" or x_value.as_string() != "0/0":
-                    op2 = randomness.random_choice(["*", "/"])
-                else:
-                    op2 = "*"
-                if y_value.as_string() != "0" or y_value.as_string() != "0/0":
-                    op3 = randomness.random_choice(["*", "/"])
-                else:
-                    op3 = "*"
-                c = float(randomness.get_random_float(1, 10000))
-                if op2 == "*":
-                    exp1 = c * x
-                    v1 = c * x_value
-                else:
-                    exp1 = c / x
-                    v1 = c / x_value
-                if op3 == "*":
-                    exp = exp1 * y
-                    v = v1 * y_value
-                else:
-                    exp = exp1 / y
-                    v = v1 / y_value
-                generate_comparison_operator("real", op1, exp, v)
-
-            elif "RDL":
-                op1 = randomness.random_choice(["<", "<=", ">", ">=", "="])
-                exp = x - y
-                v = x_value - y_value
-                generate_comparison_operator("real", op1, exp, v)
-
-    if len(string_nodes) != 0:
-        for i in range(times):
-            x_index = randomness.get_random_integer(0, len(string_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(string_nodes) - 1)
-            x = String("%s" % string_nodes[x_index])
-            y = String("%s" % string_nodes[y_index])
-            x_value = assignment[x].as_string()
-            y_value = assignment[y].as_string()
-            # has_constant = randomness.random_choice([True, False])
-            op = randomness.random_choice(["+", "Contains"])
-            a = randomness.get_random_alpha_numeric_string(randomness.get_random_integer(1, 20))
-            result = StringVal(x_value + a + y_value)
-            if op == "+":
-                temp_str.append(x + a + y == result)
-            else:
-                temp_str.append(Contains(result, x))
-
-    if len(bv_nodes) != 0:
-        for i in range(times):
-            x_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-            chosen_num = 0
-            size = assignment[bv_nodes[x_index]].size()
-            while assignment[bv_nodes[y_index]].size() != size and chosen_num < 5:
-                y_index = randomness.get_random_integer(0, len(bv_nodes) - 1)
-                chosen_num = chosen_num + 1
-            if assignment[bv_nodes[y_index]].size() == size:
-                x = BitVec("%s" % bv_nodes[x_index], size)
-                y = BitVec("%s" % bv_nodes[y_index], size)
-                x_value = assignment[x]
-                y_value = assignment[y]
-                op = randomness.random_choice(["+", "&", "*", "/"])
-                a = randomness.get_random_integer(1, 100)
-                v_x = BitVecVal(x_value.as_long(), size)
-                v_y = BitVecVal(y_value.as_long(), size)
-                if op == "+":
-                    add_res = x_value.as_long() + y_value.as_long() + a
-                    if add_res < (2 ** size) - 1:
-                        result = BitVecVal(add_res, size)
-                        constant = BitVecVal(a, size)
-                        temp_bv.append(x + constant + y == result)
-                    elif x_value.as_long() - y_value.as_long() > 0:
-                        sub_res = x_value.as_long() - y_value.as_long() + a
-                        result = BitVecVal(sub_res, size)
-                        constant = BitVecVal(a, size)
-                        temp_bv.append(x + constant - y == result)
-                    elif x_value.as_long() - y_value.as_long() < 0:
-                        sub_res = y_value.as_long() - x_value.as_long() + a
-                        result = BitVecVal(sub_res, size)
-                        constant = BitVecVal(a, size)
-                        temp_bv.append(y + constant - x == result)
-                elif op == "&":
-                    value = v_x & v_y
-                    temp_bv.append(y & x == value)
-                elif op == "*":
-                    value = v_x * v_y
-                    temp_bv.append(x * y == value)
-                elif op == "/":
-                    value = v_x / v_y
-                    temp_bv.append(x / y == value)
-
-    if len(fp_nodes) != 0:
-        for i in range(times):
-            x_index = randomness.get_random_integer(0, len(fp_nodes) - 1)
-            y_index = randomness.get_random_integer(0, len(fp_nodes) - 1)
-            chosen_num = 0
-            sort = assignment[fp_nodes[x_index]].sort()
-            while assignment[fp_nodes[y_index]].sort() != sort and chosen_num < 5:
-                y_index = randomness.get_random_integer(0, len(fp_nodes) - 1)
-                chosen_num = chosen_num + 1
-            if assignment[fp_nodes[y_index]].sort() == sort:
-                x = FP("%s" % fp_nodes[x_index], sort)
-                y = FP("%s" % fp_nodes[y_index], sort)
-                x_value = assignment[x]
-                y_value = assignment[y]
-                if x_value is not None and y_value is not None:
-                    op1 = randomness.random_choice(["+", "-", "*", "/"])
-                    op3 = "="
-                    if op1 == "+":
-                        exp = y + x
-                        v = y_value + x_value
-                    elif op1 == "-":
-                        exp = y - x
-                        v = y_value - x_value
-                    elif op1 == "*":
-                        exp = y * x
-                        v = y_value * x_value
-                    else:
-                        exp = x / y
-                        v = x_value / y_value
-                    generate_comparison_operator("fp", op3, exp, v)
-
-    if len(int_nodes) == 0 and len(real_nodes) == 0 and len(string_nodes) == 0 and len(
-            bv_nodes) == 0 and len(fp_nodes) == 0:
-        generated_list = None
-    else:
-        generated_list = temp_str + temp_real + temp_int + temp_bv + temp_fp
-    return generated_list
-
-
-def gen_formula_of_logic(logic):
-    randomness = Randomness(random.randint(0, 15))
-    if "I" in logic:
-        w, x, y, z = Ints("w x y z")
-    elif "R" in logic:
-        w, x, y, z = Reals("w x y z")
-    elif "BV" in logic:
-        w, x, y, z = BitVecs("w x y z", 16)
-    elif "S" in logic:
-        w, x, y, z = Strings("w x y z")
-    elif "FP" in logic:
-        w, x, y, z = FPs("w x y z", FPSort(8, 24))
-    else:
-        w, x, y, z = Ints("w x y z")
-    fml = And(w == x, x == y, y == z)
-    s = Solver()
-    s.add(fml)
-    s.check()
-    m = s.model()
-    # if random.random() < 0.5:
-    atoms = complete_generate_nodes(m, randomness, logic)
-    # else: atoms = generate_nodes(m, randomness, logic)
-
-    max_assert = random.randint(3, 20)
-    res = []
-    assert (len(atoms) >= 1)
-    for _ in range(max_assert):
-        clen = random.randint(1, 8)  # clause length
-        if clen == 1:
-            cls = random.choice(atoms)
+        # Base case: return variable or constant
+        if depth >= self.max_depth or random.random() < 0.3:
+            matching_bvs = [bv for bv in self.bvs if bv.size() == width]
+            if matching_bvs:
+                return random.choice(matching_bvs)
+            # Create new BV with correct width
+            new_bv = z3.BitVec(f'bv_new_{len(self.bvs)}', width)
+            self.bvs.append(new_bv)
+            return new_bv
+        
+        # Generate expression with consistent width
+        ops = [
+            lambda x, y: x + y,
+            lambda x, y: x - y,
+            lambda x, y: x * y,
+            lambda x, y: x & y,
+            lambda x, y: x | y,
+            lambda x, y: x ^ y,
+            lambda x: ~x,
+            lambda x, y: z3.ULT(x, y),
+            lambda x, y: z3.UGT(x, y),
+            lambda x: z3.RotateLeft(x, random.randint(0, width-1)),
+            lambda x: z3.RotateRight(x, random.randint(0, width-1))
+        ]
+        
+        op = random.choice(ops)
+        
+        if op.__code__.co_argcount == 1:
+            expr = self.generate_bv_expr(depth + 1, width)
+            return op(expr)
         else:
-            cls = Or(random.sample(atoms, min(len(atoms), clen)))
-        res.append(cls)
-    if len(res) == 1:
-        return res[0]
-    else:
-        return And(res)
+            return op(self.generate_bv_expr(depth + 1, width), 
+                     self.generate_bv_expr(depth + 1, width))
+
+    def generate_formula(self) -> z3.ExprRef:
+        """Generate a random formula combining multiple theories"""
+        constraints = []
+        
+        # Generate BV constraints
+        if "BV" in self.logic or self.logic == "ALL":
+            for _ in range(random.randint(1, self.max_terms)):
+                expr = self.generate_bv_expr()
+                if z3.is_bool(expr):
+                    constraints.append(expr)
+                else:
+                    op = random.choice(['<', '<=', '>', '>=', '==', '!='])
+                    if op == '<':
+                        constraints.append(z3.ULT(expr, self.generate_bv_expr()))
+                    elif op == '<=':
+                        constraints.append(z3.ULE(expr, self.generate_bv_expr()))
+                    elif op == '>':
+                        constraints.append(z3.UGT(expr, self.generate_bv_expr()))
+                    elif op == '>=':
+                        constraints.append(z3.UGE(expr, self.generate_bv_expr()))
+                    else:
+                        constraints.append(expr == self.generate_bv_expr())
+
+    def generate_smt2(self) -> str:
+        """Generate SMT-LIB2 string representation"""
+        formula = self.generate_formula()
+        solver = z3.Solver()
+        
+        # Set logic based on theories used
+        if "AUFLIA" in self.logic:
+            solver.set(logic="QF_AUFLIA")
+        elif "AUFBV" in self.logic:
+            solver.set(logic="QF_AUFBV")
+        elif "BV" in self.logic:
+            solver.set(logic="QF_BV")
+        elif "LIA" in self.logic:
+            solver.set(logic="QF_LIA")
+        elif "ARRAY" in self.logic:
+            solver.set(logic="QF_AX")
+        elif self.logic == "ALL":
+            solver.set(auto_config=True)
+            
+        solver.add(formula)
+        return solver.to_smt2()
+
+    def _init_operations(self):
+        """Initialize theory-specific operations"""
+        self.array_ops = [
+            lambda a, i: z3.Select(a, i),
+            lambda a, i, v: z3.Store(a, i, v)
+        ]
+        
+        self.string_ops = [
+            lambda s1, s2: z3.Concat(s1, s2),
+            lambda s: z3.Length(s),
+            lambda s1, s2: z3.Contains(s1, s2),
+            lambda s1, s2: z3.PrefixOf(s1, s2),
+            lambda s1, s2: z3.SuffixOf(s1, s2)
+        ]
+        
+        self.fp_ops = [
+            lambda x, y: x + y,
+            lambda x, y: x - y,
+            lambda x, y: x * y,
+            lambda x, y: x / y,
+            lambda x: z3.fpAbs(x),
+            lambda x: z3.fpNeg(x),
+            lambda x: z3.fpIsInf(x),
+            lambda x: z3.fpIsNaN(x)
+        ]
+
+    def generate_array(self, depth: int = 0) -> z3.ArrayRef:
+        """Generate array expressions"""
+        if not self.arrays or depth >= self.max_depth:
+            # Create new array
+            index_sort = random.choice([z3.IntSort(), z3.BitVecSort(32)])
+            value_sort = random.choice([z3.IntSort(), z3.BitVecSort(32), z3.BoolSort()])
+            arr = z3.Array('arr_%d' % len(self.arrays), index_sort, value_sort)
+            self.arrays.append(arr)
+            return arr
+        
+        arr = random.choice(self.arrays)
+        if random.random() < 0.3:
+            return arr
+            
+        op = random.choice(self.array_ops)
+        if op.__code__.co_argcount == 2:
+            index = self._generate_index(arr.domain())
+            return op(arr, index)
+        else:
+            index = self._generate_index(arr.domain())
+            value = self._generate_value(arr.range())
+            return op(arr, index, value)
+
+    def generate_string(self, depth: int = 0) -> z3.SeqRef:
+        """Generate string expressions"""
+        if not self.strings or depth >= self.max_depth:
+            # Create new string variable
+            s = z3.String('str_%d' % len(self.strings))
+            self.strings.append(s)
+            return s
+            
+        if random.random() < 0.3:
+            return random.choice(self.strings)
+            
+        op = random.choice(self.string_ops)
+        if op.__code__.co_argcount == 1:
+            return op(self.generate_string(depth + 1))
+        else:
+            return op(self.generate_string(depth + 1),
+                     self.generate_string(depth + 1))
+
+    def generate_fp(self, depth: int = 0) -> z3.FPRef:
+        """Generate floating-point expressions"""
+        if not self.fp_nums or depth >= self.max_depth:
+            sort = random.choice(self.fp_sorts)
+            fp = z3.FP('fp_%d' % len(self.fp_nums), sort)
+            self.fp_nums.append(fp)
+            return fp
+            
+        if random.random() < 0.3:
+            return random.choice(self.fp_nums)
+            
+        op = random.choice(self.fp_ops)
+        if op.__code__.co_argcount == 1:
+            return op(self.generate_fp(depth + 1))
+        else:
+            return op(self.generate_fp(depth + 1),
+                     self.generate_fp(depth + 1))
+
+    def _generate_index(self, sort):
+        """Generate index value for arrays"""
+        if sort == z3.IntSort():
+            return z3.Int('i_%d' % random.randint(0, 1000))
+        elif sort == z3.BitVecSort(32):
+            return z3.BitVec('bv_%d' % random.randint(0, 1000), 32)
+        else:
+            raise ValueError(f"Unsupported index sort: {sort}")
+
+    def _generate_value(self, sort):
+        """Generate value for arrays"""
+        if sort == z3.IntSort():
+            return z3.IntVal(random.randint(-100, 100))
+        elif sort == z3.BitVecSort(32):
+            return z3.BitVecVal(random.randint(0, 2**32-1), 32)
+        elif sort == z3.BoolSort():
+            return z3.BoolVal(random.choice([True, False]))
+        else:
+            raise ValueError(f"Unsupported value sort: {sort}")
+
+def demo():
+    """Demo usage of SMTFuzzer"""
+    fuzzer = SMTFuzzer(logic="QF_BV", max_depth=5, max_terms=10)
+    smt2_str = fuzzer.generate_smt2()
+    print(smt2_str)
+    
+    # Try to solve the generated formula
+    solver = z3.Solver()
+    solver.from_string(smt2_str)
+    print("Result:", solver.check())
 
 
 if __name__ == "__main__":
-    print(gen_formula_of_logic("QF_BV"))
+    demo()
+    
