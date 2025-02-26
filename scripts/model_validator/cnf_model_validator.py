@@ -1,4 +1,6 @@
-# coding: utf-8
+"""
+Validate a CNF model
+"""
 import os
 import sys
 import linecache

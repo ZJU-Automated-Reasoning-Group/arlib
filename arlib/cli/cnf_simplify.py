@@ -50,6 +50,7 @@ def write_dimacs(cnf: Cnf, output_file=None):
 
 
 def main():
+    
     parser = argparse.ArgumentParser(description='CNF Formula Simplification Tool')
     parser.add_argument('input', help='Input CNF file in DIMACS format')
     parser.add_argument('-o', '--output', help='Output file (default: stdout)')

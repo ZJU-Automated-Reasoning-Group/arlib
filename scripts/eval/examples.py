@@ -2,7 +2,7 @@
 import numpy as np
 from typing import List, Tuple
 
-from plotting import ScatterPlot, CactusPlot, BoxPlot
+from .plot import ScatterPlot, CactusPlot, BoxPlot
 
 def generate_scatter_data() -> Tuple[List[float], List[float]]:
     """Generate sample data for scatter plot."""
