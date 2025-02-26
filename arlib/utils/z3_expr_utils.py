@@ -28,9 +28,11 @@ from typing import List, Set, Union, Tuple
 import z3
 from z3.z3util import get_vars
 
+
 def get_expr_vars(exp) -> List[z3.ExprRef]:
     """z3.z3util.get_vars can be very slow; so we use the
-    cutomized version"""
+    cutomized version
+    """
     try:
         syms = set()
         stack = [exp]
@@ -50,7 +52,14 @@ def get_expr_vars(exp) -> List[z3.ExprRef]:
 
 
 def get_variables(exp: z3.ExprRef) -> List[z3.ExprRef]:
-    """Get variables of exp"""
+    """Get variables of exp
+    Examples:
+    >>> from z3 import *
+    >>> x, y = Ints('x y')
+    >>> f = x + y
+    >>> get_expr_vars(f)
+    [x, y]
+    """
     # return get_vars(exp)  # this can be very slow
     return get_expr_vars(exp)
 
@@ -113,7 +122,7 @@ def to_smtlib2(expr: z3.BoolRef) -> str:
 
 
 def is_function_symbol(exp: z3.ExprRef) -> bool:
-    """Decide"""
+    """Decide if exp is a function symbol"""
     if not z3.is_app(exp):
         return False
     if z3.is_const(exp):
@@ -152,13 +161,14 @@ def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
 
 
 def big_and(exp_list: List[z3.ExprRef]):
-    """make and"""
+    """Conjunction of a list of expressions"""
     if len(exp_list) == 1:
         return exp_list[0]
     return z3.And(*exp_list)
 
 
 def big_or(list_of_exp: List[z3.ExprRef]):
+    """Disjunction of a list of expressions"""
     if len(list_of_exp) == 1:
         return list_of_exp[0]
     return z3.Or(*list_of_exp)
@@ -366,6 +376,7 @@ def z3_string_decoder(z3str: z3.StringVal) -> str:
 
 
 def z3_value_to_python(value) -> any:
+    """Convert a Z3 value to a python value"""
     if z3.is_true(value):
         return True
     elif z3.is_false(value):
@@ -383,12 +394,20 @@ def z3_value_to_python(value) -> any:
 
 
 class FormulaInfo:
-    """For formula info"""
+    """For formula info
+    Examples:
+    >>> from z3 import *
+    >>> x, y = Ints('x y')
+    >>> f = x + y
+    >>> fml_info = FormulaInfo(f)
+    >>> fml_info.get_logic()
+    'LIA'
+    """
 
     def __init__(self, fml):
         self.formula = fml
-        self.has_quantifier = self.has_quantifier()
-        self.logic = self.get_logic()
+        self._has_quantifier = None  # Initialize as None
+        self._logic = None  # Initialize as None
 
     def apply_probe(self, name):
         goal = z3.Goal()
@@ -397,64 +416,73 @@ class FormulaInfo:
         return probe(goal)
 
     def has_quantifier(self):
-        return self.apply_probe('has-quantifiers')
+        if self._has_quantifier is None:  # Only compute if not cached
+            self._has_quantifier = self.apply_probe('has-quantifiers')
+        return self._has_quantifier
 
     def logic_has_bv(self):
-        return "BV" in self.logic
+        return "BV" in self.get_logic()
 
     def get_logic(self):
         """
         TODO: how about string, array, and FP?
         """
+        if self._logic is not None:  # Return cached value if available
+            return self._logic
+
         try:
-            if not self.has_quantifier:
+            if not self.has_quantifier():  # Use method call instead of property
                 if self.apply_probe("is-propositional"):
-                    return "QF_UF"
-                if self.apply_probe("is-qfbv"):
-                    return "QF_BV"
-                if self.apply_probe("is-qfaufbv"):
-                    return "QF_AUFBV"
-                if self.apply_probe("is-qflia"):
-                    return "QF_LIA"
-                # elif self.apply_probe("is-quauflia"):
-                #    return "QF_AUFLIA"
-                if self.apply_probe("is-qflra"):
-                    return "QF_LRA"
-                if self.apply_probe("is-qflira"):
-                    return "QF_LIRA"
-                if self.apply_probe("is-qfnia"):
-                    return "QF_NIA"
-                if self.apply_probe("is-qfnra"):
-                    return "QF_NRA"
-                if self.apply_probe("is-qfufnra"):
-                    return "QF_UFNRA"
-                return "ALL"
+                    self._logic = "QF_UF"
+                elif self.apply_probe("is-qfbv"):
+                    self._logic = "QF_BV"
+                elif self.apply_probe("is-qfaufbv"):
+                    self._logic = "QF_AUFBV"
+                elif self.apply_probe("is-qflia"):
+                    self._logic = "QF_LIA"
+                elif self.apply_probe("is-qflra"):
+                    self._logic = "QF_LRA"
+                elif self.apply_probe("is-qflira"):
+                    self._logic = "QF_LIRA"
+                elif self.apply_probe("is-qfnia"):
+                    self._logic = "QF_NIA"
+                elif self.apply_probe("is-qfnra"):
+                    self._logic = "QF_NRA"
+                elif self.apply_probe("is-qfufnra"):
+                    self._logic = "QF_UFNRA"
+                else:
+                    self._logic = "ALL"
             else:
                 if self.apply_probe("is-lia"):
-                    return "LIA"
-                if self.apply_probe("is-lra"):
-                    return "LRA"
-                if self.apply_probe("is-lira"):
-                    return "LIRA"
-                if self.apply_probe("is-nia"):
-                    return "NIA"
-                if self.apply_probe("is-nra"):
-                    return "NRA"
-                if self.apply_probe("is-nira"):
-                    return "NIRA"
-                return "ALL"
+                    self._logic = "LIA"
+                elif self.apply_probe("is-lra"):
+                    self._logic = "LRA"
+                elif self.apply_probe("is-lira"):
+                    self._logic = "LIRA"
+                elif self.apply_probe("is-nia"):
+                    self._logic = "NIA"
+                elif self.apply_probe("is-nra"):
+                    self._logic = "NRA"
+                elif self.apply_probe("is-nira"):
+                    self._logic = "NIRA"
+                else:
+                    self._logic = "ALL"
         except Exception as ex:
             print(ex)
-            return "ALL"
+            self._logic = "ALL"
+
+        return self._logic
 
 
 def get_z3_logic(fml: z3.ExprRef) -> str:
+    """Get the logic of a Z3 expression"""
     fml_info = FormulaInfo(fml)
     return fml_info.get_logic()
 
 
 def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:
-    """ Let m be a model of a formula phi, preds be a set of predicates
+    """ 
+    Let m be a model of a formula phi, preds be a set of predicates
     """
     res = []
     for pred in predicates:

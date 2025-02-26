@@ -19,6 +19,10 @@ Basic idea: Abstraction/refinement to SMT(`QF_UFLLA`/`QF_UFLRA`)
     + If the model is feasible in the non-linear world, then
       the original formula is also satisfiable.
 
+Publications
+- Icremental Linearization for Satisfiability and Verification Modulo Nonlinear Arithmetic and Transcendental Functions.
+Ahmed Irfan. PhD thesis
+
 ### Local Search
 
 Implemented in Z3++ by Shaowei Cai's Group

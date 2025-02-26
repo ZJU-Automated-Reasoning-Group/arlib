@@ -1,3 +1,7 @@
+"""
+Sampler for various logical constraints
+"""
+
 from arlib.sampling.finite_domain.bool_sampler import BooleanSampler
 from arlib.sampling.finite_domain.bv_sampler import BitVectorSampler
 from arlib.sampling.linear_ira.lira_sampler import LIRASampler

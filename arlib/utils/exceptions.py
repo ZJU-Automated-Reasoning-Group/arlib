@@ -37,3 +37,4 @@ class UndefinedLogicError(ArlibException):
 class NoLogicAvailableError(ArlibException):
     """Generic exception to capture errors caused by missing support for logics."""
     pass
+

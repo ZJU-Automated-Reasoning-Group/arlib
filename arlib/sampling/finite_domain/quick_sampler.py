@@ -16,7 +16,7 @@ from arlib.utils.z3_expr_utils import get_variables
 # TODO: The generated samples are currently not checked for whether they satisfy the given constraints!
 
 # https://stackoverflow.com/questions/39299015/sum-of-all-the-bits-in-a-bit-vector-of-z3
-def bvcount(b):
+def bvcount(b: z3.ExprRef):
     n = b.size()
     bits = [z3.Extract(i, i, b) for i in range(n)]
     bvs = [z3.Concat(z3.BitVecVal(0, n - 1), b) for b in bits]

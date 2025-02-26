@@ -7,7 +7,9 @@ from arlib.sampling.utils.sampler import Sampler
 
 
 class BoolSampler(Sampler):
-    """For SAT formulas"""
+    """
+    Solution Sampler for Boolean formulas
+    """
 
     def __init__(self, **options):
         Sampler.__init__(self, **options)

@@ -71,6 +71,9 @@ def ground_quantifier_all(qexpr):
 
 
 def native_to_dnf(exp):
+    """
+    Convert a Z3 expression to DNF
+    """
     # seems the result can be very verbose
     # ctx = exp.ctx_ref()
     # set_param("pp-min-alias-size", 1000000)

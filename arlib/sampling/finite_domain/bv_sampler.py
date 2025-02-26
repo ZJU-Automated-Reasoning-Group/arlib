@@ -6,7 +6,9 @@ from arlib.sampling.utils.sampler import Sampler
 
 
 class BitVecSampler(Sampler):
-    """For bit-vecs"""
+    """
+    Sampling for bit-vector formulas
+    """
 
     def __init__(self, **options):
         Sampler.__init__(self, **options)

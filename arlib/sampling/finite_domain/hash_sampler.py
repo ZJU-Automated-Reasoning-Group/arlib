@@ -1,10 +1,11 @@
 # Enumerate models with some random parity constraints as suggested for approximate model counting.
 # Taken from https://github.com/Z3Prover/z3/issues/4675#issuecomment-686880139
+from typing import List, Dict
 from z3 import *
 from random import *
 
 
-def get_uniform_samples_with_xor(vars, cnt, num_samples):
+def get_uniform_samples_with_xor(vars: List[z3.ExprRef], cnt: z3.ExprRef, num_samples: int):
     """
     Get num_samples models (projected to vars)
     """

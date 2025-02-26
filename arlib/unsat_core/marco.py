@@ -182,4 +182,5 @@ def enumerate_sets(csolver, map):
             map.block_up(MUS)
              
 
-main()
+if __name__ == "__main__":
+    main()

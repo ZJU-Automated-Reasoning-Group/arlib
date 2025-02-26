@@ -13,7 +13,7 @@ TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equi
 """
 
 import subprocess
-from enum import Enum
+from enum import Enum, auto
 from threading import Timer
 from typing import List
 
@@ -48,6 +48,9 @@ def terminate(process, is_timeout):
 
 
 def solve_with_bin_solver(cmd, timeout=300):
+    """
+    Solve a Z3 expression with an external binary solver
+    """
     # ret = "unknown"
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -66,18 +69,21 @@ def solve_with_bin_solver(cmd, timeout=300):
 
 
 class BinaryInterpolSolver(Enum):
-    CVC5 = 0
-    MATHSAT5 = 1
-    SMTINTERPOL = 2
+    """
+    Solver for binary interpolant
+    """
+    CVC5 = auto()
+    MATHSAT5 = auto()
+    SMTINTERPOL = auto()
 
 
 class SequenceInterpolSolver(Enum):
-    MATHSAT = 0
+    MATHSAT = auto()
 
 
 class OMTSolver(Enum):
-    CVC5 = 0
-    OPTIMATHSAT = 1
+    CVC5 = auto()
+    OPTIMATHSAT = auto()
 
 
 # logger = logging.getLogger(__name__)
