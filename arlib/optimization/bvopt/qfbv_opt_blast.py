@@ -94,6 +94,20 @@ class BitBlastOMTBVSolver:
         except Exception as ex:
             print(ex)
 
+    def maximize(self, obj: z3.ExprRef, is_signed=False):
+        """
+        Maximize a bit-vector objective using MaxSAT-based optimization.
+        This is a wrapper around maximize_with_maxsat for backward compatibility.
+        
+        Args:
+            obj: Bit-vector expression to maximize
+            is_signed: Whether to treat the bit-vector as signed
+            
+        Returns:
+            The maximum value achievable for the objective
+        """
+        return self.maximize_with_maxsat(obj, is_signed)
+
     def maximize_with_maxsat(self, obj: z3.ExprRef, is_signed=False):
         """
         Weighted-MaxSAT based OMT(BV)

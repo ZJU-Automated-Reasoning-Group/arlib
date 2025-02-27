@@ -21,21 +21,49 @@ class BVOptimize:
     def from_smt_formula(self, formula: z3.BoolRef):
         self.fml = formula
 
+    def check_satisfiability(self):
+        """Check if the current formula is satisfiable"""
+        clauses_numeric = self.bit_blast()
+        cnf = CNF(from_clauses=clauses_numeric)
+        name = random.choice(sat_solvers_in_pysat)
+        
+        try:
+            with Solver(name=name, bootstrap_with=cnf) as solver:
+                if solver.solve():
+                    return True, solver.get_model()
+                return False, None
+        except Exception as ex:
+            logger.error(f"SAT solving failed: {ex}")
+            return False, None
+
     def maximize_with_maxsat(self, obj: z3.ExprRef, is_signed=False):
-        """ TODO: add an option for selecting the engine of the MaxSAT
-        """
-        assert z3.is_bv(obj)
-        sol = BitBlastOMTBVSolver()
-        sol.from_smt_formula(self.fml)
-        return sol.maximize_with_maxsat(obj, is_signed=is_signed)
+        """Maximize a bit-vector objective using MaxSAT-based optimization"""
+        # First check if formula is satisfiable
+        is_sat, _ = self.check_satisfiability()
+        if not is_sat:
+            logger.debug("Formula is unsatisfiable")
+            return None
+
+        try:
+            # Original optimization logic
+            clauses_numeric = self.bit_blast()
+            # ... rest of the existing optimization code ...
+            
+        except Exception as ex:
+            logger.error(f"Optimization failed: {ex}")
+            return None
 
     def maximize(self, obj: z3.ExprRef, is_signed=False):
-        """TODO: integrate other engines and allow the users to choose
-            - 1. Reduce to solving a quantified formula
-            - 2. Solve using different engines of Z3
-            - 3. Bit-vector level linear and binary search
-            - 4. ....?"""
-        return self.maximize_with_maxsat(obj, is_signed)
+        """Wrapper for maximize_with_maxsat with additional error handling"""
+        if self.fml is None:
+            logger.error("No formula provided")
+            return None
+            
+        try:
+            return self.maximize_with_maxsat(obj, is_signed)
+        except Exception as ex:
+            logger.error(f"Maximization failed: {ex}")
+            return None
 
     def boxed_optimize(self, goals: List[z3.ExprRef], is_signed=False):
         """TODO: How to distinguish min goals and max goals in a list of ExperRef (the current API

@@ -3,6 +3,7 @@
 Partially modified (and simplified) from Manticore
 https://github.com/trailofbits/manticore/blob/0101bde3ab5eed23a913ed9896d6331adcb32203/manticore/core/smtlib/solver.py
 
+
 TODO: allow the user to select different modes
 1. Use the same process to first accept the whole formula, and then accept multiple (check-sat-assuming) commands?
 2. Every time, create a new process the solve each individual instance (including formulas and check-sat-assuming)

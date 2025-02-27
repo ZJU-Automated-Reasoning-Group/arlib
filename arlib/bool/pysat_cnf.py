@@ -6,7 +6,7 @@ from typing import List
 from pysat.formula import CNF  # IDPool
 
 
-def simplify_cnf(fml: CNF, assumptions: List):
+def simplify_cnf(fml: CNF, assumptions: List[int]) -> CNF:
     """ given a formula, return a new formula simplified by the assumptions"""
     result = list(filter(lambda cls: all(map(lambda lit: lit not in cls, assumptions)),
                          deepcopy(fml.clauses)))
@@ -20,7 +20,7 @@ def simplify_cnf(fml: CNF, assumptions: List):
     return CNF(from_clauses=result)
 
 
-def gen_cubes(fml: CNF, k_vars: int) -> List[List]:
+def gen_cubes(fml: CNF, k_vars: int) -> List[List[int]]:
     """
     Randomly select k_vars variables and generate all cubes using those variables
     """

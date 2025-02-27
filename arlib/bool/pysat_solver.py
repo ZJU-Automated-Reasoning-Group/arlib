@@ -10,6 +10,7 @@ from enum import Enum
 from multiprocessing import Pool
 from typing import List
 
+from arlib.utils.typing import SolverResult
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
@@ -81,8 +82,26 @@ class PySATSolver:
         self.reduce_samples = True
         self.parallel_reduce = False  # parallel reduce
 
-    def check_sat(self):
-        return self._solver.solve()
+    def check_sat(self) -> SolverResult:
+        res = self._solver.solve()
+        if res:
+            return SolverResult.SAT
+        else:
+            return SolverResult.UNSAT
+    
+    def check_sat_assuming(self, assumptions: List[int]) -> SolverResult:
+        res = self._solver.solve(assumptions=assumptions)
+        if res:
+            return SolverResult.SAT
+        else:
+            return SolverResult.UNSAT
+        
+    def get_unsat_core(self, assumptions: List[int]) -> List[int]:
+        res = self._solver.solve(assumptions=assumptions)
+        if res:
+            return self._solver.get_core()
+        else:
+            return []
 
     def add_clause(self, clause: List[int]):
         """add clause"""
@@ -156,8 +175,9 @@ class PySATSolver:
         #  Perhaps we can run the CNF simplifier here
         return reduced_models
 
-    def get_model(self):
+    def get_model(self) -> List[int]:
         return self._solver.get_model()
+    
 
     def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
         """

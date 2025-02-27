@@ -7,6 +7,7 @@ Useful functions for exploring Z3's powerful SAT engine.
 Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
 """
 from typing import List
+from arlib.utils.typing import SolverResult
 
 import z3
 
@@ -17,13 +18,13 @@ class Z3SATSolver:
         self.solver = z3.SolverFor(logic)
         # self.solver = z3.SimpleSolver()
 
-    def from_smt2file(self, fname: str):
+    def from_smt2file(self, fname: str) -> None:
         self.solver.add(z3.And(z3.parse_smt2_file(fname)))
 
-    def from_smt2string(self, smtstring: str):
+    def from_smt2string(self, smtstring: str) -> None:
         self.solver.add(z3.And(z3.parse_smt2_string(smtstring)))
 
-    def from_int_clauses(self, clauses: List[List[int]]):
+    def from_int_clauses(self, clauses: List[List[int]]) -> None:
         """
         Initialize self.solver with a list of clauses
         """
@@ -44,9 +45,10 @@ class Z3SATSolver:
             self.solver.add(z3.Or(*conds))
             # z3_clauses.append(z3.Or(*conds))
 
-    def get_z3var(self, intname: int):
+    def get_z3var(self, intname: int) -> z3.BoolRef:
         """
         Given an integer (labeling a Boolean var.), return its corresponding Z3 Boolean var
+
         NOTE: this function is only meaningful when the solver is initialized by
           from_int_clauses, from_dimacsfile, or from_dimacsstring
         """
@@ -54,7 +56,8 @@ class Z3SATSolver:
             return self.int2z3var[intname]
         raise Exception(str(intname) + " not in the var list!")
 
-    def get_consequences(self, prelist: List[z3.BoolRef], postlist: List[z3.BoolRef]):
+    def get_consequences(self, prelist: List[z3.BoolRef], postlist: List[z3.BoolRef]) -> List[z3.BoolRef]:
+        # get consequences of using Z3's extension
         try:
             res, factslist = self.solver.consequences([prelist], [postlist])
             if res == z3.sat:
@@ -62,13 +65,23 @@ class Z3SATSolver:
         except Exception as ex:
             raise ex
 
-    def get_unsat_core(self, assumptions: List[z3.BoolRef]):
-        raise NotImplementedError
+    def get_unsat_core(self, assumptions: List[z3.BoolRef]) -> List[z3.BoolRef]:
+        # get unsat core
+        try:
+            res, core = self.solver.unsat_core(assumptions)
+            if res == z3.unsat:
+                return core
+        except Exception as ex:
+            raise ex
 
-    def check_sat_assuming(self, assumptions: List[z3.BoolRef]):
-        if self.solver.check(assumptions) == z3.sat:
-            return True
-        return False
+    def check_sat_assuming(self, assumptions: List[z3.BoolRef]) -> SolverResult:
+        res = self.solver.check(assumptions)
+        if res == z3.sat:
+            return SolverResult.SAT
+        elif res == z3.unsat:
+            return SolverResult.UNSAT
+        else:
+            return SolverResult.UNKNOWN
 
 
 class Z3MaxSATSolver:
@@ -84,7 +97,7 @@ class Z3MaxSATSolver:
         self.soft = []
         self.weight = []
 
-    def from_wcnf_file(self, fname: str):
+    def from_wcnf_file(self, fname: str) -> None:
         self.solver = z3.Optimize()
         self.solver.from_file(fname)
 

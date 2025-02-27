@@ -1,13 +1,13 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class VarState(Enum):
-    TRUE_VAL = 1
-    FALSE_VAL = 2
-    UNASSIGNED = 3
-    IRRELEVANT = 4
+    TRUE_VAL = auto()
+    FALSE_VAL = auto()
+    UNASSIGNED = auto()
+    IRRELEVANT = auto()
 
 
 class ClauseState(Enum):
-    ACTIVE = 1
-    PASSIVE = 2
+    ACTIVE = auto()
+    PASSIVE = auto()

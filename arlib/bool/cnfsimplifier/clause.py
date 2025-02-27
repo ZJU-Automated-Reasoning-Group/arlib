@@ -17,18 +17,23 @@ class Clause:
 
     def __init__(self, variable_list: list):
         """
-        :complexity: O(n) where n is the number of variables in the clause
-        :param variable_list: list of variable
+        Initialize a clause with a list of variables.
+        
+        Args:
+            variable_list: list of variables or integers
         """
-        if isinstance(variable_list, set):
+        # Convert integers to Variable objects if needed
+        if variable_list and isinstance(variable_list[0], (int, float)):
             variable_list = [Variable(var) for var in variable_list]
-
+        elif isinstance(variable_list, set):
+            variable_list = [Variable(var) for var in variable_list]
+    
         self.variable_list = variable_list
         self.__size = len(self.variable_list)
         self.id = create_id()
-
+    
         self.literals_set = set()
-        for var in variable_list:
+        for var in self.variable_list:
             self.literals_set.add(var.variable_value)
 
         self.__tautology = self.__setup_tautology()
