@@ -1,17 +1,17 @@
 ## Arlib 
 
-Arlib is toolkit for automated reasoning.
-
+Arlib is toolkit for automated reasoning. It provides a set of tools for constraint solving, logical inference, and symbolic computation.
 
 
 ## Local Development Environment
 
-Run
+Run the following command to setup the local development environment.
 ~~~~
 bash setup_local_env.sh
 ~~~~
 
-The script will:
+
+The script will 
 - Create a Python virtual environment if it doesn't exist
 - Activate the virtual environment and install dependencies from requirements.txt
 - Download required solver binaries (cvc5, mathsat, z3)
@@ -27,16 +27,15 @@ Local installziation via setup.py
 pip install -e .
 ~~~~
 
+Then you can use a few cli tools of this library,
+ add call the Python API in your own Python code.
+
 ## Release the Repo to PyPI
 
-TBD
-
-## Research Topics
-
-For Summer Research, Final Year Project Topics, please refer to
-`docs/topics.rst` or `TODO.md`.
+TBD (The repository is not yet released to PyPI.)
 
 ## Contributing
+
 Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
 
 ~~~~
@@ -52,9 +51,21 @@ arlib/
 └── requirements.txt # Project dependencies
 ~~~~
 
+For Summer Research, Final Year Project Topics, please refer to
+`docs/topics.rst` or `TODO.md`.
+
 ## Documentation
+
 We release the docs here:
 https://pyarlib.readthedocs.io/en/latest/
+
+
+## Publications
+
+Here are some of publications that use Arlib.
+
+- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf)
+Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
 
 
 ## Contributors
