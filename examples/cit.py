@@ -74,3 +74,19 @@ def generate_test_cases(parameters: List[Parameter], t: int) -> List[TestCase]:
         solver.add(z3.Or([z3.Not(variables[param.name] == model[variables[param.name]].as_long()) for param in parameters]))
     return test_cases
     
+
+def demo_cit():
+    """Demonstrates the usage of CIT for testing a simple system."""
+    parameters = [
+        Parameter("Browser", ["Chrome", "Firefox", "Safari"]),
+        Parameter("OS", ["Windows", "MacOS", "Linux"]),
+        Parameter("Screen", ["Mobile", "Desktop"]),
+        Parameter("Network", ["WiFi", "4G", "5G"])
+    ]
+    test_cases = generate_test_cases(parameters, 2)
+    for idx, test_case in enumerate(test_cases):
+        print(f"Test Case {idx+1}: {test_case.assignments}")
+
+        
+if __name__ == "__main__":
+    demo_cit()
