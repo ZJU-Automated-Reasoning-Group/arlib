@@ -17,3 +17,13 @@ class OSType(Enum):
     WINDOWS = auto()
     MAC = auto()
     UNKNOWN = auto()
+
+
+class BinarySMTSolverType(Enum):
+    # the binary solver may be used "globally" by different components
+    # So, we put it here
+    Z3 = auto()
+    CVC4 = auto()
+    YICES = auto()
+    BOOLECTOR = auto()
+    UNKNOWN = auto()

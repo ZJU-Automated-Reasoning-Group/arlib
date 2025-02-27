@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Partially modified from Manticore
+Partially modified (and simplified) from Manticore
 https://github.com/trailofbits/manticore/blob/0101bde3ab5eed23a913ed9896d6331adcb32203/manticore/core/smtlib/solver.py
 
 TODO: allow the user to select different modes

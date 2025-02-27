@@ -1,8 +1,7 @@
 """
-Call other SMT solvers to manipulate Z3's expr
+Call other SMT solvers to manipulate Z3's expr (e.g., quantifier elimination, abduction, etc.)
 
-TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv, entail, etc)
- But use cvc5 and other solvers for specific queries, e.g.,
+Use z3 as the default solve for handling "normal queries" (e.g., sat, equiv, entail, etc, but use cvc5 and other solvers for specific queries, e.g.,
   - binary interpolant (cvc5, SMTInterpol, mathsat), sequence interpolant (SMTInterpol)
   - non-linear interpolant (Yices2)
   - abduction (cvc5)
@@ -10,8 +9,9 @@ TODO: Use z3 as the default solve for handling "normal queries" (e.g., sat, equi
   - sygus (cvc5)
   - OMT
   - MaxSMT
+  - etc.
 """
-
+import logging
 import subprocess
 from enum import Enum, auto
 from threading import Timer
@@ -20,6 +20,25 @@ from typing import List
 import z3
 
 from arlib.utils.smtlib_solver import SmtlibProc
+
+
+logger = logging.getLogger(__name__)
+
+
+class BinaryInterpolSolver(Enum):
+    CVC5 = auto()
+    MATHSAT5 = auto()
+    SMTINTERPOL = auto()
+
+
+class SequenceInterpolSolver(Enum):
+    MATHSAT = auto()
+
+
+class OMTSolver(Enum):
+    CVC5 = auto()
+    OPTIMATHSAT = auto()
+
 
 
 def terminate(process, is_timeout):
@@ -35,9 +54,6 @@ def terminate(process, is_timeout):
             process.terminate()
             is_timeout[0] = True
         except Exception as ex:
-            # print("error for interrupting")
-            # print(ex)
-            # pass
             print(f"Error while attempting to terminate the process: {ex}")
             try:
                 # Attempt to forcefully kill the process as a fallback
@@ -51,7 +67,6 @@ def solve_with_bin_solver(cmd, timeout=300):
     """
     Solve a Z3 expression with an external binary solver
     """
-    # ret = "unknown"
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     is_timeout = [False]
@@ -67,27 +82,6 @@ def solve_with_bin_solver(cmd, timeout=300):
         return "timeout"
     return out
 
-
-class BinaryInterpolSolver(Enum):
-    """
-    Solver for binary interpolant
-    """
-    CVC5 = auto()
-    MATHSAT5 = auto()
-    SMTINTERPOL = auto()
-
-
-class SequenceInterpolSolver(Enum):
-    MATHSAT = auto()
-
-
-class OMTSolver(Enum):
-    CVC5 = auto()
-    OPTIMATHSAT = auto()
-
-
-# logger = logging.getLogger(__name__)
-# What is making it as a subclass of z3.Solver...
 
 
 class Z3SolverPlus(z3.Solver):
@@ -119,7 +113,7 @@ class Z3SolverPlus(z3.Solver):
         """
         Binary interpolant
         - It seems that cvc5's interpolant follows the original definition, i.e., A |= I, I |= B
-        - Need to use different strategies when using other solvers
+        - Need to use different strategies when using other solvers (e.g., using pysmt's APIs)
 
         Example from cvc5
         (set-logic LIA)
@@ -159,6 +153,7 @@ class Z3SolverPlus(z3.Solver):
     def sequence_interpolant(self):
         """
         Sequence interpolant
+        - Need to use different strategies when using other solvers (e.g., using pysmt's APIs)
         """
         smtlib = SmtlibProc(self.sequence_interpol_solver, debug=self.debug)
         smtlib.start()
@@ -236,7 +231,7 @@ class Z3SolverPlus(z3.Solver):
         smtlib.stop()
         return ret
 
-    def sygus(self, funcs: List[z3.FuncDeclRef], cnts: List[z3.BoolRef], all_vars: [z3.ExprRef], grammar=None,
+    def sygus(self, funcs: List[z3.FuncDeclRef], cnts: List[z3.BoolRef], all_vars: List[z3.ExprRef], grammar=None,
               logic=None,
               pbe=False):
         """

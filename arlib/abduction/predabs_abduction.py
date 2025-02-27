@@ -16,28 +16,28 @@ from z3 import BoolRef, Solver, unsat
 from arlib.utils.z3_expr_utils import negate
 
 
-def eval_preds(m: z3.ModelRef, preds: List[z3.BoolRef]):
-    """
-    The eval_preds function takes in a model m and a list of predicates preds.
-    It returns the set of predicates that are true in m, or false if they are not.
-
-    :param m:z3.ModelRef: Evaluate the predicates in the list of predicates
-    :param preds:List[z3.BoolRef]: Specify the set of predicates that we want to evaluate
-    :return: A list of predicates that are true in the model m
+def eval_preds(m: z3.ModelRef, preds: List[z3.BoolRef]) -> List[z3.BoolRef]:
+    """Evaluate predicates against a model and return their truth values.
+    
+    Args:
+        m: Z3 model to evaluate against
+        preds: List of predicates to evaluate
+    Returns:
+        List of predicates or their negations based on model evaluation
     """
     res = []
     for p in preds:
-        if z3.is_true(m.eval(p, True)):
+        val = m.eval(p, True)
+        if z3.is_true(val):
             res.append(p)
-        elif z3.is_false(m.eval(p, True)):
+        elif z3.is_false(val):
             res.append(negate(p))
-        else:
-            pass
     return res
 
 
 def prime_implicant(ps: List[z3.ExprRef], e: z3.ExprRef):
     """TODO: this function may have flaws
+    Prime implicant: an implicant that is not covered by any other implicant.
     """
     s = z3.Solver()
     # we want to find a subset ps' of ps such that /\ ps => e
@@ -99,6 +99,8 @@ def predicate_abstraction(fml, preds):
 
 
 def sample_k_implicants(fml, preds, k=-1):
+    """
+    """
     res = []
     assert k > 0
     for i in range(k):

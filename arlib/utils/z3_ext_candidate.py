@@ -39,7 +39,8 @@ def absolute_value_int(x):
 
 def ground_quantifier(qexpr):
     """
-    Seems this can only handle exists x . fml, or forall x.fml?
+    It seems this can only handle exists x . fml, or forall x.fml, that is
+    the quantifier is at the outermost level of the formula.
     """
     body = qexpr.body()
     var_list = list()
@@ -59,6 +60,7 @@ def ground_quantifier_all(qexpr):
     However, the following information is lost
     - order of the quantifiers
     - which variables are after which quantifiers
+    We need to find a way to keep this information.
     """
     res = []
     exp = qexpr
