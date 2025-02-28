@@ -27,18 +27,32 @@ class QFFPSolver:
         # self.vars = []
         self.verbose = 0
 
-    def solve_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str) -> SolverResult:
+        """
+        Solve an SMT problem from a file.
+        Args:
+            filepath (str): The path to the SMT problem file.
+        Returns:
+            SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
+        """
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str) -> SolverResult:
+        """
+        Solve an SMT problem from a string.
+        Args:
+            smt_str (str): The SMT problem as a string.
+        Returns:
+            SolverResult: The result of the solver (SAT, UNSAT, or UNKNOWN).
+        """
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_formula(self, fml: z3.ExprRef):
+    def solve_smt_formula(self, fml: z3.ExprRef) -> SolverResult:
         return self.check_sat(fml)
 
-    def check_sat(self, fml):
+    def check_sat(self, fml) -> SolverResult:
         # z3.set_param("verbose", 15)
         """Check satisfiability of an QF_FP formula"""
         if QFFPSolver.sat_engine == 'z3':
@@ -112,7 +126,7 @@ class QFFPSolver:
             # print(sol.to_smt2())
             return SolverResult.UNKNOWN
 
-    def solve_qffp_via_z3(self, fml: z3.ExprRef):
+    def solve_qffp_via_z3(self, fml: z3.ExprRef) -> SolverResult:
         sol = z3.SolverFor("QF_FP")
         sol.add(fml)
         res = sol.check()

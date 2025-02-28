@@ -2,8 +2,11 @@
 
 ## Research 
 
+There are many interesting research topics. You are welcome to contribute to the following research topics:
+
 - Parallel CDCL(T): See `arlib/smt/pcdclt`
 - SMT for finite field: See  `arlib/smt/ff`
+
 
 ## Interfaces
 
@@ -21,6 +24,9 @@
  - Fourier-Motzkin elimination
  - Simplex method
   
+### Advanced Profiling
+
+- https://github.com/viperproject/smt-scope: A tool for visualising, analysing and understanding quantifier instantiations made via E-matching in a run of an SMT solver 
 
 ## Documentation
 

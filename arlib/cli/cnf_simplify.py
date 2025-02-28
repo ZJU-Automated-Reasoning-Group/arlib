@@ -49,8 +49,13 @@ def write_dimacs(cnf: Cnf, output_file=None):
         out.close()
 
 
+def phase_ordering() -> List[int]:
+    """Phase ordering for CNF formula simplification"""
+    # TODO: implement phase ordering
+    return []
+
 def main():
-    
+    """Main function"""
     parser = argparse.ArgumentParser(description='CNF Formula Simplification Tool')
     parser.add_argument('input', help='Input CNF file in DIMACS format')
     parser.add_argument('-o', '--output', help='Output file (default: stdout)')
@@ -71,6 +76,8 @@ def main():
     cnf = parse_dimacs(args.input)
 
     # Apply simplifications
+    # FIXME: how to decide the phase of the simplifications
+    # if the user specify mupltile ones
     if args.all or args.tautology:
         cnf = cnf.tautology_elimination()
     if args.all or args.hidden_tautology:

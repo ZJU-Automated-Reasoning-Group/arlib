@@ -292,7 +292,9 @@ class Clause:
         return c_ala
 
     def __eq__(self, other):
+        # TODO: shoud we compare the ids or compare the contents (i.e. literals in the clause)
         return self.id == other.id
 
     def __ne__(self, other):
+        # TODO: shoud we compare the ids or compare the contents (i.e. literals in the clause)
         return self.id != other.id

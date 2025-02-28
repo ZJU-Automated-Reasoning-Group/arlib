@@ -28,7 +28,7 @@ class QFAUFBVSolver:
         # self.vars = []
         self.verbose = 0
 
-    def solve_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str) -> SolverResult:
         """
         Solve an SMT problem from a file.
 
@@ -41,7 +41,7 @@ class QFAUFBVSolver:
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str) -> SolverResult:
         """
         Solve an SMT problem from a string.
 
@@ -54,7 +54,7 @@ class QFAUFBVSolver:
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_formula(self, fml: z3.ExprRef):
+    def solve_smt_formula(self, fml: z3.ExprRef) -> SolverResult:
         """
         Solve an SMT problem from a Z3 formula.
 
@@ -66,7 +66,7 @@ class QFAUFBVSolver:
         """
         self.check_sat(fml)
 
-    def check_sat(self, fml):
+    def check_sat(self, fml) -> SolverResult:
         """Check satisfiability of an formula"""
         if QFAUFBVSolver.sat_engine == 'z3':
             return self.solve_qfaufbv_via_z3(fml)
@@ -123,7 +123,7 @@ class QFAUFBVSolver:
         logger.debug("Start calling Z3...")
         return self.solve_qfaufbv_via_z3(after_simp)
 
-    def solve_qfaufbv_via_z3(self, fml: z3.ExprRef):
+    def solve_qfaufbv_via_z3(self, fml: z3.ExprRef) -> SolverResult:
         sol = z3.SolverFor("QF_AUFBV")
         sol.add(fml)
         res = sol.check()

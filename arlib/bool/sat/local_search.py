@@ -24,29 +24,65 @@ def evaluate_clauses(clauses, variable_assignments):
 
 def local_search_solve_sat(clauses, max_iterations=10000):
     """
-    Define the local search solver function
+    Define the local search solver function with improved variable selection
     """
+    # Initialize random assignments
     variable_assignments = {i: random.choice([True, False]) for i in
-                            range(1, max([abs(v) for clause in clauses for v in clause]) + 1)}
+                          range(1, max([abs(v) for clause in clauses for v in clause]) + 1)}
+    
+    best_unsat_count = len(clauses)
+    stagnation_counter = 0
+    
     for i in range(max_iterations):
+        # Check if solution is found
         if evaluate_clauses(clauses, variable_assignments):
+            print(f"Solution found at iteration {i}")
             return variable_assignments
+            
+        # Find unsatisfied clauses
         unsatisfied_clauses = [clause for clause in clauses if not evaluate_clauses([clause], variable_assignments)]
-        variable_to_flip = random.choice(list(variable_assignments.keys()))
-        variable_assignments[variable_to_flip] = not variable_assignments[variable_to_flip]
-        if evaluate_clauses(unsatisfied_clauses, variable_assignments):
-            continue
+        current_unsat_count = len(unsatisfied_clauses)
+        
+        # Update best score and check for stagnation
+        if current_unsat_count < best_unsat_count:
+            best_unsat_count = current_unsat_count
+            stagnation_counter = 0
         else:
+            stagnation_counter += 1
+            
+        # Early termination if stuck
+        if stagnation_counter > 1000:
+            print(f"Terminated early at iteration {i} due to stagnation")
+            return False
+            
+        # Select variable from unsatisfied clause
+        random_clause = random.choice(unsatisfied_clauses)
+        variable_to_flip = abs(random.choice(random_clause))
+        
+        # Flip the variable
+        variable_assignments[variable_to_flip] = not variable_assignments[variable_to_flip]
+        
+        # Keep the flip only if it improves unsatisfied clauses
+        new_unsat_count = len([c for c in clauses if not evaluate_clauses([c], variable_assignments)])
+        if new_unsat_count >= current_unsat_count:
             variable_assignments[variable_to_flip] = not variable_assignments[variable_to_flip]
+    
+    print(f"No solution found after {max_iterations} iterations")
     return False
 
 
 def test():
     example_clauses = [[1, 2, -3], [-1, -2, 3], [-1, 2, 3], [1, -2, -3], [-1, 2, -3]]
     start_time = time.time()
-    local_search_solve_sat(example_clauses, 100)
+    result = local_search_solve_sat(example_clauses, 1000)
     end_time = time.time()
-    print("Time taken: {} seconds".format(end_time - start_time))
+    print("Time taken: {:.4f} seconds".format(end_time - start_time))
+    if result:
+        print("Solution found:", result)
+        print("Verification:", evaluate_clauses(example_clauses, result))
+    else:
+        print("No solution found")
 
 
-test()
+if __name__ == "__main__":
+    test()

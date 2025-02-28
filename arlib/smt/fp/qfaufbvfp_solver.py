@@ -32,7 +32,7 @@ class QFAUFBVFPSolver:
         level = logging.DEBUG if self.verbose else logging.INFO
         logging.basicConfig(level=level)
 
-    def solve_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str) -> SolverResult:
         """
         Solve an SMT problem from a file.
 
@@ -45,7 +45,7 @@ class QFAUFBVFPSolver:
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str) -> SolverResult:
         """
         Solve an SMT problem from a string.
 
@@ -70,7 +70,7 @@ class QFAUFBVFPSolver:
         """
         self.check_sat(fml)
 
-    def check_sat(self, fml):
+    def check_sat(self, fml) -> SolverResult:
         """Check satisfiability of an formula"""
         if self.sat_engine == 'z3':
             return self.solve_qfaufbvfp_via_z3(fml)
@@ -126,7 +126,7 @@ class QFAUFBVFPSolver:
         # sol = z3.Tactic('smt').solver()
         return self.solve_qfaufbvfp_via_z3(after_simp)
 
-    def solve_qfaufbvfp_via_z3(self, fml: z3.ExprRef):
+    def solve_qfaufbvfp_via_z3(self, fml: z3.ExprRef) -> SolverResult:
         sol = z3.SolverFor("QF_AUFBV")
         sol.add(fml)
         res = sol.check()
@@ -138,8 +138,13 @@ class QFAUFBVFPSolver:
             return SolverResult.UNKNOWN
 
 
-def demo_qfaufbvfp():
-    return
+def demo_qfaufbvfp() -> SolverResult:
+    solver = QFAUFBVFPSolver()
+    x = z3.BitVec('x', 32)
+    y = z3.BitVec('y', 32)
+    fml = z3.And(x > 0, y > 0, x + y > 0)
+    res = solver.check_sat(fml)
+    return res
 
 
 if __name__ == "__main__":

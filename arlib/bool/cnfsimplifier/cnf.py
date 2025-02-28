@@ -318,3 +318,4 @@ class Cnf:
             if new_cnf.get_number_of_clauses() == size:
                 break
         return new_cnf
+
