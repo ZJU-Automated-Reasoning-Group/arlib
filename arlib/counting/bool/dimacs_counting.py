@@ -89,7 +89,7 @@ def call_sharp_sat(cnf_filename: str):
             if "solutions" in decode_line:
                 find_sol_line = True
     except Exception as ex:
-        print(ex)
+        # print(ex)
         print("exception when running sharpSAT, will return false")
         if os.path.isfile(cnf_filename):
             os.remove(cnf_filename)
@@ -137,10 +137,10 @@ def check_sat(clauses, assumptions):
     return ans
 
 
-def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
+def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> int:
     """
     Count the number of solutions for a given DIMACS CNF formula in parallel.
-       1. Generate a set of disjoint cubes such that they can be extended to be models of the formula
+       1. Generate a set of disjoint cubes
         C1: a, b
         C2: Not(a), b
         C3: a, Not b
@@ -189,10 +189,11 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]):
                                   (cnf_tasks[i],))
         results.append(result)
 
-    raw_solutions = []
+    raw_solutions: List[int] = []
     for i in range(len(cnf_tasks)):
         result = results[i].get()
         raw_solutions.append(int(result))
 
     print("results: ", raw_solutions)
     return sum(raw_solutions)
+

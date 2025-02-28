@@ -3,6 +3,7 @@ import abc
 import functools
 import operator
 
+
 class ast_base(object):
   __metaclass__ = abc.ABCMeta
 
@@ -26,6 +27,7 @@ def z3expr(o):
   assert isinstance(o, ast_base)
   return o._z3expr()
 
+
 class ast_func_apply(ast_base):
   def __init__(self, *args):
     for a in args:
@@ -44,6 +46,7 @@ class ast_func_apply(ast_base):
   def __hash__(self):
     return functools.reduce(operator.xor, [hash(a) for a in self.args], 0)
 
+
 class ast_unop(ast_func_apply):
   def __init__(self, a):
     super(ast_unop, self).__init__(a)
@@ -51,6 +54,7 @@ class ast_unop(ast_func_apply):
   @property
   def a(self):
     return self.args[0]
+
 
 class ast_binop(ast_func_apply):
   def __init__(self, a, b):
@@ -63,6 +67,7 @@ class ast_binop(ast_func_apply):
   @property
   def b(self):
     return self.args[1]
+
 
 class ast_const_int(ast_base):
   def __init__(self, i):
@@ -170,3 +175,20 @@ class ast_bwand(ast_binop):  # bitwise and
 class ast_bwor(ast_binop):  # bitwise or
   def _z3expr(self):
     return z3expr(self.a) | z3expr(self.b)
+
+class ast_bwxor(ast_binop):  # bitwise xor
+  def _z3expr(self):
+    return z3expr(self.a) ^ z3expr(self.b)
+
+class ast_bwnot(ast_unop):
+  def _z3expr(self):
+    return ~z3expr(self.a)
+
+class ast_bwnot(ast_unop):
+  def _z3expr(self):
+    return ~z3expr(self.a)
+  
+class ast_bwnot(ast_unop):
+  def _z3expr(self):
+    return ~z3expr(self.a)
+  
