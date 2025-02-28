@@ -67,6 +67,12 @@ Here are some of publications that use Arlib.
 - [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf)
 Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
 
+## Related Work
+
+- pysat: https://github.com/pysathq/pysat
+- pysmt: https://github.com/pysmt/pysmt
+- pyqbf: https://gitlab.sai.jku.at/qbf/pyqbf
+- sympy: https://github.com/sympy/sympy
 
 ## Contributors
 

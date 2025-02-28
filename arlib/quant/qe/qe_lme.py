@@ -11,6 +11,10 @@ and projection. It works by:
 3. Projecting away quantified variables
 4. Blocking the current solution
 5. Repeating until no more models exist
+
+It seems that Z3's a tacitic named "fm", whch uses Fourier–Motzkin elimination.
+Can we use it for performing QE for conjunction of literals?
+E.g., "Exists X . P(X, Y) /\ Q(X, Y) /\ R(X, Y) ...", where P, Q, and R are atomic predicate symbols (or literals?)
 """
 
 from typing import List

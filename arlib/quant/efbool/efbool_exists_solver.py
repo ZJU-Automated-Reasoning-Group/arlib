@@ -29,10 +29,10 @@ class BoolExistsSolver(object):
         self.existential_bools = exists_vars
         self.clauses = []
 
-    def get_random_assignment(self):
+    def get_random_assignment(self) -> List[int]:
         return [v if random.random() < 0.5 else -v for v in self.existential_bools]
 
-    def get_models(self, num=1):
+    def get_models(self, num=1) -> List[List[int]]:
         if len(self.clauses) == 0:
             return [self.get_random_assignment() for _ in range(num)]
 
@@ -61,7 +61,7 @@ class BoolExistsSolver(object):
                     break
         return results
 
-    def get_models_parallel(self, num=1, num_processes=None):
+    def get_models_parallel(self, num=1, num_processes=None) -> List[List[int]]:
         """Generate candidate models in parallel
         
         Args:
@@ -93,11 +93,11 @@ class BoolExistsSolver(object):
 
         return results
 
-    def add_clause(self, clause: List[int]):
+    def add_clause(self, clause: List[int]) -> None:
         self.solver.add_clause(clause)
         self.clauses.append(clause)
 
-    def add_clauses(self, clauses: List[List[int]]):
+    def add_clauses(self, clauses: List[List[int]]) -> None:
         """Update self.clauses
         E.g., refinement from the ForAllSolver
         """
@@ -105,7 +105,7 @@ class BoolExistsSolver(object):
             self.solver.add_clause(cls)
             self.clauses.append(cls)
 
-    def add_cnf(self, cnf: CNF):
+    def add_cnf(self, cnf: CNF) -> None:
         """
         The add_cnf function adds a CNF object to the solver.
         It does this by adding each clause in the CNF object to the solver, and then appending that list of clauses

@@ -15,7 +15,7 @@ from arlib.counting.bool.dimacs_counting import count_dimacs_solutions, \
 
 def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
     """
-    Count models for a pySMT Boolean formula.
+    Count models for a pySMT Boolean formula using model enumeration.
 
     Args:
         formula: The pySMT formula to count models for
@@ -24,9 +24,11 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
     Returns:
         int: Number of models found (-1 if exceeded max_models)
     """
+    from pysmt.shortcuts import And, Not, get_free_variables, Or
     solver = PySMTSolver()
     solver.add_assertion(formula)
     count = 0
+    variables = list(get_free_variables(formula))
 
     while solver.solve():
         count += 1
@@ -34,19 +36,19 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
             return -1
 
         model = solver.get_model()
-        # Create blocking clause
+        # Create blocking clause for all variables
         block = []
-        for var in model:
-            if var.get_type() == BOOL:
-                val = model.get_value(var)
-                if val is TRUE:
-                    block.append(var.Not())
-                else:
-                    block.append(var)
-        solver.add_assertion(PySMTOr(block))
+        for var in variables:
+            val = model.get_value(var)
+            if val.is_true():
+                block.append(Not(var))
+            else:
+                block.append(var)
+        
+        # Add blocking clause to prevent this model from appearing again
+        solver.add_assertion(Or(block))
 
     return count
-
 
 def pysmt_to_dimacs(formula) -> tuple[List[str], List[str]]:
     """

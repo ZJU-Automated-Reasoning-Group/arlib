@@ -9,7 +9,7 @@ from arlib.quant.efsmt_parser import EFSMTZ3Parser
 logger = logging.getLogger(__name__)
 
 
-def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None):
+def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.ExprRef, maxloops=None) -> z3.CheckSatResult:
     """
     Solve exists-forall bit-vectors
      (The name of the engine is EFBVTactic.SIMPLE_CEGAR)
@@ -47,7 +47,7 @@ def solve_with_simple_cegar(x: List[z3.ExprRef], y: List[z3.ExprRef], phi: z3.Ex
     return z3.unknown
 
 
-def solve_with_z3(y: List[z3.ExprRef], phi: z3.ExprRef):
+def solve_with_z3(y: List[z3.ExprRef], phi: z3.ExprRef) -> z3.CheckSatResult:
     s = z3.Solver()
     s.add(z3.ForAll(y, phi))
     return s.check()
@@ -66,10 +66,5 @@ def test2():
     solve_with_simple_cegar(exists_vars, forall_vars, qf_fml, maxloops=50)
     print("efsmt time: ", time.time() - start)
 
-
-def main():
-    test2()
-
-
 if __name__ == '__main__':
-    main()
+    test2()

@@ -51,7 +51,7 @@ class BoolForallSolver(object):
         assert not aux_sol.solve(assumptions=existential_counter_model)
         return aux_sol.get_core()
 
-    def check_single_model(self, model_data):
+    def check_single_model(self, model_data) -> List[int]:
         """Helper function to check a single model in parallel"""
         existential_model, neg_clauses, reduce_model, existential_bools = model_data
         solver = Solver(self.solver_name, bootstrap_with=neg_clauses)
@@ -67,7 +67,7 @@ class BoolForallSolver(object):
             return self.reduce_counter_example(existential_model, existential_counter_model)
         return [-v for v in existential_model]
 
-    def check_models(self, models: List[List[int]]):
+    def check_models(self, models: List[List[int]]) -> List[List[int]]:
         """Check candidates given by the exists solver in parallel"""
         if not models:
             return []

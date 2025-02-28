@@ -12,7 +12,7 @@ TBD: to check
 import z3
 
 
-def get_vars(expr):
+def get_vars(expr) -> set:
     """
     Extract all variables from a Z3 expression.
     
@@ -35,7 +35,7 @@ def get_vars(expr):
     return vars_set
     
 
-def quantifier_eliminiation(fml: z3.ExprRef):
+def quantifier_eliminiation(fml: z3.ExprRef) -> z3.ExprRef:
     """
     Perform quantifier elimination on the given formula.
 
@@ -49,7 +49,7 @@ def quantifier_eliminiation(fml: z3.ExprRef):
     return z3.Tactic("qe2")(fml).as_expr
 
 
-def abduction(precond, postcond, target_vars):
+def abduction(precond, postcond, target_vars) -> z3.ExprRef:
     """
     Given a set of premises Γ and a desired conclusion φ,
     abductive inference finds a simple explanation ψ such that

@@ -10,40 +10,50 @@ from arlib.counting.bool.dimacs_counting import count_dimacs_solutions, \
     count_dimacs_solutions_parallel
 
 
-def count_z3_models_by_enumeration(formula: z3.BoolRef, max_models: int = None) -> int:
+def count_z3_models_by_enumeration(formula) -> int:
     """
-    Count models for a z3 Boolean formula.
-
+    Count models by enumerating all solutions using Z3's model enumeration
+    
     Args:
-        formula (z3.BoolRef): The z3 formula to count models for
-        max_models (int, optional): Maximum number of models to count
-
+        formula: Z3 formula to count models for
     Returns:
-        int: Number of models found (-1 if exceeded max_models)
+        Number of satisfying models
     """
     solver = z3.Solver()
     solver.add(formula)
     count = 0
-
+    
+    # Get all variables in the formula
+    variables = get_vars(formula)
+    
     while solver.check() == z3.sat:
         count += 1
-        if max_models and count > max_models:
-            return -1
-
         model = solver.model()
-        # Create blocking clause
+        
+        # Create blocking clause from current model
         block = []
-        for decl in model:
-            if decl.arity() == 0 and decl.range().is_bool():
-                val = model[decl]
-                if z3.is_true(val):
-                    block.append(decl() == False)
-                else:
-                    block.append(decl() == True)
+        for var in variables:
+            val = model.eval(var, model_completion=True)
+            block.append(var != val)
+        
         solver.add(z3.Or(block))
-
+    
     return count
 
+def get_vars(formula):
+    """Helper function to get all variables in a Z3 formula"""
+    vars_set = set()
+    
+    def collect(f):
+        if z3.is_const(f):
+            if f.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+                vars_set.add(f)
+        else:
+            for child in f.children():
+                collect(child)
+    
+    collect(formula)
+    return list(vars_set)
 
 def z3_to_dimacs(formula: z3.BoolRef) -> tuple[List[str], List[str]]:
     """
