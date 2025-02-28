@@ -1,5 +1,5 @@
 """
-Downlaod pre-built SMT solvers and rename the binary solvers as 
+Download pre-built SMT solvers and rename the binary solvers as 
 cvc5, z3, and mathsat. 
 TODO: support for sharpSAT (which may need to fetch the source code and build it)
 """

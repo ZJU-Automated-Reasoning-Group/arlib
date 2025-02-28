@@ -64,6 +64,15 @@ def bitblast(formula: z3.ExprRef):
 
 
 def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
+    """
+    Convert a Z3 CNF formula to DIMACS format.
+    Args:
+        cnf: Z3 CNF formula
+        table: Variable mapping
+        proj_last: Whether to project the variables to the last n_vars
+    Returns:
+        DIMACS header and clauses
+    """
     cnf_clauses = []
     projection_scope = len(table)
 
@@ -97,6 +106,15 @@ def to_dimacs(cnf, table, proj_last) -> Tuple[List[str], List[str]]:
 
 
 def to_dimacs_numeric(cnf, table, proj_last):
+    """
+    Convert a Z3 CNF formula to DIMACS format.
+    Args:
+        cnf: Z3 CNF formula
+        table: Variable mapping
+        proj_last: Whether to project the variables to the last n_vars
+    Returns:
+        DIMACS header and clauses
+    """
     cnf_clauses = []
     projection_scope = len(table)
 
@@ -129,6 +147,13 @@ def to_dimacs_numeric(cnf, table, proj_last):
 
 
 def map_bitvector(input_vars):
+    """
+    Map bit-vector variables to Boolean variables.
+    Args:
+        input_vars: List of bit-vector variables
+    Returns:
+        List of clauses and list of mapped variables
+    """
     # print("input vars...")
     # print(input_vars)
     clauses = []
@@ -151,6 +176,14 @@ def map_bitvector(input_vars):
 
 
 def dimacs_visitor(exp, table):
+    """
+    Visit a Z3 expression and yield DIMACS variables.
+    Args:
+        exp: Z3 expression
+        table: Variable mapping
+    Yields:
+        DIMACS variables
+    """
     if is_literal(exp):
         name = exp.decl().name()
         if name in table:
@@ -179,6 +212,14 @@ def dimacs_visitor(exp, table):
 
 
 def dimacs_visitor_numeric(exp, table):
+    """
+    Visit a Z3 expression and yield DIMACS variables.
+    Args:
+        exp: Z3 expression
+        table: Variable mapping
+    Yields:
+        DIMACS variables
+    """
     if is_literal(exp):
         name = exp.decl().name()
         if name in table:
@@ -204,6 +245,14 @@ def dimacs_visitor_numeric(exp, table):
 
 
 def collect_vars(exp, seen=None):
+    """
+    Collect variables from a Z3 expression.
+    Args:
+        exp: Z3 expression
+        seen: Set of seen variables
+    Yields:
+        Variables
+    """
     if seen is None:
         seen = {}
     if exp in seen:
@@ -225,6 +274,16 @@ def collect_vars(exp, seen=None):
 
 
 def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], Dict[str, int], List[str], List[str]]:
+    """
+    Translate a SMT2 formula to CNF format.
+    Args:
+        formula: SMT2 formula
+    Returns:
+        bv2bool: Mapping from bit-vector variables to Boolean variables
+        id_table: Mapping from variable names to variable IDs
+        header: DIMACS header
+        clauses: DIMACS clauses
+    """
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
     # print("Generating DIMACS with projection...")
@@ -238,6 +297,16 @@ def translate_smt2formula_to_cnf(formula: z3.ExprRef) -> Tuple[Dict[str, list], 
 
 def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[
     Dict[str, list], Dict[str, int], List[str], List[int]]:
+    """
+    Translate a SMT2 formula to CNF format.
+    Args:
+        formula: SMT2 formula
+    Returns:
+        bv2bool: Mapping from bit-vector variables to Boolean variables
+        id_table: Mapping from variable names to variable IDs
+        header: DIMACS header
+        clauses: DIMACS clauses
+    """
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
     # print("Generating DIMACS with projection...")
@@ -247,6 +316,12 @@ def translate_smt2formula_to_numeric_clauses(formula: z3.ExprRef) -> Tuple[
 
 
 def translate_smt2formula_to_cnf_file(formula: z3.ExprRef, output_file: str):
+    """
+    Translate a SMT2 formula to CNF format and save it to a file.
+    Args:
+        formula: SMT2 formula
+        output_file: Output file name
+    """
     projection_last = ''
     projection_last = projection_last and projection_last.lower() != "false"
     blasted, id_table, bv2bool = bitblast(formula)

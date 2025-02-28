@@ -1,4 +1,4 @@
-## Arlib 
+# Arlib 
 
 Arlib is toolkit for automated reasoning. It provides a set of tools for constraint solving, logical inference, and symbolic computation.
 
@@ -27,8 +27,7 @@ Local installziation via setup.py
 pip install -e .
 ~~~~
 
-Then you can use a few cli tools of this library,
- add call the Python API in your own Python code.
+Then you can use a few cli tools of this library, add call the Python API in your own Python code.
 
 ## Release the Repo to PyPI
 
@@ -64,15 +63,15 @@ https://pyarlib.readthedocs.io/en/latest/
 
 Here are some of publications that use Arlib.
 
-- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf)
+- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf) [Code](https://github.com/pckennethma/CISan)
 Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
 
 ## Related Work
 
-- pysat: https://github.com/pysathq/pysat
-- pysmt: https://github.com/pysmt/pysmt
-- pyqbf: https://gitlab.sai.jku.at/qbf/pyqbf
-- sympy: https://github.com/sympy/sympy
+- [pysat](https://github.com/pysathq/pysat)
+- [pysmt](https://github.com/pysmt/pysmt)
+- [pyqbf](https://gitlab.sai.jku.at/qbf/pyqbf)
+- [sympy](https://github.com/sympy/sympy)
 
 ## Contributors
 

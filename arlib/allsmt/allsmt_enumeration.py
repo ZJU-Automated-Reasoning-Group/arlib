@@ -1,9 +1,12 @@
 from z3 import *
 
-def all_smt(solver, keys) -> list:
+
+def all_smt(expr, keys) -> list:
     """
     Enumerate all models of the given SMT solver.
     """
+    solver = Solver()
+    solver.add(expr)
     model_count = 0
     all_smt_models = []
     while solver.check() == sat:
@@ -22,11 +25,8 @@ def all_smt(solver, keys) -> list:
 
 def demo():
     x, y = Ints('x y')
-    solver = Solver()
-    solver.add(x + y == 5)
-    solver.add(x > 0)
-    solver.add(y > 0)
-    all_smt(solver, [x, y])
+    all_smt(x + y == 5, [x, y])
+    
 
 if __name__ == "__main__":
     demo()

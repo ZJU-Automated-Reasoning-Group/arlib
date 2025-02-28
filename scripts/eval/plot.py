@@ -1,5 +1,10 @@
 """
-Violin plot? Heat map? 
+Plotting utilities for evaluation results.
+- Scatter plot
+- Cactus plot
+- Box plot
+- Violin plot
+- Heat map
 """
 import math
 import os
@@ -188,3 +193,68 @@ class BoxPlot(BasePlot):
         ax.set_xlabel('xlabel')
         ax.set_ylabel('ylabel')
         ax.set_xticklabels([f'x{i}' for i in range(num_boxes)])
+
+
+class ViolinPlot(BasePlot):
+    """Violin plot implementation with support for single and multi-group data."""
+
+    def plot(self, data: Union[List[List[float]], List[List[List[float]]]], 
+            output_dir: str = "", filename: str = "violin", save: bool = False, 
+            multi_group: bool = False) -> None:
+        """Create violin plot with optional multi-group support."""
+        if multi_group:
+            self._plot_multi_groups(data)
+        else:
+            self._plot_single_group(data)
+        
+        if save:
+            self.save_plot(plt.gcf(), output_dir, filename) 
+        else:
+            plt.show()
+
+    def _plot_single_group(self, data: List[List[float]]) -> None:
+        fig, ax = plt.subplots(figsize=PLOT_CONFIG['default_figsize'])
+        parts = ax.violinplot(data, showmeans=True, showmedians=True)
+        
+        colors = random.sample(COLORS['pastel'], len(data))
+        for patch, color in zip(parts['bodies'], colors):
+            patch.set_facecolor(color)
+        
+        self._setup_single_axes(ax, len(data))
+
+    def _plot_multi_groups(self, data: List[List[List[float]]]) -> None:
+        fig, axes = plt.subplots(nrows=1, ncols=len(data), 
+                                figsize=PLOT_CONFIG['default_figsize'])
+        
+        colors = random.sample(COLORS['pastel'], len(data[0]))
+        for ax, group in zip(axes, data):
+            parts = ax.violinplot(group, showmeans=True, showmedians=True)
+            for patch, color in zip(parts['bodies'], colors):
+                patch.set_facecolor(color)
+            self._setup_single_axes(ax, len(group))
+
+    def _setup_single_axes(self, ax: plt.Axes, num_boxes: int) -> None:
+        ax.set_xlabel('xlabel')
+        ax.set_ylabel('ylabel')
+        ax.set_xticklabels([f'x{i}' for i in range(num_boxes)])
+
+
+class HeatMap(BasePlot):
+    """Heat map implementation with support for single and multi-group data."""
+
+    def plot(self, data: Union[List[List[float]], List[List[List[float]]]], 
+            output_dir: str = "", filename: str = "heatmap", save: bool = False, 
+            multi_group: bool = False) -> None:
+        """Create heat map with optional multi-group support."""
+        if multi_group:
+            self._plot_multi_groups(data)
+        else:
+            self._plot_single_group(data)
+            
+        if save:
+            self.save_plot(plt.gcf(), output_dir, filename)
+        else:
+            plt.show()
+        # TBD
+
+

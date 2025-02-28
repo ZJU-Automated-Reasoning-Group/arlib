@@ -1,11 +1,16 @@
-"""Translation and solving for finite field formulas"""
+"""Solving finite field formulas via bit-vector translation"""
 
 from typing import Optional, Dict
+import os
+
 import z3
 from .ff_parser import ParsedFormula, FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst
 
 
-class FFSolver:
+class FFBVSolver:
+    """
+    Solver for finite field formulas
+    """
     def __init__(self, target_theory="QF_BV"):
         self.target_theory = target_theory
         self.solver = z3.Solver()
@@ -14,9 +19,15 @@ class FFSolver:
         self.field_size: Optional[int] = None
 
     def translate_to_int(self, formula: ParsedFormula) -> z3.BoolRef:
+        """
+        Translate a finite field formula to an integer formula
+        """
         raise NotImplementedError("Translation to int is not implemented.")
 
     def translate_to_bv(self, formula: ParsedFormula) -> z3.BoolRef:
+        """
+        Translate a finite field formula to a bit-vector formula
+        """
         self.field_size = formula.field_size
         bits = (self.field_size - 1).bit_length()
         
@@ -66,7 +77,7 @@ class FFSolver:
 def solve_qfff(smt_input):
     parser = FFParser()
     formula = parser.parse_formula(smt_input)
-    solver = FFSolver()
+    solver = FFBVSolver()
     result = solver.translate_to_bv(formula)
     if result == z3.sat:
         model = solver.get_model()

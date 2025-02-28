@@ -9,15 +9,18 @@ def abstract_to_linear(formula):
     # Example: replace non-linear multiplication, sin(), exp() with uninterpreted functions
     abstracted_formula = formula
     for f in formula.decls():
-        # TBD: just the following ops?
+        # TBD: just the following ops are non-linear ones??
+        # 2 * x + y is non-linear, but x*y = 5 is non-linear
         if f.kind() == Z3_OP_MUL or f.kind() == Z3_OP_SIN or f.kind() == Z3_OP_EXP:
             abstracted_formula = substitute(abstracted_formula, (f(), Function(f.name(), *f.domain(), f.range())()))
     return abstracted_formula
+
 
 def is_unsat(formula):
     solver = Solver()
     solver.add(formula)
     return solver.check() == unsat
+
 
 def validate_model(formula):
     solver = Solver()

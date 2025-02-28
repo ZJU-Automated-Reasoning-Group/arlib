@@ -1,8 +1,10 @@
 # coding: utf-8
 import numpy as np
 from typing import List, Tuple
+import matplotlib.pyplot as plt
 
-from .plot import ScatterPlot, CactusPlot, BoxPlot
+
+from plot import ScatterPlot, CactusPlot, BoxPlot, ViolinPlot
 
 def generate_scatter_data() -> Tuple[List[float], List[float]]:
     """Generate sample data for scatter plot."""
@@ -70,6 +72,8 @@ def test_box_plot_multi_groups():
     plotter = BoxPlot()
     plotter.plot(data, multi_group=True)
 
+
+
 if __name__ == "__main__":
     # Uncomment tests to run
     test_scatter_plot()
@@ -77,3 +81,4 @@ if __name__ == "__main__":
     # test_cactus_plot()
     # test_box_plot()
     # test_box_plot_multi_groups()
+    

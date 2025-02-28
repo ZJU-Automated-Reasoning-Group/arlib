@@ -34,6 +34,8 @@ def is_simple_formula(fml: z3.ExprRef):
 def solve_with_z3(universal_vars, fml):
     sol = z3.SolverFor("BV")
     sol.add(z3.ForAll(universal_vars, fml))
+    # set timeout
+    sol.set("timeout", 10000)
     res = sol.check()
     if res == z3.sat:
         return EFBVResult.SAT, sol.model()
@@ -46,8 +48,6 @@ def solve_with_z3(universal_vars, fml):
 class TestEFBVSolver(TestCase):
 
     def test_efbv_solver(self):
-
-        if True:
             for _ in range(15):
                 existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
                 vars_fml = [str(v) for v in get_variables(fml)]
@@ -71,6 +71,7 @@ class TestEFBVSolver(TestCase):
                     break
                 print(res_par, res_b)
                 # break
+
 
 
 if __name__ == '__main__':

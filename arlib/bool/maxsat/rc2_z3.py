@@ -29,6 +29,9 @@ def sub(Ws, f, w):
 
 
 class RC2:
+    """
+    RC2 algorithm implemented via Z3's Python API
+    """
 
     def __init__(self, s):
         self.bounds = {}

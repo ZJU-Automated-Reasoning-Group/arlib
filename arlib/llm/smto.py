@@ -1,13 +1,26 @@
 """
 Orax: An SMTO solver using LLM as oracle handler
 
-ecent advancements in SMT solving have driven progress in formula-based software verification, but they face significant challenges when analyzing open programs with components lacking formal specifications, such as third-party libraries or deep learning models. This challenge has led to the emergence of the Satisfiability Modulo Theories and Oracles (SMTO) problem, where black-box components can be accessed as oracles with observable inputs and outputs but unknown implementations. Current approaches like Delphi and Saadhak attempt to solve SMTO problems by combining conventional SMT solvers with oracle handlers, but they struggle to effectively integrate oracle mapping information with SMT reasoning capabilities. To address these limitations, a new framework called Orax proposes establishing an oracle mapping information feedback loop between the SMT solver and an oracle handler powered by a large language model (LLM).
+Recent advancements in SMT solving have driven progress in formula-based software verification, but they face significant challenges when analyzing open programs with components lacking formal specifications, such as third-party libraries or deep learning models. This challenge has led to the emergence of the Satisfiability Modulo Theories and Oracles (SMTO) problem, where black-box components can be accessed as oracles with observable inputs and outputs but unknown implementations. Current approaches like Delphi and Saadhak attempt to solve SMTO problems by combining conventional SMT solvers with oracle handlers, but they struggle to effectively integrate oracle mapping information with SMT reasoning capabilities. To address these limitations, a new framework called Orax proposes establishing an oracle mapping information feedback loop between the SMT solver and an oracle handler powered by a large language model (LLM).
+
+Next, we brainstorm some ideas on how to combine LLM with existing SMT solvers.
 
 TODO: how about using LLM to analzying the "backbox" components directly? E.g.,
 1. the documentation of the component (if available)
 2. the binary code (possibly obfuscated) of the component (if available)
 3. other "implicit" knowledge about the component  (e.g., online discussions about the component)
-4. ...?
+..
+
+What to guess/infer/learn from the above information?
+1. the "specification" of the component, i.e., the "contract" that the component adheres to
+2. the possible "internal" implementation of the component
+3. ...
+
+Another direction is to use LLM to perform some logcial reasoning that might go beyond the capability of existing SMT solvers, e.g.,
+1. abductive inference (e.g., from observations to possible hypotheses)over complex constraints that cannot be encoded via SMT theories (at least a subset of them cannot be ...)
+2. ...
+
+
 """
 
 from typing import Dict, List, Optional, Union, Callable
