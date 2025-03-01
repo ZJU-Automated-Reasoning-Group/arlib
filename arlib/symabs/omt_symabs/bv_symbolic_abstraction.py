@@ -31,6 +31,7 @@ class BVSymbolicAbstraction:
         self.interval_abs_as_fml = z3.BoolVal(True)
         self.zone_abs_as_fml = z3.BoolVal(True)
         self.octagon_abs_as_fml = z3.BoolVal(True)
+        self.bitwise_abs_as_fml = z3.BoolVal(True)
 
         self.single_query_timeout = 5000
         self.multi_query_tiemout = 0
@@ -146,7 +147,6 @@ class BVSymbolicAbstraction:
             for var in self.vars:
                 multi_queries.append(var)
             self.interval_abs_as_fml = self.min_max_many(multi_queries)
-            # print(self.interval_abs_as_fml)
         else:
             cnts = []
             for i in range(len(self.vars)):
@@ -156,8 +156,9 @@ class BVSymbolicAbstraction:
                     cnts.append(z3.And(self.vars[i] >= vmin, self.vars[i] <= vmax))
                 else:
                     cnts.append(z3.And(z3.UGE(self.vars[i], vmin), z3.ULE(self.vars[i], vmax)))
-                print(self.vars[i], "[", vmin, ", ", vmax, "]")
+                # print(self.vars[i], "[", vmin, ", ", vmax, "]")
             self.interval_abs_as_fml = z3.And(cnts)
+        print("\ninterval abs:", self.interval_abs_as_fml, sep="\n")
 
     def zone_abs(self):
         """
@@ -166,6 +167,7 @@ class BVSymbolicAbstraction:
         Store the result in self.zone_abs_as_fml.
         """
         zones = list(itertools.combinations(self.vars, 2))
+        tmp = self.formula
         if self.compact_opt:
             multi_queries = []
             wrap_around_cnts = []
@@ -181,7 +183,6 @@ class BVSymbolicAbstraction:
                 self.formula = z3.And(self.formula, z3.And(wrap_around_cnts))
 
             self.zone_abs_as_fml = self.min_max_many(multi_queries)
-            # print(self.zone_abs_as_fml)
         else:
             zone_cnts = []
             objs = []
@@ -207,6 +208,8 @@ class BVSymbolicAbstraction:
                     zone_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.zone_abs_as_fml = z3.And(zone_cnts)
+        self.formula = tmp
+        print("\nzone abs:", self.zone_abs_as_fml, sep="\n")
 
     def octagon_abs(self):
         """
@@ -215,6 +218,7 @@ class BVSymbolicAbstraction:
         Store the result in self.octagon_abs_as_fml.
         """
         octagons = list(itertools.combinations(self.vars, 2))
+        tmp = self.formula
         if self.compact_opt:
             multi_queries = []
             wrap_around_cnts = []
@@ -238,7 +242,6 @@ class BVSymbolicAbstraction:
                 self.formula = z3.And(self.formula, z3.And(wrap_around_cnts))
 
             self.octagon_abs_as_fml = self.min_max_many(multi_queries)
-            # print(self.zone_abs_as_fml)
         else:
             oct_cnts = []
             objs = []
@@ -270,8 +273,34 @@ class BVSymbolicAbstraction:
                 else:
                     oct_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
-            self.zone_abs_as_fml = z3.And(oct_cnts)
-
+            self.octagon_abs_as_fml = z3.And(oct_cnts)
+        self.formula = tmp
+        print("\noctagon abs:", self.octagon_abs_as_fml, sep="\n")
+    
+    def bitwise_abs(self):
+        """
+        Perform octagon abstraction on the formula.
+        extract every bit of the variables and compute if the bit must be 0 or 1.
+        Store the result in self.bitwise_abs_as_fml.
+        """
+        cnts = []
+        for var in self.vars:
+            for i in range(var.size()):
+                sol = z3.Solver()
+                sol.add(self.formula)
+                sol.push()
+                sol.add(z3.Extract(i, i, var) == 0)
+                if sol.check() == z3.unsat:
+                    cnts.append(z3.Extract(i, i, var) == 1)
+                    continue
+                sol.pop()
+                sol.add(z3.Extract(i, i, var) == 1)
+                if sol.check() == z3.unsat:
+                    cnts.append(z3.Extract(i, i, var) == 0)
+                    continue
+                cnts.append(z3.Or(z3.Extract(i, i, var) == 0, z3.Extract(i, i, var) == 1))
+        self.bitwise_abs_as_fml = z3.And(cnts)
+        print("\nbitwise abs:", self.bitwise_abs_as_fml)
 
 def feat_test():
     x = z3.BitVec("x", 8)

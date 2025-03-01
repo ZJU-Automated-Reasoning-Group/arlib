@@ -33,6 +33,7 @@ from z3 import parse_smt2_file
 from arlib.counting.qfbv_counting import BVModelCounter
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
 from arlib.tests.formula_generator import FormulaGenerator
+from arlib.utils.z3_expr_utils import get_variables
 
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
@@ -51,6 +52,7 @@ class AbstractionResults:
     interval_fp_rate: float = 0.0
     zone_fp_rate: float = 0.0
     octagon_fp_rate: float = 0.0
+    bitwise_fp_rate: float = 0.0
 
 
 class ModelCounter:
@@ -77,7 +79,7 @@ class AbstractionAnalyzer:
     """Analyzes different abstraction domains"""
 
     def __init__(self, formula, variables: List[z3.BitVecRef]):
-        self.formula = formula
+        self.formula = z3.And(formula)
         self.variables = variables
         self.sa = BVSymbolicAbstraction()
         self.sa.init_from_fml(formula)
@@ -109,6 +111,7 @@ class AbstractionAnalyzer:
             self.sa.interval_abs()
             self.sa.zone_abs()
             self.sa.octagon_abs()
+            self.sa.bitwise_abs()
 
             results = AbstractionResults()
 
@@ -116,7 +119,8 @@ class AbstractionAnalyzer:
             for domain, formula in [
                 ("Interval", self.sa.interval_abs_as_fml),
                 ("Zone", self.sa.zone_abs_as_fml),
-                ("Octagon", self.sa.octagon_abs_as_fml)
+                ("Octagon", self.sa.octagon_abs_as_fml),
+                ("Bitwise", self.sa.bitwise_abs_as_fml)
             ]:
                 has_fp, fp_rate = self.compute_false_positives(formula)
                 logger.info(f"{domain} domain: {'has FP rate %.4f' % fp_rate if has_fp else 'no false positives'}")
@@ -125,13 +129,15 @@ class AbstractionAnalyzer:
                     results.interval_fp_rate = fp_rate
                 elif domain == "Zone":
                     results.zone_fp_rate = fp_rate
-                else:
+                elif domain == "Octagon":
                     results.octagon_fp_rate = fp_rate
+                elif domain == "Bitwise":
+                    results.bitwise_fp_rate = fp_rate
 
             return results
 
         except Exception as e:
-            logger.error(f"Error analyzing abstractions: {str(e)}")
+            logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
             return None
 
 
@@ -160,12 +166,29 @@ def process_smt_file(file_path: str) -> bool:
     """Process a single SMT-LIB2 file"""
     try:
         # Parse SMT-LIB2 file
-        formula = parse_smt2_file(file_path)
+        formula = z3.And(parse_smt2_file(file_path))
 
         # Extract variables from formula
         # FIXME: is the following one correct?
-        variables = [var for var in formula.children()
-                     if var.sort().kind() == z3.Z3_BV_SORT]
+        # variables = [var for var in formula.children()
+        #              if var.sort().kind() == z3.Z3_BV_SORT]
+        # import re
+
+        # def extract_bv_variables(smt2_file):
+        #     bv_vars = []
+        #     pattern = r'\(declare-(?:const|fun)\s+(\S+)\s+(?:\(\s*\)\s+)?\(_ BitVec (\d+)\)\)'
+        #     with open(smt2_file, 'r') as f:
+        #         for line in f:
+        #             line = line.strip()
+        #             match = re.search(pattern, line)
+        #             if match:
+        #                 var_name = match.group(1)
+        #                 width = int(match.group(2))
+        #                 bv_vars.append(z3.BitVec(var_name, width))
+        #     return bv_vars
+        
+        variables = get_variables(formula)
+        # print(variables)
 
         if not variables:
             logger.warning(f"No bit-vector variables found in {file_path}")
@@ -245,25 +268,34 @@ def main():
         default=mp.cpu_count()
     )
 
+    parser.add_argument(
+        "-g", "--generate",
+        help="Generate random formulas for demo",
+        action='store_true'
+    )
+
     args = parser.parse_args()
 
     # Setup logging
     global logger
     logger = setup_logging(args.log)
 
-    try:
-        if args.file:
-            logger.info(f"Processing single file: {args.file}")
-            success = process_smt_file(args.file)
-            sys.exit(0 if success else 1)
+    if args.generate:
+        demo()
+    else:
+        try:
+            if args.file:
+                logger.info(f"Processing single file: {args.file}")
+                success = process_smt_file(args.file)
+                sys.exit(0 if success else 1)
 
-        elif args.directory:
-            logger.info(f"Processing directory: {args.directory}")
-            process_directory(args.directory, args.processes)
+            elif args.directory:
+                logger.info(f"Processing directory: {args.directory}")
+                process_directory(args.directory, args.processes)
 
-    except Exception as e:
-        logger.error(f"Fatal error: {str(e)}")
-        sys.exit(1)
+        except Exception as e:
+            logger.error(f"Fatal error: {str(e)}")
+            sys.exit(1)
 
 
 def demo():
@@ -273,11 +305,17 @@ def demo():
         variables = [x, y, z]
 
         formula = FormulaGenerator(variables).generate_formula()
+        sol = z3.Solver()
+        sol.add(formula)
+        logger.info(f"Generated formula: {sol.sexpr()}")
         counter = ModelCounter()
 
-        if not counter.is_sat(formula):
+        while not counter.is_sat(formula):
             logger.info("Formula is unsatisfiable")
-            return False
+            formula = FormulaGenerator(variables).generate_formula()
+            sol = z3.Solver()
+            sol.add(formula)
+            logger.info(f"Generated formula: {sol.sexpr()}")
 
         # Count models
         model_count = counter.count_models(formula)
@@ -297,6 +335,6 @@ def demo():
         logger.error(f"Error in main: {str(e)}")
         return False
 
-
 if __name__ == '__main__':
     main()
+    # demo()
