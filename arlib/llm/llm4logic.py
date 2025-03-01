@@ -13,39 +13,29 @@ Tasks:
 
 import logging
 from typing import Optional, List, Dict, Any, Union
-import openai
+import re
+import os
+import asyncio
 from dataclasses import dataclass
+
+from arlib.llm.llm_factory import LLMConfig, create_llm, LLMProvider
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-
-@dataclass
-class LLMConfig:
-    """Configuration for LLM API"""
-    api_key: str
-    model: str = "gpt-4"  # Default to GPT-4
-    temperature: float = 0.1
-    max_tokens: int = 1000
-
 class LogicLLM:
-    def __init__(self, config: LLMConfig):
+    def __init__(self, config: Optional[LLMConfig] = None):
         """Initialize LogicLLM with configuration"""
-        self.config = config
-        openai.api_key = config.api_key
+        self.config = config or LLMConfig()
+        self.llm = create_llm(self.config)
         
     async def query_llm(self, prompt: str) -> str:
         """Query LLM with given prompt"""
         try:
-            response = await openai.ChatCompletion.acreate(
-                model=self.config.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens
-            )
-            return response.choices[0].message.content
+            messages = [{"role": "user", "content": prompt}]
+            return await asyncio.to_thread(self.llm.chat, messages)
         except Exception as e:
             logger.error(f"LLM query failed: {e}")
             raise
@@ -114,7 +104,6 @@ Show your counting process."""
         response = await self.query_llm(prompt)
         try:
             # Extract the number from response
-            import re
             numbers = re.findall(r'\d+', response)
             return int(numbers[0]) if numbers else 0
         except:
@@ -139,14 +128,33 @@ Provide:
 def demo():
     """Demo usage of LogicLLM"""
     import asyncio
-    import os
     
-    config = LLMConfig(api_key=os.getenv("OPENAI_API_KEY"))
+    # Create config with provider specified from environment or default to OpenAI
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    
+    # Select appropriate model based on provider
+    model_map = {
+        "openai": "gpt-4",
+        "anthropic": "claude-3-opus-20240229",
+        "gemini": "gemini-pro",
+        "zhipu": "glm-4"
+    }
+    
+    model = model_map.get(provider, "gpt-4")
+    
+    config = LLMConfig(
+        provider=provider,
+        model=model,
+        temperature=0.1
+    )
+    
     llm = LogicLLM(config)
     
     async def run_demo():
         # Example formula
         formula = "x > 0 & x < 10 & x + y = 5"
+        
+        print(f"Using LLM provider: {provider} with model: {model}")
         
         # Check satisfiability
         is_sat = await llm.check_sat(formula)

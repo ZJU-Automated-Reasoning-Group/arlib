@@ -14,7 +14,7 @@ bash setup_local_env.sh
 The script will 
 - Create a Python virtual environment if it doesn't exist
 - Activate the virtual environment and install dependencies from requirements.txt
-- Download required solver binaries (cvc5, mathsat, z3)
+- Download required solver binaries (CVC5, MathSAT, z3)
 - Run unit tests if available
 
 TBD:
@@ -61,10 +61,10 @@ https://pyarlib.readthedocs.io/en/latest/
 
 ## Publications
 
-Here are some of publications that use Arlib.
+Here are some of publications related to Arlib.
 
-- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf) [Code](https://github.com/pckennethma/CISan)
-Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
+- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf). Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
+
 
 ## Related Work
 
