@@ -38,14 +38,6 @@ from arlib.utils.z3_expr_utils import get_variables
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class AbstractionResults:
     """Store results from different abstraction domains"""
@@ -54,6 +46,29 @@ class AbstractionResults:
     octagon_fp_rate: float = 0.0
     bitwise_fp_rate: float = 0.0
 
+    def __add__(self, other):
+        if other is None:
+            return self
+        return AbstractionResults(
+            self.interval_fp_rate + other.interval_fp_rate,
+            self.zone_fp_rate + other.zone_fp_rate,
+            self.octagon_fp_rate + other.octagon_fp_rate,
+            self.bitwise_fp_rate + other.bitwise_fp_rate
+        )
+
+    def __truediv__(self, other):
+        return AbstractionResults(
+            self.interval_fp_rate / other,
+            self.zone_fp_rate / other,
+            self.octagon_fp_rate / other,
+            self.bitwise_fp_rate / other
+        )
+
+    def __str__(self):
+        return f"Interval FP rate: {self.interval_fp_rate:.4f}, " \
+               f"Zone FP rate: {self.zone_fp_rate:.4f}, " \
+               f"Octagon FP rate: {self.octagon_fp_rate:.4f}, " \
+               f"Bitwise FP rate: {self.bitwise_fp_rate:.4f}"
 
 class ModelCounter:
     """Handles model counting operations"""
@@ -146,11 +161,13 @@ def setup_logging(log_file: Optional[str] = None):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
 
     if log_file:
+        current_dir = Path(__file__).resolve().parent
+        Path(current_dir / log_file).touch()
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format=log_format,
             handlers=[
-                logging.FileHandler(log_file),
+                logging.FileHandler(current_dir / log_file),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -162,42 +179,23 @@ def setup_logging(log_file: Optional[str] = None):
     return logging.getLogger(__name__)
 
 
-def process_smt_file(file_path: str) -> bool:
+def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
     """Process a single SMT-LIB2 file"""
     try:
         # Parse SMT-LIB2 file
         formula = z3.And(parse_smt2_file(file_path))
 
         # Extract variables from formula
-        # FIXME: is the following one correct?
-        # variables = [var for var in formula.children()
-        #              if var.sort().kind() == z3.Z3_BV_SORT]
-        # import re
-
-        # def extract_bv_variables(smt2_file):
-        #     bv_vars = []
-        #     pattern = r'\(declare-(?:const|fun)\s+(\S+)\s+(?:\(\s*\)\s+)?\(_ BitVec (\d+)\)\)'
-        #     with open(smt2_file, 'r') as f:
-        #         for line in f:
-        #             line = line.strip()
-        #             match = re.search(pattern, line)
-        #             if match:
-        #                 var_name = match.group(1)
-        #                 width = int(match.group(2))
-        #                 bv_vars.append(z3.BitVec(var_name, width))
-        #     return bv_vars
-        
         variables = get_variables(formula)
-        # print(variables)
 
         if not variables:
             logger.warning(f"No bit-vector variables found in {file_path}")
-            return False
+            return None
 
         counter = ModelCounter()
         if not counter.is_sat(formula):
             logger.info(f"{file_path}: Formula is unsatisfiable")
-            return False
+            return None
 
         # Count models
         model_count = counter.count_models(formula)
@@ -210,13 +208,13 @@ def process_smt_file(file_path: str) -> bool:
         # TODO: also save the results in the log file (or some csv file)
         if results:
             logger.info(f"{file_path}: Analysis completed successfully")
-            return True
+            return results
 
-        return False
+        return None
 
     except Exception as e:
         logger.error(f"Error processing {file_path}: {str(e)}")
-        return False
+        return None
 
 
 def process_directory(dir_path: str, num_processes: int) -> None:
@@ -231,12 +229,22 @@ def process_directory(dir_path: str, num_processes: int) -> None:
 
     logger.info(f"Found {len(smt_files)} SMT-LIB2 files to process")
 
-    # TODO: also allow for sequential processing
-    with mp.Pool(processes=num_processes) as pool:
-        results = pool.map(process_smt_file, smt_files)
+    # FIXME: AssertionError: daemonic processes are not allowed to have children
+    # with mp.Pool(processes=num_processes) as pool:
+    #     results = pool.map(process_smt_file, smt_files)
 
-    successful = sum(1 for r in results if r)
+    results = []
+    for file in smt_files:
+        results.append(process_smt_file(file))
+
+    successful = sum(1 for r in results if r is not None)
+    final_results = sum([r for r in results if r is not None], start=AbstractionResults()) / successful
     logger.info(f"Successfully processed {successful}/{len(smt_files)} files")
+    logger.info(f"Final results: {final_results}")
+    with open("results.txt", "a") as f:
+        for r in results:
+            if r is not None:
+                f.write(f"{r.interval_fp_rate}, {r.zone_fp_rate}, {r.octagon_fp_rate}, {r.bitwise_fp_rate},\n")
 
 
 def main():
@@ -254,11 +262,16 @@ def main():
         "-d", "--directory",
         help="Path to directory containing SMT-LIB2 files"
     )
+    input_group.add_argument(
+        "-g", "--generate",
+        help="Generate random formulas for demo",
+        action='store_true'
+    )
 
     parser.add_argument(
         "-l", "--log",
         help="Path to log file (optional)",
-        default=f"analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
+        default=f"log/analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
     )
 
     parser.add_argument(
@@ -266,12 +279,6 @@ def main():
         help="Number of parallel processes for directory processing",
         type=int,
         default=mp.cpu_count()
-    )
-
-    parser.add_argument(
-        "-g", "--generate",
-        help="Generate random formulas for demo",
-        action='store_true'
     )
 
     args = parser.parse_args()
@@ -295,6 +302,7 @@ def main():
 
         except Exception as e:
             logger.error(f"Fatal error: {str(e)}")
+            raise e
             sys.exit(1)
 
 
@@ -307,15 +315,15 @@ def demo():
         formula = FormulaGenerator(variables).generate_formula()
         sol = z3.Solver()
         sol.add(formula)
-        logger.info(f"Generated formula: {sol.sexpr()}")
+        logger.debug(f"Generated formula: {sol.sexpr()}")
         counter = ModelCounter()
 
         while not counter.is_sat(formula):
-            logger.info("Formula is unsatisfiable")
+            logger.info("Formula is unsatisfiable. Regenerating...")
             formula = FormulaGenerator(variables).generate_formula()
             sol = z3.Solver()
             sol.add(formula)
-            logger.info(f"Generated formula: {sol.sexpr()}")
+            logger.debug(f"Generated formula: {sol.sexpr()}")
 
         # Count models
         model_count = counter.count_models(formula)
@@ -337,4 +345,3 @@ def demo():
 
 if __name__ == '__main__':
     main()
-    # demo()
