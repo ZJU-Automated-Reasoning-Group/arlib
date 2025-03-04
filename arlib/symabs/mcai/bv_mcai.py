@@ -241,6 +241,10 @@ def process_directory(dir_path: str, num_processes: int) -> None:
     final_results = sum([r for r in results if r is not None], start=AbstractionResults()) / successful
     logger.info(f"Successfully processed {successful}/{len(smt_files)} files")
     logger.info(f"Final results: {final_results}")
+    with open("results.txt", "a") as f:
+        for r in results:
+            if r is not None:
+                f.write(f"{r.interval_fp_rate}, {r.zone_fp_rate}, {r.octagon_fp_rate}, {r.bitwise_fp_rate},\n")
 
 
 def main():
