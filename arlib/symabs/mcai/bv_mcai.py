@@ -38,14 +38,6 @@ from arlib.utils.z3_expr_utils import get_variables
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class AbstractionResults:
     """Store results from different abstraction domains"""
@@ -146,11 +138,13 @@ def setup_logging(log_file: Optional[str] = None):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
 
     if log_file:
+        current_dir = Path(__file__).resolve().parent
+        Path(current_dir / log_file).touch()
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format=log_format,
             handlers=[
-                logging.FileHandler(log_file),
+                logging.FileHandler(current_dir / log_file),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -169,26 +163,7 @@ def process_smt_file(file_path: str) -> bool:
         formula = z3.And(parse_smt2_file(file_path))
 
         # Extract variables from formula
-        # FIXME: is the following one correct?
-        # variables = [var for var in formula.children()
-        #              if var.sort().kind() == z3.Z3_BV_SORT]
-        # import re
-
-        # def extract_bv_variables(smt2_file):
-        #     bv_vars = []
-        #     pattern = r'\(declare-(?:const|fun)\s+(\S+)\s+(?:\(\s*\)\s+)?\(_ BitVec (\d+)\)\)'
-        #     with open(smt2_file, 'r') as f:
-        #         for line in f:
-        #             line = line.strip()
-        #             match = re.search(pattern, line)
-        #             if match:
-        #                 var_name = match.group(1)
-        #                 width = int(match.group(2))
-        #                 bv_vars.append(z3.BitVec(var_name, width))
-        #     return bv_vars
-        
         variables = get_variables(formula)
-        # print(variables)
 
         if not variables:
             logger.warning(f"No bit-vector variables found in {file_path}")
@@ -254,11 +229,16 @@ def main():
         "-d", "--directory",
         help="Path to directory containing SMT-LIB2 files"
     )
+    input_group.add_argument(
+        "-g", "--generate",
+        help="Generate random formulas for demo",
+        action='store_true'
+    )
 
     parser.add_argument(
         "-l", "--log",
         help="Path to log file (optional)",
-        default=f"analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
+        default=f"log/analysis_{datetime.now():%Y%m%d_%H%M%S}.log"
     )
 
     parser.add_argument(
@@ -266,12 +246,6 @@ def main():
         help="Number of parallel processes for directory processing",
         type=int,
         default=mp.cpu_count()
-    )
-
-    parser.add_argument(
-        "-g", "--generate",
-        help="Generate random formulas for demo",
-        action='store_true'
     )
 
     args = parser.parse_args()
@@ -307,15 +281,15 @@ def demo():
         formula = FormulaGenerator(variables).generate_formula()
         sol = z3.Solver()
         sol.add(formula)
-        logger.info(f"Generated formula: {sol.sexpr()}")
+        logger.debug(f"Generated formula: {sol.sexpr()}")
         counter = ModelCounter()
 
         while not counter.is_sat(formula):
-            logger.info("Formula is unsatisfiable")
+            logger.info("Formula is unsatisfiable. Regenerating...")
             formula = FormulaGenerator(variables).generate_formula()
             sol = z3.Solver()
             sol.add(formula)
-            logger.info(f"Generated formula: {sol.sexpr()}")
+            logger.debug(f"Generated formula: {sol.sexpr()}")
 
         # Count models
         model_count = counter.count_models(formula)
