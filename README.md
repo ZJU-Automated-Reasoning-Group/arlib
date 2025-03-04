@@ -82,3 +82,4 @@ Primary contributors to this project:
 - Harrywwq
 - little-d1d1
 - ljcppp
+- GooduckZ

@@ -6,20 +6,36 @@ decide for each Pi, whether F and Pi is satisfiable or not.
 """
 
 import re
+import logging
 from typing import List, Any
 from functools import reduce
 from z3 import *
 
 
-class SMTLIBParser:
-    def __init__(self):
+logger = logging.getLogger(__name__)
+
+
+class MonAbsSMTLIBParser:
+
+    def __init__(self, **kwargs):
         self.solver = Solver()
         self.variables = {}
         self.functions = {}  # Store declared functions
-        self.logic = None
         # Stack of constraints for each scope level
         # First list (index 0) contains global constraints
         self.constraints_stack: List[List[Any]] = [[]]
+
+        # Stack of varibles for each scope level
+        # For arrays and UFs, we may also need to record the scope of sorts
+        self.variables_stack: List[List[str]] = [[]]
+
+        self.check_sat_results = []  # for recording the oracl
+
+        self.logic = kwargs.get('logic', None)
+
+        # "only_parse" mode: do not execute the check-sat commands; just record the cnts
+        # if we need to record the oracle, we shoud ignore the option.
+        self.only_parse = kwargs.get('only_parse', False)
 
     def flatten_sort(self, sort_expr):
         """Flatten sort expression appropriately"""
@@ -158,17 +174,24 @@ class SMTLIBParser:
             self.solver.pop()
             # Remove constraints from the current scope
             popped_constraints = self.constraints_stack.pop()
-            print(f"Popped constraints from scope {len(self.constraints_stack)}:")
+            logger.debug(f"Popped constraints from scope {len(self.constraints_stack)}:")
             for original, _ in popped_constraints:
-                print(f"  {original}")
+                logger.debug(f"  {original}")
+            # print(f"Popped constraints from scope {len(self.constraints_stack)}:")
+            # for original, _ in popped_constraints:
+            #    print(f"  {original}")
 
         elif cmd == 'check-sat':
+            # if we set a "only parse mode", do not actually check-sat
             print(self.solver)
+            if self.only_parse:
+                return
             result = self.solver.check()
             print(f"check-sat result: {result}")
             print("Current scope constraints:")
             for original, _ in self.get_current_scope_constraints():
                 print(f"  {original}")
+            self.check_sat_results.append(result)
 
     def parse_constant(self, value):
         """Parse constants based on the current logic"""
@@ -358,12 +381,17 @@ class SMTLIBParser:
         else:
             raise ValueError(f"Unknown bit-vector operator: {op}")
 
-    def parse_file(self, content):
+    def parse_string(self, content):
         tokens = self.tokenize(content)
         while tokens:
             command = self.parse_tokens(tokens)
             if command:
                 self.process_command(command)
+
+    def parse_file(self, filename):
+        with open(filename, 'r') as file:
+            content = file.read()
+        self.parse_string(content)
 
 
 # Example usage
@@ -382,28 +410,25 @@ smt_content_bv = """
 (assert (= output (bvadd state input)))
 (assert (= state output))
 (check-sat)
-(get-model)
 
 ;; Second transition, new constraints
 (push 1)
 (assert (bvuge input #x08))
 (assert (= output (bvmul state #x02)))
 (check-sat)
-(get-model)
 (pop 1)
 
-;; Alternative second transition
-； what if we declare new variables?
+;;  Third transition
+； what if we declare new variables here?
 (assert (bvult input #x08))
 (assert (= output (bvudiv state #x02)))
 (check-sat)
-(get-model)
 (pop 1)
 """
 
 def main():
-    parser = SMTLIBParser()
-    parser.parse_file(smt_content_bv)
+    parser = MonAbsSMTLIBParser(only_parse=True)
+    parser.parse_string(smt_content_bv)
 
 
 if __name__ == "__main__":
