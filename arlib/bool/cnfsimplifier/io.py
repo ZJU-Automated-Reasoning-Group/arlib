@@ -5,6 +5,30 @@ from .clause import Clause
 from .cnf import Cnf
 from .variable import Variable
 
+from pysat.formula import CNF
+
+
+class PySATCNFReader:
+    """
+    Build an internal CNF object from PySAT CNF
+    """
+
+    def __init__(self):
+        pass
+
+    def read(self, cnf: CNF) -> Cnf:
+        """
+        Read PySAT CNF
+        """
+        clause_list = list()
+        for cls in cnf.clauses:
+            var_list = list()
+            for var in cls:
+                var_list.append(Variable(var))
+            clause_list.append(Clause(var_list))
+        cnf = Cnf(clause_list)
+        return cnf
+    
 
 class NumericClausesReader:
     """

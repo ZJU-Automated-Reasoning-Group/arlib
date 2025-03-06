@@ -5,6 +5,9 @@ from copy import deepcopy
 from typing import List
 from pysat.formula import CNF  # IDPool
 from pysat.solvers import Solver
+from arlib.bool.cnfsimplifier import PySATCNFReader, cnf_subsumption_elimination, cnf_hidden_subsumption_elimination, cnf_asymmetric_subsumption_elimination, cnf_asymmetric_tautoly_elimination, \
+    cnf_tautoly_elimination, cnf_hidden_tautoly_elimination, cnf_blocked_clause_elimination, \
+    cnf_hidden_blocked_clause_elimination
 
 
 def gen_cubes(fml: CNF, k_vars: int) -> List[List[int]]:
@@ -36,6 +39,34 @@ def check_assumption_literals(fml: CNF, assumption_literals: List[int]) -> bool:
     return solver.solve(assumptions=assumption_literals)
 
 
+def simplify_pysat_cnf(fml: CNF) -> CNF:
+    """
+    Simplify the PySAT CNF formula using multiple CNFSimplifier techniques:
+    - Subsumption elimination
+    - Hidden subsumption elimination  
+    - Asymmetric subsumption elimination
+    - Tautology elimination
+    - Hidden tautology elimination
+    - Asymmetric tautology elimination
+    - Blocked clause elimination
+    - Hidden blocked clause elimination
+    """
+    # Convert to internal format
+    cnf = PySATCNFReader().read(fml)
+    
+    # Apply all simplification techniques
+    cnf = cnf_subsumption_elimination(cnf)
+    cnf = cnf_hidden_subsumption_elimination(cnf)
+    cnf = cnf_asymmetric_subsumption_elimination(cnf)
+    cnf = cnf_tautoly_elimination(cnf)
+    cnf = cnf_hidden_tautoly_elimination(cnf)
+    cnf = cnf_asymmetric_tautoly_elimination(cnf)
+    cnf = cnf_blocked_clause_elimination(cnf)
+    cnf = cnf_hidden_blocked_clause_elimination(cnf)
+    
+    # Convert back to PySAT CNF format
+    return CNF(from_clauses=cnf.get_numeric_clauses())
+
 
 def demo_gen_cubes():
     """test case"""
@@ -44,5 +75,13 @@ def demo_gen_cubes():
     print(gen_cubes(fml, 3))
 
 
+def demo_simplify_pysat_cnf():
+    """test case"""
+    clauses = [[1, 2], [4, 5], [-1, 2, 3]]
+    fml = CNF(from_clauses=clauses)
+    print(simplify_pysat_cnf(fml).clauses)
+
+
 if __name__ == "__main__":
-    demo_gen_cubes()
+    # demo_gen_cubes()
+    demo_simplify_pysat_cnf()
