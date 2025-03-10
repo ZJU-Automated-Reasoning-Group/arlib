@@ -1,1 +1,0 @@
-"""Minimal Satisfying Assignment"""

@@ -17,7 +17,6 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * Sampling solutions of SMT formulas (``arlib/smt/sampling``)
 * Counting the models of SMT formulas (``arlib/smt/bv/qfbv_counting``)
 * Optimization Modulo Theory (OMT) (``arlib/optimization``)
-* Minimal satisfying assignment (``arlib/optimization/msa``)
 * Interpolant generation (``arlib/bool/interpolant``)
 * Symbolic abstraction (``arlib/symabs``)
 * Predicate abstraction (``arlib/symabs/predicate_abstraction``)

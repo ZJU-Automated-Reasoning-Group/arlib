@@ -1,7 +1,9 @@
 """
 Orax: An SMTO solver using LLM as oracle handler
 
-Recent advancements in SMT solving have driven progress in formula-based software verification, but they face significant challenges when analyzing open programs with components lacking formal specifications, such as third-party libraries or deep learning models. This challenge has led to the emergence of the Satisfiability Modulo Theories and Oracles (SMTO) problem, where black-box components can be accessed as oracles with observable inputs and outputs but unknown implementations. Current approaches like Delphi and Saadhak attempt to solve SMTO problems by combining conventional SMT solvers with oracle handlers, but they struggle to effectively integrate oracle mapping information with SMT reasoning capabilities. To address these limitations, a new framework called Orax proposes establishing an oracle mapping information feedback loop between the SMT solver and an oracle handler powered by a large language model (LLM).
+Recent advancements in SMT solving have driven progress in formula-based software verification, but they face significant challenges when analyzing open programs with components lacking formal specifications, such as third-party libraries or deep learning models. This challenge has led to the emergence of the Satisfiability Modulo Theories and Oracles (SMTO) problem, where black-box components can be accessed as oracles with observable inputs and outputs but unknown implementations. Current approaches like Delphi and Saadhak attempt to solve SMTO problems by combining conventional SMT solvers with oracle handlers, but they struggle to effectively integrate oracle mapping information with SMT reasoning capabilities. 
+
+To address these limitations, we propose to establish an oracle mapping information feedback loop between the SMT solver and an oracle handler powered by a large language model (LLM).
 
 Next, we brainstorm some ideas on how to combine LLM with existing SMT solvers.
 
@@ -37,6 +39,9 @@ class OracleInfo:
     output_type: z3.SortRef
     description: str
     examples: List[Dict]  # List of input-output examples
+    # Should we allow for orcle that is a function body? i.e., the oracle is a function body that can be used as a constraint
+    # Besides, for "static analysis", the oracle could also be some form of  "summary" or "transfer functions"
+
 
 class OraxSolver:
     def __init__(self, api_key: str, model: str = "gpt-4"):
