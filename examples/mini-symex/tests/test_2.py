@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 
+
+import sys
+import os
+
+# Add parent directory to path to allow importing modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from concolic import *
 ## Example taken from angr paper. Slightly modified.
 ## (State of) The Art of War: Offensive Techniques in Binary Analysis.
 
-from concolic import *
 
+# Add parent directory to path to allow importing modules
 def test_me():
   num = mk_int("num")
   value = 0

@@ -18,16 +18,26 @@ def log(s):
 
 def model_str(self):
   if isinstance(self, dict):
-    return ", ".join([
-        "%s = %s" % (str(k), ("0x%x" % ctypes.c_uint(v).value))
-        for k, v in sorted(self.items())
-    ])
+    result = []
+    for k, v in sorted(self.items()):
+      if isinstance(v, float):
+        # Format float values
+        result.append("%s = %s" % (str(k), v))
+      else:
+        # Format integer values
+        result.append("%s = %s" % (str(k), ("0x%x" % ctypes.c_uint(v).value)))
+    return ", ".join(result)
   if isinstance(self, z3.ModelRef):
-    return ", ".join([
-        "%s = %s" % (k,
-                     ("0x%x" % ctypes.c_uint(self[k].as_signed_long()).value))
-        for k in sorted(self.decls(), key=str)
-    ])
+    result = []
+    for k in sorted(self.decls(), key=str):
+      val = self[k]
+      if z3.is_real(val):
+        # Format float values
+        result.append("%s = %s" % (k, val))
+      else:
+        # Format integer values
+        result.append("%s = %s" % (k, ("0x%x" % ctypes.c_uint(val.as_signed_long()).value)))
+    return ", ".join(result)
 
 setattr(z3.ModelRef, "__str__", model_str)
 setattr(z3.ModelRef, "__repr__", model_str)

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 
-from concolic import *
 
+
+import sys
+import os
+
+# Add parent directory to path to allow importing modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from concolic import *
+# Add parent directory to path to allow importing modules
 @checker_decorator("out-of-bound")
 def check_out_of_bound(lst, i):
   if isinstance(i, concolic_int):

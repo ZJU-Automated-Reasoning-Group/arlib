@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from z3 import *
-from ast import *
+from symast import *
 from utils import *
 from posix_ipc import Semaphore, O_CREAT
 import os
