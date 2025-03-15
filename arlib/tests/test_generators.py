@@ -10,13 +10,12 @@ class TestGenerator(TestCase):
         try:
             fmlstr = generate_from_grammar_as_str(logic="QF_BV")
             if not fmlstr:  # generation error?
-                return False
+                self.skipTest("Formula generation error")
             fml = z3.And(z3.parse_smt2_string(fmlstr))
-            # print(fml)
-            return False
+            # Just verify we can parse the formula
+            self.assertIsNotNone(fml)
         except Exception as ex:
-            print(ex)
-            return False
+            self.fail(f"Exception occurred: {str(ex)}")
 
 
 if __name__ == '__main__':

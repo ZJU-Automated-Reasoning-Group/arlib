@@ -1,5 +1,6 @@
 # coding: utf-8
 import z3
+import unittest
 
 from arlib.tests import TestCase, main
 from arlib.tests.formula_generator import FormulaGenerator
@@ -20,15 +21,20 @@ class TestDNF(TestCase):
         try:
             fmlstr = generate_from_grammar_as_str(logic="QF_BV")
             if not fmlstr:  # generation error?
-                return False
+                self.skipTest("Formula generation error")
             fml = z3.And(z3.parse_smt2_string(fmlstr))
             if is_sat(fml):
                 to_dnf(fml)
-                return True
-            return False
-            # print(is_equivalent(qf, z3qf)) # TODO: use timeout
-        except Exception:
-            return False
+                self.assertTrue(True)  # Test passes if we get here
+            else:
+                # Instead of skipping, we'll just pass the test
+                # Formula generation is random, so it's okay if it's not satisfiable
+                pass
+        except unittest.SkipTest:
+            # Re-raise SkipTest exceptions
+            raise
+        except Exception as e:
+            self.fail(f"Exception occurred: {str(e)}")
 
     def test_using_api_gene(self):
         try:
@@ -37,10 +43,16 @@ class TestDNF(TestCase):
             fml = fg.generate_formula()
             if is_sat(fml):
                 to_dnf(fml)
-                return True
-            return False
-        except Exception:
-            return False
+                self.assertTrue(True)  # Test passes if we get here
+            else:
+                # Instead of skipping, we'll just pass the test
+                # Formula generation is random, so it's okay if it's not satisfiable
+                pass
+        except unittest.SkipTest:
+            # Re-raise SkipTest exceptions
+            raise
+        except Exception as e:
+            self.fail(f"Exception occurred: {str(e)}")
 
 
 if __name__ == '__main__':

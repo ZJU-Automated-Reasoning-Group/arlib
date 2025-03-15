@@ -29,7 +29,9 @@ REQUIRED = [
     'tqdm~=4.65.0',
     'meson>=0.64',
     'six~=1.15.0',
-    'pytest~=7.1.0'
+    'pytest~=7.1.0',
+    'requests~=2.32.3',
+    'setuptools~=76.0.0',
 ]
 
 # The rest you shouldn't have to touch too much :)
