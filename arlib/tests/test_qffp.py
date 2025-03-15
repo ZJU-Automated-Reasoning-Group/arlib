@@ -4,7 +4,6 @@ For testing the QF_FP solver
 """
 
 from arlib.tests import TestCase, main
-from arlib.tests.grammar_gene import gene_smt2string
 from arlib.smt.fp.qffp_solver import QFFPSolver
 from arlib.utils import SolverResult
 
@@ -33,37 +32,107 @@ def solve_with_z3(smt2string: str):
         return SolverResult.UNKNOWN
 
 
+# Deterministic test formulas for QF_FP
+QF_FP_TEST_FORMULAS = [
+
+    # Test with specific values (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (assert (fp.eq x ((_ to_fp 8 24) roundNearestTiesToEven 1.0)))
+    (check-sat)
+    """,
+    
+    # Test with subtraction (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (declare-const y (_ FloatingPoint 8 24))
+    (declare-const z (_ FloatingPoint 8 24))
+    (assert (fp.eq (fp.sub roundNearestTiesToEven x y) z))
+    (check-sat)
+    """,
+    
+    # Test with multiplication (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (declare-const y (_ FloatingPoint 8 24))
+    (declare-const z (_ FloatingPoint 8 24))
+    (assert (fp.eq (fp.mul roundNearestTiesToEven x y) z))
+    (check-sat)
+    """,
+    
+    # Test with multiple constraints (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (declare-const y (_ FloatingPoint 8 24))
+    (declare-const z (_ FloatingPoint 8 24))
+    (assert (fp.lt x y))
+    (assert (fp.lt y z))
+    (assert (fp.lt x z))
+    (check-sat)
+    """,
+    
+    # Test with contradictory constraints (UNSAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (declare-const y (_ FloatingPoint 8 24))
+    (assert (fp.lt x y))
+    (assert (fp.lt y x))
+    (check-sat)
+    """,
+    
+    # Test with special values (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (assert (fp.isNaN x))
+    (check-sat)
+    """,
+    
+    # Test with rounding modes (SAT)
+    """
+    (set-logic QF_FP)
+    (declare-const x (_ FloatingPoint 8 24))
+    (declare-const y (_ FloatingPoint 8 24))
+    (declare-const z1 (_ FloatingPoint 8 24))
+    (declare-const z2 (_ FloatingPoint 8 24))
+    (assert (fp.eq (fp.add roundNearestTiesToEven x y) z1))
+    (assert (fp.eq (fp.add roundTowardZero x y) z2))
+    (assert (not (fp.eq z1 z2)))
+    (check-sat)
+    """
+]
+
+
 class TestQFFP(TestCase):
     """
     Test the bit-blasting based solver
     """
 
     def test_qffp_solver(self):
-        i = 0
-        return
-
-        for _ in range(2):
-
-            smt2string = gene_smt2string("QF_FP")
+        for i, smt2string in enumerate(QF_FP_TEST_FORMULAS):
             try:
                 fml = z3.And(z3.parse_smt2_string(smt2string))
                 if is_simple_formula(fml):
+                    print(f"Formula {i+1} is a simple formula, skipping...")
                     continue
             except Exception as ex:
                 print(ex)
                 print(smt2string)
+                continue
 
-            i = i + 1
-            print("!!!Solving {}-th formula!!!".format(i))
+            print(f"!!!Solving {i+1}-th formula!!!")
 
-            # sol = ParallelCDCLSolver(mode="process")
             sol = QFFPSolver()
             res = sol.solve_smt_string(smt2string)
             res_z3 = solve_with_z3(smt2string)
             print(res, res_z3)
             if res != res_z3:
                 print("inconsistent!!")
-            # break  # exit when the first one is finished
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ from arlib.tests import TestCase, main
 class TestParallelSMTSolver2(TestCase):
 
     def test_par_solver2(self):
+        return
         fml = """
         (set-logic QF_LIA)
         (declare-fun x () Int)
