@@ -1,44 +1,120 @@
 """
-Sampling for bit-vector formulas
+BitVector sampler implementation.
+
+This module provides a sampler for bit-vector formulas.
 """
 
-from arlib.sampling.utils.sampler import Sampler
+import z3
+from typing import Set, Dict, Any, List
+import random
+
+from arlib.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from arlib.sampling.utils import get_vars, is_bv
 
 
-class BitVecSampler(Sampler):
+class BitVectorSampler(Sampler):
     """
-    Sampling for bit-vector formulas
+    Sampler for bit-vector formulas.
+    
+    This class implements a sampler for bit-vector formulas using Z3.
     """
-
-    def __init__(self, **options):
-        Sampler.__init__(self, **options)
-
-        self.conjuntion_sampler = None
-        self.number_samples = 0
-
-    def sample(self, number=1):
+    
+    def __init__(self, **kwargs):
+        """Initialize the bit-vector sampler."""
+        self.formula = None
+        self.variables = []
+    
+    def supports_logic(self, logic: Logic) -> bool:
         """
-        External interface
+        Check if this sampler supports the given logic.
+        
+        Args:
+            logic: The logic to check
+            
+        Returns:
+            True if the sampler supports the logic, False otherwise
         """
-        self.number_samples = number
-        return self.sample_via_enumeration()
-
-    def sample_via_smt_enumeration(self):
+        return logic == Logic.QF_BV
+    
+    def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
-        Call an SMT solver iteratively (block sampled models)
+        Initialize the sampler with a formula.
+        
+        Args:
+            formula: The Z3 formula to sample from
         """
-        raise NotImplementedError
-
-    def sample_via_knowledge_compilation(self):
+        self.formula = formula
+        
+        # Extract variables from the formula
+        self.variables = []
+        for var in get_vars(formula):
+            if is_bv(var):
+                self.variables.append(var)
+    
+    def sample(self, options: SamplingOptions) -> SamplingResult:
         """
-        Translate the formula to some special forms in the
-        knowledge compilation community
+        Generate samples according to the given options.
+        
+        Args:
+            options: The sampling options
+            
+        Returns:
+            A SamplingResult containing the generated samples
         """
-        raise NotImplementedError
-
-    def sample_via_smt_random_seed(self):
+        if self.formula is None:
+            raise ValueError("Sampler not initialized with a formula")
+        
+        # Set random seed if provided
+        if options.random_seed is not None:
+            random.seed(options.random_seed)
+        
+        # Create a solver
+        solver = z3.Solver()
+        solver.add(self.formula)
+        
+        # Generate samples
+        samples = []
+        stats = {"time_ms": 0, "iterations": 0}
+        
+        for _ in range(options.num_samples):
+            if solver.check() == z3.sat:
+                model = solver.model()
+                
+                # Convert model to a dictionary
+                sample = {}
+                for var in self.variables:
+                    value = model.evaluate(var, model_completion=True)
+                    sample[str(var)] = value.as_long()
+                
+                samples.append(sample)
+                
+                # Add blocking clause to prevent the same model
+                block = []
+                for var in self.variables:
+                    value = model.evaluate(var, model_completion=True)
+                    block.append(var != value)
+                
+                solver.add(z3.Or(block))
+                stats["iterations"] += 1
+            else:
+                break
+        
+        return SamplingResult(samples, stats)
+    
+    def get_supported_methods(self) -> Set[SamplingMethod]:
         """
-        Call an SMT solver iteratively (no blocking, but give the solver diferent
-        random seeds)
+        Get the sampling methods supported by this sampler.
+        
+        Returns:
+            A set of supported sampling methods
         """
-        raise NotImplementedError
+        return {SamplingMethod.ENUMERATION}
+    
+    def get_supported_logics(self) -> Set[Logic]:
+        """
+        Get the logics supported by this sampler.
+        
+        Returns:
+            A set of supported logics
+        """
+        return {Logic.QF_BV}

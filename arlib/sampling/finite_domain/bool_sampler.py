@@ -1,55 +1,122 @@
 """
-Sampler for Boolean formulas
+Boolean sampler implementation.
+
+This module provides a sampler for Boolean formulas.
 """
 
-from typing import List, Dict
-from arlib.sampling.utils.sampler import Sampler
+import z3
+from typing import Set, Dict, Any, List
+import random
+
+from arlib.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
+from arlib.sampling.utils import get_vars, is_bool
 
 
-class BoolSampler(Sampler):
+class BooleanSampler(Sampler):
     """
-    Solution Sampler for Boolean formulas
+    Sampler for Boolean formulas.
+    
+    This class implements a sampler for Boolean formulas using Z3.
     """
-
-    def __init__(self, **options):
-        Sampler.__init__(self, **options)
-
-        self.conjuntion_sampler = None
-        self.number_samples = 0
-
-    def sample(self, number: int = 1) -> List[Dict[str, bool]]:
+    
+    def __init__(self, **kwargs):
+        """Initialize the Boolean sampler."""
+        self.formula = None
+        self.variables = []
+    
+    def supports_logic(self, logic: Logic) -> bool:
         """
-        External interface for sampling
-        :param number: Number of samples to generate (default: 1)
-        :return: List of sampled models, each represented as a dictionary
+        Check if this sampler supports the given logic.
+        
+        Args:
+            logic: The logic to check
+            
+        Returns:
+            True if the sampler supports the logic, False otherwise
         """
-        self.number_samples = number
-        return self.sample_via_enumeration()
-
-    def sample_via_enumeration(self) -> List[Dict[str, bool]]:
+        return logic == Logic.QF_BOOL
+    
+    def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
-        Sample via enumeration of models
-        :return: List of sampled models, each represented as a dictionary
+        Initialize the sampler with a formula.
+        
+        Args:
+            formula: The Z3 formula to sample from
         """
-        raise NotImplementedError("Enumeration-based sampling not implemented")
-
-    def sample_via_smt_enumeration(self) -> List[Dict[str, bool]]:
+        self.formula = formula
+        
+        # Extract variables from the formula
+        self.variables = []
+        for var in get_vars(formula):
+            if is_bool(var):
+                self.variables.append(var)
+    
+    def sample(self, options: SamplingOptions) -> SamplingResult:
         """
-        Call an SMT solver iteratively (block sampled models)
-        :return: List of sampled models, each represented as a dictionary
+        Generate samples according to the given options.
+        
+        Args:
+            options: The sampling options
+            
+        Returns:
+            A SamplingResult containing the generated samples
         """
-        raise NotImplementedError("SMT enumeration-based sampling not implemented")
-
-    def sample_via_knowledge_compilation(self) -> List[Dict[str, bool]]:
+        if self.formula is None:
+            raise ValueError("Sampler not initialized with a formula")
+        
+        # Set random seed if provided
+        if options.random_seed is not None:
+            random.seed(options.random_seed)
+        
+        # Create a solver
+        solver = z3.Solver()
+        solver.add(self.formula)
+        
+        # Generate samples
+        samples = []
+        stats = {"time_ms": 0, "iterations": 0}
+        
+        for _ in range(options.num_samples):
+            if solver.check() == z3.sat:
+                model = solver.model()
+                
+                # Convert model to a dictionary
+                sample = {}
+                for var in self.variables:
+                    value = model.evaluate(var, model_completion=True)
+                    sample[str(var)] = bool(value)
+                
+                samples.append(sample)
+                
+                # Add blocking clause to prevent the same model
+                block = []
+                for var in self.variables:
+                    if z3.is_true(model[var]):
+                        block.append(var == False)
+                    else:
+                        block.append(var == True)
+                
+                solver.add(z3.Or(block))
+                stats["iterations"] += 1
+            else:
+                break
+        
+        return SamplingResult(samples, stats)
+    
+    def get_supported_methods(self) -> Set[SamplingMethod]:
         """
-        Translate the formula to some special forms in the knowledge compilation community
-        :return: List of sampled models, each represented as a dictionary
+        Get the sampling methods supported by this sampler.
+        
+        Returns:
+            A set of supported sampling methods
         """
-        raise NotImplementedError("Knowledge compilation-based sampling not implemented")
-
-    def sample_via_smt_random_seed(self) -> List[Dict[str, bool]]:
+        return {SamplingMethod.ENUMERATION}
+    
+    def get_supported_logics(self) -> Set[Logic]:
         """
-        Call an SMT solver iteratively (no blocking, but give the solver different random seeds)
-        :return: List of sampled models, each represented as a dictionary
+        Get the logics supported by this sampler.
+        
+        Returns:
+            A set of supported logics
         """
-        raise NotImplementedError("SMT random seed-based sampling not implemented")
+        return {Logic.QF_BOOL}
