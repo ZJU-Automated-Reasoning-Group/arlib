@@ -7,7 +7,7 @@ Useful functions for exploring Z3's powerful SAT engine.
 Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
 """
 from typing import List
-from arlib.utils.typing import SolverResult
+from arlib.utils.types import SolverResult
 
 import z3
 

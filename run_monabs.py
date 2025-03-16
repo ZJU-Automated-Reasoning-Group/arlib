@@ -11,7 +11,7 @@ import z3
 
 from arlib.monabs.dis_check import disjunctive_check, disjunctive_check_incremental
 from arlib.monabs.unary_check import unary_check, unary_check_cached
-from arlib.monabs.unsat import unsat_check
+from arlib.monabs.unsat_check import unsat_check
 from arlib.tests.formula_generator import FormulaGenerator
 
 

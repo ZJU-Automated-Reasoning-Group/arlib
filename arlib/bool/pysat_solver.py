@@ -10,7 +10,7 @@ from enum import Enum
 from multiprocessing import Pool
 from typing import List
 
-from arlib.utils.typing import SolverResult
+from arlib.utils.types import SolverResult
 from pysat.formula import CNF
 from pysat.solvers import Solver
 

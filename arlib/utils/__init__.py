@@ -1,6 +1,6 @@
 # coding: utf-8
 from .sexpr import parse_sexpr_string
-from .typing import SolverResult
+from .types import SolverResult
 from .values import RE_GET_EXPR_VALUE_ALL
 
 SolverResult = SolverResult

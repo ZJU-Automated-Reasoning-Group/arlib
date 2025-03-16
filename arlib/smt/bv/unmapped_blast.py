@@ -9,7 +9,7 @@ import z3
 from pysat.formula import CNF
 from pysat.solvers import Solver
 from typing import Union, Optional
-from arlib.utils.typing import SolverResult
+from arlib.utils.types import SolverResult
 
 # Keep existing preamble but add type annotation
 qfbv_preamble: z3.Tactic = z3.AndThen(

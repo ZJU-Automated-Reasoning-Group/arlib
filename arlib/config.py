@@ -9,7 +9,7 @@ import importlib
 from typing import Dict
 from pathlib import Path
 from arlib.global_params import global_config
-from arlib.utils.typing import OSType
+from arlib.utils.types import OSType
 
 # SMT solver configurations
 SMT_SOLVERS = {
