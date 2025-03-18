@@ -6,7 +6,7 @@ For testing theBoolean-level reasoning engines in the parallel CDCL(T) SMT solvi
 from arlib.tests import TestCase, main
 # from ..theory import SMTLibTheorySolver, SMTLibPortfolioTheorySolver
 from arlib.tests.grammar_gene import gen_cnf_numeric_clauses
-from arlib.bool.pysat_solver import PySATSolver
+from arlib.bool.sat.pysat_solver import PySATSolver
 
 
 class TestBoolEngines(TestCase):
