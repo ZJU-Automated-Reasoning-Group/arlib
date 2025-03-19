@@ -37,7 +37,7 @@ class LatteCounter:
         return None
 
     def _formula_to_polytope(self, formula: z3.ExprRef) -> str:
-        """Convert Z3 formula to LattE polytope format"""
+        """FIXME: Convert Z3 formula to LattE polytope format"""
         # Extract variables and constraints
         vars = get_variables(formula)
         s = z3.Solver()
