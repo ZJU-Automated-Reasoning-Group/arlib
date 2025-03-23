@@ -77,8 +77,7 @@ class OMTEngine:
     def opt_with_qsat(self, exp: z3.ExprRef, minimize: bool):
         """
         Quantified Satisfaction based OMT
-        TODO: currently only works when exp is a variable (need to handle a term)?
-        TODO: how to handle unbounded objectives? (seems not work??)
+        TODO: currently only works when exp is a variable (need to handle a term)? how to handle unbounded objectives? (seems not work??)
         """
         if z3.is_real(exp):
             exp_misc = z3.Real(str(exp) + "_m")
