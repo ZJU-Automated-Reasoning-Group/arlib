@@ -255,6 +255,8 @@ def dillig_simplify(
         return non_trivial[0]
         
     return And(non_trivial) if is_and(expr) else Or(non_trivial)
+
+
 class TestDilligSimplify(unittest.TestCase):
     """Test cases for Dillig simplification algorithm."""
     
