@@ -21,6 +21,7 @@ class MonAbsSMTLIBParser:
         self.solver = Solver()
         self.variables = {}
         self.functions = {}  # Store declared functions
+        self.let_bindings = {} # Store let bindings
         # Stack of constraints for each scope level
         # First list (index 0) contains global constraints
         self.constraints_stack: List[List[Any]] = [[]]
@@ -29,7 +30,7 @@ class MonAbsSMTLIBParser:
         # For arrays and UFs, we may also need to record the scope of sorts
         self.variables_stack: List[List[str]] = [[]]
 
-        self.check_sat_results = []  # for recording the oracl
+        self.check_sat_results = []  # for recording the oracle
 
         self.logic = kwargs.get('logic', None)
 
@@ -154,8 +155,12 @@ class MonAbsSMTLIBParser:
             # Handle function declarations
             name = command[1]
             domain_sorts = [self.get_sort(s) for s in command[2]]
-            range_sort = self.get_sort(command[3])
-            self.functions[name] = Function(name, *domain_sorts, range_sort)
+            if len(domain_sorts) == 0:
+                sort = command[3] if isinstance(command[3], str) else command[3:]
+                self.variables[name] = self.create_variable(name, sort)
+            else:
+                range_sort = self.get_sort(command[3])
+                self.functions[name] = Function(name, *domain_sorts, range_sort)
 
         elif cmd == 'assert':
             expr = self.build_expression(command[1])
@@ -183,6 +188,7 @@ class MonAbsSMTLIBParser:
 
         elif cmd == 'check-sat':
             # if we set a "only parse mode", do not actually check-sat
+            print("---------------------------------------------------")
             print(self.solver)
             if self.only_parse:
                 return
@@ -223,9 +229,24 @@ class MonAbsSMTLIBParser:
                 return self.variables[expr]
             elif expr in self.functions:
                 return self.functions[expr]
+            elif expr in self.let_bindings:
+                return self.let_bindings[expr]
+            elif expr == 'true':
+                return z3.BoolVal(True)
+            elif expr == 'false':
+                return z3.BoolVal(False)
             return self.parse_constant(expr)
 
         op = expr[0]
+        
+        if isinstance(op, list):
+            flatten_expr = expr[0]
+            flatten_expr.append(expr[1])
+            return self.build_special_operator(flatten_expr)
+        
+        if op == 'let':
+            return self.build_let_expression(expr)
+        
         args = [self.build_expression(arg) for arg in expr[1:]]
 
         # Theory-specific operations
@@ -244,10 +265,45 @@ class MonAbsSMTLIBParser:
         elif op.startswith('bv'):
             # Bit-vector operations
             return self.build_bitvector_expression(op, args)
+        elif op == '_':
+            # Bit-vector constants
+            return self.build_special_operator(expr)
         else:
             # Standard operations
             return self.build_standard_expression(op, args)
 
+    def build_special_operator(self, expr):
+        if expr[1].startswith('bv'):
+            # Bit-vector constant
+            value = int(expr[1][2:])  # Extract the value after 'bv'
+            width = int(expr[2])  # Extract the bit-width
+            return BitVecVal(value, width) 
+        elif expr[1] == 'sign_extend':
+            # Sign extension
+            extension_bits = int(expr[2])
+            value = self.build_expression(expr[3])
+            return SignExt(extension_bits, value)
+        elif expr[1] == 'extract':
+            # Bit extraction
+            high = int(expr[2])
+            low = int(expr[3])
+            value = self.build_expression(expr[4])
+            return Extract(high, low, value)
+        else:
+            raise ValueError(f"Unknown special operator: {expr[1]}")
+    
+    def build_let_expression(self, expr):
+        bindings = expr[1]
+        body = expr[2]
+
+        # Create a mapping of variable names to their expressions
+        for binding in bindings:
+            var_name = binding[0]
+            var_expr = self.build_expression(binding[1])
+            self.let_bindings[var_name] = var_expr
+        
+        return self.build_expression(body)
+        
     def build_standard_expression(self, op, args):
         """Build expression for standard operations"""
         if op == '+':
@@ -268,6 +324,8 @@ class MonAbsSMTLIBParser:
             return args[0] <= args[1]
         elif op == '=':
             return args[0] == args[1]
+        elif op == 'distinct':
+            return Distinct(*args)
         elif op == 'and':
             return And(*args)
         elif op == 'or':
@@ -276,6 +334,8 @@ class MonAbsSMTLIBParser:
             return Not(args[0])
         elif op == '=>':
             return Implies(args[0], args[1])
+        elif op == 'ite':
+            return If(args[0], args[1], args[2])
         else:
             raise ValueError(f"Unknown operator: {op}")
 
@@ -389,7 +449,7 @@ class MonAbsSMTLIBParser:
                 self.process_command(command)
 
     def parse_file(self, filename):
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             content = file.read()
         self.parse_string(content)
 
@@ -427,10 +487,9 @@ smt_content_bv = """
 """
 
 def main():
-    parser = MonAbsSMTLIBParser(only_parse=True)
+    parser = MonAbsSMTLIBParser(only_parse=True, logic='QF_BV')
     parser.parse_string(smt_content_bv)
 
 
 if __name__ == "__main__":
     main()
-
