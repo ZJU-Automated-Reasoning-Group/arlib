@@ -22,7 +22,7 @@ import z3
 try:
     from arlib.allsmt import create_allsmt_solver
     from arlib.unsat_core.unsat_core import get_unsat_core, enumerate_all_mus, Algorithm as UnsatAlgorithm
-    from arlib.backbone.backbone_literals import get_backbone_literals
+    from arlib.backbone.smt_backbone_literals import get_backbone_literals
     from arlib.counting import model_counter
     ARLIB_FEATURES_AVAILABLE = True
 except ImportError:

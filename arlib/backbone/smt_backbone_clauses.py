@@ -1,5 +1,5 @@
 """
-Backbone clauses generation via lazy model enumeration
+SMT Backbone clauses generation via lazy model enumeration
 
   Consider a set of predicates S = {p1,..., pn}
   A clause C is the disjunction of a subset of literals, each of the literal
