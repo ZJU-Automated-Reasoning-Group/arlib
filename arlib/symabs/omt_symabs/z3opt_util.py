@@ -54,6 +54,8 @@ def box_optimize(fml: z3.ExprRef, minimize: List, maximize: List, timeout: int =
         min_res = [obj.value() for obj in min_objectives]
         max_res = [obj.value() for obj in max_objectives]
         return min_res, max_res
+    else:
+        raise Exception("box_optimize: No solution found or timeout")
 
 
 def maxsmt(hard: z3.BoolRef, soft: List[z3.BoolRef], weight: List[int], timeout=0) -> int:
