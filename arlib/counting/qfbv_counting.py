@@ -134,7 +134,7 @@ class BVModelCounter:
                 solutions = solutions + 1
         print("Time:", counting_timer() - time_start)
         print("BV enumeration total solutions: ", solutions)
-        return solutions
+        return solutions, counting_timer() - time_start
 
     # TODO: fix
     def count_model_by_enumeration_parallel(self):
@@ -169,7 +169,7 @@ class BVModelCounter:
         # TODO: check in parallel
         print("Time:", counting_timer() - time_start)
         print("BV enumeration total solutions: ", solutions)
-        return solutions
+        return solutions, counting_timer() - time_start
 
     def count_models_by_sharp_sat(self):
         bv2bool, id_table, header, clauses = translate_smt2formula_to_cnf(self.formula)
@@ -178,7 +178,7 @@ class BVModelCounter:
         solutions = count_dimacs_solutions_parallel(header, clauses)
         print("Time:", counting_timer() - time_start)
         print("sharpSAT total solutions: ", solutions)
-        return solutions
+        return solutions, counting_timer() - time_start
 
 
 def feat_test():

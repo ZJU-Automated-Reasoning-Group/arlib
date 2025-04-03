@@ -161,16 +161,18 @@ def map_bitvector(input_vars):
     bv2bool = {}  # for tracking what Bools corresponding to a bv
     for var in input_vars:
         name = var.decl().name()
-        size = var.size()
-        bool_vars = []
-        for x in range(size):
-            extracted_bool = z3.Bool(name + "!" + str(x))
-            clause = extracted_bool == (z3.Extract(x, x, var) == z3.BitVecVal(1, 1))  # why adding this
-            mapped_vars.append(extracted_bool)
-            clauses.append(clause)
-            bool_vars.append(name + "!" + str(x))
-
-        bv2bool[str(name)] = bool_vars
+        if z3.is_bv(var):
+            size = var.size()
+            bool_vars = []
+            for x in range(size):
+                extracted_bool = z3.Bool(name + "!" + str(x))
+                clause = extracted_bool == (z3.Extract(x, x, var) == z3.BitVecVal(1, 1))  # why adding this
+                mapped_vars.append(extracted_bool)
+                clauses.append(clause)
+                bool_vars.append(name + "!" + str(x))
+            bv2bool[str(name)] = bool_vars
+        elif z3.is_bool(var):
+            mapped_vars.append(var)
     # print(clauses)
     return clauses, mapped_vars, bv2bool
 

@@ -28,6 +28,7 @@ class BVSymbolicAbstraction:
         self.initialized = False
         self.formula = z3.BoolVal(True)
         self.vars = []
+        self.bool_vars = []
         self.interval_abs_as_fml = z3.BoolVal(True)
         self.zone_abs_as_fml = z3.BoolVal(True)
         self.octagon_abs_as_fml = z3.BoolVal(True)
@@ -72,6 +73,8 @@ class BVSymbolicAbstraction:
             for var in all_vars:
                 if z3.is_bv(var):
                     self.vars.append(var)
+                elif z3.is_bool(var):
+                    self.bool_vars.append(var)
             self.initialized = True
         except z3.Z3Exception as ex:
             print("error when initialization")
@@ -83,6 +86,8 @@ class BVSymbolicAbstraction:
             for var in get_variables(self.formula):
                 if z3.is_bv(var):
                     self.vars.append(var)
+                elif z3.is_bool(var):
+                    self.bool_vars.append(var)
             self.initialized = True
         except z3.Z3Exception as ex:
             print("error when initialization")
@@ -120,7 +125,7 @@ class BVSymbolicAbstraction:
 
         # n_queries = len(multi_queries)
         # timeout = n_queries * self.single_query_timeout * 2 # is this reasonable?
-        min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries, timeout=30000)
+        min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries)
         # TODO: the res of handler.xx() is not a BitVec val, but Int?
         # TODO: what if it is a value large than the biggest integer of the size (is it possible? e.g., due to overflow)
         cnts = []
@@ -143,21 +148,24 @@ class BVSymbolicAbstraction:
         Store the result in self.interval_abs_as_fml.
         """
         if self.compact_opt:
-            multi_queries = []
-            for var in self.vars:
-                multi_queries.append(var)
+            # Use multi-query optimization for better performance
+            multi_queries = [var for var in self.vars]
             self.interval_abs_as_fml = self.min_max_many(multi_queries)
         else:
-            cnts = []
-            for i in range(len(self.vars)):
-                vmin = self.min_once(self.vars[i])
-                vmax = self.max_once((self.vars[i]))
+            # Compute intervals one variable at a time
+            constraints = []
+            for var in self.vars:
+                vmin = self.min_once(var)
+                vmax = self.max_once(var)
+                
+                # Add bounds based on signed/unsigned comparison
                 if self.signed:
-                    cnts.append(z3.And(self.vars[i] >= vmin, self.vars[i] <= vmax))
+                    constraint = z3.And(var >= vmin, var <= vmax)
                 else:
-                    cnts.append(z3.And(z3.UGE(self.vars[i], vmin), z3.ULE(self.vars[i], vmax)))
-                # print(self.vars[i], "[", vmin, ", ", vmax, "]")
-            self.interval_abs_as_fml = z3.And(cnts)
+                    constraint = z3.And(z3.UGE(var, vmin), z3.ULE(var, vmax))
+                constraints.append(constraint)
+            self.interval_abs_as_fml = z3.And(constraints)
+        self.interval_abs_as_fml = z3.And(self.interval_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\ninterval abs:", self.interval_abs_as_fml, sep="\n")
 
     def zone_abs(self):
@@ -171,6 +179,10 @@ class BVSymbolicAbstraction:
         if self.compact_opt:
             multi_queries = []
             wrap_around_cnts = []
+
+            for var in self.vars:
+                multi_queries.append(var)
+
             for v1, v2 in zones:
                 if v1.sort().size() == v2.sort().size():
                     multi_queries.append(v1 - v2)
@@ -187,6 +199,10 @@ class BVSymbolicAbstraction:
             zone_cnts = []
             objs = []
             wrap_around_cnts = []
+
+            for var in self.vars:
+                objs.append(var)
+
             for v1, v2 in zones:
                 if v1.sort().size() == v2.sort().size():
                     objs.append(v1 - v2)
@@ -208,6 +224,7 @@ class BVSymbolicAbstraction:
                     zone_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.zone_abs_as_fml = z3.And(zone_cnts)
+        self.zone_abs_as_fml = z3.And(self.zone_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\nzone abs:", self.zone_abs_as_fml, sep="\n")
 
@@ -274,6 +291,7 @@ class BVSymbolicAbstraction:
                     oct_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.octagon_abs_as_fml = z3.And(oct_cnts)
+        self.octagon_abs_as_fml = z3.And(self.octagon_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\noctagon abs:", self.octagon_abs_as_fml, sep="\n")
     
@@ -299,7 +317,49 @@ class BVSymbolicAbstraction:
                     cnts.append(z3.Extract(i, i, var) == 0)
                     continue
                 cnts.append(z3.Or(z3.Extract(i, i, var) == 0, z3.Extract(i, i, var) == 1))
+        # v = self.vars[::]
+        # for var1 in self.vars:
+        #     for var2 in self.vars:
+        #         if var1 == var2:
+        #             continue
+        #         if var2 ^ var1 not in v:
+        #             v.append(var1 ^ var2)
+        #         if var2 & var1 not in v:
+        #             v.append(var1 & var2)
+        #         if var2 | var1 not in v:
+        #             v.append(var1 | var2)
+        # # for var in v:
+        # #     flag = True
+        # #     for i in range(var.size() - 1):
+        # #         sol = z3.Solver()
+        # #         sol.add(self.formula)
+        # #         for b1 in (0, 1):
+        # #             for b2 in (0, 1):
+        # #                 sol.push()
+        # #                 sol.add(z3.Extract(i, i, var) == b1)
+        # #                 sol.add(z3.Extract(i + 1, i + 1, var) == b2)
+        # #                 if sol.check() == z3.unsat:
+        # #                     cnts.append(z3.Extract(i + 1, i, var) != b2 * 2 + b1)
+        # #                     flag = False
+        # #                 sol.pop()
+        # #     if flag and var in self.vars:
+        # #         cnts.append(var == var)
+        # for var in v:
+        #     flag = True
+        #     sol = z3.Solver()
+        #     sol.add(self.formula)
+        #     for i in range(var.size()):
+        #         for b in (0, 1):
+        #             sol.push()
+        #             sol.add(z3.Extract(i, i, var) == b)
+        #             if sol.check() == z3.unsat:
+        #                 cnts.append(z3.Extract(i, i, var) == 1 - b)
+        #                 flag = False
+        #             sol.pop()
+        #     if flag and var in self.vars:
+        #         cnts.append(var == var)                
         self.bitwise_abs_as_fml = z3.And(cnts)
+        self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\nbitwise abs:", self.bitwise_abs_as_fml)
 
 def feat_test():

@@ -21,6 +21,7 @@ import argparse
 import logging
 import multiprocessing as mp
 import sys
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -42,33 +43,49 @@ from arlib.utils.z3_expr_utils import get_variables
 class AbstractionResults:
     """Store results from different abstraction domains"""
     interval_fp_rate: float = 0.0
+    interval_time: float = 0.0
     zone_fp_rate: float = 0.0
+    zone_time: float = 0.0
     octagon_fp_rate: float = 0.0
+    octagon_time: float = 0.0
     bitwise_fp_rate: float = 0.0
+    bitwise_time: float = 0.0
 
     def __add__(self, other):
         if other is None:
             return self
         return AbstractionResults(
             self.interval_fp_rate + other.interval_fp_rate,
+            self.interval_time + other.interval_time,
             self.zone_fp_rate + other.zone_fp_rate,
+            self.zone_time + other.zone_time,
             self.octagon_fp_rate + other.octagon_fp_rate,
-            self.bitwise_fp_rate + other.bitwise_fp_rate
+            self.octagon_time + other.octagon_time,
+            self.bitwise_fp_rate + other.bitwise_fp_rate,
+            self.bitwise_time + other.bitwise_time
         )
 
     def __truediv__(self, other):
         return AbstractionResults(
             self.interval_fp_rate / other,
+            self.interval_time / other,
             self.zone_fp_rate / other,
+            self.zone_time / other,
             self.octagon_fp_rate / other,
-            self.bitwise_fp_rate / other
+            self.octagon_time / other,
+            self.bitwise_fp_rate / other,
+            self.bitwise_time / other
         )
 
     def __str__(self):
         return f"Interval FP rate: {self.interval_fp_rate:.4f}, " \
                f"Zone FP rate: {self.zone_fp_rate:.4f}, " \
                f"Octagon FP rate: {self.octagon_fp_rate:.4f}, " \
-               f"Bitwise FP rate: {self.bitwise_fp_rate:.4f}"
+               f"Bitwise FP rate: {self.bitwise_fp_rate:.4f}, " \
+               f"Interval time: {self.interval_time:.4f}, " \
+               f"Zone time: {self.zone_time:.4f}, " \
+               f"Octagon time: {self.octagon_time:.4f}, " \
+               f"Bitwise time: {self.bitwise_time:.4f}"
 
 class ModelCounter:
     """Handles model counting operations"""
@@ -83,7 +100,7 @@ class ModelCounter:
         solver.add(expression)
         return solver.check() == z3.sat
 
-    def count_models(self, formula) -> int:
+    def count_models(self, formula) -> Tuple[int, float]:
         """Count models using sharpSAT"""
         counter = BVModelCounter()
         counter.init_from_fml(formula)
@@ -99,35 +116,55 @@ class AbstractionAnalyzer:
         self.sa = BVSymbolicAbstraction()
         self.sa.init_from_fml(formula)
 
-    def compute_false_positives(self, abs_formula) -> Tuple[bool, float]:
+    def compute_false_positives(self, abs_formula) -> Tuple[bool, float, float]:
         """Compute false positive rate for an abstraction"""
         solver = z3.Solver()
         solver.add(z3.And(abs_formula, z3.Not(self.formula)))
 
         has_false_positives = solver.check() != z3.unsat
         if not has_false_positives:
-            return False, 0.0
+            return False, 0.0, 0.0
 
         # Count models for abstraction and false positives
         mc = BVModelCounter()
         mc.init_from_fml(abs_formula)
-        abs_count = mc.count_models_by_sharp_sat()
+        abs_count, _ = mc.count_models_by_sharp_sat()
 
         mc_fp = BVModelCounter()
         mc_fp.init_from_fml(z3.And(abs_formula, z3.Not(self.formula)))
-        fp_count = mc_fp.count_models_by_sharp_sat()
-
-        return True, fp_count / abs_count
+        fp_count, time_fp = mc_fp.count_models_by_sharp_sat()
+        if abs_count < 0 or fp_count < 0:
+            return True, -1.0, -1.0
+        return True, fp_count / abs_count, time_fp
 
     def analyze_abstractions(self) -> Optional[AbstractionResults]:
         """Analyze all abstraction domains"""
+        # Perform abstractions
         try:
-            # Perform abstractions
             self.sa.interval_abs()
-            self.sa.zone_abs()
-            self.sa.octagon_abs()
-            self.sa.bitwise_abs()
+        except Exception as e:
+            logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
+            self.sa.interval_abs_as_fml = z3.BoolVal(False)
 
+        try:
+            self.sa.zone_abs()
+        except Exception as e:
+            logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
+            self.sa.zone_abs_as_fml = z3.BoolVal(False)
+
+        try:
+            self.sa.octagon_abs()
+        except Exception as e:
+            logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
+            self.sa.octagon_abs_as_fml = z3.BoolVal(False)
+
+        try:
+            self.sa.bitwise_abs()
+        except Exception as e:
+            logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
+            self.sa.bitwise_abs_as_fml = z3.BoolVal(False)
+            
+        try:
             results = AbstractionResults()
 
             # Analyze each domain
@@ -137,17 +174,25 @@ class AbstractionAnalyzer:
                 ("Octagon", self.sa.octagon_abs_as_fml),
                 ("Bitwise", self.sa.bitwise_abs_as_fml)
             ]:
-                has_fp, fp_rate = self.compute_false_positives(formula)
-                logger.info(f"{domain} domain: {'has FP rate %.4f' % fp_rate if has_fp else 'no false positives'}")
+                if formula == z3.BoolVal(False):
+                    logger.warning(f"Skipping {domain} domain")
+                    continue
+                has_fp, fp_rate, time_fp = self.compute_false_positives(formula)
+                if fp_rate >= 0:
+                    logger.info(f"{domain} domain: {'has FP rate %.4f' % fp_rate if has_fp else 'no false positives'}")
 
                 if domain == "Interval":
                     results.interval_fp_rate = fp_rate
+                    results.interval_time = time_fp
                 elif domain == "Zone":
                     results.zone_fp_rate = fp_rate
+                    results.zone_time = time_fp
                 elif domain == "Octagon":
                     results.octagon_fp_rate = fp_rate
+                    results.octagon_time = time_fp
                 elif domain == "Bitwise":
                     results.bitwise_fp_rate = fp_rate
+                    results.bitwise_time = time_fp
 
             return results
 
@@ -161,13 +206,13 @@ def setup_logging(log_file: Optional[str] = None):
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
 
     if log_file:
-        current_dir = Path(__file__).resolve().parent
-        Path(current_dir / log_file).touch()
+        if not os.path.exists(os.path.dirname(log_file)):
+            os.makedirs(os.path.dirname(log_file))
         logging.basicConfig(
             level=logging.DEBUG,
             format=log_format,
             handlers=[
-                logging.FileHandler(current_dir / log_file),
+                logging.FileHandler(log_file),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -209,7 +254,8 @@ def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
         if results:
             logger.info(f"{file_path}: Analysis completed successfully")
             return results
-
+        
+        logger.debug(f"Analysis failed: {file_path}")
         return None
 
     except Exception as e:
@@ -235,16 +281,20 @@ def process_directory(dir_path: str, num_processes: int) -> None:
 
     results = []
     for file in smt_files:
-        results.append(process_smt_file(file))
+        results.append((file, process_smt_file(file)))
 
-    successful = sum(1 for r in results if r is not None)
-    final_results = sum([r for r in results if r is not None], start=AbstractionResults()) / successful
+    successful = sum(1 for f, r in results if r is not None)
+    final_results = sum([r for f, r in results if r is not None], start=AbstractionResults()) / successful
     logger.info(f"Successfully processed {successful}/{len(smt_files)} files")
     logger.info(f"Final results: {final_results}")
-    with open("results.txt", "a") as f:
-        for r in results:
+    parent_dir = os.path.dirname(dir_path)
+    if not os.path.exists(f"{parent_dir}/results.csv"):
+        with open(f"{parent_dir}/results.csv", "w") as f:
+            f.write("filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
+    with open(f"{parent_dir}/results.csv", "a") as csv:
+        for f, r in results:
             if r is not None:
-                f.write(f"{r.interval_fp_rate}, {r.zone_fp_rate}, {r.octagon_fp_rate}, {r.bitwise_fp_rate},\n")
+                csv.write(f"{f},{r.interval_fp_rate},{r.zone_fp_rate},{r.octagon_fp_rate},{r.bitwise_fp_rate},{r.interval_time},{r.zone_time},{r.octagon_time},{r.bitwise_time}\n")
 
 
 def main():
@@ -302,7 +352,6 @@ def main():
 
         except Exception as e:
             logger.error(f"Fatal error: {str(e)}")
-            raise e
             sys.exit(1)
 
 
