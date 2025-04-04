@@ -27,6 +27,7 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * QBF solving
 * Finite Field Solving (``arlib/smt/ff``)
 * Formula rewritings/simplifications
+* Interactive theorem proving (``arlib/itp``)
 * LLM integration (``arlib/llm``)
 * Automata operations (``arlib/automata``)
 * SyGuS (Syntax-Guided Synthesis) (``arlib/sygus``)
@@ -67,6 +68,7 @@ The setup script will:
    counting
    ff
    interpolant
+   itp
    knowledge_compilation
    monabs
    optimization
