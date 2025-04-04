@@ -10,12 +10,13 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 
 * Abductive inference (``arlib/abduction``)
 * AllSMT (``arlib/allsmt``)
-* Backbone (``arlib/backbone``)
-* Exits-forall SMT formulas (``arlib/quant``)
+* Backbone computation (``arlib/backbone``)
+* UNSAT core extraction (``arlib/unsat_core``)
+* Exists-forall SMT formulas (``arlib/quant``)
 * General quantified SMT formulas (``arlib/quant``)
 * Quantifier elimination (``arlib/quant/qe``)
-* Sampling solutions of SMT formulas (``arlib/smt/sampling``)
-* Counting the models of SMT formulas (``arlib/smt/bv/qfbv_counting``)
+* Sampling solutions of SMT formulas (``arlib/sampling``)
+* Counting the models of SMT formulas (``arlib/counting``)
 * Optimization Modulo Theory (OMT) (``arlib/optimization``)
 * Interpolant generation (``arlib/bool/interpolant``)
 * Symbolic abstraction (``arlib/symabs``)
@@ -24,8 +25,11 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * Knowledge compilation (``arlib/bool/knowledge_compiler``)
 * (Weighted) MaxSAT (``arlib/bool/maxsat``)
 * QBF solving
-* Finite Field Solving (`arlib/smt/ff`)
+* Finite Field Solving (``arlib/smt/ff``)
 * Formula rewritings/simplifications
+* LLM integration (``arlib/llm``)
+* Automata operations (``arlib/automata``)
+* SyGuS (Syntax-Guided Synthesis) (``arlib/sygus``)
 * ...
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
@@ -34,19 +38,23 @@ We welcome any feedback, issues, or suggestions for improvement. Please feel fre
 Installing and Using Arlib
 ==========================
 
-(TODO) Install arlib as a package
+Install arlib from source
 ---------------------------------------
 
 ::
 
-  git cone https://github.com/ZJU-Automated-Reasoning-Group/arlib
-  virtualenv --python=/usr/bin/...  venv
+  git clone https://github.com/ZJU-Automated-Reasoning-Group/arlib
+  virtualenv --python=python3 venv
   source venv/bin/activate
   cd arlib
-  python setup.py install
+  bash setup_local_env.sh
+  pip install -e .
 
-
-
+The setup script will:
+- Create a Python virtual environment if it doesn't exist
+- Activate the virtual environment and install dependencies from requirements.txt
+- Download required solver binaries (CVC5, MathSAT, z3)
+- Run unit tests if available
 
 .. toctree::
    :maxdepth: 1
@@ -54,6 +62,7 @@ Installing and Using Arlib
 
    topics
    abduction
+   backbone
    cdclt
    counting
    ff
@@ -66,5 +75,6 @@ Installing and Using Arlib
    smt
    symbolic_abstraction
    predicate_abstraction
+   unsat_core
    allsmt
    applications
