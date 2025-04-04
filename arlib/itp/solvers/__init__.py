@@ -2,8 +2,8 @@
 Facilities for pretty printing and calling external solvers
 """
 
-import kdrag as kd
-import kdrag.smt as smt
+import arlib.itp as itp
+import arlib.itp.smt as smt
 import subprocess
 import os
 import logging
@@ -51,7 +51,7 @@ def expr_to_tptp(expr: smt.ExprRef, env=None, format="thf", theories=True):
     if isinstance(expr, smt.IntNumRef):
         return str(expr.as_string())
     elif isinstance(expr, smt.QuantifierRef):
-        vars, body = kd.utils.open_binder(expr)
+        vars, body = itp.utils.open_binder(expr)
         env = env + [v.decl() for v in vars]
         body = expr_to_tptp(body, env=env, format=format, theories=theories)
         if format == "fof":
@@ -213,7 +213,7 @@ def expr_to_smtlib(expr: smt.ExprRef):
         quantifier = (
             "forall" if expr.is_forall() else "exists" if expr.is_exists() else "lambda"
         )
-        vs, body = kd.utils.open_binder(expr)
+        vs, body = itp.utils.open_binder(expr)
         vs = " ".join(
             [f"({mangle_decl_smtlib(v.decl())} {v.sort().sexpr()})" for v in vs]
         )
@@ -222,7 +222,7 @@ def expr_to_smtlib(expr: smt.ExprRef):
         # )
 
         return f"({quantifier} ({vs}) {expr_to_smtlib(body)})"
-    elif kd.utils.is_value(expr):
+    elif itp.utils.is_value(expr):
         return expr.sexpr()
     elif smt.is_const(expr):
         decl = expr.decl()
@@ -443,7 +443,7 @@ class BaseSolver:
 def collect_sorts(exprs):
     sorts = set()
     for thm in exprs:
-        todo = list(kd.utils.sorts(thm))
+        todo = list(itp.utils.sorts(thm))
         while len(todo) > 0:
             sort = todo.pop()
             if sort not in sorts:
@@ -458,7 +458,7 @@ def collect_sorts(exprs):
 def collect_decls(exprs):
     decls = set()
     for thm in exprs:
-        decls.update(kd.utils.decls(thm))
+        decls.update(itp.utils.decls(thm))
     return decls
 
 

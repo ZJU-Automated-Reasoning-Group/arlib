@@ -13,8 +13,8 @@ For more see
 
 """
 
-import kdrag.smt as smt
-import kdrag.rewrite as rw
+import arlib.itp.smt as smt
+import arlib.itp.rewrite as rw
 import sys
 
 
@@ -102,11 +102,11 @@ def basic(E, order=rw.kbo):
     Basic Knuth Bendix completion algorithm.
 
      TRaaT 7.1.1 Central Groupoid example
-    >>> import kdrag as kd
+    >>> import arlib.itp as itp
     >>> T = smt.DeclareSort("CentralGroupoid")
     >>> x,y,z = smt.Consts("x y z", T)
     >>> mul = smt.Function("mul", T, T, T)
-    >>> kd.notation.mul.register(T, mul)
+    >>> itp.notation.mul.register(T, mul)
     >>> E = [smt.ForAll([x,y,z], (x * y) * (y * z) == y)]
     >>> assert len(basic(E)) == 3
     """

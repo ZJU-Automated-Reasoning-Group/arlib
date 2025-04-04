@@ -14,7 +14,7 @@ def run_subprocess(command, args):
 
 
 def main():
-    usage_string = "Usage: python3 -m kdrag.solvers (install | vampire | vampire-ho | eprover | twee | nanocopi | prover9 | kissat) [args...]"
+    usage_string = "Usage: python3 -m arlib.itp.solvers (install | vampire | vampire-ho | eprover | twee | nanocopi | prover9 | kissat) [args...]"
     if len(sys.argv) < 2:
         print(usage_string)
         sys.exit(1)

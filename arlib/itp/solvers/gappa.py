@@ -1,7 +1,7 @@
-import kdrag.smt as smt
+import arlib.itp.smt as smt
 import subprocess
-import kdrag.solvers as solvers
-# import kdrag.theories.real as real
+import arlib.itp.solvers as solvers
+# import itprag.theories.real as real
 
 
 """

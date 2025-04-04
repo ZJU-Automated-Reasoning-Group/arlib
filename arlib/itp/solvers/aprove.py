@@ -1,5 +1,5 @@
-import kdrag.smt as smt
-import kdrag.solvers
+import arlib.itp.smt as smt
+import arlib.itp.solvers
 
 """
 AProVE is a termination prover for term rewrite systems.
@@ -10,7 +10,7 @@ https://aprove.informatik.rwth-aachen.de/
 
 def run_aprove(vs: list[smt.ExprRef], eqs: list[smt.BoolRef], timeout=1):
     def pp(e):
-        return kdrag.solvers.expr_to_tptp(e, format="fof", theories=False)
+        return arlib.itp.solvers.expr_to_tptp(e, format="fof", theories=False)
 
     with open("/tmp/aprove.trs", "w") as f:
         f.write(f"(VARS {' '.join(pp(v) for v in vs)})\n")
@@ -27,7 +27,7 @@ def run_aprove(vs: list[smt.ExprRef], eqs: list[smt.BoolRef], timeout=1):
             "java",
             "-ea",
             "-jar",
-            kdrag.solvers.binpath("aprove.jar"),
+            arlib.itp.solvers.binpath("aprove.jar"),
             "-m",
             "wst",
             "-t",

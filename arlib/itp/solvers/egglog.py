@@ -1,7 +1,7 @@
 import egglog.bindings as eggbnd
-import kdrag as kd
-import kdrag.smt as smt
-import kdrag.solvers as solvers
+import arlib.itp as itp
+import arlib.itp.smt as smt
+import arlib.itp.solvers as solvers
 
 # https://www.philipzucker.com/egglog_z3_simp/
 
@@ -51,7 +51,7 @@ class EgglogSolver(solvers.BaseSolver):
                 self.decls.add(decl)
         if isinstance(rule, smt.QuantifierRef):
             assert rule.is_forall()
-            vs, r = kd.utils.open_binder(rule)
+            vs, r = itp.utils.open_binder(rule)
             if r.decl().name() != "=":
                 raise ValueError("Only equality rules are supported", rule)
             lhs, rhs = r.children()
