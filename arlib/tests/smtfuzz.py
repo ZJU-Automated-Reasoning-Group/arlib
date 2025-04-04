@@ -1,11 +1,9 @@
 # coding: utf-8
 """
-Randomly generating SMT-LIB2 formulas
-
-This file is the one usd by the "smtfuzz" Python library..
-You may install the tool by
-    pip install smtfuzz
+This file generates SMT-LIB2 formulas for fuzz testing SMT solvers.
+It includes various options and configurations to control the generation process
 """
+
 import argparse
 import itertools
 import math
@@ -15,13 +13,11 @@ import string
 import sys
 from collections import OrderedDict
 
-m_set_logic = True  # print (set-logic LO) or not
-# if random.random() < 0.1: m_set_logic = False
-# tmp test; should be true
+m_set_logic = True  # generate the (set-logic ...) command
 
-m_strict_cnf = False
+m_strict_cnf = False  # generate formulas in CNF form
 
-m_reset_assert = False  # (reset-assertions)
+m_reset_assert = False  # generate the (reset-assertions) and (reset) commands
 m_reset_cmd = '(reset-assertions)'
 if random.random() < 0.2:
     m_reset_cmd = '(reset)'
@@ -29,7 +25,7 @@ if random.random() < 0.2:
 m_test_fp64 = False  # default Float32
 if random.random() < 0.5:
     m_test_fp64 = True
-m_fp_rounding_mode = "random"
+m_fp_rounding_mode = "random"  # rounding mode for FP
 if random.random() < 0.8:  # use fixed?
     fp_round_pp = random.random()
     if fp_round_pp < 0.2:
@@ -43,59 +39,48 @@ if random.random() < 0.8:  # use fixed?
     else:
         m_fp_rounding_mode = "RTZ"
 
-m_test_iand = False
-m_test_eqrange = False
+m_test_iand = False  # test the iand feature
+m_test_eqrange = False  # test eqrange
 
-# For generator
-# '''
-m_quantifier_rate_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_or_and_rate_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_exists_forall_rate_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_assert_or_create_new_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_create_exp_rate_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_create_bool_rate_swam = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
-m_push_pop_rate_swam = [0.05, 0.1, 0.15, 0.2, 0.25]
+# Swarm testing
+m_quantifier_rate_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_or_and_rate_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_exists_forall_rate_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_assert_or_create_new_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_create_exp_rate_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_create_bool_rate_swarm = [0.11, 0.22, 0.33, 0.44, 0.55, 0.66]
+m_push_pop_rate_swarm = [0.05, 0.1, 0.15, 0.2, 0.25]
 
-m_declare_new_var_swam = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.40]
+m_declare_new_var_swarm = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.40]
 
 m_max_smt_rate = random.uniform(1.05, 1.66) - 1
-# '''
-m_quantifier_rate = random.choice(m_quantifier_rate_swam)
-m_or_and_rate = random.choice(m_or_and_rate_swam)
-m_exists_forall_rate = random.choice(m_exists_forall_rate_swam)
-m_assert_or_create_new = random.choice(m_assert_or_create_new_swam)
-m_create_exp_rate = random.choice(m_create_exp_rate_swam)
-m_create_bool_rate = random.choice(m_create_bool_rate_swam)
-m_push_pop_rate = random.choice(m_push_pop_rate_swam)
-m_declare_new_var_rate = random.choice(m_declare_new_var_swam)
-# '''
-'''
-m_quantifier_rate = random.uniform(1.05, 1.66) - 1
-m_or_and_rate = random.uniform(1.05, 1.66) - 1
-m_exists_forall_rate = random.uniform(1.05, 1.66) - 1
-m_assert_or_create_new = random.uniform(1.05, 1.66) - 1
-m_create_exp_rate = random.uniform(1.05, 1.66) - 1
-m_create_bool_rate = random.uniform(1.05, 1.66) - 1
-m_push_pop_rate = random.uniform(1.05, 1.66) - 1
-m_declare_new_var_rate = random.uniform(1.05, 1.66) - 1
-'''
 
-m_init_var_size = 20  # default 20
+m_quantifier_rate = random.choice(m_quantifier_rate_swarm)
+m_or_and_rate = random.choice(m_or_and_rate_swarm)
+m_exists_forall_rate = random.choice(m_exists_forall_rate_swarm)
+m_assert_or_create_new = random.choice(m_assert_or_create_new_swarm)
+m_create_exp_rate = random.choice(m_create_exp_rate_swarm)
+m_create_bool_rate = random.choice(m_create_bool_rate_swarm)
+m_push_pop_rate = random.choice(m_push_pop_rate_swarm)
+m_declare_new_var_rate = random.choice(m_declare_new_var_swarm)
 
-m_use_swam_bv = False  # selectively reduce the number of bv-operations
-# if random.random() < 0.5: m_use_swam_bv = True
+# default 20 (the number of vars to crate at the beginning)
+m_init_var_size = 20
+
+m_use_swarm_bv = False  # selectively reduce the number of bv-operations
+# if random.random() < 0.5: m_use_swarm_bv = True
 m_use_bv_concat_repeat = True
 # if random.random() < 0.33: m_use_bv_concat_repeat = False
 
-m_use_swam_fp = False  # selectively reduce the number of fp-operations
+m_use_swarm_fp = False  # selectively reduce the number of fp-operations
 if random.random() < 0.33:
-    m_use_swam_fp = True
+    m_use_swarm_fp = True
 
 m_use_fancy_qterm = False  # create fancy quantified assertions
 if random.random() < 0.66:
     m_use_fancy_qterm = True
 
-m_use_ite = False  # ite(b s s)
+m_use_ite = False  # ite(b s1 s2)
 if random.random() < 0.22:
     m_use_ite = True
 
@@ -105,13 +90,13 @@ m_test_smt_opt_fancy_term = False
 if random.random() < 0.33:
     m_test_smt_opt_fancy_term = True
 
-m_test_max_smt = False  # (assert-soft xx)
-m_test_qe = False  # quantifier elimination
-m_test_unsat_core = False  # unsat core
-m_test_interpolant = False  # interpolant
-m_test_yices_itp = False  # get-unsat-model-interpolant in yices2
-m_test_yices_core = False  #
+m_test_max_smt = False  # test MaxSMT, e.g., (assert-soft xx)
+m_test_qe = False  # test quantifier elimination
+m_test_unsat_core = False  # test unsat core
+m_test_interpolant = False  # test interpolant
 
+# The following items are used for maintaining the scope information
+# when using push/pop commands
 m_assert_id = 0  # id for naming assertions in unsat_core
 m_all_assertions = []
 m_backtrack_points = []
@@ -120,16 +105,9 @@ n_pop = 0
 m_fancy_push = False
 # if random.random() < 0.25: m_fancy_push = True
 
-m_test_abduction = False  # abduction (CVC4 only)
-m_test_cvc_itp = False  # cvc4 interpolant
+m_test_proof = False  # test proof generation
 
-m_test_proof = False  # proof generation
-
-m_test_z3_interpolant = False  # z3 ITP
-m_test_z3_simplify = False
-m_test_z3_tactic = False
-
-m_test_named_assert = False  # just test named assertions
+m_test_named_assert = False  # test named assertions
 
 m_test_pure_sat = False  # SAT
 m_test_qbf = False  # QBF
@@ -144,9 +122,6 @@ m_test_set_eq = False  # seteq
 # String-related o
 m_test_string = False  # Test string
 m_test_string_lia = False
-m_test_z3str3 = False
-if random.random() < 0.33:
-    m_test_z3str3 = True
 m_test_seq = False
 
 m_test_string_substr = False
@@ -155,7 +130,7 @@ if random.random() < 0.33:
 
 m_test_string_re = False
 if random.random() < 0.5:
-    m_test_string_re = True  # TODO: many re  operations not added
+    m_test_string_re = True  # TODO: many re operations are not added
 
 m_test_string_replace = False
 if random.random() < 0.33:
@@ -165,9 +140,9 @@ m_test_string_unicode = False
 if random.random() < 0.22:
     m_test_string_unicode = True
 
-m_use_swam_str = False  # selectively reduce the number of str-operations
+m_use_swarm_str = False  # selectively reduce the number of str-operations
 if random.random() < 0.5:
-    m_use_swam_str = True
+    m_use_swarm_str = True
 
 """
 FP related
@@ -193,21 +168,9 @@ m_test_my_uf = False  # uninterpreted functions
 
 m_test_bvint = False  # BV and INT
 
-"""SMTInterpol"""
-m_test_smtinterpol = False
-
-"""CVC4"""
-m_test_cvc4 = False  # cvc4 mode
 m_noinc_mode = False
 
 m_test_ufc = False  # UF with card
-
-# Boolector
-m_test_boolector = False
-m_test_stp = False  # share the code of new_Array wth Boolector
-
-# Yices2
-m_test_yices = False
 
 # eldarica
 m_test_eldarica = False
@@ -225,8 +188,21 @@ m_optionmode = 'full'  # none, basic, full
 
 # should be QF_SLIA?
 # QF_IDL, IDL
-qf_int_logic_options = ['QF_UFIDL', 'QF_IDL', 'QF_S', 'QF_SLIA', 'QF_UFSLIA', 'QF_SNIA', 'QF_NIA', 'QF_LIA', 'QF_ANIA',
-                        'QF_ALIA', 'QF_AUFNIA', 'QF_AUFLIA', 'QF_UFNIA', 'QF_UFLIA']
+qf_int_logic_options = [
+    'QF_UFIDL',
+    'QF_IDL',
+    'QF_S',
+    'QF_SLIA',
+    'QF_UFSLIA',
+    'QF_SNIA',
+    'QF_NIA',
+    'QF_LIA',
+    'QF_ANIA',
+    'QF_ALIA',
+    'QF_AUFNIA',
+    'QF_AUFLIA',
+    'QF_UFNIA',
+    'QF_UFLIA']
 q_int_logic_options = [
     'ALIA',
     'ANIA',
@@ -239,8 +215,18 @@ q_int_logic_options = [
 int_logic_options = qf_int_logic_options + q_int_logic_options
 
 # QF_RDL, RDL
-qf_real_logic_options = ['QF_UFRDL', 'QF_RDL', 'QF_ANRA', 'QF_ALRA', 'QF_FPLRA', 'QF_UFLRA', 'QF_NRA',
-                         'QF_LRA', 'QF_UFNRA', 'QF_AUFNRA', 'QF_AUFLRA']
+qf_real_logic_options = [
+    'QF_UFRDL',
+    'QF_RDL',
+    'QF_ANRA',
+    'QF_ALRA',
+    'QF_FPLRA',
+    'QF_UFLRA',
+    'QF_NRA',
+    'QF_LRA',
+    'QF_UFNRA',
+    'QF_AUFNRA',
+    'QF_AUFLRA']
 q_real_logic_options = [
     'ANRA',
     'ALRA',
@@ -270,14 +256,46 @@ nira_logics = [
     'UFNIRA',
     'QF_AUFNIRA',
     'AUFNIRA']
-qf_ira_logics = ['QF_LIRA', 'QF_SLIRA', 'QF_ALIRA', 'QF_UFLIRA', 'QF_AUFLIRA', 'QF_NIRA', 'QF_ANIRA', 'QF_UFNIRA',
-                 'QF_AUFNIRA']
+qf_ira_logics = [
+    'QF_LIRA',
+    'QF_SLIRA',
+    'QF_ALIRA',
+    'QF_UFLIRA',
+    'QF_AUFLIRA',
+    'QF_NIRA',
+    'QF_ANIRA',
+    'QF_UFNIRA',
+    'QF_AUFNIRA']
 
 # QF_SNIA is not included
-lia_logics = ['QF_SLIA', 'SEQ', 'QF_UFSLIA', 'QF_UFSLIA', 'IDL', 'QF_IDL', 'QF_UFIDL', 'LIA', 'UFLIA', 'ALIA', 'AUFLIA',
-              'QF_LIA', 'QF_UFLIA', 'QF_ALIA', 'QF_AUFLIA']
-lra_logics = ['QF_RDL', 'QF_UFRDL', 'RDL', 'QF_FPLRA', 'FPLRA', 'LRA', 'QF_LRA', 'UFLRA', 'QF_UFLRA', 'AUFLRA',
-              'QF_AUFLRA']
+lia_logics = [
+    'QF_SLIA',
+    'SEQ',
+    'QF_UFSLIA',
+    'QF_UFSLIA',
+    'IDL',
+    'QF_IDL',
+    'QF_UFIDL',
+    'LIA',
+    'UFLIA',
+    'ALIA',
+    'AUFLIA',
+    'QF_LIA',
+    'QF_UFLIA',
+    'QF_ALIA',
+    'QF_AUFLIA']
+lra_logics = [
+    'QF_RDL',
+    'QF_UFRDL',
+    'RDL',
+    'QF_FPLRA',
+    'FPLRA',
+    'LRA',
+    'QF_LRA',
+    'UFLRA',
+    'QF_UFLRA',
+    'AUFLRA',
+    'QF_AUFLRA']
 
 lia_logics += lira_logics
 lra_logics += lira_logics
@@ -290,11 +308,11 @@ q_bv_logic_options = ['BV', 'UFBV', 'ABV', 'AUFBV']
 bv_logic_options = qf_bv_logic_options + q_bv_logic_options
 
 qf_logic_options = qf_int_logic_options + \
-                   qf_real_logic_options + qf_bv_logic_options
+    qf_real_logic_options + qf_bv_logic_options
 qf_logic_options.append('BOOL')
 qf_logic_options.append('QF_UF')
 q_logic_options = q_int_logic_options + \
-                  q_real_logic_options + q_bv_logic_options
+    q_real_logic_options + q_bv_logic_options
 q_logic_options.append('QBF')
 q_logic_options.append('UF')
 
@@ -305,6 +323,11 @@ total_logic_options += string_logic_options
 
 
 class Op:
+    """
+    The Op class represents an operation in the SMT-LIB2 formula.
+    It contains the node type and the expression associated with the operation.
+    """
+
     def __init__(self, node, expr):
         self.expr = expr
         self.node = node
@@ -326,77 +349,77 @@ class Op:
         self.node = newnode
 
 
-class Ite_Op(Op):
+class IteOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Regular_Op(Op):  # regular exp
+class RegularOp(Op):  # regular exp
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Quantifier_Op(Op):
+class QuantifierOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Bool_Op(Op):
+class BoolOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class USort_Op(Op):
+class USortOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Int_Op(Op):
+class IntOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Real_Op(Op):
+class RealOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class FP_Op(Op):
+class FPOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Set_Op(Op):
+class SetOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Bag_Op(Op):
+class BagOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Seplog_Op(Op):
+class SeplogOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class String_Op(Op):
+class StringOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Seq_Op(Op):
+class SeqOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class BV_Op(Op):
+class BVOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
 
-class Arr_Op(Op):
+class ArrOp(Op):
     def __init__(self, node, expr):
         Op.__init__(self, node, expr)
 
@@ -410,95 +433,95 @@ class Var:
         return str(self.sort) + str(self.n)
 
 
-class Var_Bool(Var):
+class VarBool(Var):
     def __init__(self, n):
         Var.__init__(self, 'v', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Bool) and self.n == other.n
+        return isinstance(other, VarBool) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Int(Var):
+class VarInt(Var):
     def __init__(self, n):
         Var.__init__(self, 'i', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Int) and self.n == other.n
+        return isinstance(other, VarInt) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Real(Var):
+class VarReal(Var):
     def __init__(self, n):
         Var.__init__(self, 'r', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Real) and self.n == other.n
+        return isinstance(other, VarReal) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_FP(Var):
+class VarFP(Var):
     def __init__(self, n):
         Var.__init__(self, 'fpv', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_FP) and self.n == other.n
+        return isinstance(other, VarFP) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Set(Var):
+class VarSet(Var):
     def __init__(self, n):
         Var.__init__(self, 'st', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Set) and self.n == other.n
+        return isinstance(other, VarSet) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Bag(Var):
+class VarBag(Var):
     def __init__(self, n):
         Var.__init__(self, 'bag', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Bag) and self.n == other.n
+        return isinstance(other, VarBag) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_String(Var):
+class VarString(Var):
     def __init__(self, n):
         Var.__init__(self, 'str', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_String) and self.n == other.n
+        return isinstance(other, VarString) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Seq(Var):
+class VarSeq(Var):
     def __init__(self, n):
         Var.__init__(self, 'seq', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_String) and self.n == other.n
+        return isinstance(other, VarString) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_UnIntSort(Var):
+class VarUnIntSort(Var):
     def __init__(self, sort, n):
         Var.__init__(self, sort, n)
 
@@ -507,13 +530,13 @@ class Var_UnIntSort(Var):
 
     def __eq__(self, other):
         return isinstance(
-            other, Var_UnIntSort) and self.n == other.n and self.sort == other.sort
+            other, VarUnIntSort) and self.n == other.n and self.sort == other.sort
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_BV(Var):
+class VarBV(Var):
     def __init__(self, sort, n):
         Var.__init__(self, sort, n)
 
@@ -522,13 +545,13 @@ class Var_BV(Var):
 
     def __eq__(self, other):
         return isinstance(
-            other, Var_BV) and self.n == other.n and self.sort == other.sort
+            other, VarBV) and self.n == other.n and self.sort == other.sort
 
     def __hash__(self):
         return hash((self.sort, self.n))
 
 
-class Var_Arr(Var):
+class VarArr(Var):
     def __init__(self, sort_index, sort_element, n):
         Var.__init__(self, sort_index, n)
         self.sort_element = sort_element
@@ -539,19 +562,19 @@ class Var_Arr(Var):
 
     def __eq__(self, other):
         return isinstance(other,
-                          Var_Arr) and self.n == other.n and self.sort == other.sort and \
+                          VarArr) and self.n == other.n and self.sort == other.sort and \
             self.sort_element == other.sort_element
 
     def __hash__(self):
         return hash((self.sort, self.sort_element, self.n))
 
 
-class Var_Quant(Var):
+class VarQuant(Var):
     def __init__(self, n):
         Var.__init__(self, 'q', n)
 
     def __eq__(self, other):
-        return isinstance(other, Var_Quant) and self.n == other.n
+        return isinstance(other, VarQuant) and self.n == other.n
 
     def __hash__(self):
         return hash((self.sort, self.n))
@@ -753,8 +776,9 @@ class Arr(Sort):
         return '(Array {} {})'.format(self.sort_index, self.sort_element)
 
     def __eq__(self, other):
-        return isinstance(other,
-                          Arr) and self.sort_index == other.sort_index and self.sort_element == other.sort_element
+        return isinstance(
+            other,
+            Arr) and self.sort_index == other.sort_index and self.sort_element == other.sort_element
 
     def __hash__(self):
         return hash((self.sort, self.sort_index, self.sort_element))
@@ -783,6 +807,16 @@ def random_real():
 
 
 def get_random_unicode(length):
+    """
+    Generate a random Unicode string of the specified length.
+
+    Args:
+        length (int): The length of the generated Unicode string.
+
+    Returns:
+        str: A random Unicode string of the specified length.
+    """
+
     try:
         get_char = unichr
     except NameError:
@@ -811,8 +845,10 @@ def get_random_unicode(length):
     return ''.join(random.choice(alphabet) for _ in range(length))
 
 
-def random_string(stringLength=6):
-    """Generate a random string of fixed length """
+def random_string():
+    """
+    Generate a random string
+    """
     letters = string.ascii_uppercase
     letters += string.ascii_lowercase
     letters += string.digits  # number
@@ -824,7 +860,6 @@ def random_string(stringLength=6):
         sp = random.random()
         if sp < 0.45:
             return ''.join(random.choice(letters) for _ in range(length))
-        # elif m_test_cvc4:
         elif sp < 0.85:
             bytes_data = get_random_unicode(length).encode('unicode-escape')
             return "".join(map(chr, bytes_data))
@@ -853,8 +888,6 @@ def random_fp():
             real += str(random.randint(0, 9))
     if real[-1] == ".":
         real += "0"
-    # NOTE: Fix an important z3 paring error??. A real number should be 2.0,
-    # not 2
     if "." not in real:
         real += ".0"
 
@@ -926,14 +959,11 @@ def set_options():
 
     if m_test_proof:
         print("(set-option :produce-proofs true)")
-    if m_test_unsat_core or m_test_yices_core:
+    if m_test_unsat_core:
         print('(set-option :produce-unsat-cores true)')
-    if m_test_yices_itp:
-        print('(set-option :produce-unsat-model-interpolants true)')
-    # if m_test_interpolant and (not m_test_z3_interpolant): print("(set-option :produce-interpolants true)")
 
 
-def set_logic(logic_choice, option_fuzzing_mode):
+def set_logic(logic_choice):
     global m_quantifier_rate, m_test_set_bapa, m_test_bag_bapa, m_test_my_uf, m_test_string
     global m_set_logic
     if 'UF' in logic_choice or logic_choice == 'ALL':
@@ -1184,46 +1214,30 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_reals = 1
 
     elif logic_choice == 'QF_ALRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic QF_LRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic QF_AUFLIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic QF_AUFLIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
 
     elif logic_choice == 'QF_AUFLRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic QF_AUFLRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic QF_AUFLIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic QF_AUFLIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
 
     elif logic_choice == 'QF_ANRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic QF_ANRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic QF_AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic QF_AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
         a, b, c = -1, -1, -1
 
     elif logic_choice == 'QF_AUFNRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic QF_AUFNRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic QF_AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic QF_AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
@@ -1235,14 +1249,14 @@ def set_logic(logic_choice, option_fuzzing_mode):
         ni, e, f, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 
-    elif logic_choice == 'QF_UFC':  # uf with card (CVC4 only)
+    elif logic_choice == 'QF_UFC':
         if m_set_logic:
             print('(set-logic QF_UFC)')
         set_options()
         ni, e, f, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 
-    elif logic_choice == 'UFC':  # uf with card (CVC4 only)
+    elif logic_choice == 'UFC':
         if m_set_logic:
             print('(set-logic UFC)')
         set_options()
@@ -1277,11 +1291,6 @@ def set_logic(logic_choice, option_fuzzing_mode):
         g, h, m, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_ints = 1
 
-    # elif logic_choice == 'QF_AX':
-    #    if m_set_logic: print('(set-logic QF_AX)')
-    #    set_options(option_fuzzing)
-    #    add_reals = -1
-    #    add_ints = -1
     elif logic_choice == 'QF_ABV':
         if m_set_logic:
             print('(set-logic QF_ABV)')
@@ -1327,12 +1336,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'ANIA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic ANIA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         a, b, c, g, h, m, v, r, t, u, gen_arr = -1, -1, - \
             1, -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
@@ -1340,12 +1345,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'AUFNIA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic AUFNIA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         g, h, m, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_ints = 1
@@ -1396,12 +1397,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'ANRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic ANRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         a, b, c, ni, e, f, v, r, t, u, gen_arr = -1, -1, - \
             1, -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
@@ -1409,12 +1406,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'AUFNRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic AUFNRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFNIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
@@ -1423,13 +1416,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
     # lira_logics = ['QF_LIRA', 'LIRA', 'QF_ALIRA', 'ALIRA', 'QF_UFLIRA', 'UFLIRA', 'QF_AUFLIRA', 'AUFLIRA']
     # nira_logics = ['QF_NIRA', 'NIRA', 'QF_ANIRA', 'ANIRA', 'QF_UFNIRA',
     elif 'IRA' in logic_choice:
-        if m_test_cvc4 or m_test_smtinterpol or m_test_yices:
-            if m_set_logic:
-                print('(set-logic ' + logic_choice + ')')
-        # if m_set_logic: print('(set-logic ' + logic_choice + ')')
-        elif m_test_diff:
-            if m_set_logic:
-                print('(set-logic ALL)')
+        if m_set_logic:
+            print('(set-logic ' + logic_choice + ')')
         set_options()
         if 'QF' not in logic_choice:
             add_quantifiers = m_quantifier_rate
@@ -1450,24 +1438,16 @@ def set_logic(logic_choice, option_fuzzing_mode):
             r, t, u, gen_arr = -1, -1, -1, 0.33
 
     elif logic_choice == 'AUFLRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic AUFLRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFLIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFLIRA)')  # a trick for z3 to recognize
         set_options()
         ni, e, f, v, r, t, u, gen_arr = -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
         add_reals = 1
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'ALRA':
-        if m_test_cvc4:
-            if m_set_logic:
-                print('(set-logic ALRA)')
-        else:
-            if m_set_logic:
-                print('(set-logic AUFLIRA)')  # a trick for z3 to recognize
+        if m_set_logic:
+            print('(set-logic AUFLIRA)')  # a trick for z3 to recognize
         set_options()
         a, b, c, ni, e, f, v, r, t, u, gen_arr = -1, -1, - \
             1, -1, -1, -1, -1, -1, -1, -1, m_create_exp_rate
@@ -1556,8 +1536,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
         add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'SET':
-        # if m_test_cvc4: if m_set_logic: print('(set-logic QF_UFLIRAFS)') # shoud we?
-        # if m_set_logic: print('(set-logic ALL)')
+        if m_set_logic:
+            print('(set-logic ALL)')
         set_options()
         a, b, c, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
@@ -1571,8 +1551,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
             add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'STRSET':
-        # if m_test_cvc4: if m_set_logic: print('(set-logic QF_UFLIRAFS)') # shoud we?
-        # if m_set_logic: print('(set-logic ALL)')
+        if m_set_logic:
+            print('(set-logic ALL)')
         set_options()
         a, b, c, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
@@ -1583,8 +1563,8 @@ def set_logic(logic_choice, option_fuzzing_mode):
 
     # TODO: make QF_S and QF_SLIA different
     elif logic_choice == 'QF_S':
-        # if m_test_cvc4: if m_set_logic: print('(set-logic QF_SLIA)') # shoud we?
-        # if m_set_logic: print('(set-logic QF_S)')
+        if m_set_logic:
+            print('(set-logic QF_S)')
         set_options()
         a, b, c, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
@@ -1634,7 +1614,6 @@ def set_logic(logic_choice, option_fuzzing_mode):
         # if random.random() < 0.5: add_quantifiers = m_quantifier_rate
 
     elif logic_choice == 'SEPLOG':
-        # Separation logic: CVC4 only
         set_options()
         a, b, c, g, h, m, v, r, t, u, gen_arr = - \
             1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
@@ -1689,21 +1668,14 @@ class Clauses:
                     # print('(assert-soft ' + cnf + ')')
                     print('(assert-soft ' + cnf + ' :weight ' +
                           str(random.randint(1, 20)) + ' )')
-            elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
+            elif m_test_unsat_core or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
-                if m_test_smtinterpol or m_test_boolector or m_test_diff:
-                    print(
-                        '(assert (! (or ' + cnf + ' false) :named IP_' + str(m_assert_id) + '))')
-                else:
-                    print(
-                        '(assert (! ' + cnf + ' :named IP_' + str(m_assert_id) + '))')
+                print(
+                    '(assert (! (or ' + cnf + ' false) :named IP_' + str(m_assert_id) + '))')
                 m_all_assertions.append('IP_' + str(m_assert_id))
 
             else:
-                if m_test_smtinterpol or m_test_boolector or m_test_diff:
-                    print('(assert (or ' + cnf + ' false))')
-                else:
-                    print('(assert ' + cnf + ')')
+                print('(assert (or ' + cnf + ' false))')
 
     def new_dist_cnfs(self):
         global m_assert_id, m_all_assertions
@@ -1733,37 +1705,34 @@ class Clauses:
         for x in spaces:
             tmp_string = replace_idx(tmp_string, x, ' ')
         partitions = find(tmp_string, '$')
-        CNFs = []
+        cnf_s = []
         for x in partitions:
             c = tmp_string[:x]
             q = c.rfind('$')
             if q >= 0:
                 c = c[q + 1:]
-            CNFs.append(c)
-        for items in CNFs:
-            new_CNF = '(or {})'.format(items)
-            if m_test_smtinterpol or m_test_boolector or m_test_diff:
-                new_CNF = '(or {} false)'.format(
-                    items)  # corrent?
+            cnf_s.append(c)
+        for items in cnf_s:
+            new_cnf = '(or {} false)'.format(items)  # corrent?
             # print("; new_dist_cnfs")
-            self.clauses.append(new_CNF)
+            self.clauses.append(new_cnf)
             if m_test_max_smt or m_test_max_sat:
                 if random.random() < m_max_smt_rate:
-                    print('(assert {})'.format(new_CNF))
+                    print('(assert {})'.format(new_cnf))
                 else:
-                    print('(assert-soft {} :weight {})'.format(new_CNF,
-                                                               str(random.randint(1, 20))))
+                    print('(assert-soft {} :weight {})'.format(new_cnf,
+                          str(random.randint(1, 20))))
             elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
                 print(
                     '(assert (! ' +
-                    format(new_CNF) +
+                    format(new_cnf) +
                     ' :named IP_' +
                     str(m_assert_id) +
                     '))')
                 m_all_assertions.append('IP_' + str(m_assert_id))
             else:
-                print('(assert {})'.format(new_CNF))
+                print('(assert {})'.format(new_cnf))
 
     def cnf_choice(self):
         return random.choice(self.clauses)
@@ -1882,7 +1851,7 @@ class SimpleNodes:
             operands = str(par)
             par = random.choice(self.d[String()])
             operands += (" " + str(par))
-            new_str = String_Op(random.choice(StringBinOp), operands)
+            new_str = StringOp(random.choice(StringBinOp), operands)
             self.d[String()].append(new_str)
         else:
             par = random.choice(self.d[String()])
@@ -1896,7 +1865,7 @@ class SimpleNodes:
                     substr = random_string()
                     operands += (" " + "\"" + substr + "\"")
             op_to_use = random.choice(StringNOp)
-            new_str = String_Op(op_to_use, operands)
+            new_str = StringOp(op_to_use, operands)
             self.d[String()].append(new_str)
 
     def bool_from_string(self):
@@ -1906,7 +1875,7 @@ class SimpleNodes:
             operands = str(par)
             par = random.choice(self.d[String()])
             operands += (" " + str(par))
-            new_bool = Bool_Op(random.choice(StringBinBoolOp), operands)
+            new_bool = BoolOp(random.choice(StringBinBoolOp), operands)
             self.d[Bool()].append(new_bool)
         else:
             par = random.choice(self.d[String()])
@@ -1924,21 +1893,21 @@ class SimpleNodes:
                     else:
                         par = random.choice(self.d[String()])
                         operands += (" " + str(par))
-            new_bool = Bool_Op(op_to_use, operands)
+            new_bool = BoolOp(op_to_use, operands)
             self.d[Bool()].append(new_bool)
 
     def int_from_int(self):
         p = random.random()
         if p < 0.3:
             par = random.choice(self.d[Int()])
-            new_int = Int_Op(random.choice(IntUnOp), par)
+            new_int = IntOp(random.choice(IntUnOp), par)
             self.d[Int()].append(new_int)
         elif p < 0.66:
             par = random.choice(self.d[Int()])
             operand = str(par)
             par2 = random.choice(self.d[Int()])
             operand += (" " + str(par2))
-            new_int = Int_Op(random.choice(IntBinOp), operand)
+            new_int = IntOp(random.choice(IntBinOp), operand)
             self.d[Int()].append(new_int)
         else:
             par = random.choice(self.d[Int()])
@@ -1948,7 +1917,7 @@ class SimpleNodes:
                 par = random.choice(self.d[Int()])
                 operand += (" " + str(par))
             op_to_use = random.choice(IntNOp)
-            new_int = Int_Op(op_to_use, operand)
+            new_int = IntOp(op_to_use, operand)
             self.d[Int()].append(new_int)
 
     def bool_from_int(self):
@@ -1957,7 +1926,7 @@ class SimpleNodes:
             operand = str(par)
             par = random.choice(self.d[Int()])
             operand += (" " + str(par))
-            new_bool = Bool_Op(random.choice(IRNBoolOp), operand)
+            new_bool = BoolOp(random.choice(IRNBoolOp), operand)
             self.d[Bool()].append(new_bool)
             return  # stop here
         par = random.choice(self.d[Int()])
@@ -1966,21 +1935,21 @@ class SimpleNodes:
         for _ in range(n_operands):
             par = random.choice(self.d[Int()])
             operands += (" " + str(par))
-        new_bool = Bool_Op(random.choice(IRNBoolOp), operands)
+        new_bool = BoolOp(random.choice(IRNBoolOp), operands)
         self.d[Bool()].append(new_bool)
 
     def real_from_real(self):
         p = random.random()
         if p < 0.3:
             par = random.choice(self.d[Real()])
-            new_r = Real_Op(random.choice(RealUnOp), par)
+            new_r = RealOp(random.choice(RealUnOp), par)
             self.d[Real()].append(new_r)
         elif p < 0.66:
             par = random.choice(self.d[Real()])
             operand = str(par)
             par2 = random.choice(self.d[Real()])
             operand += (" " + str(par2))
-            new_r = Real_Op(random.choice(RealBinOp), operand)
+            new_r = RealOp(random.choice(RealBinOp), operand)
             self.d[Real()].append(new_r)
         else:
             par = random.choice(self.d[Real()])
@@ -1989,7 +1958,7 @@ class SimpleNodes:
             for _ in range(n):
                 par = random.choice(self.d[Real()])
                 operand += (" " + str(par))
-            new_r = Real_Op(random.choice(RealNOp), operand)
+            new_r = RealOp(random.choice(RealNOp), operand)
             self.d[Real()].append(new_r)
 
     def bool_from_real(self):
@@ -1999,7 +1968,7 @@ class SimpleNodes:
         for _ in range(n_operands):
             par = random.choice(self.d[Real()])
             operands += (" " + str(par))
-        new_bool = Bool_Op(random.choice(IRNBoolOp), operands)
+        new_bool = BoolOp(random.choice(IRNBoolOp), operands)
         self.d[Bool()].append(new_bool)
 
 
@@ -2030,7 +1999,7 @@ class Nodes:
         self.initial_bvs = 0  # bv
         self.n_bvs = 0
 
-        # just for storing quantified exp? (TODO: not so easy, becaues we need to manager it at push/pop
+        # just for storing quantified exp? (TODO: not so easy, because we need to manager it at push/pop
         # self.dict[Quantifier()] = 1
         # self.d[Quantifier()] = []
 
@@ -2051,11 +2020,11 @@ class Nodes:
                     self.d[FP()].append(new_fp)
                     self.dict[FP()] += 1
                 else:
-                    self.d[FP()].append(Var_FP(ith))
+                    self.d[FP()].append(VarFP(ith))
                     if m_test_fp64:
-                        print('(declare-fun {} () Float64)'.format(Var_FP(ith)))
+                        print('(declare-fun {} () Float64)'.format(VarFP(ith)))
                     else:
-                        print('(declare-fun {} () Float32)'.format(Var_FP(ith)))
+                        print('(declare-fun {} () Float32)'.format(VarFP(ith)))
                     self.dict[FP()] += 1
             if m_test_fp64:  # special FP constants
                 self.d[FP()].append("(_ +oo 11 53)")
@@ -2126,16 +2095,16 @@ class Nodes:
             print("(declare-fun uf7_2 (Bool Bool Bool Bool Bool Bool Bool) Bool)")
 
         for ith in range(self.n_vars):
-            self.d[Bool()].append(Var_Bool(ith))
-            print('(declare-fun {} () Bool)'.format(Var_Bool(ith)))
+            self.d[Bool()].append(VarBool(ith))
+            print('(declare-fun {} () Bool)'.format(VarBool(ith)))
             self.dict[Bool()] += 1
 
         if self.initial_ints == 1:
             self.d[Int()] = []
             for ith in range(self.n_ints):
                 if random.random() < 0.5 and (not m_test_string):  # donot show Int for QF_S
-                    self.d[Int()].append(Var_Int(ith))
-                    print('(declare-fun {} () Int)'.format(Var_Int(ith)))
+                    self.d[Int()].append(VarInt(ith))
+                    print('(declare-fun {} () Int)'.format(VarInt(ith)))
                 else:
                     val = random.randint(0, 100)
                     self.d[Int()].append(val)
@@ -2172,8 +2141,8 @@ class Nodes:
             self.d[Real()] = []
             for ith in range(self.n_reals):
                 if random.random() < 0.5:
-                    self.d[Real()].append(Var_Real(ith))
-                    print('(declare-fun {} () Real)'.format(Var_Real(ith)))
+                    self.d[Real()].append(VarReal(ith))
+                    print('(declare-fun {} () Real)'.format(VarReal(ith)))
                 else:
                     new_real = random_real()
                     self.d[Real()].append(new_real)
@@ -2206,7 +2175,7 @@ class Nodes:
                     if bv_sort not in self.d.keys():
                         self.d[bv_sort] = []
                         self.dict[bv_sort] = 0
-                    const = Var_BV(width, len(self.d[bv_sort]))
+                    const = VarBV(width, len(self.d[bv_sort]))
                     print('(declare-fun {} () {})'.format(const, bv_sort))
                     self.d[bv_sort].append(const)
                     self.dict[bv_sort] += 1
@@ -2223,11 +2192,11 @@ class Nodes:
             self.dict[Set()] = 0
             self.d[Set()] = []
             for ith in range(15):
-                self.d[Set()].append(Var_Set(ith))
+                self.d[Set()].append(VarSet(ith))
                 if m_test_str_set_bapa:
-                    print('(declare-fun {} () (Set String))'.format(Var_Set(ith)))
+                    print('(declare-fun {} () (Set String))'.format(VarSet(ith)))
                 else:
-                    print('(declare-fun {} () (Set Int))'.format(Var_Set(ith)))
+                    print('(declare-fun {} () (Set Int))'.format(VarSet(ith)))
                 self.dict[Set()] += 1
             if m_test_set_eq and (not m_test_str_set_bapa):
                 # if True:
@@ -2235,14 +2204,15 @@ class Nodes:
                 print(
                     "(assert (forall ((?s1 (Set Int)) (?s2 (Set Int))) (= (seteq ?s1 ?s2) (= ?s1 ?s2))))")
                 print(
-                    "(assert (forall ((?s1 (Set Int)) (?s2 (Set Int))) (= (seteq ?s1 ?s2) (and (subset ?s1 ?s2) (subset ?s2 ?s1)))))")
+                    "(assert (forall ((?s1 (Set Int)) (?s2 (Set Int)))"
+                    " (= (seteq ?s1 ?s2) (and (subset ?s1 ?s2) (subset ?s2 ?s1)))))")
 
         if m_test_bag_bapa:
             self.dict[Bag()] = 0
             self.d[Bag()] = []
             for ith in range(15):
-                self.d[Bag()].append(Var_Bag(ith))
-                print('(declare-fun {} () (Bag Int))'.format(Var_Bag(ith)))
+                self.d[Bag()].append(VarBag(ith))
+                print('(declare-fun {} () (Bag Int))'.format(VarBag(ith)))
                 self.dict[Bag()] += 1
 
         if (m_test_string or m_test_string_lia) and (not m_test_datalog_chc):
@@ -2255,14 +2225,14 @@ class Nodes:
             nstr = random.randint(5, 20)
             if m_test_seq:
                 for ith in range(nstr):
-                    self.d[Seq()].append(Var_Seq(ith))
-                    print('(declare-fun {} () (Seq Int))'.format(Var_Seq(ith)))
+                    self.d[Seq()].append(VarSeq(ith))
+                    print('(declare-fun {} () (Seq Int))'.format(VarSeq(ith)))
                     self.dict[Seq()] += 1
                 # return #TEMP: mixing seq and str
 
             for ith in range(nstr):
-                self.d[String()].append(Var_String(ith))
-                print('(declare-fun {} () String)'.format(Var_String(ith)))
+                self.d[String()].append(VarString(ith))
+                print('(declare-fun {} () String)'.format(VarString(ith)))
                 self.dict[String()] += 1
 
             if m_test_my_uf:
@@ -2290,9 +2260,9 @@ class Nodes:
                     if random.random() < 0.65:
                         par = random.choice(self.d[String()])
                     else:
-                        par = "\"" + random_string(10) + "\""
+                        par = "\"" + random_string() + "\""
                     operands = str(par)
-                    new_re = Regular_Op('str.to_re', operands)
+                    new_re = RegularOp('str.to_re', operands)
                     self.d[Regular()].append(new_re)
 
                     self.d[Regular()].append("re.allchar")
@@ -2361,7 +2331,7 @@ class Nodes:
         sorted_var = '('
         n = random.randint(0, m_test_datalog_chc_var_bound)
         for _ in range(n):
-            ovar = Var_Quant(self.nq)
+            ovar = VarQuant(self.nq)
             self.nq += 1
             # osort = random.choice(list(self.d))
             osort = None
@@ -2387,7 +2357,7 @@ class Nodes:
             osv = '({} {}) '.format(ovar, osort)
             sorted_var += osv
 
-        ovar = Var_Quant(self.nq)
+        ovar = VarQuant(self.nq)
         self.nq += 1
         osort = random.choice(list(self.d))
         if osort not in self.qdict:
@@ -2430,63 +2400,27 @@ class Nodes:
         var_list = []
         # n = random.randint(0, 3)
         n = random.randint(0, 7)
-        if m_test_boolector:
-            n = random.randint(0, 5)
         for _ in range(n):
-            ovar = Var_Quant(self.nq)
+            ovar = VarQuant(self.nq)
             self.nq += 1
             osort = random.choice(list(self.d))
-            if m_test_boolector and isinstance(osort, Arr):
-                continue  # TODO: for boolector.
             if osort not in self.qdict:
                 self.qdict[osort] = []
             self.qdict[osort].append(ovar)
             osv = '({} {}) '.format(ovar, osort)
             sorted_var += osv
             var_list.append(osv)
-        if m_test_boolector and m_global_logic == 'ABV':
-            sorted_var += '(q13145926 Bool))'
-        else:
-            ovar = Var_Quant(self.nq)
-            self.nq += 1
-            osort = random.choice(list(self.d))
-            if osort not in self.qdict:
-                self.qdict[osort] = []
-            self.qdict[osort].append(ovar)
-            osv = '({} {}))'.format(ovar, osort)
-            sorted_var += osv
-            var_list.append('({} {})'.format(ovar, osort))
+        ovar = VarQuant(self.nq)
+        self.nq += 1
+        osort = random.choice(list(self.d))
+        if osort not in self.qdict:
+            self.qdict[osort] = []
+        self.qdict[osort].append(ovar)
+        osv = '({} {}))'.format(ovar, osort)
+        sorted_var += osv
+        var_list.append('({} {})'.format(ovar, osort))
 
         term = self.qterm()
-
-        if m_test_cvc4 and m_test_qe:
-            termone = self.qterm()
-            termtwo = self.qterm()
-            stmtx = ' (forall {} {})'.format(sorted_var, termtwo)
-            stmty = ' (exists {} {})'.format(sorted_var, termtwo)
-            if random.random() < 0.5:
-                fstt = '(forall {}'.format(sorted_var)
-            else:
-                fstt = '(exists {}'.format(sorted_var)
-            # fstt += ' (or {} '.format(termone)
-            fstt += ' (' + random.choice(['or', 'xor',
-                                          'and', 'or']) + ' {} '.format(termone)
-            if random.random() < 0.5:
-                fstt += stmtx
-            else:
-                fstt += stmty
-            for _ in range(8):
-                tmp = random.choice(self.d[Bool()])
-                fstt += ' {} '.format(tmp)
-            fstt += '))'
-            # self.d[Bool()].append(fstt) # stack cannot have quantified
-            # formulas?
-            if random.random() < 0.5:
-                print('(get-qe ' + fstt + ')')
-            else:
-                print('(get-qe-disjunct ' + fstt + ')')
-            self.qdict.clear()
-            return
 
         if random.random() < 0.5:
             notqterm = random.random()
@@ -2505,7 +2439,7 @@ class Nodes:
 
                 self.d[Bool()].append(statement)
 
-        if not m_use_fancy_qterm:  # or m_test_yices: # NO fancy qterm for Yices
+        if not m_use_fancy_qterm:
             self.qdict.clear()
             return
         elif random.random() < 0.5:
@@ -2567,6 +2501,7 @@ class Nodes:
         qkeys = random.sample(qkeys, nsam)
         if nsam == 0:
             term = random.choice(self.d[Bool()])
+            return term
         boolean_subexpressions = ""
         for ith in qkeys:
             subexpr = self.qsubexpression(ith)
@@ -2580,7 +2515,7 @@ class Nodes:
             term = '({} {})'.format(
                 random.choice(BiOp),
                 boolean_subexpressions)
-        elif nsam > 2:  # n-array
+        else:  # n-array
             term = '({} {})'.format(
                 random.choice(NarOp),
                 boolean_subexpressions)
@@ -2607,28 +2542,28 @@ class Nodes:
                 par1 = random.choice(self.qdict[s])
                 par2 = random.choice(self.qdict[s2])
                 operand = str(par1) + " " + str(par2)
-                new_BV = BV_Op("concat", operand)
+                new_bv = BVOp("concat", operand)
                 bv_sort = BV(width)
                 if bv_sort not in qkeys:
                     self.qdict[bv_sort] = []
-                self.qdict[bv_sort].append(new_BV)
+                self.qdict[bv_sort].append(new_bv)
 
             elif prob < 0.1 and (not m_test_eldarica):  # repeat
                 ii = random.randint(1, 10)
                 width = ii * s.w
                 operator = '(_ repeat {})'.format(ii)
                 par = random.choice(self.qdict[s])
-                new_BV = BV_Op(operator, par)
+                new_bv = BVOp(operator, par)
                 bv_sort = BV(width)
                 if bv_sort not in qkeys:
                     self.qdict[bv_sort] = []
-                self.qdict[bv_sort].append(new_BV)
+                self.qdict[bv_sort].append(new_bv)
 
             elif prob < 0.2:  # unary, extract
                 if random.random() < 0.5:  # unary
                     par = random.choice(self.qdict[s])
-                    new_BV = BV_Op(random.choice(Un_BV_BV), par)
-                    self.qdict[s].append(new_BV)
+                    new_bv = BVOp(random.choice(Un_BV_BV), par)
+                    self.qdict[s].append(new_bv)
                 else:  # extract
                     width = s.w
                     parameter1 = random.randrange(0, width)
@@ -2637,11 +2572,11 @@ class Nodes:
                         parameter1, parameter2)
                     new_width = parameter1 - parameter2 + 1
                     par = random.choice(self.qdict[s])
-                    new_BV = BV_Op(operator, par)
+                    new_bv = BVOp(operator, par)
                     bv_sort = BV(new_width)
                     if bv_sort not in qkeys:
                         self.qdict[bv_sort] = []
-                    self.qdict[bv_sort].append(new_BV)
+                    self.qdict[bv_sort].append(new_bv)
 
             elif prob < 0.3:
                 ii = random.randint(0, 10)
@@ -2652,19 +2587,19 @@ class Nodes:
                         operator = "(_ sign_extend {})".format(ii)
                     width = s.w + ii
                     par = random.choice(self.qdict[s])
-                    new_BV = BV_Op(operator, par)
+                    new_bv = BVOp(operator, par)
                     bv_sort = BV(width)
                     if bv_sort not in qkeys:
                         self.qdict[bv_sort] = []
-                    self.qdict[bv_sort].append(new_BV)
+                    self.qdict[bv_sort].append(new_bv)
                 elif not m_test_eldarica:  # for Eldarica CHC
                     if random.random() < 0.5:
                         operator = "(_ rotate_left {})".format(ii)
                     else:
                         operator = "(_ rotate_right {})".format(ii)
                     par = random.choice(self.qdict[s])
-                    new_BV = BV_Op(operator, par)
-                    self.qdict[s].append(new_BV)
+                    new_bv = BVOp(operator, par)
+                    self.qdict[s].append(new_bv)
 
             elif prob < 0.4 and not m_test_eldarica:  # n-array
                 a = random.randint(1, 3)
@@ -2673,21 +2608,21 @@ class Nodes:
                 for ii in range(a):
                     par = random.choice(self.qdict[s])
                     operand += (" " + str(par))
-                new_BV = BV_Op(random.choice(N_BV_BV), operand)
-                self.qdict[s].append(new_BV)
+                new_bv = BVOp(random.choice(N_BV_BV), operand)
+                self.qdict[s].append(new_bv)
 
             else:  # binary
                 par1 = random.choice(self.qdict[s])
                 par2 = random.choice(self.qdict[s])
                 operand = str(par1) + " " + str(par2)
                 operator = random.choice(Bin_BV_BV)
-                new_BV = BV_Op(operator, operand)
+                new_bv = BVOp(operator, operand)
                 if operator == "bvcomp":
                     if BV(1) not in qkeys:
                         self.qdict[BV(1)] = []
-                    self.qdict[BV(1)].append(new_BV)
+                    self.qdict[BV(1)].append(new_bv)
                 else:
-                    self.qdict[s].append(new_BV)
+                    self.qdict[s].append(new_bv)
 
     def extend_qdict(self):
         # Make the qterm for CHC more fancy!!!!
@@ -2708,7 +2643,7 @@ class Nodes:
                     p = random.random()
                     if p < 0.4:  # unary
                         par = random.choice(self.qdict[sort])
-                        new_int = Int_Op(random.choice(IntUnOp), par)
+                        new_int = IntOp(random.choice(IntUnOp), par)
                         self.qdict[sort].append(new_int)
                     elif p < 0.65:  # binary
                         num_created = 0
@@ -2719,10 +2654,10 @@ class Nodes:
                             operand = str(par1)
                             par2 = random.choice(self.qdict[sort])
                             if not m_test_datalog_chc_nonlinear and int_op_use in [
-                                "div", "*", "mod"]:
+                                    "div", "*", "mod"]:
                                 par2 = str(random.randint(1, 1000))
                             operand += (" " + str(par2))
-                            new_int = Int_Op(int_op_use, operand)
+                            new_int = IntOp(int_op_use, operand)
                             self.qdict[sort].append(new_int)
                             num_created += 1
                             if num_created == 4:
@@ -2749,7 +2684,7 @@ class Nodes:
                                 if op_to_use == "*" and num_int_var >= 2:
                                     continue
 
-                            new_int = Int_Op(op_to_use, operand)
+                            new_int = IntOp(op_to_use, operand)
                             self.qdict[sort].append(new_int)
                             num_created += 1
                             if num_created == 4:
@@ -2767,7 +2702,7 @@ class Nodes:
                     chance = random.random()
                     if chance < 0.33:
                         par = random.choice(self.qdict[sort])
-                        new_real = Real_Op(
+                        new_real = RealOp(
                             random.choice(RealUnOp), par)  # Op2 has sin/cos
                         self.qdict[sort].append(new_real)
 
@@ -2781,7 +2716,7 @@ class Nodes:
                             if not m_test_datalog_chc_nonlinear:
                                 par2 = random_real()
                             operand += (" " + str(par2))
-                            new_real = Real_Op(real_op_use, operand)
+                            new_real = RealOp(real_op_use, operand)
                             self.qdict[sort].append(new_real)
                             num_created += 1
                             if num_created == 4:
@@ -2808,7 +2743,7 @@ class Nodes:
                                 if op_to_use == "*" and num_real_var >= 2:
                                     continue
 
-                            new_real = Real_Op(op_to_use, operand)
+                            new_real = RealOp(op_to_use, operand)
                             self.qdict[sort].append(new_real)
                             num_created += 1
                             if num_created == 4:
@@ -2827,13 +2762,13 @@ class Nodes:
             p = random.randint(1, 6)
             if p == 1:
                 par = random.choice(self.qdict[sort])
-                subexpr = Bool_Op(random.choice(UnOp), par)
+                subexpr = BoolOp(random.choice(UnOp), par)
             elif p == 2:
                 par1 = random.choice(self.qdict[sort])
                 par2 = random.choice(self.qdict[sort])
                 operand = str(par1)
                 operand += (" " + str(par2))
-                subexpr = Bool_Op(random.choice(BiOp), operand)
+                subexpr = BoolOp(random.choice(BiOp), operand)
             else:
                 n_operands = random.randint(1, 8)
                 par = random.choice(self.qdict[sort])
@@ -2841,7 +2776,7 @@ class Nodes:
                 for _ in range(n_operands):
                     par = random.choice(self.qdict[sort])
                     operands += (" " + str(par))
-                subexpr = Bool_Op(random.choice(NarOp), operands)
+                subexpr = BoolOp(random.choice(NarOp), operands)
                 # TODO: Can use fancy Boolean for CHC??
                 # do we need the following restriction?
                 # if m_test_datalog_chc:
@@ -2861,7 +2796,7 @@ class Nodes:
             for _ in range(n_operands):
                 par = random.choice(self.qdict[sort])
                 operands += (" " + str(par))
-            subexpr = Bool_Op(random.choice(IRNBoolOp), operands)
+            subexpr = BoolOp(random.choice(IRNBoolOp), operands)
 
         if isinstance(sort, Real):
             par = random.choice(self.qdict[sort])
@@ -2870,21 +2805,21 @@ class Nodes:
             for _ in range(n_operands):
                 par = random.choice(self.qdict[sort])
                 operands += (" " + str(par))
-            subexpr = Bool_Op(random.choice(IRNBoolOp), operands)
+            subexpr = BoolOp(random.choice(IRNBoolOp), operands)
 
         if isinstance(sort, BV):
             if random.random() < 0.33:
                 par1 = random.choice(self.qdict[sort])
                 par2 = random.choice(self.qdict[sort])
                 operand = str(par1) + " " + str(par2)
-                subexpr = Bool_Op(random.choice(Bin_BV_Bool), operand)
+                subexpr = BoolOp(random.choice(Bin_BV_Bool), operand)
             else:
                 par = random.choice(self.qdict[sort])
                 operand = str(par)
                 # n = random.randint(1, 4)
                 par = random.choice(self.qdict[sort])
                 operand += (" " + str(par))
-                subexpr = Bool_Op(random.choice(N_BV_Bool), operand)
+                subexpr = BoolOp(random.choice(N_BV_Bool), operand)
 
         if isinstance(sort, Arr):
             isort = sort.sort_index
@@ -2897,7 +2832,7 @@ class Nodes:
 
                 if par2 != "Empty":
                     expression = '{} {}'.format(par, par2)
-                    subexpr = Bool_Op('select', expression)
+                    subexpr = BoolOp('select', expression)
             else:
                 par = random.choice(self.qdict[sort])
                 operand = str(par)
@@ -2906,9 +2841,9 @@ class Nodes:
                     par = random.choice(self.qdict[sort])
                     operand += (" " + str(par))
                 if random.random() < 0.5:
-                    subexpr = Bool_Op('=', operand)
+                    subexpr = BoolOp('=', operand)
                 else:
-                    subexpr = Bool_Op('distinct', operand)
+                    subexpr = BoolOp('distinct', operand)
         # if subexpr != None:
         return subexpr
 
@@ -2925,7 +2860,7 @@ class Nodes:
                     par = random.choice(self.qdict[sort])
                 else:
                     par = random.choice(self.d[Bool()])
-                subexpr = Bool_Op(random.choice(UnOp), par)
+                subexpr = BoolOp(random.choice(UnOp), par)
             elif p == 2:
                 if random.random() < 0.5:
                     par1 = random.choice(self.qdict[sort])
@@ -2937,7 +2872,7 @@ class Nodes:
                     par2 = random.choice(self.d[Bool()])
                 operand = str(par1)
                 operand += (" " + str(par2))
-                subexpr = Bool_Op(random.choice(BiOp), operand)
+                subexpr = BoolOp(random.choice(BiOp), operand)
             else:
                 n_operands = random.randint(1, 10)
                 if random.random() < 0.5:
@@ -2954,7 +2889,7 @@ class Nodes:
                     operands += (" " + str(par))
 
                 op_to_use = random.choice(NarOp)
-                subexpr = Bool_Op(op_to_use, operands)
+                subexpr = BoolOp(op_to_use, operands)
 
         if isinstance(sort, Int):
             if random.random() < 0.5:
@@ -2967,7 +2902,7 @@ class Nodes:
             else:
                 par = random.choice(self.qdict[sort])
             operand += (" " + str(par))
-            subexpr = Bool_Op(random.choice(IRNBoolOp), operand)
+            subexpr = BoolOp(random.choice(IRNBoolOp), operand)
 
         if isinstance(sort, Real):
             if random.random() < 0.5:
@@ -2982,7 +2917,7 @@ class Nodes:
                 else:
                     par = random.choice(self.qdict[sort])
                 operands += (" " + str(par))
-            subexpr = Bool_Op(random.choice(IRNBoolOp), operands)
+            subexpr = BoolOp(random.choice(IRNBoolOp), operands)
 
         if isinstance(sort, FP):
             if random.random() < 0.5:
@@ -2997,7 +2932,7 @@ class Nodes:
                 else:
                     par = random.choice(self.qdict[sort])
                 operands += (" " + str(par))
-            subexpr = Bool_Op(random.choice(IRNFPBoolOp), operands)
+            subexpr = BoolOp(random.choice(IRNFPBoolOp), operands)
 
         if isinstance(sort, BV):
             if random.random() < 0.33:
@@ -3010,7 +2945,7 @@ class Nodes:
                 else:
                     par2 = random.choice(self.qdict[sort])
                 operand = str(par1) + " " + str(par2)
-                subexpr = Bool_Op(random.choice(Bin_BV_Bool), operand)
+                subexpr = BoolOp(random.choice(Bin_BV_Bool), operand)
             else:
                 if random.random() < 0.5 and len(self.d[sort]) > 0:
                     par = random.choice(self.d[sort])
@@ -3024,39 +2959,44 @@ class Nodes:
                     else:
                         par = random.choice(self.qdict[sort])
                     operand += (" " + str(par))
-                subexpr = Bool_Op(random.choice(N_BV_Bool), operand)
+                subexpr = BoolOp(random.choice(N_BV_Bool), operand)
 
         if isinstance(sort, Arr):
             # TODO: do we need the following restrictions for bv logics???
             # (need test)
-            no_fancy_array_logics = ['ANIA', 'ALIA', 'AUFNIA', 'AUFLIA', 'ALL', 'AX', 'QF_AX', 'ABV', 'AUFBV', 'ANRA',
-                                     'AUFNRA', 'ALRA', 'AUFLRA', 'ALIRA', 'ANIRA', 'AUFLIRA', 'AUFNIRA']
+            no_fancy_array_logics = [
+                'ANIA',
+                'ALIA',
+                'AUFNIA',
+                'AUFLIA',
+                'ALL',
+                'AX',
+                'QF_AX',
+                'ABV',
+                'AUFBV',
+                'ANRA',
+                'AUFNRA',
+                'ALRA',
+                'AUFLRA',
+                'ALIRA',
+                'ANIRA',
+                'AUFLIRA',
+                'AUFNIRA']
             if m_global_logic in no_fancy_array_logics:
                 isort = sort.sort_index
                 # TODO:!!!!!!!! This is a  didty fix for the above logics, whcich disables "select" in qterm totally.
                 # At least, we know where the issus is from: select
-                if False:
-                    # if random.random() < 0.5 and isort in self.d.keys() and
-                    # len(self.d[sort.sort_index]) > 0:
+                par = random.choice(self.qdict[sort])
+                operand = str(par)
+                n = random.randint(1, 4)
+                for _ in range(n):
                     par = random.choice(self.qdict[sort])
-                    if random.random() < 0.5 and isort in self.qdict and len(
-                            self.qdict[isort]) > 0:
-                        par2 = random.choice(self.qdict[isort])
-                    else:
-                        par2 = random.choice(self.d[isort])
-                    expression = '{} {}'.format(par, par2)
-                    subexpr = Bool_Op('select', expression)
+                    operand += (" " + str(par))
+                if random.random() < 0.5:
+                    subexpr = BoolOp('=', operand)
                 else:
-                    par = random.choice(self.qdict[sort])
-                    operand = str(par)
-                    n = random.randint(1, 4)
-                    for _ in range(n):
-                        par = random.choice(self.qdict[sort])
-                        operand += (" " + str(par))
-                    if random.random() < 0.5:
-                        subexpr = Bool_Op('=', operand)
-                    else:
-                        subexpr = Bool_Op('distinct', operand)
+                    subexpr = BoolOp('distinct', operand)
+
                 return subexpr
 
             isort = sort.sort_index
@@ -3072,7 +3012,7 @@ class Nodes:
                 else:
                     par2 = random.choice(self.d[isort])
                 expression = '{} {}'.format(par, par2)
-                subexpr = Bool_Op('select', expression)
+                subexpr = BoolOp('select', expression)
             else:
                 if random.random() < 0.5 and len(self.d[sort]) > 0:
                     par = random.choice(self.d[sort])
@@ -3087,9 +3027,9 @@ class Nodes:
                         par = random.choice(self.qdict[sort])
                     operand += (" " + str(par))
                 if random.random() < 0.5:
-                    subexpr = Bool_Op('=', operand)
+                    subexpr = BoolOp('=', operand)
                 else:
-                    subexpr = Bool_Op('distinct', operand)
+                    subexpr = BoolOp('distinct', operand)
 
         if isinstance(sort, UnIntSort):
             n_items = random.randrange(1, 5)
@@ -3105,16 +3045,14 @@ class Nodes:
                     par = random.choice(self.qdict[sort])
                 items += (" " + str(par))
             if random.random() < 0.5:
-                subexpr = Bool_Op('=', items)
+                subexpr = BoolOp('=', items)
             else:
-                subexpr = Bool_Op('distinct', items)
+                subexpr = BoolOp('distinct', items)
 
                 # if subexpr != None:
         return subexpr
 
     def newSort(self):
-        if m_test_boolector:
-            return
         n_unintsorts = 0
         for o in list(self.d):
             if isinstance(o, UnIntSort):
@@ -3128,8 +3066,6 @@ class Nodes:
             pass
 
     def varUSort(self):
-        if m_test_boolector:
-            return
         options = []
         for o in list(self.d):
             if isinstance(o, UnIntSort):
@@ -3137,14 +3073,12 @@ class Nodes:
         if len(options) > 0:
             current_sort = random.choice(options)
             n = len(self.d[current_sort])
-            self.d[current_sort].append(Var_UnIntSort(current_sort, n))
+            self.d[current_sort].append(VarUnIntSort(current_sort, n))
             print(
-                '(declare-fun {} () {})'.format(Var_UnIntSort(current_sort, n), current_sort))
+                '(declare-fun {} () {})'.format(VarUnIntSort(current_sort, n), current_sort))
             self.dict[current_sort] += 1
 
     def bool_from_usort(self):
-        if m_test_boolector:
-            return
         ops = []
         options = []
         for o in list(self.d):
@@ -3162,9 +3096,9 @@ class Nodes:
                 par = random.choice(self.d[current_sort])
                 items += (" " + str(par))
             if random.random() < 0.5:
-                new_bool = Bool_Op('=', items)
+                new_bool = BoolOp('=', items)
             else:
-                new_bool = Bool_Op('distinct', items)
+                new_bool = BoolOp('distinct', items)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
 
@@ -3177,7 +3111,7 @@ class Nodes:
                 # else: print('(assert (not (fmf.card ' + str(par) + ' 2)))')
 
     def new_bool(self):
-        new_var = Var_Bool(self.n_vars)
+        new_var = VarBool(self.n_vars)
         print('(declare-fun {} () Bool)'.format(new_var))
         self.n_vars += 1
         self.d[Bool()].append(new_var)
@@ -3185,7 +3119,7 @@ class Nodes:
 
     def new_int(self):
         if random.random() < 0.3:
-            new_int = Var_Int(self.n_ints)
+            new_int = VarInt(self.n_ints)
             print('(declare-fun {} () Int)'.format(new_int))
             self.n_ints += 1
             self.d[Int()].append(new_int)
@@ -3205,29 +3139,29 @@ class Nodes:
             new_int2 = new_int
             if n_operands == 2:
                 if random.random() < 0.5:
-                    new_int2 = Int_Op('ufii3', operands)
+                    new_int2 = IntOp('ufii3', operands)
                 else:
-                    new_int2 = Int_Op('ufii3_2', operands)
+                    new_int2 = IntOp('ufii3_2', operands)
             elif n_operands == 3:
                 if random.random() < 0.5:
-                    new_int2 = Int_Op('ufii4', operands)
+                    new_int2 = IntOp('ufii4', operands)
                 else:
-                    new_int2 = Int_Op('ufii4_2', operands)
+                    new_int2 = IntOp('ufii4_2', operands)
             elif n_operands == 4:
                 if random.random() < 0.5:
-                    new_int2 = Int_Op('ufii5', operands)
+                    new_int2 = IntOp('ufii5', operands)
                 else:
-                    new_int2 = Int_Op('ufii5_2', operands)
+                    new_int2 = IntOp('ufii5_2', operands)
             elif n_operands == 5:
                 if random.random() < 0.5:
-                    new_int2 = Int_Op('ufii6', operands)
+                    new_int2 = IntOp('ufii6', operands)
                 else:
-                    new_int2 = Int_Op('ufii6_2', operands)
+                    new_int2 = IntOp('ufii6_2', operands)
             elif n_operands == 6:
                 if random.random() < 0.5:
-                    new_int2 = Int_Op('ufii7', operands)
+                    new_int2 = IntOp('ufii7', operands)
                 else:
-                    new_int2 = Int_Op('ufii7_2', operands)
+                    new_int2 = IntOp('ufii7_2', operands)
 
             par = random.choice(self.d[Bool()])
             operands = str(par)
@@ -3237,15 +3171,15 @@ class Nodes:
                 operands += (" " + str(par))
             new_b = random.choice(self.d[Int()])
             if n_operands == 2:
-                new_b = Int_Op('ufbi3', operands)
+                new_b = IntOp('ufbi3', operands)
             elif n_operands == 3:
-                new_b = Int_Op('ufbi4', operands)
+                new_b = IntOp('ufbi4', operands)
             elif n_operands == 4:
-                new_b = Int_Op('ufbi5', operands)
+                new_b = IntOp('ufbi5', operands)
             elif n_operands == 5:
-                new_b = Int_Op('ufbi6', operands)
+                new_b = IntOp('ufbi6', operands)
             elif n_operands == 6:
-                new_b = Int_Op('ufbi7', operands)
+                new_b = IntOp('ufbi7', operands)
 
             if random.random() < 0.5:
                 self.d[Int()].append(new_int2)
@@ -3289,13 +3223,13 @@ class Nodes:
             operands = str(parone)
             partwo = random.choice(self.d[Int()])
             operands += (" " + str(partwo))
-            self.d[Int()].append(Int_Op("-", operands))  # RDL
+            self.d[Int()].append(IntOp("-", operands))  # RDL
             return
 
         p = random.random()
         if p < 0.3:
             par = random.choice(self.d[Int()])
-            new_int = Int_Op(random.choice(IntUnOp), par)
+            new_int = IntOp(random.choice(IntUnOp), par)
             self.d[Int()].append(new_int)
         elif p < 0.66:
             try_times = 1
@@ -3318,14 +3252,14 @@ class Nodes:
                 op_to_use = random.choice(IntNOp)
                 if m_global_logic in lia_logics:
                     if (op_to_use == "*" or op_to_use ==
-                        "mod" or op_to_use == "div") and num_int_var >= 2:
+                            "mod" or op_to_use == "div") and num_int_var >= 2:
                         continue
                     else:
-                        new_int = Int_Op(op_to_use, operand)
+                        new_int = IntOp(op_to_use, operand)
                         self.d[Int()].append(new_int)
                         break
                 else:
-                    new_int = Int_Op(op_to_use, operand)
+                    new_int = IntOp(op_to_use, operand)
                     self.d[Int()].append(new_int)
                     break
         else:
@@ -3348,14 +3282,14 @@ class Nodes:
                 op_to_use = random.choice(IntNOp)
                 if m_global_logic in lia_logics:
                     if (op_to_use == "*" or op_to_use ==
-                        "mod" or op_to_use == "div") and num_int_var >= 2:
+                            "mod" or op_to_use == "div") and num_int_var >= 2:
                         continue
                     else:
-                        new_int = Int_Op(op_to_use, operand)
+                        new_int = IntOp(op_to_use, operand)
                         self.d[Int()].append(new_int)
                         break
                 else:
-                    new_int = Int_Op(op_to_use, operand)
+                    new_int = IntOp(op_to_use, operand)
                     self.d[Int()].append(new_int)
         self.dict[Int()] += 1
 
@@ -3366,21 +3300,21 @@ class Nodes:
             operand += (" " + str(par1))
             par2 = random.choice(self.d[Int()])
             operand += (" " + str(par2))
-            new_int = Ite_Op('ite', operand)
+            new_int = IteOp('ite', operand)
             self.d[Int()].append(new_int)
 
     def set_from_set(self):
         chance = random.random()
         if chance < 0.15:  # unary
             par = random.choice(self.d[Set()])
-            new_set = Set_Op(random.choice(SetUnOp), par)
+            new_set = SetOp(random.choice(SetUnOp), par)
             self.d[Set()].append(new_set)
         else:
             par = random.choice(self.d[Set()])
             operands = str(par)
             par = random.choice(self.d[Set()])
             operands += (" " + str(par))
-            new_set = Set_Op(random.choice(SetBinOp), operands)
+            new_set = SetOp(random.choice(SetBinOp), operands)
             self.d[Set()].append(new_set)
 
         if m_use_ite and random.random() < 0.05:
@@ -3390,49 +3324,44 @@ class Nodes:
             operand += (" " + str(par1))
             par2 = random.choice(self.d[Set()])
             operand += (" " + str(par2))
-            new_set = Ite_Op('ite', operand)
+            new_set = IteOp('ite', operand)
             self.d[Set()].append(new_set)
 
     def bag_from_bag(self):
         chance = random.random()
         if chance < 0:  # unary
             par = random.choice(self.d[Bag()])
-            new_bag = Bag_Op(random.choice(BagUnOp), par)
+            new_bag = BagOp(random.choice(BagUnOp), par)
             self.d[Bag()].append(new_bag)
         else:
             par = random.choice(self.d[Bag()])
             operands = str(par)
             par = random.choice(self.d[Bag()])
             operands += (" " + str(par))
-            new_bag = Bag_Op(random.choice(BagBinOp), operands)
+            new_bag = BagOp(random.choice(BagBinOp), operands)
             self.d[Bag()].append(new_bag)
 
     def seq_from_seq(self):
         global StringNOp
         chance = random.random()
-        if chance < 0.25:
+        if chance < 0.45:
             par = random.choice(self.d[Int()])
             operands = str(par)
-            new_str = Seq_Op('seq.unit', operands)
-            self.d[Seq()].append(new_str)
-        elif chance < 0.55 and m_test_cvc4:
-            par = random.choice(self.d[Seq()])
-            operands = str(par)
-            new_str = Seq_Op('seq.rev', operands)
+            new_str = SeqOp('seq.unit', operands)
             self.d[Seq()].append(new_str)
         elif chance < 0.75:
             par = random.choice(self.d[Seq()])
             operands = str(par)
             par = random.choice(self.d[Seq()])
             operands += (" " + str(par))
-            new_str = Seq_Op('seq.++', operands)
+            new_str = SeqOp('seq.++', operands)
             self.d[Seq()].append(new_str)
         else:
             par = random.choice(self.d[Seq()])
             operands = str(par)
             operands += (" " + str(random.choice(self.d[Int()])))
             operands += (" " + str(random.choice(self.d[Int()])))
-            new_str = Seq_Op('seq.extract', operands)
+            new_str = SeqOp('seq.extract', operands)
             self.d[Seq()].append(new_str)
 
     def bool_from_seq(self):
@@ -3440,7 +3369,7 @@ class Nodes:
         chance = random.random()
         if chance < 0.3 and m_test_string_lia:  # binary
             st = random.choice(self.d[Seq()])
-            self.d[Int()].append(Int_Op("seq.len", st))
+            self.d[Int()].append(IntOp("seq.len", st))
         else:
             par = random.choice(self.d[Seq()])
             operands = str(par)
@@ -3448,7 +3377,7 @@ class Nodes:
             operands += (" " + str(par))
             seqb = random.choice(
                 ['seq.contains', 'seq.suffixof', 'seq.prefixof'])
-            new_bool = Seq_Op(seqb, operands)
+            new_bool = SeqOp(seqb, operands)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
 
@@ -3462,17 +3391,17 @@ class Nodes:
         chance = random.random()
         if chance < 0.1:  # unary
             new_str = "\"" + random_string() + "\""
-            if m_test_cvc4 and random.random() < 0.35:
+            if random.random() < 0.35:
                 par = random.choice(self.d[String()])
                 operands = str(par)
-                new_str = String_Op('str.rev', operands)
+                new_str = StringOp('str.rev', operands)
             self.d[String()].append(new_str)
         elif chance < 0.45:  # binary
             par = random.choice(self.d[String()])
             operands = str(par)
             par = random.choice(self.d[String()])
             operands += (" " + str(par))
-            new_str = String_Op(random.choice(StringBinOp), operands)
+            new_str = StringOp(random.choice(StringBinOp), operands)
             self.d[String()].append(new_str)
         else:
             par = random.choice(self.d[String()])
@@ -3495,8 +3424,7 @@ class Nodes:
                                 if random.random() < 0.5:
                                     intstr = random.choice(self.d[String()])
                                     tmp_operands = str(intstr)
-                                    new_int = Int_Op(
-                                        "str.to_int", tmp_operands)
+                                    new_int = IntOp("str.to_int", tmp_operands)
                                     self.d[Int()].append(new_int)
                                 else:
                                     tmp_s1 = random.choice(self.d[String()])
@@ -3505,7 +3433,7 @@ class Nodes:
                                     tmp_operands += (" " + str(tmp_s2))
                                     tmp_int = random.choice(self.d[Int()])
                                     tmp_operands += (" " + str(tmp_int))
-                                    new_int = Int_Op(
+                                    new_int = IntOp(
                                         "str.indexof", tmp_operands)
                                     self.d[Int()].append(new_int)
 
@@ -3521,7 +3449,7 @@ class Nodes:
                 StringNOp.append('str.replace_all')
                 StringNOp.append('str.replace')
             op_to_use = random.choice(StringNOp)
-            new_str = String_Op(op_to_use, operands)
+            new_str = StringOp(op_to_use, operands)
             self.d[String()].append(new_str)
             StringNOp = ['str.++']
         # str.substr: (I add a global flag to control this)
@@ -3535,7 +3463,7 @@ class Nodes:
                 operands += (" " + str(intv))
             else:
                 operands += (" " + str(random.choice(self.d[Int()])))
-            new_str = String_Op('str.substr', operands)
+            new_str = StringOp('str.substr', operands)
             self.d[String()].append(new_str)
         if m_use_ite and random.random() < 0.05:
             parb = random.choice(self.d[Bool()])
@@ -3544,7 +3472,7 @@ class Nodes:
             operand += (" " + str(par1))
             par2 = random.choice(self.d[String()])
             operand += (" " + str(par2))
-            new_str = Ite_Op('ite', operand)
+            new_str = IteOp('ite', operand)
             self.d[String()].append(new_str)
 
         if m_test_string_re:
@@ -3552,7 +3480,7 @@ class Nodes:
             if reop < 0.35:
                 rea = random.choice(self.d[Regular()])
                 operands = str(rea)
-                new_re = Regular_Op(random.choice(ReUnOp), operands)
+                new_re = RegularOp(random.choice(ReUnOp), operands)
                 self.d[Regular()].append(new_re)
             elif reop < 0.65:
                 par = random.choice(self.d[Regular()])
@@ -3562,7 +3490,7 @@ class Nodes:
                     par = random.choice(self.d[Regular()])
                     operands += (" " + str(par))
                 op_to_use = random.choice(ReBinOp)
-                new_re = Regular_Op(op_to_use, operands)
+                new_re = RegularOp(op_to_use, operands)
                 self.d[Regular()].append(new_re)
             else:
                 str1 = random.choice(self.d[String()])
@@ -3594,29 +3522,29 @@ class Nodes:
             new_int2 = par
             if n_operands == 2:
                 if random.random() < 0.5:
-                    new_int2 = Real_Op('ufss3', operands)
+                    new_int2 = RealOp('ufss3', operands)
                 else:
-                    new_int2 = Real_Op('ufss3_2', operands)
+                    new_int2 = RealOp('ufss3_2', operands)
             elif n_operands == 3:
                 if random.random() < 0.5:
-                    new_int2 = Real_Op('ufss4', operands)
+                    new_int2 = RealOp('ufss4', operands)
                 else:
-                    new_int2 = Real_Op('ufss4_2', operands)
+                    new_int2 = RealOp('ufss4_2', operands)
             elif n_operands == 4:
                 if random.random() < 0.5:
-                    new_int2 = Real_Op('ufss5', operands)
+                    new_int2 = RealOp('ufss5', operands)
                 else:
-                    new_int2 = Real_Op('ufss5_2', operands)
+                    new_int2 = RealOp('ufss5_2', operands)
             elif n_operands == 5:
                 if random.random() < 0.5:
-                    new_int2 = Real_Op('ufss6', operands)
+                    new_int2 = RealOp('ufss6', operands)
                 else:
-                    new_int2 = Real_Op('ufss6_2', operands)
+                    new_int2 = RealOp('ufss6_2', operands)
             elif n_operands == 6:
                 if random.random() < 0.5:
-                    new_int2 = Real_Op('ufss7', operands)
+                    new_int2 = RealOp('ufss7', operands)
                 else:
-                    new_int2 = Real_Op('ufss7_2', operands)
+                    new_int2 = RealOp('ufss7_2', operands)
             self.d[String()].append(new_int2)
 
     def bool_from_int(self):
@@ -3626,7 +3554,7 @@ class Nodes:
             operand = str(par)
             par = random.choice(self.d[Int()])
             operand += (" " + str(par))
-            new_bool = Bool_Op(random.choice(IRNBoolOp), operand)
+            new_bool = BoolOp(random.choice(IRNBoolOp), operand)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
             return  # stop here
@@ -3641,18 +3569,18 @@ class Nodes:
         for _ in range(n_operands):
             par = random.choice(self.d[Int()])
             operands += (" " + str(par))
-        new_bool = Bool_Op(random.choice(IRNBoolOp), operands)
+        new_bool = BoolOp(random.choice(IRNBoolOp), operands)
         if m_test_my_uf and random.random() < 0.1:
             if n_operands == 2:
-                new_bool = Bool_Op('ufib3', operands)
+                new_bool = BoolOp('ufib3', operands)
             elif n_operands == 3:
-                new_bool = Bool_Op('ufib4', operands)
+                new_bool = BoolOp('ufib4', operands)
             elif n_operands == 4:
-                new_bool = Bool_Op('ufib5', operands)
+                new_bool = BoolOp('ufib5', operands)
             elif n_operands == 5:
-                new_bool = Bool_Op('ufib6', operands)
+                new_bool = BoolOp('ufib6', operands)
             elif n_operands == 6:
-                new_bool = Bool_Op('ufib7', operands)
+                new_bool = BoolOp('ufib7', operands)
 
         self.d[Bool()].append(new_bool)
         # give possibility of asserting this new bool here?
@@ -3660,52 +3588,16 @@ class Nodes:
 
     def bool_from_set(self):
         global IRNSetBoolOp
-        if m_test_cvc4:
-            set_pred = random.random()
-            if set_pred < 0.35:
-                if m_test_set_eq and (not m_test_str_set_bapa):
-                    IRNSetBoolOp = ["seteq", "subset", "subset", "subset"]
-                par1 = random.choice(self.d[Set()])
-                operands = str(par1)
-                par2 = random.choice(self.d[Set()])
-                operands += (" " + str(par2))
-                bool_op_use = random.choice(IRNSetBoolOp)
-                new_bool = Bool_Op(bool_op_use, operands)
-                self.d[Bool()].append(new_bool)
-                IRNSetBoolOp = ["subset"]
-            elif set_pred < 0.55:
-                par1 = random.choice(self.d[Int()])
-                if m_test_str_set_bapa:
-                    par1 = random.choice(self.d[String()])
-                operands = str(par1)
-                par2 = random.choice(self.d[Set()])
-                operands += (" " + str(par2))
-                bool_op_use = 'member'
-                new_bool = Bool_Op(bool_op_use, operands)
-                self.d[Bool()].append(new_bool)
-            elif set_pred < 0.7:
-                par1 = random.choice(self.d[Set()])
-                operands = str(par1)
-                bool_op_use = 'is_singleton'
-                new_bool = Bool_Op(bool_op_use, operands)
-                self.d[Bool()].append(new_bool)
-            # BAPA (TODO: add as boolean node, instead of directly print)
-            # IMPORTANT: in z3 commit 5516e420a1
-            else:  # seems cvc4 supports
-                for k in range(2):
-                    st = random.choice(self.d[Set()])
-                    self.d[Int()].append(Int_Op("card", st))
-        else:
-            if m_test_set_eq and (not m_test_str_set_bapa):
-                IRNSetBoolOp = ["seteq", "subset", "subset", "subset"]
-            par1 = random.choice(self.d[Set()])
-            operands = str(par1)
-            par2 = random.choice(self.d[Set()])
-            operands += (" " + str(par2))
-            bool_op_use = random.choice(IRNSetBoolOp)
-            new_bool = Bool_Op(bool_op_use, operands)
-            self.d[Bool()].append(new_bool)
-            IRNSetBoolOp = ["subset"]
+        if m_test_set_eq and (not m_test_str_set_bapa):
+            IRNSetBoolOp = ["seteq", "subset", "subset", "subset"]
+        par1 = random.choice(self.d[Set()])
+        operands = str(par1)
+        par2 = random.choice(self.d[Set()])
+        operands += (" " + str(par2))
+        bool_op_use = random.choice(IRNSetBoolOp)
+        new_bool = BoolOp(bool_op_use, operands)
+        self.d[Bool()].append(new_bool)
+        IRNSetBoolOp = ["subset"]
 
     def bool_from_bag(self):
         set_pred = random.random()
@@ -3715,14 +3607,14 @@ class Nodes:
             par2 = random.choice(self.d[Bag()])
             operands += (" " + str(par2))
             bool_op_use = random.choice(IRNBagBoolOp)
-            new_bool = Bool_Op(bool_op_use, operands)
+            new_bool = BoolOp(bool_op_use, operands)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
         elif set_pred < 0.8:
             par1 = random.choice(self.d[Bag()])
             operands = str(par1)
             bool_op_use = 'bag.is_singleton'
-            new_bool = Bool_Op(bool_op_use, operands)
+            new_bool = BoolOp(bool_op_use, operands)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
         elif True:
@@ -3734,14 +3626,14 @@ class Nodes:
                 print("(assert (< (bag.card " + str(st) + ") " + str(sz) + "))")
 
     def bool_from_seplog(self):
-        if m_test_seplog and m_test_cvc4:
+        if m_test_seplog:
             # pto: points-to
             if random.random() < 0.5:
                 par = random.choice(self.d[Int()])
                 operand = str(par)
                 par = random.choice(self.d[Int()])
                 operand += (" " + str(par))
-                new_bool = Bool_Op(random.choice(SeplogBinOp), operand)
+                new_bool = BoolOp(random.choice(SeplogBinOp), operand)
                 self.d[Bool()].append(new_bool)
                 self.dict[Bool()] += 1
             else:
@@ -3749,7 +3641,7 @@ class Nodes:
                 par2 = random.choice(self.d[Bool()])
                 operand = str(par1)
                 operand += (" " + str(par2))
-                new_bool = Bool_Op(random.choice(SeplogNBoolOp), operand)
+                new_bool = BoolOp(random.choice(SeplogNBoolOp), operand)
                 self.d[Bool()].append(new_bool)
 
     def bool_from_string(self):
@@ -3763,13 +3655,13 @@ class Nodes:
         # TODO:more unary
         if chance < 0.3 and m_test_string_lia:  # binary
             st = random.choice(self.d[String()])
-            self.d[Int()].append(Int_Op("str.len", st))
+            self.d[Int()].append(IntOp("str.len", st))
         elif chance < 0.5:
             par = random.choice(self.d[String()])
             operands = str(par)
             par = random.choice(self.d[String()])
             operands += (" " + str(par))
-            new_bool = Bool_Op(random.choice(StringBinBoolOp), operands)
+            new_bool = BoolOp(random.choice(StringBinBoolOp), operands)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
         else:
@@ -3789,7 +3681,7 @@ class Nodes:
                         par = random.choice(self.d[String()])
                         operands += (" " + str(par))
 
-            new_bool = Bool_Op(op_to_use, operands)
+            new_bool = BoolOp(op_to_use, operands)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
 
@@ -3803,8 +3695,8 @@ class Nodes:
 
     def new_real(self):
         if random.random() < 0.5:
-            self.d[Real()].append(Var_Real(self.n_reals))
-            print('(declare-fun {} () Real)'.format(Var_Real(self.n_reals)))
+            self.d[Real()].append(VarReal(self.n_reals))
+            print('(declare-fun {} () Real)'.format(VarReal(self.n_reals)))
             self.n_reals += 1
         else:
             new_real = random_real()
@@ -3821,15 +3713,15 @@ class Nodes:
             new_real = random_real()
             new_int2 = new_real
             if n_operands == 2:
-                new_int2 = Real_Op('ufrr3', operands)
+                new_int2 = RealOp('ufrr3', operands)
             elif n_operands == 3:
-                new_int2 = Real_Op('ufrr4', operands)
+                new_int2 = RealOp('ufrr4', operands)
             elif n_operands == 4:
-                new_int2 = Real_Op('ufrr5', operands)
+                new_int2 = RealOp('ufrr5', operands)
             elif n_operands == 5:
-                new_int2 = Real_Op('ufrr6', operands)
+                new_int2 = RealOp('ufrr6', operands)
             elif n_operands == 6:
-                new_int2 = Real_Op('ufrr7', operands)
+                new_int2 = RealOp('ufrr7', operands)
             # self.d[Real()].append(new_int2)
             par = random.choice(self.d[Bool()])
             operands = str(par)
@@ -3839,15 +3731,15 @@ class Nodes:
                 operands += (" " + str(par))
             new_b = random.choice(self.d[Real()])
             if n_operands == 2:
-                new_b = Int_Op('ufbr3', operands)
+                new_b = IntOp('ufbr3', operands)
             elif n_operands == 3:
-                new_b = Int_Op('ufbr4', operands)
+                new_b = IntOp('ufbr4', operands)
             elif n_operands == 4:
-                new_b = Int_Op('ufbr5', operands)
+                new_b = IntOp('ufbr5', operands)
             elif n_operands == 5:
-                new_b = Int_Op('ufbr6', operands)
+                new_b = IntOp('ufbr6', operands)
             elif n_operands == 6:
-                new_b = Int_Op('ufbr7', operands)
+                new_b = IntOp('ufbr7', operands)
 
             if random.random() < 0.5:
                 self.d[Real()].append(new_int2)
@@ -3860,11 +3752,11 @@ class Nodes:
             self.d[FP()].append(new_fp)
             self.dict[FP()] += 1
         else:
-            self.d[FP()].append(Var_FP(self.n_fps))
+            self.d[FP()].append(VarFP(self.n_fps))
             if m_test_fp64:
-                print('(declare-fun {} () Float64)'.format(Var_FP(self.n_fps)))
+                print('(declare-fun {} () Float64)'.format(VarFP(self.n_fps)))
             else:
-                print('(declare-fun {} () Float32)'.format(Var_FP(self.n_fps)))
+                print('(declare-fun {} () Float32)'.format(VarFP(self.n_fps)))
             self.n_fps += 1
             self.dict[FP()] += 1
 
@@ -3878,7 +3770,7 @@ class Nodes:
                 operands = str(parone)
                 partwo = random.choice(self.d[Real()])
                 operands += (" " + str(partwo))
-                self.d[Real()].append(Real_Op("-", operands))  # RDL
+                self.d[Real()].append(RealOp("-", operands))  # RDL
             return
 
         chance = random.random()
@@ -3886,13 +3778,13 @@ class Nodes:
             par = random.choice(self.d[Real()])
 
             if m_global_logic in lra_logics:
-                new_real = Real_Op(random.choice(RealUnOp), par)
+                new_real = RealOp(random.choice(RealUnOp), par)
             else:
                 if random.random() < 0.65 or m_global_logic == 'UFNRA' or m_global_logic == 'NRA' \
                         or m_global_logic == 'QF_UFNRA':
-                    new_real = Real_Op(random.choice(RealUnOp), par)
+                    new_real = RealOp(random.choice(RealUnOp), par)
                 else:  # sin, cos, tanh
-                    new_real = Real_Op(random.choice(RealUnOp2), par)
+                    new_real = RealOp(random.choice(RealUnOp2), par)
             self.d[Real()].append(new_real)
         elif chance < 0.55:  # binary
             try_times = 1
@@ -3915,7 +3807,7 @@ class Nodes:
                         continue
                 else:
                     operands += (" " + str(partwo))
-                    new_real = Real_Op(real_op_use, operands)
+                    new_real = RealOp(real_op_use, operands)
                     self.d[Real()].append(new_real)
                     break
         else:  # n-array
@@ -3937,14 +3829,14 @@ class Nodes:
                 op_to_use = random.choice(RealNOp)
                 if m_global_logic in lra_logics:
                     if (op_to_use == "*" or op_to_use ==
-                        "/") and num_real_var >= 2:
+                            "/") and num_real_var >= 2:
                         continue
                     else:
-                        new_real = Real_Op(op_to_use, operands)
+                        new_real = RealOp(op_to_use, operands)
                         self.d[Real()].append(new_real)
                         break
                 else:
-                    new_real = Real_Op(op_to_use, operands)
+                    new_real = RealOp(op_to_use, operands)
                     self.d[Real()].append(new_real)
                     # break
             # '''
@@ -3957,7 +3849,7 @@ class Nodes:
             operand += (" " + str(par1))
             par2 = random.choice(self.d[Real()])
             operand += (" " + str(par2))
-            new_real = Ite_Op('ite', operand)
+            new_real = IteOp('ite', operand)
             self.d[Real()].append(new_real)
 
     def bool_from_real(self):
@@ -3967,7 +3859,7 @@ class Nodes:
             operand = str(par)
             par = random.choice(self.d[Real()])
             operand += (" " + str(par))
-            new_bool = Bool_Op(random.choice(IRNBoolOp), operand)
+            new_bool = BoolOp(random.choice(IRNBoolOp), operand)
             self.d[Bool()].append(new_bool)
             return  # stop here
 
@@ -3980,19 +3872,19 @@ class Nodes:
         for _ in range(n_operands):
             par = random.choice(self.d[Real()])
             operands += (" " + str(par))
-        new_bool = Bool_Op(random.choice(IRNBoolOp), operands)
+        new_bool = BoolOp(random.choice(IRNBoolOp), operands)
 
         if m_test_my_uf and random.random() < 0.1:
             if n_operands == 2:
-                new_bool = Bool_Op('ufrb3', operands)
+                new_bool = BoolOp('ufrb3', operands)
             elif n_operands == 3:
-                new_bool = Bool_Op('ufrb4', operands)
+                new_bool = BoolOp('ufrb4', operands)
             elif n_operands == 4:
-                new_bool = Bool_Op('ufrb5', operands)
+                new_bool = BoolOp('ufrb5', operands)
             elif n_operands == 5:
-                new_bool = Bool_Op('ufrb6', operands)
+                new_bool = BoolOp('ufrb6', operands)
             elif n_operands == 6:
-                new_bool = Bool_Op('ufrb7', operands)
+                new_bool = BoolOp('ufrb7', operands)
 
         self.d[Bool()].append(new_bool)
         self.dict[Bool()] += 1
@@ -4001,14 +3893,14 @@ class Nodes:
         chance = random.random()
         if chance < 0.4:  # unary
             par = random.choice(self.d[FP()])
-            new_fp = FP_Op(random.choice(FPUnOp), par)
+            new_fp = FPOp(random.choice(FPUnOp), par)
             self.d[FP()].append(new_fp)
         else:
             par = random.choice(self.d[FP()])
             operands = str(par)
             par = random.choice(self.d[FP()])
             operands += (" " + str(par))
-            new_fp = FP_Op(random.choice(FPNOp), operands)
+            new_fp = FPOp(random.choice(FPNOp), operands)
             self.d[FP()].append(new_fp)
 
     def bool_from_fp(self):
@@ -4016,7 +3908,7 @@ class Nodes:
         if random.random() < 0.15:
             par = random.choice(self.d[FP()])
             operand = str(par)
-            new_bool = Bool_Op(random.choice(UnFPBoolOp), operand)
+            new_bool = BoolOp(random.choice(UnFPBoolOp), operand)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
             return
@@ -4027,7 +3919,7 @@ class Nodes:
         for _ in range(n_operands):
             par = random.choice(self.d[FP()])
             operands += (" " + str(par))
-        new_bool = Bool_Op(random.choice(IRNFPBoolOp), operands)
+        new_bool = BoolOp(random.choice(IRNFPBoolOp), operands)
         self.d[Bool()].append(new_bool)
         # give possibility of asserting this new bool here?
         self.dict[Bool()] += 1
@@ -4036,15 +3928,15 @@ class Nodes:
         chance = random.randint(1, 5)
         if chance <= 2:
             par = random.choice(self.d[Int()])
-            self.d[Real()].append(Real_Op("to_real", par))
+            self.d[Real()].append(RealOp("to_real", par))
             self.dict[Real()] += 1
         elif chance <= 4:
             par = random.choice(self.d[Real()])
-            self.d[Int()].append(Int_Op("to_int", par))
+            self.d[Int()].append(IntOp("to_int", par))
             self.dict[Int()] += 1
         else:
             par = random.choice(self.d[Real()])
-            self.d[Bool()].append(Bool_Op("is_int", par))
+            self.d[Bool()].append(BoolOp("is_int", par))
             self.dict[Bool()] += 1
 
     def init_BV(self):
@@ -4055,7 +3947,7 @@ class Nodes:
             if bv_sort not in self.d.keys():
                 self.d[bv_sort] = []
                 self.dict[bv_sort] = 0
-            const = Var_BV(width, len(self.d[bv_sort]))
+            const = VarBV(width, len(self.d[bv_sort]))
             print('(declare-fun {} () {})'.format(const, bv_sort))
             self.d[bv_sort].append(const)
             self.dict[bv_sort] += 1
@@ -4068,7 +3960,7 @@ class Nodes:
             if bv_sort not in self.d.keys():
                 self.d[bv_sort] = []
                 self.dict[bv_sort] = 0
-            const = Var_BV(width, len(self.d[bv_sort]))
+            const = VarBV(width, len(self.d[bv_sort]))
             print('(declare-fun {} () {})'.format(const, bv_sort))
             self.d[bv_sort].append(const)
             self.dict[bv_sort] += 1
@@ -4104,12 +3996,12 @@ class Nodes:
                 par1 = random.choice(self.d[s])
                 par2 = random.choice(self.d[s2])
                 operand = str(par1) + " " + str(par2)
-                new_BV = BV_Op("concat", operand)
+                new_bv = BVOp("concat", operand)
                 bv_sort = BV(width)
                 if bv_sort not in self.d.keys():
                     self.d[bv_sort] = []
                     self.dict[bv_sort] = 0
-                self.d[bv_sort].append(new_BV)
+                self.d[bv_sort].append(new_bv)
                 self.dict[bv_sort] += 1
 
             elif prob < 0.1:  # repeat
@@ -4119,19 +4011,19 @@ class Nodes:
                 width = ii * s.w
                 operator = '(_ repeat {})'.format(ii)
                 par = random.choice(self.d[s])
-                new_BV = BV_Op(operator, par)
+                new_bv = BVOp(operator, par)
                 bv_sort = BV(width)
                 if bv_sort not in self.d.keys():
                     self.d[bv_sort] = []
                     self.dict[bv_sort] = 0
-                self.d[bv_sort].append(new_BV)
+                self.d[bv_sort].append(new_bv)
                 self.dict[bv_sort] += 1
 
             elif prob < 0.2:  # unary, extract
                 if random.random() < 0.5:  # unary
                     par = random.choice(self.d[s])
-                    new_BV = BV_Op(random.choice(Un_BV_BV), par)
-                    self.d[s].append(new_BV)
+                    new_bv = BVOp(random.choice(Un_BV_BV), par)
+                    self.d[s].append(new_bv)
                     self.dict[s] += 1
                 else:  # extract
                     width = s.w
@@ -4141,12 +4033,12 @@ class Nodes:
                         parameter1, parameter2)
                     new_width = parameter1 - parameter2 + 1
                     par = random.choice(self.d[s])
-                    new_BV = BV_Op(operator, par)
+                    new_bv = BVOp(operator, par)
                     bv_sort = BV(new_width)
                     if bv_sort not in self.d.keys():
                         self.d[bv_sort] = []
                         self.dict[bv_sort] = 0
-                    self.d[bv_sort].append(new_BV)
+                    self.d[bv_sort].append(new_bv)
                     self.dict[bv_sort] += 1
 
             elif prob < 0.3:
@@ -4158,12 +4050,12 @@ class Nodes:
                         operator = "(_ sign_extend {})".format(ii)
                     width = s.w + ii
                     par = random.choice(self.d[s])
-                    new_BV = BV_Op(operator, par)
+                    new_bv = BVOp(operator, par)
                     bv_sort = BV(width)
                     if bv_sort not in self.d.keys():
                         self.d[bv_sort] = []
                         self.dict[bv_sort] = 0
-                    self.d[bv_sort].append(new_BV)
+                    self.d[bv_sort].append(new_bv)
                     self.dict[bv_sort] += 1
                 else:
                     if random.random() < 0.5:
@@ -4171,8 +4063,8 @@ class Nodes:
                     else:
                         operator = "(_ rotate_right {})".format(ii)
                     par = random.choice(self.d[s])
-                    new_BV = BV_Op(operator, par)
-                    self.d[s].append(new_BV)
+                    new_bv = BVOp(operator, par)
+                    self.d[s].append(new_bv)
                     self.dict[s] += 1
 
             elif prob < 0.4:  # n-array
@@ -4182,8 +4074,8 @@ class Nodes:
                 for _ in range(a):
                     par = random.choice(self.d[s])
                     operand += (" " + str(par))
-                new_BV = BV_Op(random.choice(N_BV_BV), operand)
-                self.d[s].append(new_BV)
+                new_bv = BVOp(random.choice(N_BV_BV), operand)
+                self.d[s].append(new_bv)
                 self.dict[s] += 1
 
             else:  # binary
@@ -4191,15 +4083,15 @@ class Nodes:
                 par2 = random.choice(self.d[s])
                 operand = str(par1) + " " + str(par2)
                 operator = random.choice(Bin_BV_BV)
-                new_BV = BV_Op(operator, operand)
+                new_bv = BVOp(operator, operand)
                 if operator == "bvcomp":
                     if BV(1) not in self.d.keys():
                         self.d[BV(1)] = []
                         self.dict[BV(1)] = 0
-                    self.d[BV(1)].append(new_BV)
+                    self.d[BV(1)].append(new_bv)
                     self.dict[BV(1)] += 1
                 else:
-                    self.d[s].append(new_BV)
+                    self.d[s].append(new_bv)
                     self.dict[s] += 1
 
     def bool_from_BV(self):
@@ -4213,7 +4105,7 @@ class Nodes:
                 par1 = random.choice(self.d[s])
                 par2 = random.choice(self.d[s])
                 operand = str(par1) + " " + str(par2)
-                new_bool = Bool_Op(random.choice(Bin_BV_Bool), operand)
+                new_bool = BoolOp(random.choice(Bin_BV_Bool), operand)
             else:
                 par = random.choice(self.d[s])
                 operand = str(par)
@@ -4221,220 +4113,37 @@ class Nodes:
                 for _ in range(n):
                     par = random.choice(self.d[s])
                     operand += (" " + str(par))
-                new_bool = Bool_Op(random.choice(N_BV_Bool), operand)
+                new_bool = BoolOp(random.choice(N_BV_Bool), operand)
             self.d[Bool()].append(new_bool)
             self.dict[Bool()] += 1
 
-    def new_array_boolector(self, logic):
-        # Boolector does not support array as UF argument??
-        if logic == 'QF_ABV' or logic == 'QF_AUFBV' or logic == 'ABV' or logic == 'AUFBV':
-            ops = []
-            ops_no_bool = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                if not isinstance(o, Bool) and not isinstance(o, Arr):
-                    ops_no_bool.append(o)
-
-            i_ops = []
-            for o in list(self.d):
-                if isinstance(o, BV) and len(self.d[o]) > 0:
-                    i_ops.append(o)
-
-            if len(i_ops) < 1 or len(ops) < 1 or len(ops_no_bool) < 1:
-                return  # err handling
-
-            isort = random.choice(i_ops)
-            esort = random.choice(ops)
-            if m_test_stp:
-                esort = random.choice(ops_no_bool)  # for STP?
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-
-    def new_array_cvc(self, logic):
-        # cvc4 does not support arr index
-        # So, ...
-        arr_arith_logic = ['ANIA', 'ALIA', 'AUFNIA', 'AUFLIA', 'QF_ANIA', 'QF_ALIA', 'QF_AUFNIA', 'QF_AUFLIA', 'ANRA',
-                           'ALRA', 'AUFNRA', 'AUFLRA', 'QF_ANRA', 'QF_ALRA', 'QF_AUFNRA', 'QF_AUFLRA', 'QF_ALIRA',
-                           'QF_ANIRA', 'QF_AUFLIRA', 'QF_AUFNIRA', 'ALIRA', 'ANIRA', 'AUFLIRA', 'AUFNIRA']
-        if logic == 'ALL' or logic == 'QF_AX' or logic == 'AX':
-            ops = []
-            ops_no_arr = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                    ops_no_arr.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            if len(ops) < 1 or len(ops_no_arr) < 1:
-                return  # err handling
-            isort = random.choice(ops_no_arr)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-        elif logic == 'QF_ABV' or logic == 'QF_AUFBV' or logic == 'ABV' or logic == 'AUFBV':
-            ops = []
-            ops_no_arr = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                    ops_no_arr.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            i_ops = []
-            for o in list(self.d):
-                if isinstance(o, BV) and len(self.d[o]) > 0:
-                    i_ops.append(o)
-
-            if len(i_ops) < 1 or len(ops) < 1 or len(ops_no_arr) < 1:
-                return  # err handling
-            isort = random.choice(i_ops)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-        elif logic in arr_arith_logic:
-            ops = []
-            ops_no_arr = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                    ops_no_arr.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            if len(ops) < 1 or len(ops_no_arr) < 1:
-                return  # err handling
-            isort = random.choice(ops_no_arr)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-
-    def new_array_smtinterpol(self, logic):
-        # SMTInterpol does not support boolean index
-        # So, ...
-        arr_arith_logic = ['ANIA', 'ALIA', 'AUFNIA', 'AUFLIA', 'QF_ANIA', 'QF_ALIA', 'QF_AUFNIA', 'QF_AUFLIA', 'ANRA',
-                           'ALRA', 'AUFNRA', 'AUFLRA', 'QF_ANRA', 'QF_ALRA', 'QF_AUFNRA', 'QF_AUFLRA']
-        if logic == 'ALL' or logic == 'QF_AX' or logic == 'AX':
-            ops = []
-            ops_no_bool = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                if not isinstance(o, Bool):
-                    ops_no_bool.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            if len(ops) < 1 or len(ops_no_bool) < 1:
-                return  # err handling
-            isort = random.choice(ops_no_bool)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-        elif logic == 'QF_ABV' or logic == 'QF_AUFBV' or logic == 'ABV' or logic == 'AUFBV':
-            ops = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            i_ops = []
-            for o in list(self.d):
-                if isinstance(o, BV) and len(self.d[o]) > 0:
-                    i_ops.append(o)
-
-            if len(i_ops) < 1 or len(ops) < 1:
-                return  # err handling
-
-            isort = random.choice(i_ops)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-        elif logic in arr_arith_logic:
-            ops = []
-            ops_no_bool = []
-            for o in list(self.d):
-                if not isinstance(o, Arr):
-                    ops.append(o)
-                if not isinstance(o, Bool):
-                    ops_no_bool.append(o)
-                if isinstance(o, Arr):
-                    if len(self.d[o]) > 0:
-                        ops.append(o)
-            if len(ops) < 1 or len(ops_no_bool) < 1:
-                return  # err handling
-            isort = random.choice(ops_no_bool)
-            esort = random.choice(ops)
-            arrsort = Arr(isort, esort)
-            if arrsort not in list(self.d):
-                self.d[arrsort] = []
-                self.dict[arrsort] = 0
-            n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
-            print('(declare-fun {} () {})'.format(new_arr, arrsort))
-            self.d[arrsort].append(new_arr)
-            self.dict[arrsort] += 1
-
     def new_array(self, logic):
-        # SMTInterpol does not support boolean index
-        if m_test_smtinterpol:  # ??
-            self.new_array_smtinterpol(logic)
-            return
-        elif m_test_boolector:
-            self.new_array_boolector(logic)
-            return
-        elif m_test_cvc4 or m_test_diff:
-            self.new_array_cvc(logic)
-            return
 
-        arr_arith_logic = ['ANIA', 'ALIA', 'AUFNIA', 'AUFLIA', 'QF_ANIA', 'QF_ALIA', 'QF_AUFNIA', 'QF_AUFLIA', 'ANRA',
-                           'ALRA', 'AUFNRA', 'AUFLRA', 'QF_ANRA', 'QF_ALRA', 'QF_AUFNRA', 'QF_AUFLRA', 'QF_ALIRA',
-                           'QF_ANIRA', 'QF_AUFLIRA', 'QF_AUFNIRA', 'ALIRA', 'ANIRA', 'AUFLIRA', 'AUFNIRA']
+        arr_arith_logic = [
+            'ANIA',
+            'ALIA',
+            'AUFNIA',
+            'AUFLIA',
+            'QF_ANIA',
+            'QF_ALIA',
+            'QF_AUFNIA',
+            'QF_AUFLIA',
+            'ANRA',
+            'ALRA',
+            'AUFNRA',
+            'AUFLRA',
+            'QF_ANRA',
+            'QF_ALRA',
+            'QF_AUFNRA',
+            'QF_AUFLRA',
+            'QF_ALIRA',
+            'QF_ANIRA',
+            'QF_AUFLIRA',
+            'QF_AUFNIRA',
+            'ALIRA',
+            'ANIRA',
+            'AUFLIRA',
+            'AUFNIRA']
         if logic == 'ALL' or logic == 'QF_AX' or logic == 'AX':
             ops = []
             for o in list(self.d):
@@ -4452,7 +4161,7 @@ class Nodes:
                 self.d[arrsort] = []
                 self.dict[arrsort] = 0
             n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
+            new_arr = VarArr(isort, esort, n)
             print('(declare-fun {} () {})'.format(new_arr, arrsort))
             self.d[arrsort].append(new_arr)
             self.dict[arrsort] += 1
@@ -4479,7 +4188,7 @@ class Nodes:
                 self.d[arrsort] = []
                 self.dict[arrsort] = 0
             n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
+            new_arr = VarArr(isort, esort, n)
             print('(declare-fun {} () {})'.format(new_arr, arrsort))
             self.d[arrsort].append(new_arr)
             self.dict[arrsort] += 1
@@ -4501,7 +4210,7 @@ class Nodes:
                 self.d[arrsort] = []
                 self.dict[arrsort] = 0
             n = len(self.d[arrsort])
-            new_arr = Var_Arr(isort, esort, n)
+            new_arr = VarArr(isort, esort, n)
             print('(declare-fun {} () {})'.format(new_arr, arrsort))
             self.d[arrsort].append(new_arr)
             self.dict[arrsort] += 1
@@ -4524,12 +4233,12 @@ class Nodes:
             par2 = random.choice(self.d[isort])
             par3 = random.choice(self.d[esort])
             items = '{} {} {}'.format(par, par2, par3)
-            new_arr = Arr_Op('store', items)
+            new_arr = ArrOp('store', items)
             self.d[current_sort].append(new_arr)
             self.dict[current_sort] += 1
 
     def bool_from_array(self):
-        if random.random() < 0.5 or m_test_stp:
+        if random.random() < 0.5:
             ops = []
             options = []
             for o in list(self.d):
@@ -4545,7 +4254,7 @@ class Nodes:
                 par = random.choice(self.d[current_sort])
                 par2 = random.choice(self.d[isort])
                 expression = '{} {}'.format(par, par2)
-                new_one = Arr_Op('select', expression)
+                new_one = ArrOp('select', expression)
                 sssort = current_sort.sort_element
                 self.d[sssort].append(new_one)
                 if sssort not in self.dict.keys():
@@ -4569,9 +4278,9 @@ class Nodes:
                     par = random.choice(self.d[current_sort])
                     operand += (" " + str(par))
                 if random.random() < 0.5:
-                    new_bool = Bool_Op('=', operand)
+                    new_bool = BoolOp('=', operand)
                 else:
-                    new_bool = Bool_Op('distinct', operand)
+                    new_bool = BoolOp('distinct', operand)
                 self.d[Bool()].append(new_bool)
                 self.dict[Bool()] += 1
 
@@ -4584,7 +4293,7 @@ class Nodes:
                     operand += (" " + str(par2))
                     operand += (" " + str(random.randint(1, 5)))
                     operand += (" " + str(random.randint(6, 15)))
-                    new_bool = Bool_Op('eqrange', operand)
+                    new_bool = BoolOp('eqrange', operand)
                     self.d[Bool()].append(new_bool)
 
     def bool_from_bool(self):
@@ -4592,14 +4301,14 @@ class Nodes:
         if p == 1:
             # pick Unary
             par = random.choice(self.d[Bool()])
-            new_bool = Bool_Op(random.choice(UnOp), par)
+            new_bool = BoolOp(random.choice(UnOp), par)
         elif p == 2:
             # pick Binary
             par1 = random.choice(self.d[Bool()])
             par2 = random.choice(self.d[Bool()])
             operand = str(par1)
             operand += (" " + str(par2))
-            new_bool = Bool_Op(random.choice(BiOp), operand)
+            new_bool = BoolOp(random.choice(BiOp), operand)
         else:
             n_operands = random.randint(1, 6)
             par = random.choice(self.d[Bool()])
@@ -4608,38 +4317,38 @@ class Nodes:
                 par = random.choice(self.d[Bool()])
                 operands += (" " + str(par))
 
-            new_bool = Bool_Op(random.choice(NarOp), operands)
+            new_bool = BoolOp(random.choice(NarOp), operands)
             if m_test_my_uf and random.random() < 0.1:
                 ufpr = random.random()
                 if n_operands == 2:
                     if ufpr < 0.5:
-                        new_bool = Bool_Op('uf3', operands)
+                        new_bool = BoolOp('uf3', operands)
                     else:
-                        new_bool = Bool_Op('uf3_2', operands)
+                        new_bool = BoolOp('uf3_2', operands)
                     # else: new_bool = Bool_Op('uf3_3', operands)
                 elif n_operands == 3:
                     if ufpr < 0.5:
-                        new_bool = Bool_Op('uf4', operands)
+                        new_bool = BoolOp('uf4', operands)
                     else:
-                        new_bool = Bool_Op('uf4_2', operands)
+                        new_bool = BoolOp('uf4_2', operands)
                     # else: new_bool = Bool_Op('uf4_3', operands)
                 elif n_operands == 4:
                     if ufpr < 0.5:
-                        new_bool = Bool_Op('uf5', operands)
+                        new_bool = BoolOp('uf5', operands)
                     else:
-                        new_bool = Bool_Op('uf5_2', operands)
+                        new_bool = BoolOp('uf5_2', operands)
                     # else: new_bool = Bool_Op('uf5_3', operands)
                 elif n_operands == 5:
                     if ufpr < 0.5:
-                        new_bool = Bool_Op('uf6', operands)
+                        new_bool = BoolOp('uf6', operands)
                     else:
-                        new_bool = Bool_Op('uf6_2', operands)
+                        new_bool = BoolOp('uf6_2', operands)
                     # else: new_bool = Bool_Op('uf6_3', operands)
                 elif n_operands == 6:
                     if ufpr < 0.5:
-                        new_bool = Bool_Op('uf7', operands)
+                        new_bool = BoolOp('uf7', operands)
                     else:
-                        new_bool = Bool_Op('uf7_2', operands)
+                        new_bool = BoolOp('uf7_2', operands)
                     # else: new_bool = Bool_Op('uf7_3', operands)
 
         self.d[Bool()].append(new_bool)
@@ -4652,7 +4361,7 @@ class Nodes:
             operand += (" " + str(par1))
             par2 = random.choice(self.d[Bool()])
             operand += (" " + str(par2))
-            new_bb2 = Ite_Op('ite', operand)
+            new_bb2 = IteOp('ite', operand)
             self.d[Bool()].append(new_bb2)
 
         return new_bool
@@ -4727,25 +4436,14 @@ StringBinBoolOp = [
     'str.contains',
     'str.suffixof',
     'str.prefixof']
-if m_use_swam_str:
+if m_use_swarm_str:
     StringBinBoolOp = random.sample(StringBinBoolOp, 3)
-# NOTE: seems z3str does not suport 'str.<=', 'str.<'??
-if m_test_z3str3:  # only  QF_SLIS suuports str.<= ?
-    tt = random.random()
-    if tt <= 0.2:
-        StringBinBoolOp = ['str.contains', 'str.suffixof']
-    elif tt <= 0.4:
-        StringBinBoolOp = ['str.contains', 'str.prefixof']
-    elif tt <= 0.6:
-        StringBinBoolOp = ['str.suffixof', 'str.prefixof']
-    else:
-        StringBinBoolOp = ['str.contains', 'str.suffixof', 'str.prefixof']
 
 StringNBoolOp = ['distinct', '=']
 
 ReUnOp = ['re.opt', 're.comp', 're.*', 're.+']
 ReBinOp = ['re.++', 're.union', 're.diff', 're.inter']
-if m_use_swam_str:
+if m_use_swarm_str:
     ReUnOp = random.sample(ReUnOp, 2)
     ReBinOp = random.sample(ReBinOp, 2)
 
@@ -4768,23 +4466,54 @@ SeplogNBoolOp = ['wand', 'sep']
 '''
 # See http://smtlib.cs.uiowa.edu/theories-FloatingPoint.shtml
 # TODO: use other op in  UnFpBoolOp
-UnFPBoolOp = ['fp.isPositive', 'fp.isNormal', 'fp.isNegative', 'fp.isNaN', 'fp.isSubnormal', 'fp.isInfinite',
-              'fp.isZero']
+UnFPBoolOp = [
+    'fp.isPositive',
+    'fp.isNormal',
+    'fp.isNegative',
+    'fp.isNaN',
+    'fp.isSubnormal',
+    'fp.isInfinite',
+    'fp.isZero']
 IRNFPBoolOp = ['fp.leq', 'fp.lt', 'fp.eq', 'fp.geq', 'fp.gt']
 
 FPNOp = []
 FPTriOp = []
 FPUnOp = []
 if m_fp_rounding_mode == 'random':
-    FPNOp = ['fp.add RNE', 'fp.add RNA', 'fp.add RTP', 'fp.add RTN', 'fp.add RTZ',
-             'fp.sub RNE', 'fp.sub RNA', 'fp.sub RTP', 'fp.sub RTN', 'fp.sub RTZ',
-             'fp.mul RNE', 'fp.mul RNA', 'fp.mul RTP', 'fp.mul RTN', 'fp.mul RTZ',
-             'fp.div RNE', 'fp.div RNA', 'fp.div RTP', 'fp.div RTN', 'fp.div RTZ',
-             'fp.rem', 'fp.rem', 'fp.rem', 'fp.rem',
-             'fp.min', 'fp.min', 'fp.min', 'fp.min',
-             'fp.max', 'fp.max', 'fp.max', 'fp.max'
-             ]
-    # if m_use_swam_fp:
+    FPNOp = [
+        'fp.add RNE',
+        'fp.add RNA',
+        'fp.add RTP',
+        'fp.add RTN',
+        'fp.add RTZ',
+        'fp.sub RNE',
+        'fp.sub RNA',
+        'fp.sub RTP',
+        'fp.sub RTN',
+        'fp.sub RTZ',
+        'fp.mul RNE',
+        'fp.mul RNA',
+        'fp.mul RTP',
+        'fp.mul RTN',
+        'fp.mul RTZ',
+        'fp.div RNE',
+        'fp.div RNA',
+        'fp.div RTP',
+        'fp.div RTN',
+        'fp.div RTZ',
+        'fp.rem',
+        'fp.rem',
+        'fp.rem',
+        'fp.rem',
+        'fp.min',
+        'fp.min',
+        'fp.min',
+        'fp.min',
+        'fp.max',
+        'fp.max',
+        'fp.max',
+        'fp.max']
+    # if m_use_swarm_fp:
     #    FPNOp = random.sample(FPNOp, 10)
     FPTriOp = [
         'fp.fma RNE',
@@ -4805,14 +4534,30 @@ else:
 
 ############
 
-Bin_BV_BV = ["bvand", "bvor", "bvadd", "bvmul", "bvudiv", "bvurem", "bvshl", "bvlshr", "bvnand", "bvnor", "bvsub",
-             "bvsdiv", "bvsrem", "bvsmod", "bvashr", "bvcomp", "bvxnor"]
-if m_use_swam_bv:
+Bin_BV_BV = [
+    "bvand",
+    "bvor",
+    "bvadd",
+    "bvmul",
+    "bvudiv",
+    "bvurem",
+    "bvshl",
+    "bvlshr",
+    "bvnand",
+    "bvnor",
+    "bvsub",
+    "bvsdiv",
+    "bvsrem",
+    "bvsmod",
+    "bvashr",
+    "bvcomp",
+    "bvxnor"]
+if m_use_swarm_bv:
     Bin_BV_BV = random.sample(Bin_BV_BV, 3)
 
 # N_BV_BV = ["bvxor"]
 N_BV_BV = ["bvxor", "bvor", "bvand"]
-if m_use_swam_bv:
+if m_use_swarm_bv:
     N_BV_BV = random.sample(N_BV_BV, 1)
 
 Un_BV_BV = ["bvnot", "bvneg"]
@@ -4828,137 +4573,6 @@ Bin_BV_Bool = [
 N_BV_Bool = ["=", "distinct"]
 
 
-# no seq.validate
-
-#########################################
-
-##########################################
-
-def add_yices_itp_cmd(nodes, logic):
-    nodes_vars = []
-    nodes_bv_vars = []
-    nodes_bool = []
-    if 'R' in logic and len(nodes.d[Real()]) > 0:
-        for rv in nodes.d[Real()]:
-            if isinstance(rv, Var_Real):
-                nodes_vars.append(rv)
-    if 'I' in logic and len(nodes.d[Int()]) > 0:
-        for rv in nodes.d[Int()]:
-            if isinstance(rv, Var_Int):
-                nodes_vars.append(rv)
-    if logic in qf_bv_logic_options:
-        for width in range(0, 64):
-            bv_sort = BV(width)
-            if bv_sort not in nodes.d.keys():
-                continue
-            for rv in nodes.d[bv_sort]:
-                if isinstance(rv, Var_BV):
-                    nodes_bv_vars.append(rv)
-    if (logic == 'QF_BOOL' or logic == 'QF_UF') and len(nodes.d[Bool()]) > 0:
-        for rv in nodes.d[Bool()]:
-            if isinstance(rv, Var_Bool):
-                nodes_bool.append(rv)
-
-    if len(nodes_vars) >= 3:
-        if random.random() < 0.2:
-            tmp_cmd = '(check-sat-assuming-model ('
-            for v in nodes_vars:
-                tmp_cmd += '{}'.format(v)
-                tmp_cmd += ' '
-            tmp_cmd += ') ('
-            for v in nodes_vars:
-                if isinstance(v, Var_Real):
-                    tmp_cmd += '{}'.format(random_real())
-                else:
-                    tmp_cmd += '{}'.format(random.randint(10, 5000))
-                tmp_cmd += ' '
-            tmp_cmd += '))'
-            print(tmp_cmd)
-        else:
-            octele_cnts = list(itertools.combinations(nodes_vars, 3))
-            random.shuffle(octele_cnts)
-            for v1, v2, v3 in octele_cnts:
-                # (check-sat-assuming-model (v0 v1) ((/ 33 65) (/ (- 76) (- 24))))
-                if random.random() < 0.5:
-                    if isinstance(v1, Var_Real):
-                        print('(check-sat-assuming-model ({} {} {}) ({} {} {}))'.format(v1, v2, v3, random_real(),
-                                                                                        random_real(), random_real()))
-                    else:
-                        print('(check-sat-assuming-model ({} {} {}) ({} {} {}))'.format(v1, v2, v3,
-                                                                                        random.randint(
-                                                                                            10, 5000),
-                                                                                        random.randint(
-                                                                                            10, 5000),
-                                                                                        random.randint(10, 5000)))
-                else:
-                    if isinstance(v1, Var_Real):
-                        print('(check-sat-assuming-model ({} {}) ({} {}))'.format(v1,
-                                                                                  v2, random_real(), random_real()))
-                    else:
-                        print('(check-sat-assuming-model ({} {}) ({} {}))'.format(v1, v2, random.randint(10, 5000),
-                                                                                  random.randint(10, 5000)))
-                break
-
-    if len(nodes_bv_vars) >= 3:
-        if random.random() < 0.1:
-            tmp_cmd = '(check-sat-assuming-model ('
-            for v in nodes_bv_vars:
-                tmp_cmd += '{}'.format(v)
-                tmp_cmd += ' '
-            tmp_cmd += ') ('
-            for v in nodes_bv_vars:
-                val = '(_ bv{} {})'.format(
-                    random.randint(0, 2 ** v.sort - 1), v.sort)
-                tmp_cmd += '{}'.format(val)
-                tmp_cmd += ' '
-            tmp_cmd += '))'
-            print(tmp_cmd)
-        else:
-            vvv = random.sample(nodes_bv_vars, 3)
-            v1 = vvv[0]
-            v2 = vvv[1]
-            v3 = vvv[2]
-            # v1 = random.choice(nodes_bv_vars); v2 = random.choice(nodes_bv_vars); v3 = random.choice(nodes_bv_vars)
-            val1 = "(_ bv{} {})".format(
-                random.randint(0, 2 ** (v1.sort) - 1), v1.sort)
-            val2 = "(_ bv{} {})".format(
-                random.randint(0, 2 ** (v2.sort) - 1), v2.sort)
-            val3 = "(_ bv{} {})".format(
-                random.randint(0, 2 ** (v3.sort) - 1), v3.sort)
-            if random.random() < 0.5:
-                print(
-                    '(check-sat-assuming-model ({} {}) ({} {}))'.format(v1, v2, val1, val2))
-            else:
-                print('(check-sat-assuming-model ({} {} {}) ({} {} {}))'.format(v1,
-                                                                                v2, v3, val1, val2, val3))
-
-    elif len(nodes_bool) >= 3:
-        # if random.random() < 0.6:
-        tf = ['true', 'false']
-        tmp_cmd = '(check-sat-assuming-model ('
-        for v in nodes_bool:
-            tmp_cmd += '{}'.format(v)
-            tmp_cmd += ' '
-        tmp_cmd += ') ('
-        for _ in nodes_bool:
-            tmp_cmd += '{}'.format(random.choice(tf))
-            tmp_cmd += ' '
-        tmp_cmd += '))'
-        print(tmp_cmd)
-
-    print('(get-unsat-model-interpolant)')
-
-
-def add_z3_qe_cmd():
-    if (not m_test_qe) or m_test_cvc4:
-        return
-    # I resue qe mode to test tactics
-    # for i in range(10):
-    #  print('(apply ' + random.choice(tactics) + ')')
-    print('(check-sat-using ' +
-          random.choice(['qe-light', 'qe', 'qe2', 'qe_rec']) + ')')
-
-
 def add_smt_opt_cmd(nodes, logic):
     if m_test_smt_opt:
         nodes_vars = []
@@ -4966,12 +4580,12 @@ def add_smt_opt_cmd(nodes, logic):
         if (logic in qf_real_logic_options or logic in qf_ira_logics) and len(
                 nodes.d[Real()]) > 0:
             for rv in nodes.d[Real()]:
-                if isinstance(rv, Var_Real) and random.random() < 0.9:
+                if isinstance(rv, VarReal) and random.random() < 0.9:
                     nodes_vars.append(rv)
         if (logic in qf_int_logic_options or logic in qf_ira_logics) and len(
                 nodes.d[Int()]) > 0:
             for rv in nodes.d[Int()]:
-                if isinstance(rv, Var_Int) and random.random() < 0.9:
+                if isinstance(rv, VarInt) and random.random() < 0.9:
                     nodes_vars.append(rv)
 
         if logic in qf_bv_logic_options:
@@ -4980,7 +4594,7 @@ def add_smt_opt_cmd(nodes, logic):
                 if bv_sort not in nodes.d.keys():
                     continue
                 for rv in nodes.d[bv_sort]:
-                    if isinstance(rv, Var_BV) and random.random() < 0.98:
+                    if isinstance(rv, VarBV) and random.random() < 0.98:
                         nodes_bv_vars.append(rv)
                         if random.random() < 0.6:
                             print('(minimize {})'.format(rv))
@@ -4990,11 +4604,11 @@ def add_smt_opt_cmd(nodes, logic):
         # tes bv octagon
         if len(nodes_bv_vars) >= 2:
             # print(";BV OCT!")
-            octele_cnts = list(
+            octagon_cnts = list(
                 itertools.combinations(
                     nodes_bv_vars,
                     2))  # octagon domain?
-            for v1, v2 in octele_cnts:
+            for v1, v2 in octagon_cnts:
                 if v1.sort == v2.sort:
                     if random.random() < 0.5:
                         print('(minimize (bvadd {} {}))'.format(v1, v2))
@@ -5007,7 +4621,7 @@ def add_smt_opt_cmd(nodes, logic):
             if (logic in qf_real_logic_options or logic in qf_ira_logics) and len(
                     nodes.d[Real()]) > 0:
                 for rv in nodes.d[Real()]:
-                    if isinstance(rv, Var_Real):
+                    if isinstance(rv, VarReal):
                         continue
                     else:
                         if random.random() < 0.5:
@@ -5020,7 +4634,7 @@ def add_smt_opt_cmd(nodes, logic):
             if (logic in qf_int_logic_options or logic in qf_ira_logics) and len(
                     nodes.d[Int()]) > 0:
                 for rv in nodes.d[Int()]:
-                    if isinstance(rv, Var_Int):
+                    if isinstance(rv, VarInt):
                         continue
                     else:
                         if random.random() < 0.5:
@@ -5036,7 +4650,7 @@ def add_smt_opt_cmd(nodes, logic):
                     if bv_sort not in nodes.d.keys():
                         continue
                     for rv in nodes.d[bv_sort]:
-                        if isinstance(rv, Var_BV):
+                        if isinstance(rv, VarBV):
                             continue
                         else:
                             if random.random() < 0.6:
@@ -5060,12 +4674,12 @@ def add_smt_opt_cmd(nodes, logic):
                     else:
                         print('(maximize {})'.format(rv))
             elif opt_ty < 0.6:
-                octele_cnts = list(
+                octagon_cnts = list(
                     itertools.combinations(
                         nodes_vars, 2))  # octagon domain?
-                random.shuffle(octele_cnts)
+                random.shuffle(octagon_cnts)
                 num_query = 0
-                for v1, v2 in octele_cnts:
+                for v1, v2 in octagon_cnts:
                     if random.random() < 0.65:
                         num_query += 1
                         if num_query > 15:
@@ -5075,12 +4689,12 @@ def add_smt_opt_cmd(nodes, logic):
                         else:
                             print('(maximize (- {} {}))'.format(v1, v2))
             else:
-                octele_cnts = list(
+                octagon_cnts = list(
                     itertools.combinations(
                         nodes_vars, 3))  # octagon domain?
-                random.shuffle(octele_cnts)
+                random.shuffle(octagon_cnts)
                 num_query = 0
-                for v1, v2, v3 in octele_cnts:
+                for v1, v2, v3 in octagon_cnts:
                     if random.random() < 0.65:
                         num_query += 1
                         if num_query > 15:
@@ -5096,23 +4710,16 @@ def add_additional_cmds(nodes, logic):
     global m_test_named_assert
     if m_test_smt_opt:
         add_smt_opt_cmd(nodes, logic)
-    if m_test_qe:
-        add_z3_qe_cmd()
     return
 
 
-def datalog_chc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
+def datalog_chc_fuzz(logic, vcratio, cntsize):
     assert m_test_datalog_chc
     global m_test_datalog_chc_logic
 
     if m_set_logic:
         print('(set-logic HORN)')
 
-    chc_prob = random.random()
-    if chc_prob < 0.5:
-        print("(set-option :fp.engine spacer)")
-    else:
-        print("(set-option :fp.engine bmc)")
     set_options()
     add_reals = -1
     add_ints = -1
@@ -5141,22 +4748,22 @@ def datalog_chc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 term2 = simp.get_int_term()
                 term3 = simp.get_int_term()
                 bbb = '(inv-int3 {} {} {})'.format(term1, term2, term3)
-                pred = simp.get_bool()
-                connec = random.choice(['or'])
+                predicate = simp.get_bool()
+                connect = random.choice(['or'])
                 pp = "(assert (forall ((x Int) (y Int) (z Int)) ({} {} {})))".format(
-                    connec, bbb, pred)
+                    connect, bbb, predicate)
             else:
                 simp = SimpleNodes(['x', 'y', 'z', 's'], "Int")
                 term1 = simp.get_int_term()
                 term2 = simp.get_int_term()
                 term3 = simp.get_int_term()
                 term4 = simp.get_int_term()
-                pred = simp.get_bool()
-                connec = random.choice(['or'])
+                predicate = simp.get_bool()
+                connect = random.choice(['or'])
                 bbb = '(inv-int4 {} {} {} {})'.format(term1,
                                                       term2, term3, term4)
                 pp = "(assert (forall ((x Int) (y Int) (z Int) (s Int)) ({} {} {})))".format(
-                    connec, bbb, pred)
+                    connect, bbb, predicate)
             print(pp)
     elif m_test_datalog_chc_logic == "real":
         rand = random.random()
@@ -5172,22 +4779,22 @@ def datalog_chc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 term2 = simp.get_real_term()
                 term3 = simp.get_real_term()
                 bbb = '(inv-real3 {} {} {})'.format(term1, term2, term3)
-                pred = simp.get_bool()
-                connec = random.choice(['or'])
+                predicate = simp.get_bool()
+                connect = random.choice(['or'])
                 pp = "(assert (forall ((x Real) (y Real) (z Real)) ({} {} {})))".format(
-                    connec, bbb, pred)
+                    connect, bbb, predicate)
             else:
                 simp = SimpleNodes(['x', 'y', 'z', 's'], "Real")
                 term1 = simp.get_real_term()
                 term2 = simp.get_real_term()
                 term3 = simp.get_real_term()
                 term4 = simp.get_real_term()
-                pred = simp.get_bool()
+                predicate = simp.get_bool()
                 bbb = '(inv-real4 {} {} {} {})'.format(term1,
                                                        term2, term3, term4)
-                connec = random.choice(['or'])
+                connect = random.choice(['or'])
                 pp = "(assert (forall ((x Real) (y Real) (z Real) (s Real)) ({} {} {})))".format(
-                    connec, bbb, pred)
+                    connect, bbb, predicate)
             print(pp)
     else:
         assertions = cntsize
@@ -5202,9 +4809,9 @@ Generate formulas in strint CNF form
 '''
 
 
-def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
+def strict_cnf_fuz(logic, vcratio, cntsize):
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers = \
-        set_logic(logic, option_fuzzing_mode)
+        set_logic(logic)
 
     global m_assert_id, m_all_assertions
     global n_push, n_pop
@@ -5321,7 +4928,7 @@ def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
                     par2 = random.choice(nodes.d[Bool()])
                     operand = str(par1)
                     operand += (" " + str(par2))
-                    new_node = Bool_Op("or", operand)
+                    new_node = BoolOp("or", operand)
                 else:
                     n_operands = random.randint(1, 15)
                     par = random.choice(nodes.d[Bool()])
@@ -5332,9 +4939,9 @@ def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
                             operands += (" " + str(par))
                         else:
                             par = random.choice(nodes.d[Bool()])
-                            new_par = Bool_Op("not", par)
+                            new_par = BoolOp("not", par)
                             operands += (" " + str(new_par))
-                    new_node = Bool_Op("or", operands)
+                    new_node = BoolOp("or", operands)
 
                 if m_test_max_smt or m_test_max_sat:
                     if random.random() < m_max_smt_rate:
@@ -5342,11 +4949,15 @@ def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
                     else:
                         # print('(assert-soft {})'.format(new_node))
                         print('(assert-soft {} :weight {})'.format(new_node,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
                     print(
-                        '(assert (! ' + format(new_node) + ' :named IP_' + str(m_assert_id) + '))')
+                        '(assert (! ' +
+                        format(new_node) +
+                        ' :named IP_' +
+                        str(m_assert_id) +
+                        '))')
                     m_all_assertions.append('IP_' + str(m_assert_id))
                 else:
                     print('(assert {})'.format(new_node))
@@ -5357,18 +4968,8 @@ def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
                 if m_reset_assert and random.random() < 0.3:
                     print(m_reset_cmd)
                 print('(check-sat)')
-                if m_test_yices and m_test_yices_itp:
-                    for _ in range(5):
-                        add_yices_itp_cmd(nodes, logic)
                 if m_test_smt_opt:
                     print('(get-objectives)')
-                if m_test_cvc4 and m_test_abduction:
-                    abd_new_node = nodes.bool_from_bool()
-                    print('(get-abduct A {})'.format(abd_new_node))
-                if m_test_cvc4 and m_test_cvc_itp:
-                    abd_new_node = nodes.bool_from_bool()
-                    print('(get-interpol I {})'.format(abd_new_node))
-
                 if (m_test_unsat_core or m_test_proof or m_test_named_assert) and random.random(
                 ) < 0.5:
                     tmp_num_goal = 0
@@ -5391,9 +4992,9 @@ def strict_cnf_fuz(logic, vcratio, option_fuzzing_mode, cntsize):
 
 
 # I merge other incremental tacitcs here (but remove push/pop and check-sat)
-def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
+def non_inc_fuzz(logic, vcratio, cntsize):
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers = \
-        set_logic(logic, option_fuzzing_mode)
+        set_logic(logic)
 
     nodes = Nodes(add_ints, add_reals)
     if r > 0:
@@ -5406,7 +5007,7 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
     monic_tactic = random.random()
     # monic_tactic = 0.2
     # integrate bool, cnf, ncnf, CNFexp into non_inc_fuzz
-    # CNFexp is mem and time consuming
+    # CNFexp is mem and time-consuming
     if monic_tactic < 0.25:  # bool
         assertions = random.randrange(0, cntsize)
         while assertions > 0:
@@ -5502,13 +5103,17 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     else:
                         # print('(assert-soft {})'.format(new_node))
                         print('(assert-soft {} :weight {})'.format(new_node,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     # maxsmt and unsat_core do not conflict. TODO: core for
                     # maxsmt
                     m_assert_id += 1
                     print(
-                        '(assert (! ' + format(new_node) + ' :named IP_' + str(m_assert_id) + '))')
+                        '(assert (! ' +
+                        format(new_node) +
+                        ' :named IP_' +
+                        str(m_assert_id) +
+                        '))')
                     m_all_assertions.append('IP_' + str(m_assert_id))
                 else:
                     print('(assert {})'.format(new_node))
@@ -5614,11 +5219,15 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     else:
                         # print('(assert-soft {})'.format(new_node))
                         print('(assert-soft {} :weight {})'.format(new_node,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
                     print(
-                        '(assert (! ' + format(new_node) + ' :named IP_' + str(m_assert_id) + '))')
+                        '(assert (! ' +
+                        format(new_node) +
+                        ' :named IP_' +
+                        str(m_assert_id) +
+                        '))')
                     m_all_assertions.append('IP_' + str(m_assert_id))
                 else:
                     print('(assert {})'.format(new_node))
@@ -5830,11 +5439,15 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                         print('(assert {})'.format(new_node))
                     else:
                         print('(assert-soft {} :weight {})'.format(new_node,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
                     print(
-                        '(assert (! ' + format(new_node) + ' :named IP_' + str(m_assert_id) + '))')
+                        '(assert (! ' +
+                        format(new_node) +
+                        ' :named IP_' +
+                        str(m_assert_id) +
+                        '))')
                     m_all_assertions.append('IP_' + str(m_assert_id))
                 else:
                     print('(assert {})'.format(new_node))
@@ -5847,12 +5460,12 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                         print('(assert {})'.format(node1))
                     else:
                         print('(assert-soft {} :weight {})'.format(node1,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                     if random.random() < m_max_smt_rate:
                         print('(assert {})'.format(node2))
                     else:
                         print('(assert-soft {} :weight {})'.format(node2,
-                                                                   str(random.randint(1, 20))))
+                              str(random.randint(1, 20))))
                 elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                     m_assert_id += 1
                     print(
@@ -5868,22 +5481,16 @@ def non_inc_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 assertions -= 2
     # '''
     #################
-    if m_test_cvc4 and m_test_abduction:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-abduct A {})'.format(abd_new_node))
-    if m_test_cvc4 and m_test_cvc_itp:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-interpol I {})'.format(abd_new_node))
 
     add_additional_cmds(nodes, logic)
 
 
-def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
+def bool_fuzz(logic, cntsize):
     global m_assert_id, m_all_assertions
     global n_push, n_pop
 
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers = \
-        set_logic(logic, option_fuzzing_mode)
+        set_logic(logic)
 
     nodes = Nodes(add_ints, add_reals)
     if r > 0:
@@ -6016,7 +5623,7 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
                 else:
                     # print('(assert-soft {})'.format(new_node))
                     print('(assert-soft {} :weight {})'.format(new_node,
-                                                               str(random.randint(1, 20))))
+                          str(random.randint(1, 20))))
             elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
                 print(
@@ -6037,18 +5644,8 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
             add_additional_cmds(nodes, logic)
 
             print('(check-sat)')
-            if m_test_yices and m_test_yices_itp:
-                for _ in range(5):
-                    add_yices_itp_cmd(nodes, logic)
             if m_test_smt_opt:
                 print('(get-objectives)')
-            # (get-abduct A (not (< x y))
-            if m_test_cvc4 and m_test_abduction:
-                abd_new_node = nodes.bool_from_bool()
-                print('(get-abduct A {})'.format(abd_new_node))
-            if m_test_cvc4 and m_test_cvc_itp:
-                abd_new_node = nodes.bool_from_bool()
-                print('(get-interpol I {})'.format(abd_new_node))
 
             if (m_test_unsat_core or m_test_proof or m_test_named_assert) and random.random(
             ) < 0.5:
@@ -6068,27 +5665,16 @@ def bool_fuzz(logic, want_stats, option_fuzzing_mode, cntsize):
                         if tmp_num_goal == 5:
                             break
 
-    if m_test_cvc4 and m_test_abduction:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-abduct A {})'.format(abd_new_node))
-    if m_test_cvc4 and m_test_cvc_itp:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-interpol I {})'.format(abd_new_node))
-
     add_additional_cmds(nodes, logic)
 
-    if m_test_yices and m_test_yices_itp:
-        for _ in range(5):
-            add_yices_itp_cmd(nodes, logic)
 
-
-def cnf_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
+def cnf_fuzz(logic, vcratio, cntsize):
     global m_assert_id
     global m_all_assertions
     global n_push, n_pop
 
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers \
-        = set_logic(logic, option_fuzzing_mode)
+        = set_logic(logic)
 
     nodes = Nodes(add_ints, add_reals)
     if r > 0:
@@ -6224,7 +5810,7 @@ def cnf_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 else:
                     # print('(assert-soft {})'.format(new_node))
                     print('(assert-soft {} :weight {})'.format(new_node,
-                                                               str(random.randint(1, 20))))
+                          str(random.randint(1, 20))))
             elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
                 print(
@@ -6251,28 +5837,16 @@ def cnf_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
     bank = nodes.bool_sample(n_variables)
     clauses = Clauses(bank, n_clauses)
     clauses.new_cnfs()
-
-    if m_test_cvc4 and m_test_abduction:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-abduct A {})'.format(abd_new_node))
-    if m_test_cvc4 and m_test_cvc_itp:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-interpol I {})'.format(abd_new_node))
-
     add_additional_cmds(nodes, logic)
 
-    if m_test_yices and m_test_yices_itp:
-        for _ in range(5):
-            add_yices_itp_cmd(nodes, logic)
 
-
-def ncnf_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
+def ncnf_fuzz(logic, vcratio, cntsize):
     global m_assert_id
     global m_all_assertions
     global n_push, n_pop
 
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers \
-        = set_logic(logic, option_fuzzing_mode)
+        = set_logic(logic)
 
     nodes = Nodes(add_ints, add_reals)
     if r > 0:
@@ -6398,26 +5972,24 @@ def ncnf_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
     clauses = Clauses(bank, n_clauses)
     clauses.new_dist_cnfs()
 
-    if m_test_cvc4 and m_test_abduction:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-abduct A {})'.format(abd_new_node))
-    if m_test_cvc4 and m_test_cvc_itp:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-interpol I {})'.format(abd_new_node))
-
     add_additional_cmds(nodes, logic)
 
-    if m_test_yices and m_test_yices_itp:
-        for _ in range(5):
-            add_yices_itp_cmd(nodes, logic)
 
+def CNFexp_fuzz(logic, vcratio, cntsize):
+    """
+    CNFexp_fuzz is a function that generates random CNF expressions based on the given logic, vcratio, and cntsize.
+    It creates nodes and clauses, and then generates assertions based on the created CNF expressions.
 
-def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
+    :param logic: The logic to be used for generating CNF expressions.
+    :param vcratio: The variable to clause ratio for generating CNF expressions.
+    :param cntsize: The size of the CNF expressions to be generated.
+    """
+
     global m_assert_id, m_all_assertions
     global n_push, n_pop
 
     a, b, c, ni, e, f, g, h, m, v, r, t, u, gen_arr, add_ints, add_reals, add_quantifiers \
-        = set_logic(logic, option_fuzzing_mode)
+        = set_logic(logic)
 
     nodes = Nodes(add_ints, add_reals)
     if r > 0:
@@ -6560,7 +6132,7 @@ def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 else:
                     # print('(assert-soft {})'.format(new_node))
                     print('(assert-soft {} :weight {})'.format(new_node,
-                                                               str(random.randint(1, 20))))
+                          str(random.randint(1, 20))))
             elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
                 print(
@@ -6582,13 +6154,13 @@ def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                 else:
                     # print('(assert-soft {})'.format(node1))
                     print('(assert-soft {} :weight {})'.format(node1,
-                                                               str(random.randint(1, 20))))
+                          str(random.randint(1, 20))))
                 if random.random() < m_max_smt_rate:
                     print('(assert {})'.format(node2))
                 else:
                     # print('(assert-soft {})'.format(node2))
                     print('(assert-soft {} :weight {})'.format(node2,
-                                                               str(random.randint(1, 20))))
+                          str(random.randint(1, 20))))
             elif m_test_unsat_core or m_test_interpolant or m_test_proof or m_test_named_assert:
                 m_assert_id += 1
                 print(
@@ -6620,17 +6192,6 @@ def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
             print('(check-sat)')
             if m_test_smt_opt:
                 print('(get-objectives)')
-            # (get-abduct A (not (< x y))
-            if m_test_yices and m_test_yices_itp:
-                for _ in range(5):
-                    add_yices_itp_cmd(nodes, logic)
-
-            if m_test_cvc4 and m_test_abduction:
-                abd_new_node = nodes.bool_from_bool()
-                print('(get-abduct A {})'.format(abd_new_node))
-            if m_test_cvc4 and m_test_cvc_itp:
-                abd_new_node = nodes.bool_from_bool()
-                print('(get-interpol I {})'.format(abd_new_node))
 
             if (m_test_unsat_core or m_test_proof or m_test_named_assert) and random.random(
             ) < 0.3:  # Can we?
@@ -6638,10 +6199,10 @@ def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                     print("(get-unsat-core)")
                 tmp_num_goal = 0
                 cur_all_ass = m_all_assertions
-                if len(cur_all_ass) >= 2:  # and not m_test_yices:
-                    octele_cnts = list(itertools.combinations(cur_all_ass, 2))
-                    random.shuffle(octele_cnts)
-                    for cnt_a, cnt_b in octele_cnts:
+                if len(cur_all_ass) >= 2:
+                    octetcents = list(itertools.combinations(cur_all_ass, 2))
+                    random.shuffle(octetcents)
+                    for cnt_a, cnt_b in octetcents:
                         print(
                             "(check-sat-assuming (" + cnt_a + " " + cnt_b + "))")
                         if m_test_unsat_core:
@@ -6651,185 +6212,95 @@ def CNFexp_fuzz(logic, vcratio, option_fuzzing_mode, cntsize):
                         if tmp_num_goal == 5:
                             break
 
-    if m_test_cvc4 and m_test_abduction:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-abduct A {})'.format(abd_new_node))
-    if m_test_cvc4 and m_test_cvc_itp:
-        abd_new_node = nodes.bool_from_bool()
-        print('(get-interpol I {})'.format(abd_new_node))
-
     add_additional_cmds(nodes, logic)
 
-    if m_test_yices and m_test_yices_itp:
-        for _ in range(5):
-            add_yices_itp_cmd(nodes, logic)
 
-
-def sighandler(signume, frame):
+def sig_handler(signume, frame):
     sys.exit(0)
 
 
-if __name__ == "__main__":
-    signal.signal(signal.SIGINT, sighandler)
-    signal.signal(signal.SIGTERM, sighandler)
+def main():
+    global IntBinOp, IntNOp, m_test_proof, m_global_logic, m_set_logic, m_global_strategy, m_test_fp, \
+        m_test_unsat_core, m_test_smt_opt, m_test_max_smt, m_test_seplog, m_test_string, m_test_bag_bapa, \
+        m_test_bvint, m_test_fp_lra, m_test_qe, m_test_qbf, m_strict_cnf, m_test_ufc, m_test_seq, \
+        m_test_string_lia, RealBinOp, RealNOp, m_test_set_bapa, m_test_set_bapa, m_test_max_sat, m_noinc_mode
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
     # signal.signal(signal.SIGQUIT, sighandler)
     # signal.signal(signal.SIGHUP, sighandler)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--strategy', dest='strategy', default='bool', type=str,
-                        help="strategy for generation: noinc, bool, cnf, cnf, CNFexp")
+    # Extend the help information for each argument in the argument parser
+    parser = argparse.ArgumentParser(
+        description="A script for generating SMT-LIB benchmarks based on various strategies and logics.")
     parser.add_argument(
-        '--logic',
-        dest='logic',
-        default='random',
+        '--strategy',
+        dest='strategy',
+        default='noinc',
         type=str,
-        help="set the logic to generate")
+        help="Strategy for generation: noinc (non-incremental), "
+        "bool, cnf, ncnf, CNFexp, strictcnf, or random (default: noinc)")
+    parser.add_argument('--logic', dest='logic', default='random', type=str,
+                        help="Set the logic to generate (default: random)")
     parser.add_argument(
         '--seed',
         dest='seed',
         default=None,
-        help="random seed for rand()")
+        help="Random seed for rand() (default: None)")
     parser.add_argument(
         '--cnfratio',
         dest='ratio',
         default=5,
         type=int,
-        help="???")
+        help="Ratio of variables to clauses in CNF generation (default: 5)")
     parser.add_argument(
-        '--disable',
-        dest='disable',
-        default='none',
-        type=str,
-        help="??")
-    parser.add_argument('--synthesis', dest='synthesis', default='no', type=str,
-                        help="use user-defiene tactics for different logics")
-    parser.add_argument('--cntsize', dest='cntsize', default=66, type=int,
-                        help="the maximal number of assertions per query")
+        '--cntsize',
+        dest='cntsize',
+        default=66,
+        type=int,
+        help="The maximal number of assertions per query (default: 66)")
     parser.add_argument(
         '--smtopt',
         dest='smtopt',
         default=0,
         type=int,
-        help="test smt-opt")
+        help="Test SMT optimization (default: 0. use 1 to enable this feature)")
     parser.add_argument(
         '--maxsmt',
         dest='maxsmt',
         default=0,
         type=int,
-        help="test max-smt")
+        help="Test Max-SMT (default: 0. use 1 to enable this feature)")
     parser.add_argument(
         '--qbf',
         dest='qbf',
         default=0,
         type=int,
-        help="test QBF solving")
+        help="Test QBF solving (default: 0. use 1 to enable this feature)")
     parser.add_argument(
         '--maxsat',
         dest='maxsat',
         default=0,
         type=int,
-        help="test max-sat")
+        help="Test Max-SAT (default: 0)")
     parser.add_argument(
         '--qe',
         dest='qe',
         default=0,
         type=int,
-        help="test quantifier elimination")
+        help="Test quantifier elimination (default: 0. use 1 to enable this feature)")
     parser.add_argument(
         '--unsat_core',
         dest='unsat_core',
         default=0,
         type=int,
-        help="test unsat_core")
-    parser.add_argument(
-        '--interpolant',
-        dest='interpolant',
-        default=0,
-        type=int,
-        help="test interpolant")
-    parser.add_argument(
-        '--abduction',
-        dest='abduction',
-        default=0,
-        type=int,
-        help="abduction")
-
+        help="Test unsat_core (default: 0. use 1 to enable this feature)")
     parser.add_argument(
         '--proof',
         dest='proof',
         default=0,
         type=int,
-        help="test proof")
-
-    parser.add_argument(
-        '--datalogchc',
-        dest='datalogchc',
-        default=0,
-        type=int,
-        help="test Datalog and/or CHC solver")
-    parser.add_argument('--datalogchclogic', dest='datalogchclogic', default="int", type=str,
-                        help="Datalog underlying theory")
-    parser.add_argument('--datalogchcvar', dest='datalogchcvar', default=3, type=int,
-                        help="Max. number of var in each rule")
-    parser.add_argument(
-        '--datalogchctactic',
-        dest='datalogchctactic',
-        default=3,
-        type=int,
-        help="Test horn tactic")
-
-    parser.add_argument('--difftest', dest='difftest', default=0, type=int,
-                        help="diff test: compare default and synthesis")
-    parser.add_argument('--difftestcore', dest='difftestcore', default=0, type=int,
-                        help="diff test when unsat core enabled")
-    parser.add_argument(
-        '--newfeat',
-        dest='newfeat',
-        default=0,
-        type=int,
-        help="test new feature")
-    parser.add_argument(
-        '--tactic',
-        dest='tactic',
-        default="no",
-        type=str,
-        help="test single tactic")
-
-    parser.add_argument('--optionsize', dest='optionsize', default=3, type=int,
-                        help="the maximal number of options per group")
-    parser.add_argument('--optionmode', dest='optionmode', default="none", type=str,
-                        help="option mode: none, basic, full")
-
-    parser.add_argument(
-        '--cvctest',
-        dest='cvctest',
-        default=0,
-        type=int,
-        help="test cvc4")
-    parser.add_argument(
-        '--smtinterpol',
-        dest='smtinterpol',
-        default=0,
-        type=int,
-        help="test smtinterpol")
-    parser.add_argument(
-        '--boolector',
-        dest='boolector',
-        default=0,
-        type=int,
-        help="test boolector")
-    parser.add_argument(
-        '--yices',
-        dest='yices',
-        default=0,
-        type=int,
-        help="test yices")
-    parser.add_argument(
-        '--eldarica',
-        dest='eldarica',
-        default=0,
-        type=int,
-        help="test eldarica")
+        help="Test proof (default: 0. use 1 to enable this feature)")
 
     args = parser.parse_args()
     # print(args)
@@ -6847,6 +6318,12 @@ if __name__ == "__main__":
     m_global_logic = args.logic
     if m_global_logic == 'random':
         m_global_logic = random.choice(total_logic_options)
+    else:
+        if m_global_logic not in total_logic_options:
+            print("; Fatal error, the logic is not supported: ", m_global_logic)
+            print("; You may try the following logics: ")
+            print("; ", total_logic_options)
+            exit(0)
 
     if args.strategy == "random":
         m_global_strategy = random.choice(total_strategies)
@@ -6856,55 +6333,14 @@ if __name__ == "__main__":
     if m_global_strategy == 'noinc':
         m_noinc_mode = True
 
-    # option_fuzzing = 1
-    option_fuzzing = args.optionsize
-    if args.disable == 'option_fuzzing':
-        option_fuzzing = 0
-
-    m_optionmode = args.optionmode
-
     if not args.seed:
         random.seed(args.seed)
 
-    if args.cvctest == 1:
-        m_test_cvc4 = True
-
-    if args.cvctest == 1 or args.difftest == 1 or args.yices == 1:
-        # exp
-        if m_global_logic == 'QF_NRAT':
-            RealUnOp2 = ["exp", "-", "sin", "cos", "sqrt"]
-        else:
-            RealUnOp2 = ["-"]  # for CVC4 # or m_global_logic == 'ALL'
-
-    if args.smtinterpol == 1:
-        m_test_smtinterpol = True
-        if 'NRA' in m_global_logic or 'NIA' in m_global_logic:
-            NarOp = ["and", "or", "=", "distinct"]  # should  we???
-
-    if args.boolector == 1:
-        m_test_boolector = True
-
-    if args.yices == 1:
-        m_test_yices = True
-
-    if args.eldarica == 1:
-        m_test_eldarica = True
-        Bin_BV_BV = ["bvand", "bvor", "bvadd", "bvmul", "bvudiv", "bvurem", "bvshl", "bvlshr", "bvnand", "bvnor",
-                     "bvsub",
-                     "bvsdiv", "bvsrem", "bvsmod", "bvashr", "bvcomp"]
-
-    if args.difftest == 1:
-        m_test_diff = True
-        if args.difftestcore == 1:
-            m_test_diff_core = True
-
-    # the option --qbf seems meaninless, because QBF is jus a quantified theory
+    # the option --qbf seems meaningless, because QBF is jus a quantified theory
     # if args.qbf == 1 and m_global_logic == "QBF": m_test_qbf = True
     if m_global_logic == "QBF":
         m_test_qbf = True
 
-    # NOTE: important
-    # '''
     if "IDL" in m_global_logic:
         IntBinOp = ["-"]
         IntNOp = ["-"]
@@ -6912,14 +6348,12 @@ if __name__ == "__main__":
     elif "RDL" in m_global_logic:
         RealBinOp = ["-"]
         RealNOp = ["-"]
-    # '''
 
     # Set (and BAPA)
     if m_global_logic == 'SET':
         m_test_set_bapa = True
     elif m_global_logic == 'STRSET':
         m_test_set_bapa = True
-        m_test_str_set_bapa = True
         m_test_string_lia = True
     elif m_global_logic == 'BAG':
         m_test_bag_bapa = True
@@ -6958,125 +6392,37 @@ if __name__ == "__main__":
     if args.unsat_core == 1:
         m_test_unsat_core = True
 
-    if args.interpolant == 1:
-        m_test_interpolant = True
-        m_test_cvc_itp = True
-
     if args.smtopt == 1 and m_global_logic.startswith("QF"):
         m_test_smt_opt = True
 
     if args.maxsmt == 1:
         m_test_max_smt = True  # can we have quantifier for maxsmt???
 
-    if args.synthesis == "yes":
-        m_test_z3_tactic = True
-
-    if args.abduction == 1:
-        m_test_abduction = True
-
     if args.proof == 1:
         m_test_proof = True
 
-    if args.datalogchctactic == 1:
-        m_test_datalog_chc_as_tactic = True
-
-    # print("LOGIC!!!!!:", m_global_logic)
-    if args.datalogchc == 1:
-        m_test_datalog_chc = True
-        m_test_datalog_chc_logic = args.datalogchclogic
-        m_test_datalog_chc_var_bound = args.datalogchcvar
-        if random.random() < 0.5 or m_test_smtinterpol:
-            m_test_datalog_chc_nonlinear = False
-        datalog_chc_fuzz(
-            m_global_logic,
-            args.ratio,
-            option_fuzzing,
-            args.cntsize)
+    if m_global_strategy == 'bool':
+        bool_fuzz(m_global_logic, args.cntsize)
+    elif m_global_strategy == 'cnf':
+        cnf_fuzz(m_global_logic, args.ratio, args.cntsize)
+    elif m_global_strategy == 'ncnf':
+        ncnf_fuzz(m_global_logic, args.ratio, args.cntsize)
+    elif m_global_strategy == 'CNFexp':
+        CNFexp_fuzz(m_global_logic, args.ratio, args.cntsize)
+    elif m_global_strategy == 'noinc':  # non-incremental
+        non_inc_fuzz(m_global_logic, args.ratio, args.cntsize)
+    elif m_global_strategy == 'strictcnf':
+        m_strict_cnf = True
+        strict_cnf_fuz(m_global_logic, args.ratio, args.cntsize)
     else:
-        if m_global_strategy == 'bool':
-            bool_fuzz(m_global_logic, args.ratio, option_fuzzing, args.cntsize)
-        elif m_global_strategy == 'cnf':
-            cnf_fuzz(m_global_logic, args.ratio, option_fuzzing, args.cntsize)
-        elif m_global_strategy == 'ncnf':
-            ncnf_fuzz(m_global_logic, args.ratio, option_fuzzing, args.cntsize)
-        elif m_global_strategy == 'CNFexp':
-            CNFexp_fuzz(
-                m_global_logic,
-                args.ratio,
-                option_fuzzing,
-                args.cntsize)
-        elif m_global_strategy == 'noinc':  # non-incremental
-            non_inc_fuzz(
-                m_global_logic,
-                args.ratio,
-                option_fuzzing,
-                args.cntsize)
-        elif m_global_strategy == 'strictcnf':
-            m_strict_cnf = True
-            strict_cnf_fuz(
-                m_global_logic,
-                args.ratio,
-                option_fuzzing,
-                args.cntsize)
-        else:
-            non_inc_fuzz(
-                m_global_logic,
-                args.ratio,
-                option_fuzzing,
-                args.cntsize)
+        non_inc_fuzz(m_global_logic, args.ratio, args.cntsize)
 
-    if True:
-        if (not (m_test_yices and m_test_yices_itp and m_noinc_mode)) and (
-                not (m_test_unsat_core and m_test_cvc4 and m_noinc_mode)):
-            print("(check-sat)")
-        if m_test_yices and m_test_yices_core:
-            print("(get-unsat-core)")
-        if m_test_unsat_core or m_test_proof or m_test_named_assert:
-            num_goal = 0
-            all_ass = m_all_assertions
-            if len(all_ass) >= 2:  # and not m_test_yices:
-                octele = list(itertools.combinations(all_ass, 2))
-                random.shuffle(octele)
-                for a1, a2 in octele:
-                    if m_test_proof and m_test_cvc4:
-                        print("(get-proof)")
-                        break  # CVC4 proof does not support incremental mode
-                    cmd = "(check-sat-assuming (" + a1 + " " + a2 + "))"
-                    print(cmd)
-                    if m_test_proof:
-                        print("(get-proof)")
-                    if m_test_unsat_core:
-                        print("(get-unsat-core)")
-                    if m_test_cvc4 and m_noinc_mode:
-                        break
+    print("(check-sat)")
+    if m_test_unsat_core:
+        print("(get-unsat-core)")
+    if m_test_proof:
+        print("(get-proof)")
 
-                    num_goal += 1
-                    if num_goal == 10:
-                        break
 
-        if m_test_interpolant and (not m_test_z3_interpolant):
-            num_goal = 0
-            all_ass = m_all_assertions
-            if len(all_ass) > 20:
-                for i in range(5):
-                    to_merge = random.sample(all_ass, 5)
-                    aa = random.choice(all_ass)
-                    # (get-interpolants A (and B C D))
-                    bb = " (and "
-                    for j in to_merge:
-                        bb += j
-                        bb += " "
-                    bb += "))"
-                    cmd = "(get-interpolants " + aa + bb
-                    print(cmd)
-
-            if len(all_ass) >= 2:
-                octele = list(itertools.combinations(all_ass, 2))
-                random.shuffle(octele)
-                for a1, a2 in octele:
-                    # (get-interpolants a b)
-                    cmd = "(get-interpolants " + a1 + " " + a2 + ")"
-                    print(cmd)
-                    num_goal += 1
-                    if num_goal == 5:
-                        break
+if __name__ == "__main__":
+    main()

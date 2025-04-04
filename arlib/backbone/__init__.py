@@ -1,8 +1,19 @@
 """
-The notion of  "backbone" for SMT is not well-defined compared to "SAT backbone".
+The backbone module provides algorithms for computing backbones of 
+Boolean formulas in both SAT and SMT contexts.
 
-We use different notions of "backbone" for SMT and implement them in different files.
-- Backbone literals: backbone_literals.py
-- Backbone clauses: backbone_clauses.py
-- Backbone variables:
+For SAT formulas, the backbone consists of literals that must be true
+in all satisfying assignments of the formula.
+
+For SMT formulas, the notion of backbone is less well-defined compared to SAT backbones.
 """
+
+from .sat_backbone import (
+    compute_backbone,
+    compute_backbone_iterative,
+    compute_backbone_chunking,
+    compute_backbone_refinement,
+    compute_backbone_with_approximation,
+    is_backbone_literal,
+    BackboneAlgorithm
+)

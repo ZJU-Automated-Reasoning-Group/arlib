@@ -1,44 +1,58 @@
+# Build artifacts and temporary files
 .coverage*
-setup_llm.sh
-.coverage
 *egg-info
+*.prof
+*.qdimacs
+*.dot
+*.pdf
+tmp*
 tmp.ipynb
-rebase.sh
+tmp.py
+
+# Directories
+build*/
+dist/
+release/
+cmake-build-debug/
+doc/html/
 docs/build
-.vscode
-backup
 bin_solvers/*
 !bin_solvers/download.py
 !bin_solvers/build_sharpsat.py
-tmp.py
-tmp
-*.prof
-.DS_Store
-*.qdimacs
-*.dot
-!test
-venv
-.DS_Store
+.vscode/
+.idea/
+.settings/
+backup/
+venv/
+__pycache__/
 *__pycache__/
-.pytest_cache
+.pytest_cache/
 
-# Directories, log, ..
-callgrind.out.*
-.z3-trace
-
-cmake-build-debug/*
-release/*
-build/*
-build-dist/*
-dist/*
-doc/html/*
-.idea/*
-.settings/*
+# Environment and system files
+.DS_Store
 .cproject
 .project
+.z3-trace
+callgrind.out.*
 
-# temporal files
+# Downloaded/external tools
+vampire*
+leo3.jar
+eprover*/
+twee*
+nanoCoP*
+Prover9/
+kissat*
+gappa*
+aprove.jar
+TPTP4X/
+setup_llm.sh
+rebase.sh
 
+# Special patterns
+!test
+
+# LaTeX auxiliary files
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -48,14 +62,11 @@ doc/html/*
 *.out
 *.toc
 *.fmt
+*.brf
 
 ## Intermediate documents:
 *.dvi
 *-converted-to.*
-# these rules might exclude image files for figures etc.
-# *.ps
-# *.eps
-# *.pdf
 
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
 *.bbl
@@ -63,14 +74,11 @@ doc/html/*
 *.blg
 *-blx.aux
 *-blx.bib
-*.brf
 *.run.xml
 
 ## Build tool auxiliary files:
 *.fdb_latexmk
-*.synctex
-*.synctex.gz
-*.synctex.gz(busy)
+*.synctex*
 *.pdfsync
 
 ## Auxiliary and intermediate files from other packages:
@@ -95,7 +103,7 @@ acs-*.bib
 # fixme
 *.lox
 
-#(r)(e)ledmac/(r)(e)ledpar
+# (r)(e)ledmac/(r)(e)ledpar
 *.end
 *.?end
 *.[1-9]
@@ -104,12 +112,7 @@ acs-*.bib
 *.[1-9]R
 *.[1-9][0-9]R
 *.[1-9][0-9][0-9]R
-*.eledsec[1-9]
-*.eledsec[1-9]R
-*.eledsec[1-9][0-9]
-*.eledsec[1-9][0-9]R
-*.eledsec[1-9][0-9][0-9]
-*.eledsec[1-9][0-9][0-9]R
+*.eledsec[1-9]*
 
 # glossaries
 *.acn
@@ -122,12 +125,8 @@ acs-*.bib
 # gnuplottex
 *-gnuplottex-*
 
-# hyperref
-*.brf
-
 # knitr
 *-concordance.tex
-# TODO Comment the next line if you want to keep your tikz graphics files
 *.tikz
 *-tikzDictionary
 
@@ -144,9 +143,7 @@ acs-*.bib
 *.maf
 *.mlf
 *.mlt
-*.mtc
-*.mtc[0-9]
-*.mtc[1-9][0-9]
+*.mtc*
 
 # minted
 _minted*
@@ -200,24 +197,16 @@ pythontex-files-*/
 # Latexian
 TSWLatexianTemp*
 
-## Editors:
-# WinEdt
+# Editor files
 *.bak
 *.sav
-
-# Texpad
 .texpadtmp
-
-# Kile
 *.backup
-
-# KBibTeX
 *~*
+*~
 
-*.pdf
-
-
-# cpp, java, py, ocaml, llvm
+# Programming language artifacts
+## C/C++
 *.d
 *.slo
 *.lo
@@ -237,15 +226,21 @@ TSWLatexianTemp*
 *.app
 *.ll
 *.bc
-*.a
+
+## OCaml
 *.cma
 *.cmo
 *.cmi
 *.cmxa
+
+## Java
 *.class
 *.jar
-*~
+
+## Python
 *.pyc
 *.pyo
+
+## Emacs
 \#*\#
 

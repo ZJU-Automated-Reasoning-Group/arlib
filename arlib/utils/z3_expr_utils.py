@@ -24,6 +24,48 @@ Some APIs/functions for playing with Z3 exper
 - get_z3_logic
 """
 
+"""
+Utility functions for working with Z3 expressions, formulas, and solvers.
+
+This module provides helper functions for analyzing Z3 expressions, manipulating 
+formulas, and extracting information from Z3 objects.
+
+Functions:
+---------
+Formula analysis:
+- get_variables: Extract variables from a Z3 expression
+- get_atoms: Extract atomic predicates from a Z3 formula
+- get_function_symbols: Find function symbols in a Z3 expression
+- get_z3_logic: Determine the SMT-LIB2 logic fragment for a Z3 expression
+
+Formula classification:
+- is_expr_var: Check if expression is a variable
+- is_expr_val: Check if expression is a value
+- is_term: Check if expression is a first-order logic term
+- is_atom: Check if expression is an atom
+- is_pos_lit: Check if expression is a positive literal
+- is_neg_lit: Check if expression is a negative literal
+- is_lit: Check if expression is a literal
+- is_function_symbol: Check if expression is a function symbol
+
+Formula manipulation:
+- negate: Negate a formula
+- big_and: Create conjunction from a list of formulas
+- big_or: Create disjunction from a list of formulas
+- skolemize: Convert formula to Skolem normal form
+- ctx_simplify: Perform context-dependent formula simplification
+
+Conversion and serialization:
+- to_smtlib2: Convert formula to SMT-LIB2 string format
+- create_function_body_str: Create SMT-LIB2 function definition
+- z3_string_decoder: Convert Z3 StringVal to Python string
+- z3_value_to_python: Convert Z3 values to Python objects
+
+Classes:
+-------
+- FormulaInfo: Analyze and extract information from Z3 formulas
+"""
+
 from typing import List, Set, Union, Tuple
 import z3
 from z3.z3util import get_vars
@@ -422,62 +464,210 @@ class FormulaInfo:
 
     def logic_has_bv(self):
         return "BV" in self.get_logic()
+    
+    def has_theory(self, theory_name):
+        """Check if formula contains a specific theory.
+        
+        Args:
+            theory_name (str): Name of the theory to check for ('array', 'fp', 'string', etc.)
+            
+        Returns:
+            bool: True if the formula contains the specified theory
+        """
+        try:
+            if theory_name.lower() == 'array':
+                return self.apply_probe('has-arrays')
+            elif theory_name.lower() == 'fp':
+                return self.apply_probe('has-fp')
+            elif theory_name.lower() == 'string':
+                # Probe for string-related functions or constants
+                result = False
+                goal = z3.Goal()
+                goal.add(self.formula)
+                string_indicators = ['str.', 'seq.', 'string']
+                sexpr = goal.sexpr()
+                return any(indicator in sexpr for indicator in string_indicators)
+            elif theory_name.lower() == 'bv':
+                return self.apply_probe('has-bit2bool') or self.apply_probe('is-qfbv')
+            else:
+                return False
+        except Exception:
+            return False
 
     def get_logic(self):
-        """
-        TODO: how about string, array, and FP?
+        """Determine the SMT-LIB2 logic for the formula.
+        
+        This method identifies the appropriate SMT-LIB2 logic based on the formula's 
+        characteristics by analyzing theories present (arithmetic, bit-vectors, arrays, 
+        strings, floating-point) and the presence of quantifiers.
+        
+        The method uses Z3 probes to detect formula properties and builds the logic 
+        string according to SMT-LIB2 naming conventions:
+        - QF_* for quantifier-free formulas
+        - *LIA/*LRA for linear integer/real arithmetic
+        - *NIA/*NRA for non-linear integer/real arithmetic
+        - *BV for bit-vectors
+        - *A for arrays
+        - *S for strings
+        - *FP for floating-point
+        - *UF for uninterpreted functions
+        
+        Returns:
+            str: The SMT-LIB2 logic string that best describes the formula
+            
+        Examples:
+            >>> x, y = z3.Ints('x y')
+            >>> f = z3.And(x > 0, y < 10) 
+            >>> FormulaInfo(f).get_logic()
+            'QF_LIA'
+            
+            >>> a = z3.Array('a', z3.IntSort(), z3.IntSort())
+            >>> g = a[x] == y
+            >>> FormulaInfo(g).get_logic()
+            'QF_ALIA'
         """
         if self._logic is not None:  # Return cached value if available
             return self._logic
 
         try:
-            if not self.has_quantifier():  # Use method call instead of property
+            # Detect theories present in the formula
+            has_arrays = self.has_theory('array')
+            has_fp = self.has_theory('fp')
+            has_strings = self.has_theory('string')
+            has_bv = self.has_theory('bv')
+            
+            # Base logic string
+            logic_str = ""
+            if not self.has_quantifier():
+                logic_str = "QF_"
+            
+            # Detect arithmetic theories
+            is_arith = False
+            arith_type = ""
+            
+            if not self.has_quantifier():  # Quantifier-free logic
+                if self.apply_probe("is-qflia"):
+                    arith_type = "LIA"
+                    is_arith = True
+                elif self.apply_probe("is-qflra"):
+                    arith_type = "LRA"
+                    is_arith = True
+                elif self.apply_probe("is-qfnia"):
+                    arith_type = "NIA"
+                    is_arith = True
+                elif self.apply_probe("is-qfnra"):
+                    arith_type = "NRA"
+                    is_arith = True
+                elif self.apply_probe("is-qflira"):
+                    arith_type = "LIRA"
+                    is_arith = True
+            else:  # Quantified logic
+                if self.apply_probe("is-lia"):
+                    arith_type = "LIA"
+                    is_arith = True
+                elif self.apply_probe("is-lra"):
+                    arith_type = "LRA"
+                    is_arith = True
+                elif self.apply_probe("is-nia"):
+                    arith_type = "NIA"
+                    is_arith = True
+                elif self.apply_probe("is-nra"):
+                    arith_type = "NRA"
+                    is_arith = True
+                elif self.apply_probe("is-nira") or self.apply_probe("is-lira"):
+                    arith_type = "LIRA"
+                    is_arith = True
+            
+            # Build the logic string based on all theories present
+            theories = []
+            
+            # Add array support if present
+            if has_arrays:
+                theories.append("A")
+            
+            # Add bit-vector support if present
+            if has_bv:
+                theories.append("BV")
+            
+            # Add floating-point support if present
+            if has_fp:
+                theories.append("FP")
+            
+            # Add string support if present
+            if has_strings:
+                theories.append("S")
+            
+            # Check for uninterpreted functions
+            if self.apply_probe("has-uninterpreted-functions") or self.apply_probe("is-propositional"):
+                theories.append("UF")
+            
+            # Combine theories with the arithmetic type
+            if is_arith:
+                theories.append(arith_type)
+            
+            if not theories:
                 if self.apply_probe("is-propositional"):
                     self._logic = "QF_UF"
-                elif self.apply_probe("is-qfbv"):
-                    self._logic = "QF_BV"
-                elif self.apply_probe("is-qfaufbv"):
-                    self._logic = "QF_AUFBV"
-                elif self.apply_probe("is-qflia"):
-                    self._logic = "QF_LIA"
-                elif self.apply_probe("is-qflra"):
-                    self._logic = "QF_LRA"
-                elif self.apply_probe("is-qflira"):
-                    self._logic = "QF_LIRA"
-                elif self.apply_probe("is-qfnia"):
-                    self._logic = "QF_NIA"
-                elif self.apply_probe("is-qfnra"):
-                    self._logic = "QF_NRA"
-                elif self.apply_probe("is-qfufnra"):
-                    self._logic = "QF_UFNRA"
                 else:
                     self._logic = "ALL"
             else:
-                if self.apply_probe("is-lia"):
-                    self._logic = "LIA"
-                elif self.apply_probe("is-lra"):
-                    self._logic = "LRA"
-                elif self.apply_probe("is-lira"):
-                    self._logic = "LIRA"
-                elif self.apply_probe("is-nia"):
-                    self._logic = "NIA"
-                elif self.apply_probe("is-nra"):
-                    self._logic = "NRA"
-                elif self.apply_probe("is-nira"):
-                    self._logic = "NIRA"
+                # Sort the theories alphabetically except arithmetic which comes last
+                non_arith = sorted([t for t in theories if t != arith_type])
+                if arith_type:
+                    theories = non_arith + [arith_type]
                 else:
-                    self._logic = "ALL"
+                    theories = non_arith
+                
+                self._logic = logic_str + "".join(theories)
+            
+            return self._logic
+            
         except Exception as ex:
-            print(ex)
+            import logging
+            logging.warning(f"Error determining SMT logic: {ex}")
             self._logic = "ALL"
-
-        return self._logic
+            return self._logic
 
 
 def get_z3_logic(fml: z3.ExprRef) -> str:
-    """Get the logic of a Z3 expression"""
-    fml_info = FormulaInfo(fml)
-    return fml_info.get_logic()
+    """Determine the SMT-LIB2 logic fragment that best describes a Z3 expression.
+    
+    This function is a convenient wrapper around FormulaInfo.get_logic() that takes a Z3
+    expression and returns the appropriate SMT-LIB2 logic name.
+    
+    The logic name follows SMT-LIB2 conventions:
+    - Prefix QF_ for quantifier-free formulas
+    - Suffix letters for theories:
+      - LIA/LRA: Linear integer/real arithmetic
+      - NIA/NRA: Non-linear integer/real arithmetic
+      - BV: Bit-vectors
+      - A: Arrays
+      - S: Strings
+      - FP: Floating-point
+      - UF: Uninterpreted functions
+    
+    Args:
+        fml (z3.ExprRef): A Z3 expression
+        
+    Returns:
+        str: SMT-LIB2 logic name that best describes the expression
+        
+    Examples:
+        >>> import z3
+        >>> x, y = z3.Ints('x y')
+        >>> get_z3_logic(x + y > 0)
+        'QF_LIA'
+        >>> a = z3.Array('a', z3.IntSort(), z3.RealSort())
+        >>> get_z3_logic(a[x] > 0.0)
+        'QF_ALRA'
+    """
+    try:
+        fml_info = FormulaInfo(fml)
+        return fml_info.get_logic()
+    except Exception as ex:
+        import logging
+        logging.warning(f"Error determining logic for expression: {ex}")
+        return "ALL"  # Default to most general logic if detection fails
 
 
 def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:
@@ -497,4 +687,63 @@ def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3
 
 if __name__ == "__main__":
     import doctest
+    doctest.testmod()
+
+if __name__ == "__main__":
+    import doctest
+    
+    # Additional test cases for new get_z3_logic functionality
+    def additional_tests():
+        """
+        >>> import z3
+        >>> x, y = z3.Ints('x y')
+        >>> a, b = z3.Reals('a b')
+        >>> bv1, bv2 = z3.BitVecs('bv1 bv2', 8)
+        >>> s1, s2 = z3.Strings('s1 s2')
+        >>> fp1, fp2 = z3.FPs('fp1 fp2', z3.FPSort(8, 24))
+        
+        # Test integer arithmetic
+        >>> get_z3_logic(z3.And(x > 0, y < 10))
+        'QF_LIA'
+        
+        # Test real arithmetic
+        >>> get_z3_logic(z3.And(a > 0.0, b < 10.0))
+        'QF_LRA'
+        
+        # Test mixed arithmetic
+        >>> get_z3_logic(z3.And(x > 0, a < 10.0))
+        'QF_LIRA'
+        
+        # Test bit-vectors
+        >>> get_z3_logic(bv1 + bv2 == 0)
+        'QF_BV'
+        
+        # Test arrays
+        >>> arr = z3.Array('arr', z3.IntSort(), z3.IntSort())
+        >>> get_z3_logic(arr[x] == y)
+        'QF_ALIA'
+        
+        # Test bit-vector arrays
+        >>> bv_arr = z3.Array('bv_arr', z3.BitVecSort(8), z3.BitVecSort(8))
+        >>> get_z3_logic(bv_arr[bv1] == bv2)
+        'QF_ABV'
+        
+        # Test strings
+        >>> get_z3_logic(s1 == s2)
+        'QF_S'
+        
+        # Test floating point
+        >>> get_z3_logic(fp1 > fp2)
+        'QF_FP'
+        
+        # Test quantifiers
+        >>> get_z3_logic(z3.ForAll([x], x > 0))
+        'LIA'
+        
+        # Test combination of theories
+        >>> get_z3_logic(z3.And(arr[x] == y, s1 == s2))
+        'QF_ALIAS'
+        """
+        pass
+    
     doctest.testmod()

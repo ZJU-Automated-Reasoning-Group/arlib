@@ -236,7 +236,6 @@ class Clause:
 
     def hla(self, f):
         """
-        # todo: test
         Hidden Literal Addition HLA(F,C)
         :complexity: O(c*l^2), where c is the number of clauses on CNF,
         and l is the number of literals on one clause
@@ -266,7 +265,6 @@ class Clause:
 
     def ala(self, f):
         """
-        # todo: test
         Asymmetric Literal Addition ALA(F,C)
         :complexity: O(c*(l^2)*(2^l))
         :param f: CNF

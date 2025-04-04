@@ -11,6 +11,7 @@ from pathlib import Path
 from arlib.global_params import global_config
 from arlib.utils.types import OSType
 
+
 # SMT solver configurations
 SMT_SOLVERS = {
     'z3': {

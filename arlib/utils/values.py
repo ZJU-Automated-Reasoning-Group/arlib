@@ -9,8 +9,7 @@ from z3 import BitVecVal, Concat, Extract
 
 # Regular expression for extracting values from SMT-LIB strings
 RE_GET_EXPR_VALUE_ALL = re.compile(
-    r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
-    r"\((p@[0-9]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false)\)"
+    r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
 )
 
 
@@ -44,7 +43,7 @@ def twos_complement(val: int, bits: int):
 def convert_smtlib_models_to_python_value(v):
     """
     For converting SMT-LIB models to Python values
-    TODO: we may need to deal with other types of variables, e.g., int, real, string, etc.
+    Supports: boolean, bitvectors, integers, reals, strings
     """
     r = None
     if v == "true":
@@ -56,10 +55,18 @@ def convert_smtlib_models_to_python_value(v):
     elif v.startswith("#x"):
         r = int(v[2:], 16)
     elif v.startswith("_ bv"):
-        r = int(v[len("_ bv"): -len(" 256")], 10)
+        # Extract the number part between "_ bv" and the space
+        parts = v[len("_ bv"):].split(" ")
+        r = int(parts[0], 10)
     elif v.startswith("(_ bv"):
         v = v[len("(_ bv"):]
         r = int(v[: v.find(" ")], 10)
+    elif v.startswith('"') and v.endswith('"'):
+        r = v[1:-1]  # Remove quotes for string values
+    elif "." in v:   # Real number
+        r = float(v)
+    elif v.lstrip('-+').isdigit():  # Integer (possibly with sign)
+        r = int(v)
 
     assert r is not None
     return r

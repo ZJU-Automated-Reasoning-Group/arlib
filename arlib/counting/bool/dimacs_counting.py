@@ -8,6 +8,7 @@ from typing import List
 from threading import Timer
 import logging
 import uuid
+from pyapproxmc import Counter
 
 import multiprocessing
 from multiprocessing import cpu_count
@@ -19,7 +20,7 @@ from arlib.bool.pysat_cnf import gen_cubes
 
 from arlib.global_params import global_config
 
-sharp_sat_timeout = 600
+sharp_sat_timeout = 600  # seconds
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,20 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
         for cls in clauses:
             file.write(cls + " 0\n")
 
+def call_approxmc(clauses):
+    """
+    Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
+    """
+    counter = Counter()
+    for clause in clauses:
+        clause_list = [int(x) for x in clause.split(" ")]
+        print(clause_list)
+        if 0 in clause_list:
+            clause_list.remove(0)
+        counter.add_clause(clause_list)
+    c = counter.count()
+    print("approxmc result: ", c)
+    return c[0] * 2 ** (c[1])
 
 def call_sharp_sat(cnf_filename: str):
     """
@@ -195,5 +210,10 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         raw_solutions.append(int(result))
 
     print("results: ", raw_solutions)
+    if -1 in raw_solutions:
+        print("sharpSAT failed, calling approxmc")
+        result = call_approxmc(clauses)
+        print("approxmc result: ", result)
+        return result
     return sum(raw_solutions)
 

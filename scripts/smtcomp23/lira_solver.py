@@ -17,15 +17,46 @@ G_ARGS = None
 def signal_handler(sig, frame):
     """
     Handles the shutdown signals and cleans up all child processes of this process.
-    TODO: is this correct?
+    Attempts graceful termination before forcing kill.
+    
     Args:
         sig (int): The signal number received.
         frame (frame): The current stack frame.
     """
-    # print("handling signals")
-    parent = psutil.Process(os.getpid())
-    for child in parent.children(recursive=True):
-        child.kill()
+    signal_name = signal.Signals(sig).name
+    logging.info(f"Received signal {signal_name} ({sig}), terminating child processes...")
+    
+    try:
+        parent = psutil.Process(os.getpid())
+        children = parent.children(recursive=True)
+        
+        if not children:
+            logging.info("No child processes found to terminate")
+            return
+            
+        # First attempt graceful termination
+        for child in children:
+            try:
+                child.terminate()  # Send SIGTERM first for graceful shutdown
+            except psutil.NoSuchProcess:
+                pass  # Process might have terminated already
+        
+        # Give processes time to terminate gracefully
+        gone, alive = psutil.wait_procs(children, timeout=3)
+        logging.info(f"{len(gone)} processes terminated gracefully")
+        
+        # If any remain, force kill them
+        if alive:
+            logging.warning(f"Forcing kill on {len(alive)} remaining processes")
+            for child in alive:
+                try:
+                    child.kill()  # Force kill with SIGKILL
+                except psutil.NoSuchProcess:
+                    pass
+                    
+        logging.info("All child processes terminated")
+    except Exception as e:
+        logging.error(f"Error during process termination: {e}")
 
 
 def process_file(filename: str, logic: str, mode: str):

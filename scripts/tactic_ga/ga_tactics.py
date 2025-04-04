@@ -113,12 +113,11 @@ class TacticSeq:
         self.fitness = 0.0
 
     def mutate(self):
-        self.storage = map(lambda t: t.mutate(), self.storage)
+        self.storage = list(map(lambda t: t.mutate(), self.storage))
         return self
 
     def to_z3_tactic(self):
         """
-        TODO:
         Build a Tactic object from self.storage, such as the one below
         t2 = AndThen(With('simplify', blast_distinct=False, elim_and=True, flat=False, hoist_mul=True, local_ctx=False,
                   pull_cheap_ite=True, push_ite_bv=False, som=False),
@@ -126,8 +125,27 @@ class TacticSeq:
              Tactic('purify-arith'),
              Tactic('smt'))
         """
-        for i in self.storage:
-            print(i)
+        if not self.storage:
+            return z3.Tactic('skip')
+            
+        result = None
+        for tactic in self.storage:
+            # Create a base tactic with the name
+            if tactic.params and any(p.value is not None for p in tactic.params.values()):
+                # Handle tactic with parameters using With
+                param_dict = {p.key: p.value for p in tactic.params.values() if p.value is not None}
+                current = z3.With(tactic.name, **param_dict)
+            else:
+                # Simple tactic without parameters
+                current = z3.Tactic(tactic.name)
+            
+            # Chain the tactics using AndThen
+            if result is None:
+                result = current
+            else:
+                result = z3.AndThen(result, current)
+        
+        return result
 
     def dump(self, fname):
         with open(fname, "w") as ffile:
@@ -141,13 +159,24 @@ class TacticSeq:
         res.storage = []
         res.storage.extend(a.storage[:crossover_point])
         res.storage.extend(b.storage[crossover_point:])
-        res.storage = map(lambda t: t.clone(), res.storage)
+        res.storage = list(map(lambda t: t.clone(), res.storage))
         return res
 
     @staticmethod
     def random():
         res = TacticSeq()
         return res
+
+    def to_string(self):
+        """Return a string representation of the tactic sequence"""
+        result = []
+        for tactic in self.storage:
+            params_str = ", ".join(f"{p.key}={p.value}" for p in tactic.params.values() if p.value is not None)
+            if params_str:
+                result.append(f"{tactic.name}({params_str})")
+            else:
+                result.append(tactic.name)
+        return " -> ".join(result)
 
 
 DEVNULL = open(os.devnull, "w")
@@ -221,6 +250,25 @@ class GA:
         self._new = []
 
 
+def pretty_print_tactic(tactic):
+    """
+    Print Z3 tactic in a readable format by applying it to a simple formula
+    and showing its string representation
+    """
+    x = z3.Int('x')
+    y = z3.Int('y')
+    formula = z3.And(x > 0, y > 0, x + y == 10)
+    goal = z3.Goal()
+    goal.add(formula)
+    result = tactic(goal)
+    
+    print("Z3 tactic applied to test formula (x > 0 ∧ y > 0 ∧ x + y == 10):")
+    for i, subgoal in enumerate(result):
+        print(f"Subgoal {i+1}:")
+        for j, formula in enumerate(subgoal):
+            print(f"  {j+1}. {formula}")
+
+
 def main():
     ga = GA()
     for i in range(128):
@@ -231,5 +279,10 @@ def main():
 
 
 if __name__ == "__main__":
-    print(TacticSeq.random().to_string())
+    tactic_seq = TacticSeq.random()
+    print("Tactic sequence as string:")
+    print(tactic_seq.to_string())
+    print("\nTactic sequence as Z3 tactic object:")
+    z3_tactic = tactic_seq.to_z3_tactic()
+    pretty_print_tactic(z3_tactic)
     # main()

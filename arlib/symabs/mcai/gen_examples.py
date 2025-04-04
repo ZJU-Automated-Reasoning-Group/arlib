@@ -63,7 +63,7 @@ if __name__ == "__main__":
             main(cnt, size, output_dir)
         if args.run:
             for i in range(0, cnt, size):
-                os.system(f"python3 bv_mcai.py -d={output_dir}/{i}_{i + size - 1} -l=log/{i}_{i + size - 1}.log")
+                os.system(f"python3 bv_mcai.py -d={output_dir}/{i}_{i + size - 1} -l={output_dir}/log/{i}_{i + size - 1}.log")
     except Exception as e:
         print(e)
         sys.exit(1)

@@ -91,7 +91,6 @@ def count_model_by_parallel_enumeration():
     for result in results:
         print("on result: ", result)
         # final_res.append(result.get())
-    # TODO: check in parallel
     print("Time:", time.process_time() - time_start)
     print("BV enumeration total solutions: ", solutions)
     return solutions

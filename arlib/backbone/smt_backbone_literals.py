@@ -1,5 +1,5 @@
 """
-Backbone literals generation via lazy model enumeration
+SMT Backbone literals generation via lazy model enumeration
 
 A backbone literal is a literal that is entailed by the formula.
 For example, in the formula "p1 or p2 or p3", "p1" is a backbone literal.

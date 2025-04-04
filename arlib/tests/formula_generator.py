@@ -63,7 +63,6 @@ class FormulaGenerator:
         return z3.IntVal(random.randint(-100, 100))
 
     def int_from_int(self):
-        # TODO: also use constant
         if len(self.ints) >= 2:
             data = random.sample(self.ints, 2)
             i1 = data[0]

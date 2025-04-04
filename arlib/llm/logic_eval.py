@@ -160,8 +160,7 @@ class LogicEvaluator:
 
     def load_benchmarks(self, benchmark_file: str) -> Dict[str, List]:
         """Load benchmarks from file"""
-        # TODO: Implement benchmark loading
-        # For now, return some simple test cases
+        # TODO: Implement benchmark loading. For now, return some simple test cases
         return {
             'sat': [
                 ("(declare-const x Int) (assert (and (> x 0) (< x 5)))", True),

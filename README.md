@@ -63,7 +63,9 @@ https://pyarlib.readthedocs.io/en/latest/
 
 Here are some of publications related to Arlib.
 
-- [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf). Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. ICSE 2024
+- ICSE 2024: [Enabling Runtime Verification of Causal Discovery Algorithms with Automated Conditional Independence Reasoning](https://arxiv.org/pdf/2309.05264.pdf). Pingchuan Ma, Zhenlan Ji, Peisen Yao, Shuai Wang, and Kui Ren. 
+- ICSE 2023: Verifying Data Constraint Equivalence in FinTech Systems. Chengpeng Wang, Gang Fan, Peisen Yao, Fuxiong Pan, and Charles Zhang.
+
 
 
 ## Related Work
