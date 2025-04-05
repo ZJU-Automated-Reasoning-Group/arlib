@@ -24,7 +24,7 @@ from arlib.itp.kernel import Inductive
 
 
 def _lookup_constructor_recog(
-    self: smt.DatatypeRef, k: str
+        self: smt.DatatypeRef, k: str
 ) -> typing.Optional[smt.ExprRef]:
     """
     Enable "dot" syntax for fields of smt datatypes
@@ -65,7 +65,7 @@ def accessor_num(s: smt.DatatypeSortRef, constr_num: int, k: str) -> int:
 
 
 def datatype_call(
-    self: smt.DatatypeSortRef, *args: smt.ExprRef, **kwargs
+        self: smt.DatatypeSortRef, *args: smt.ExprRef, **kwargs
 ) -> smt.DatatypeRef:
     """
     Enable "call" syntax for constructors of smt datatypes
@@ -158,7 +158,7 @@ smt.DatatypeSortRef.__len__ = datatype_len  # type: ignore
 
 
 def pattern_match(
-    x: smt.DatatypeRef, pat: smt.DatatypeRef
+        x: smt.DatatypeRef, pat: smt.DatatypeRef
 ) -> tuple[list[smt.BoolRef], dict[smt.DatatypeRef, smt.DatatypeRef]]:
     """
     A Symbolic execution of sorts of pattern matching.
@@ -186,10 +186,10 @@ def pattern_match(
             for j, subpat in enumerate(pat.children()):
                 todo.append((dt.accessor(i, j)(x), subpat))
         elif (
-            smt.is_int_value(pat)
-            or smt.is_true(pat)
-            or smt.is_false(pat)
-            or smt.is_rational_value(pat)
+                smt.is_int_value(pat)
+                or smt.is_true(pat)
+                or smt.is_false(pat)
+                or smt.is_rational_value(pat)
         ):  # or smt.is_real_value(pat) or smt.is_true(pat) or smt.is_false(pat):
             constraints.append(x == pat)
         elif smt.is_const(pat):  # possible variable
@@ -206,7 +206,7 @@ def pattern_match(
 
 
 def multipattern_match(
-    *cases: tuple[smt.DatatypeRef, smt.DatatypeRef],
+        *cases: tuple[smt.DatatypeRef, smt.DatatypeRef],
 ) -> tuple[list[smt.BoolRef], dict[smt.DatatypeRef, smt.DatatypeRef]]:
     subst = {}
     constraints = []
@@ -259,7 +259,7 @@ smt.DatatypeRef.match_ = datatype_match_  # type: ignore
 
 
 def Struct(
-    name: str, *fields: tuple[str, smt.SortRef], pred=None
+        name: str, *fields: tuple[str, smt.SortRef], pred=None
 ) -> smt.DatatypeSortRef:
     """
     Define a record datatype.
@@ -352,7 +352,7 @@ def InductiveRel(name: str, *params: smt.ExprRef) -> smt.Datatype:
     preds = []  # tuck away extra predicate
 
     def declare(
-        name, *args, pred=None
+            name, *args, pred=None
     ):  # TODO: would it ever make sense to not have a pred?
         olddeclare(name, *args)
         preds.append(pred)

@@ -87,18 +87,14 @@ mul_zero = itp.prove(smt.ForAll([n], n * 0 == 0))
 
 mul_monotone = itp.prove(itp.QForAll([n, m, k], n <= m, k >= 0, n * k <= m * k))
 
-
 le_refl = itp.prove(smt.ForAll([n], n <= n))
 le_trans = itp.prove(itp.QForAll([n, m, k], n <= m, m <= k, n <= k))
-
 
 lt_trans = itp.prove(itp.QForAll([n, m, k], n < m, m < k, n < k))
 lt_total = itp.prove(itp.QForAll([n, m], smt.Or(n < m, n == m, m < n)))
 
-
 distrib_left = itp.prove(smt.ForAll([n, m, k], n * (m + k) == n * m + n * k))
 distrib_right = itp.prove(smt.ForAll([n, m, k], (m + k) * n == m * n + k * n))
-
 
 # TODO: Generic facilities for choose
 # https://en.wikipedia.org/wiki/Epsilon_calculus

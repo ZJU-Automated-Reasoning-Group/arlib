@@ -19,13 +19,13 @@ def get_vars(formula: z3.ExprRef) -> List[z3.ExprRef]:
         List of variables in the formula
     """
     vars_set = set()
-    
+
     def collect(expr):
         if z3.is_const(expr) and not z3.is_true(expr) and not z3.is_false(expr):
             vars_set.add(expr)
         for child in expr.children():
             collect(child)
-    
+
     collect(formula)
     return list(vars_set)
 
@@ -79,4 +79,4 @@ def is_real(expr: z3.ExprRef) -> bool:
     Returns:
         True if the expression is a real variable, False otherwise
     """
-    return z3.is_const(expr) and expr.sort() == z3.RealSort() 
+    return z3.is_const(expr) and expr.sort() == z3.RealSort()

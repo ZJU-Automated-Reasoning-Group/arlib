@@ -5,6 +5,7 @@ import argparse
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.utils.z3_expr_utils import get_variables
 
+
 def main(tot: int, size: int, output_dir: str):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -22,25 +23,25 @@ def main(tot: int, size: int, output_dir: str):
             with open(f"{output_dir}/{cnt - cnt % size}_{cnt - cnt % size + size - 1}/formula_{cnt}.smt2", "w") as f:
                 f.write(sol.sexpr())
             cnt += 1
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate examples for the MCAI project.")
     parser.add_argument(
-        "-e", "--examples", 
-        type=int, 
+        "-e", "--examples",
+        type=int,
         help="Number of examples to generate.",
         default=200
     )
     parser.add_argument(
-        "-s", "--size", 
-        type=int, 
+        "-s", "--size",
+        type=int,
         help="Size of each batch of examples.",
         default=50
     )
     parser.add_argument(
-        "-o", "--output_dir", 
-        type=str, 
+        "-o", "--output_dir",
+        type=str,
         help="Output directory for the examples.",
         default="examples"
     )
@@ -63,7 +64,8 @@ if __name__ == "__main__":
             main(cnt, size, output_dir)
         if args.run:
             for i in range(0, cnt, size):
-                os.system(f"python3 bv_mcai.py -d={output_dir}/{i}_{i + size - 1} -l={output_dir}/log/{i}_{i + size - 1}.log")
+                os.system(
+                    f"python3 bv_mcai.py -d={output_dir}/{i}_{i + size - 1} -l={output_dir}/log/{i}_{i + size - 1}.log")
     except Exception as e:
         print(e)
         sys.exit(1)

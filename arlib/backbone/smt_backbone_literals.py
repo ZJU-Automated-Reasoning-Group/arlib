@@ -97,7 +97,7 @@ def get_backbone_literals(fml: z3.ExprRef, literals: List[z3.ExprRef], alg: str)
         return get_backbone_literals_by_sequence_checking(fml, literals)
     elif alg == 'model_enumeration':
         return get_backbone_literals_by_model_enumeration(fml, literals)
-    elif alg =='unsat_core_enumeration':
+    elif alg == 'unsat_core_enumeration':
         return get_backbone_literals_by_unsat_core_enumeration(fml, literals)
-    else :
+    else:
         raise NotImplementedError

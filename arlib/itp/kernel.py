@@ -68,12 +68,12 @@ class LemmaError(Exception):
 
 
 def prove(
-    thm: smt.BoolRef,
-    by: Proof | Iterable[Proof] = [],
-    admit=False,
-    timeout=1000,
-    dump=False,
-    solver=None,
+        thm: smt.BoolRef,
+        by: Proof | Iterable[Proof] = [],
+        admit=False,
+        timeout=1000,
+        dump=False,
+        solver=None,
 ) -> Proof:
     """Prove a theorem using a list of previously proved lemmas.
 
@@ -170,7 +170,7 @@ def fresh_const(q: smt.QuantifierRef):
 
 
 def define(
-    name: str, args: list[smt.ExprRef], body: smt.ExprRef, lift_lambda=False
+        name: str, args: list[smt.ExprRef], body: smt.ExprRef, lift_lambda=False
 ) -> smt.FuncDeclRef:
     """
     Define a non recursive definition. Useful for shorthand and abstraction. Does not currently defend against ill formed definitions.
@@ -287,10 +287,10 @@ def instan(ts: Sequence[smt.ExprRef], pf: Proof) -> Proof:
     This is forall elimination
     """
     assert (
-        is_proof(pf)
-        and isinstance(pf.thm, smt.QuantifierRef)
-        and pf.thm.is_forall()
-        and len(ts) == pf.thm.num_vars()
+            is_proof(pf)
+            and isinstance(pf.thm, smt.QuantifierRef)
+            and pf.thm.is_forall()
+            and len(ts) == pf.thm.num_vars()
     )
 
     return axiom(smt.substitute_vars(pf.thm.body(), *reversed(ts)), [pf])
@@ -303,9 +303,9 @@ def instan2(ts: Sequence[smt.ExprRef], thm: smt.BoolRef) -> Proof:
     This is forall elimination
     """
     assert (
-        isinstance(thm, smt.QuantifierRef)
-        and thm.is_forall()
-        and len(ts) == thm.num_vars()
+            isinstance(thm, smt.QuantifierRef)
+            and thm.is_forall()
+            and len(ts) == thm.num_vars()
     )
 
     return axiom(

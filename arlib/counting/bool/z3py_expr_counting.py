@@ -7,7 +7,6 @@ from typing import List
 import z3
 from arlib.utils.z3_expr_utils import get_variables
 
-
 from arlib.counting.bool.dimacs_counting import count_dimacs_solutions, \
     count_dimacs_solutions_parallel
 
@@ -24,22 +23,22 @@ def count_z3_models_by_enumeration(formula) -> int:
     solver = z3.Solver()
     solver.add(formula)
     count = 0
-    
+
     # Get all variables in the formula
     variables = get_variables(formula)
-    
+
     while solver.check() == z3.sat:
         count += 1
         model = solver.model()
-        
+
         # Create blocking clause from current model
         block = []
         for var in variables:
             val = model.eval(var, model_completion=True)
             block.append(var != val)
-        
+
         solver.add(z3.Or(block))
-    
+
     return count
 
 
@@ -117,4 +116,3 @@ def count_z3_solutions(formula: z3.BoolRef, parallel: bool = False) -> int:
     if parallel:
         return count_dimacs_solutions_parallel(header, clauses)
     return count_dimacs_solutions(header, clauses)
-    

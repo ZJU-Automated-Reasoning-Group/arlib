@@ -25,7 +25,7 @@ def nu_ab(R: Callable, x: List, y: List, a: List, b: List) -> BoolRef:
     x_ = [Const(f"x_{i}", x[i].sort()) for i in range(len(x))]
     y_ = [Const(f"y_{i}", y[i].sort()) for i in range(len(y))]
     return Or(Exists(y_, R(x + y_) != R(a + y_)),
-             Exists(x_, R(x_ + y) != R(x_ + b)))
+              Exists(x_, R(x_ + y) != R(x_ + b)))
 
 
 def is_unsat(fml: BoolRef) -> bool:
@@ -42,8 +42,8 @@ def is_unsat(fml: BoolRef) -> bool:
 
 
 def last_sat(solver: Solver,
-            model: Optional[ModelRef],
-            formulas: List[BoolRef]) -> Optional[ModelRef]:
+             model: Optional[ModelRef],
+             formulas: List[BoolRef]) -> Optional[ModelRef]:
     """Find the last satisfiable model in a sequence of formulas.
     
     Args:
@@ -55,13 +55,13 @@ def last_sat(solver: Solver,
     """
     if not formulas:
         return model
-    
+
     solver.push()
     solver.add(formulas[0])
-    
+
     if solver.check() == sat:
         model = last_sat(solver, solver.model(), formulas[1:])
-    
+
     solver.pop()
     return model
 
@@ -78,7 +78,7 @@ def mondec(R: Callable, variables: List) -> BoolRef:
     phi = R(variables)
     if len(variables) == 1:
         return phi
-        
+
     m = len(variables) // 2  # Use integer division
     x, y = variables[0:m], variables[m:]
 
@@ -102,7 +102,7 @@ def mondec(R: Callable, variables: List) -> BoolRef:
         # Extract witness points
         a = [model.evaluate(z, True) for z in x]
         b = [model.evaluate(z, True) for z in y]
-        
+
         # Recursive decomposition
         psi_ab = And(R(a + y), R(x + b))
         phi_a = mondec(lambda z: R(a + z), y)
@@ -130,17 +130,17 @@ def test_mondec(k: int) -> None:
         R = lambda v: And(v[0] + v[1] == 2, v[0] < 1)
         bvs = BitVecSort(2 * k)
         x, y = Const("x", bvs), Const("y", bvs)
-        
+
         res = mondec(R, [x, y])
-        
+
         # Verify correctness
         if not is_unsat(res != R([x, y])):
             raise ValueError("Decomposition verification failed")
-            
+
         print(f"mondec1({R([x, y])}) =")
         print(res)
         print(simplify(res))
-        
+
     except Exception as e:
         print(f"Error in test_mondec: {str(e)}")
 

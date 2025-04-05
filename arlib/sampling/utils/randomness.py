@@ -5,9 +5,10 @@ import math
 
 T = TypeVar('T')
 
+
 class Randomness:
     """A class to handle various random number and string generation operations."""
-    
+
     def __init__(self, seed: int) -> None:
         """Initialize the random number generator with a seed.
         
@@ -92,7 +93,7 @@ class Randomness:
         """
         if max_value < 4:
             raise ValueError("Max value must be at least 4")
-            
+
         def is_prime(n: int) -> bool:
             if n < 2:
                 return False

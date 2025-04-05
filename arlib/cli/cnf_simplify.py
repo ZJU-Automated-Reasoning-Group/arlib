@@ -34,12 +34,12 @@ def parse_dimacs(input_file) -> Cnf:
 def write_dimacs(cnf: Cnf, output_file=None):
     """Write CNF to DIMACS format"""
     out = sys.stdout if output_file is None else open(output_file, 'w')
-    
+
     # Write header
     num_vars = cnf.get_number_of_literals()
     num_clauses = cnf.get_number_of_clauses()
     print(f"p cnf {num_vars} {num_clauses}", file=out)
-    
+
     # Write clauses
     for clause in cnf.get_clauses():
         lits = [str(lit) for lit in clause.literals_set]
@@ -53,6 +53,7 @@ def phase_ordering() -> List[int]:
     """Phase ordering for CNF formula simplification"""
     # TODO: implement phase ordering
     return []
+
 
 def main():
     """Main function"""

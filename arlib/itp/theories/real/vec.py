@@ -12,18 +12,15 @@ Linear Algebra
 norm2 = vector.norm2
 dot = vector.dot
 
-
 Vec2 = itp.Struct("Vec2", ("x", itp.R), ("y", itp.R))
 u, v = itp.smt.Consts("u v", Vec2)
 add = itp.notation.add.define([u, v], Vec2(u.x + v.x, u.y + v.y))
 sub = itp.notation.sub.define([u, v], Vec2(u.x - v.x, u.y - v.y))
 itp.notation.neg.define([u], Vec2(-u.x, -u.y))
 
-
 Vec2.vzero = Vec2(0, 0)  # type: ignore
 Vec2.dot = dot.define([u, v], u.x * v.x + u.y * v.y)  # type: ignore
 Vec2.norm2 = norm2.define([u], dot(u, u))  # type: ignore
-
 
 Vec2.norm_pos = itp.prove(  # type: ignore
     itp.smt.ForAll([u], norm2(u) >= 0), by=[Vec2.norm2.defn, Vec2.dot.defn]
@@ -141,7 +138,6 @@ cross_antisym = itp.prove(
 ihat = Vec3(1, 0, 0)
 jhat = Vec3(0, 1, 0)
 khat = Vec3(0, 0, 1)
-
 
 # R itself is a vector space
 

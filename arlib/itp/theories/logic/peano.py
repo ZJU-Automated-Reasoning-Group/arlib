@@ -29,7 +29,6 @@ def induct(ys, P) -> itp.Proof:
         itp.QForAll([ys], smt.And(P(zero), itp.QForAll([x], P(x), P(succ(x)))), P(ys))
     )
 
-
 # zero_or_succ = itp.prove(
 #    smt.ForAll([y], smt.Or(y == zero, smt.Exists([x], succ(x) == y))), by=[]
 # )

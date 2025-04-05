@@ -98,7 +98,6 @@ inv_left = itp.axiom(smt.ForAll([x], inv(x) * x == e))
 
 Semigroup.register(G, assoc=mul_assoc)
 
-
 c = itp.Calc([x], e, assume=[smt.ForAll([y], y * x == y)])
 c.eq(e * x)
 c.eq(x, by=[id_left])
@@ -151,6 +150,5 @@ c.eq((y * x) * inv(x), by=[mul_assoc])
 c.eq(e * inv(x), by=[inv_right])
 c.eq(inv(x), by=[id_left])
 inv_unique1 = c.qed()
-
 
 abelian = itp.define("abelian", [], smt.ForAll([x, y], x * y == y * x))

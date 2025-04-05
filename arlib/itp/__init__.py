@@ -1,5 +1,3 @@
-
-
 from . import smt
 from . import kernel
 from . import notation
@@ -8,45 +6,31 @@ from . import datatype
 from . import rewrite
 from . import tactics
 
-
 Proof = kernel.Proof
-
 
 prove = tactics.prove
 
-
 axiom = kernel.axiom
-
 
 define = kernel.define
 
-
 QForAll = notation.QForAll
-
 
 QExists = notation.QExists
 
-
 cond = notation.cond
-
 
 Inductive = kernel.Inductive
 
-
 Struct = datatype.Struct
-
 
 NewType = datatype.NewType
 
-
 InductiveRel = datatype.InductiveRel
-
 
 Enum = datatype.Enum
 
-
 Calc = tactics.Calc
-
 
 Lemma = tactics.Lemma
 

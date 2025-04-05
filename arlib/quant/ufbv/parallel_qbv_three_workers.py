@@ -368,18 +368,18 @@ def solve_with_approx(formula_str, reduction_type, q_type, bit_places, polarity,
     """Modified to accept formula as string instead of Z3 formula object"""
     # Parse formula string in the worker process
     formula = z3.And(z3.parse_smt2_string(formula_str))
-    
+
     while (bit_places < (max_bit_width - 2) or max_bit_width == 0):
         approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
-        
+
         logging.debug("approximation generation success!")
         s = z3.Tactic("ufbv").solver()
         s.add(approximated_formula)
         result = s.check()
 
         if q_type == Quantification.UNIVERSAL:
-            if (result == z3.CheckSatResult(z3.Z3_L_TRUE) or 
-                result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
+            if (result == z3.CheckSatResult(z3.Z3_L_TRUE) or
+                    result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
                 (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
             elif result == z3.CheckSatResult(z3.Z3_L_FALSE):
                 result_queue.put(str(result))  # Convert result to string
@@ -390,11 +390,12 @@ def solve_with_approx(formula_str, reduction_type, q_type, bit_places, polarity,
                 result_queue.put(str(result))  # Convert result to string
                 logging.debug('under-appro success')
                 return
-            elif (result == z3.CheckSatResult(z3.Z3_L_FALSE) or 
+            elif (result == z3.CheckSatResult(z3.Z3_L_FALSE) or
                   result == z3.CheckSatResult(z3.Z3_L_UNDEF)):
                 (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
 
     solve_without_approx(formula_str, result_queue)
+
 
 def solve_without_approx(formula_str, result_queue):
     """Modified to accept formula as string"""
@@ -404,10 +405,11 @@ def solve_without_approx(formula_str, result_queue):
     s.add(formula)
     result_queue.put(str(s.check()))  # Convert result to string
 
+
 def solve_qbv_parallel(formula):
     # Convert formula to string for passing to workers
     formula_str = formula.sexpr()
-    
+
     reduction_type = ReductionType.ZERO_EXTENSION
     timeout = 1200  # 20 minutes timeout
 
@@ -415,18 +417,18 @@ def solve_qbv_parallel(formula):
         result_queue = multiprocessing.Queue()
 
         # Create processes with formula string
-        p0 = multiprocessing.Process(target=solve_without_approx, 
-                                   args=(formula_str, result_queue))
+        p0 = multiprocessing.Process(target=solve_without_approx,
+                                     args=(formula_str, result_queue))
 
         p1 = multiprocessing.Process(target=solve_with_approx,
-                                   args=(formula_str, reduction_type,
-                                        Quantification.UNIVERSAL, 1,
-                                        Polarity.POSITIVE, result_queue))
+                                     args=(formula_str, reduction_type,
+                                           Quantification.UNIVERSAL, 1,
+                                           Polarity.POSITIVE, result_queue))
 
         p2 = multiprocessing.Process(target=solve_with_approx,
-                                   args=(formula_str, reduction_type,
-                                        Quantification.EXISTENTIAL, 1,
-                                        Polarity.POSITIVE, result_queue))
+                                     args=(formula_str, reduction_type,
+                                           Quantification.EXISTENTIAL, 1,
+                                           Polarity.POSITIVE, result_queue))
 
         # Start processes
         p0.start()

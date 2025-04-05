@@ -24,6 +24,7 @@ try:
     from arlib.unsat_core.unsat_core import get_unsat_core, enumerate_all_mus, Algorithm as UnsatAlgorithm
     from arlib.backbone.smt_backbone_literals import get_backbone_literals
     from arlib.counting import model_counter
+
     ARLIB_FEATURES_AVAILABLE = True
 except ImportError:
     ARLIB_FEATURES_AVAILABLE = False
@@ -54,7 +55,7 @@ class SmtServer:
         self.running = True
         self.scope_stack: List[ScopeFrame] = [ScopeFrame({}, [])]
         self._setup_pipes()
-        
+
         # Advanced features configuration
         self.allsmt_model_limit = 100  # Default limit for AllSMT models
         self.unsat_core_algorithm = "marco"  # Default UNSAT core algorithm
@@ -72,7 +73,7 @@ class SmtServer:
                         logging.debug(f"Removed existing FIFO: {pipe}")
                     except OSError as e:
                         logging.warning(f"Failed to remove existing FIFO {pipe}: {e}")
-                
+
                 # Create new pipe
                 os.mkfifo(pipe)
                 os.chmod(pipe, 0o666)  # Make pipes readable/writable by all users
@@ -209,13 +210,13 @@ class SmtServer:
         """Handle allsmt command to enumerate all satisfying models."""
         if not ARLIB_FEATURES_AVAILABLE:
             return "error: allsmt feature not available"
-        
+
         try:
             # Parse arguments
             parts = args.split()
             if not parts:
                 return "error: allsmt requires variable names"
-            
+
             # Extract model limit if provided
             model_limit = self.allsmt_model_limit
             if parts[0].startswith(":limit="):
@@ -225,7 +226,7 @@ class SmtServer:
                     parts = parts[1:]
                 except ValueError:
                     return f"error: invalid model limit: {limit_str}"
-            
+
             # Get variables to project onto
             var_names = parts
             variables = []
@@ -233,14 +234,14 @@ class SmtServer:
                 if name not in self.current_scope.variables:
                     return f"error: variable {name} not declared"
                 variables.append(self.current_scope.variables[name])
-            
+
             # Create formula from current assertions
             formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
-            
+
             # Create AllSMT solver and enumerate models
             solver = create_allsmt_solver()
             models = solver.get_all_sat(formula, variables, model_limit=model_limit)
-            
+
             # Format results
             result = []
             for model in models:
@@ -249,7 +250,7 @@ class SmtServer:
                     value = model.get(var)
                     model_str.append(f"({var_name} {value})")
                 result.append("(" + " ".join(model_str) + ")")
-            
+
             return "(" + " ".join(result) + ")"
         except Exception as e:
             return f"error: {str(e)}"
@@ -258,14 +259,14 @@ class SmtServer:
         """Handle unsat-core command to compute unsatisfiable cores."""
         if not ARLIB_FEATURES_AVAILABLE:
             return "error: unsat-core feature not available"
-        
+
         try:
             # Parse arguments
             parts = args.split()
             algorithm = self.unsat_core_algorithm
             timeout = self.unsat_core_timeout
             enumerate_all = False
-            
+
             # Process options
             i = 0
             while i < len(parts):
@@ -284,22 +285,22 @@ class SmtServer:
                     parts.pop(i)
                 else:
                     i += 1
-            
+
             # Get assertions as constraints
             constraints = self.current_scope.assertions
             if not constraints:
                 return "error: no assertions to analyze"
-            
+
             # Create solver factory
             def solver_factory():
                 return z3.Solver()
-            
+
             # Compute unsat core
             if enumerate_all:
                 result = enumerate_all_mus(constraints, solver_factory, timeout=timeout)
             else:
                 result = get_unsat_core(constraints, solver_factory, algorithm=algorithm, timeout=timeout)
-            
+
             # Format results
             cores = result.cores
             formatted_cores = []
@@ -307,7 +308,7 @@ class SmtServer:
                 core_exprs = [constraints[idx] for idx in core]
                 core_str = " ".join(str(expr) for expr in core_exprs)
                 formatted_cores.append(f"({core_str})")
-            
+
             return "(" + " ".join(formatted_cores) + ")"
         except Exception as e:
             return f"error: {str(e)}"
@@ -316,30 +317,30 @@ class SmtServer:
         """Handle backbone command to compute backbone literals."""
         if not ARLIB_FEATURES_AVAILABLE:
             return "error: backbone feature not available"
-        
+
         try:
             # Parse arguments
             parts = args.split()
             algorithm = "model-enumeration"  # Default algorithm
-            
+
             # Process options
             if parts and parts[0].startswith(":algorithm="):
                 algorithm = parts[0].split("=")[1]
                 parts = parts[1:]
-            
+
             # Get formula from current assertions
             formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
-            
+
             # Get all variables as potential literals
             literals = []
             for var in self.current_scope.variables.values():
                 if var.sort() == z3.BoolSort():
                     literals.append(var)
                     literals.append(z3.Not(var))
-            
+
             # Compute backbone literals
             backbone_lits = get_backbone_literals(formula, literals, algorithm)
-            
+
             # Format results
             result = " ".join(str(lit) for lit in backbone_lits)
             return f"({result})"
@@ -350,13 +351,13 @@ class SmtServer:
         """Handle count-models command to count satisfying models."""
         if not ARLIB_FEATURES_AVAILABLE:
             return "error: model-counting feature not available"
-        
+
         try:
             # Parse arguments
             parts = args.split()
             timeout = self.model_count_timeout
             approximate = False
-            
+
             # Process options
             i = 0
             while i < len(parts):
@@ -372,10 +373,10 @@ class SmtServer:
                     parts.pop(i)
                 else:
                     i += 1
-            
+
             # Get formula from current assertions
             formula = z3.And(*self.current_scope.assertions) if self.current_scope.assertions else z3.BoolVal(True)
-            
+
             # Count models
             if approximate:
                 count = model_counter.approximate_model_count(formula, timeout=timeout)
@@ -392,9 +393,9 @@ class SmtServer:
             parts = args.split(maxsplit=1)
             if len(parts) != 2:
                 return "error: set-option requires option name and value"
-            
+
             option, value = parts
-            
+
             # Handle different options
             if option == ":allsmt-model-limit":
                 try:
@@ -425,16 +426,16 @@ class SmtServer:
     def handle_help(self) -> str:
         """Handle help command to show available commands."""
         basic_commands = [
-            "declare-const <name> <sort>", 
-            "assert <expr>", 
-            "check-sat", 
-            "get-model", 
-            "get-value <var1> <var2> ...", 
-            "push", 
-            "pop", 
+            "declare-const <name> <sort>",
+            "assert <expr>",
+            "check-sat",
+            "get-model",
+            "get-value <var1> <var2> ...",
+            "push",
+            "pop",
             "exit"
         ]
-        
+
         advanced_commands = [
             "allsmt [:limit=<n>] <var1> <var2> ...",
             "unsat-core [:algorithm=<alg>] [:timeout=<n>] [:enumerate-all]",
@@ -443,19 +444,19 @@ class SmtServer:
             "set-option <option> <value>",
             "help"
         ]
-        
+
         options = [
             ":allsmt-model-limit <n>",
             ":unsat-core-algorithm <marco|musx|optux>",
             ":unsat-core-timeout <n|none>",
             ":model-count-timeout <n>"
         ]
-        
+
         result = "Available commands:\n"
         result += "Basic commands:\n  " + "\n  ".join(basic_commands) + "\n"
         result += "Advanced commands:\n  " + "\n  ".join(advanced_commands) + "\n"
         result += "Options:\n  " + "\n  ".join(options)
-        
+
         return result
 
     def handle_command(self, command: str) -> str:
@@ -526,7 +527,7 @@ class SmtServer:
         """Run the server with improved error handling."""
         logging.info(f"SMT server started. Input pipe: {self.input_pipe}, Output pipe: {self.output_pipe}")
         logging.info("Waiting for commands...")
-        
+
         while self.running:
             try:
                 with open(self.input_pipe, 'r') as f:
@@ -553,7 +554,8 @@ def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Enhanced SMT Server with advanced arlib features")
     parser.add_argument("--input-pipe", default="/tmp/smt_input", help="Path to input pipe (default: /tmp/smt_input)")
-    parser.add_argument("--output-pipe", default="/tmp/smt_output", help="Path to output pipe (default: /tmp/smt_output)")
+    parser.add_argument("--output-pipe", default="/tmp/smt_output",
+                        help="Path to output pipe (default: /tmp/smt_output)")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                         help="Logging level (default: INFO)")
     return parser.parse_args()
@@ -562,10 +564,10 @@ def parse_args():
 if __name__ == "__main__":
     try:
         args = parse_args()
-        
+
         # Set logging level
         logging.getLogger().setLevel(getattr(logging, args.log_level))
-        
+
         # Start server
         server = SmtServer(input_pipe=args.input_pipe, output_pipe=args.output_pipe)
         server.run()

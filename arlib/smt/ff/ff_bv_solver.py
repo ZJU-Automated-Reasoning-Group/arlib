@@ -11,6 +11,7 @@ class FFBVSolver:
     """
     Solver for finite field formulas
     """
+
     def __init__(self, target_theory="QF_BV"):
         self.target_theory = target_theory
         self.solver = z3.Solver()
@@ -30,21 +31,21 @@ class FFBVSolver:
         """
         self.field_size = formula.field_size
         bits = (self.field_size - 1).bit_length()
-        
+
         # Create sort
         sort = z3.BitVecSort(bits)
-        
+
         # Translate variables
         for var_name, sort_name in formula.variables.items():
             var = z3.BitVec(var_name, bits)
             self.variables[var_name] = var
             # Add range constraint
             self.solver.add(z3.ULT(var, z3.BitVecVal(self.field_size, bits)))
-            
+
         # Translate assertions
         for assertion in formula.assertions:
             self.solver.add(self._translate_expr(assertion))
-            
+
         return self.solver.check()
 
     def _translate_expr(self, expr: FieldExpr) -> z3.ExprRef:
@@ -52,13 +53,13 @@ class FFBVSolver:
             result = self._translate_expr(expr.args[0])
             for arg in expr.args[1:]:
                 result = z3.URem(result + self._translate_expr(arg),
-                               z3.BitVecVal(self.field_size, result.size()))
+                                 z3.BitVecVal(self.field_size, result.size()))
             return result
         elif isinstance(expr, FieldMul):
             result = self._translate_expr(expr.args[0])
             for arg in expr.args[1:]:
                 result = z3.URem(result * self._translate_expr(arg),
-                               z3.BitVecVal(self.field_size, result.size()))
+                                 z3.BitVecVal(self.field_size, result.size()))
             return result
         elif isinstance(expr, FieldEq):
             return self._translate_expr(expr.left) == self._translate_expr(expr.right)
@@ -74,6 +75,7 @@ class FFBVSolver:
             return self.solver.model()
         return None
 
+
 def solve_qfff(smt_input):
     parser = FFParser()
     formula = parser.parse_formula(smt_input)
@@ -86,7 +88,7 @@ def solve_qfff(smt_input):
         print("Unsatisfiable")
     else:
         print("Unknown")
-    
+
 
 def regress(dir: str):
     """Run regression tests on all SMT2 files in directory."""
@@ -95,7 +97,7 @@ def regress(dir: str):
             with open(os.path.join(dir, filename), 'r') as file:
                 smt_input = file.read()
                 print(f"Testing {filename}...")
-                
+
                 # Get expected result
                 if "(set-info :status 'sat')" in smt_input:
                     expected = "Satisfiable"
@@ -103,9 +105,10 @@ def regress(dir: str):
                     expected = "Unsatisfiable"
                 else:
                     expected = "Unknown"
-                    
+
                 print(f"Expected: {expected}")
                 solve_qfff(smt_input)
+
 
 def demo():
     """Demonstration of the finite field solver."""
@@ -126,10 +129,11 @@ def demo():
     """
     solve_qfff(smt_input)
 
+
 if __name__ == '__main__':
     # demo()
     from pathlib import Path
+
     current_file = Path(__file__)
     ff_dir = current_file.parent.parent.parent.parent / "benchmarks" / "smtlib2" / "ff"
     regress(str(ff_dir))
-    

@@ -255,4 +255,5 @@ def get_models(f: z3.BoolRef, k: int):
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

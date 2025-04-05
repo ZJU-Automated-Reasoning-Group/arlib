@@ -5,6 +5,7 @@ import random
 from z3 import *
 from arlib.sampling.general_sampler.searchtree_sampler import search_tree_sample
 
+
 class NASampler:
     def __init__(self, formula, num_samples=10):
         self.formula = formula
@@ -34,7 +35,7 @@ class NASampler:
 if __name__ == "__main__":
     # Example usage
     x, y = Reals('x y')
-    formula = And(x**2 + y**2 < 1, x > 0, y > 0)
+    formula = And(x ** 2 + y ** 2 < 1, x > 0, y > 0)
     sampler = NASampler(formula, num_samples=5)
     samples = sampler.sample()
     for sample in samples:

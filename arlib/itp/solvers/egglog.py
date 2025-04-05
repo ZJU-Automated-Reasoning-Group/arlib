@@ -55,7 +55,7 @@ class EgglogSolver(solvers.BaseSolver):
             if r.decl().name() != "=":
                 raise ValueError("Only equality rules are supported", rule)
             lhs, rhs = r.children()
-            cmd = f"(rewrite {z3_to_egglog(lhs,vars=vs)} {z3_to_egglog(rhs, vars=vs)})"
+            cmd = f"(rewrite {z3_to_egglog(lhs, vars=vs)} {z3_to_egglog(rhs, vars=vs)})"
             self.run_cmd(cmd)
         else:
             if rule.decl().name() != "=":
@@ -72,6 +72,5 @@ class EgglogSolver(solvers.BaseSolver):
 
     def let(self, name, expr):
         return self.run_cmd(f"(let {name} {z3_to_egglog(expr)})")
-
 
 # TODO MaudeSolver

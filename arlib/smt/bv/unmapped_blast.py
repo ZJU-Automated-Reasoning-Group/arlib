@@ -47,7 +47,7 @@ def qfbv_to_sat(fml: z3.ExprRef, solver_name: str = "minisat22") -> SolverResult
     # Type checking
     if not isinstance(fml, z3.ExprRef):
         raise ValueError("Input must be a Z3 expression")
-    
+
     # Check if formula contains only bit-vector operations
     if not all(z3.is_bv(arg) for arg in z3.get_vars(fml)):
         raise ValueError("Formula must contain only bit-vector operations")
@@ -55,7 +55,7 @@ def qfbv_to_sat(fml: z3.ExprRef, solver_name: str = "minisat22") -> SolverResult
     try:
         # Apply tactics and convert to CNF
         after_simp = qfbv_tactic(fml).as_expr()
-        
+
         # Handle trivial cases
         if z3.is_false(after_simp):
             return SolverResult.UNSAT
@@ -88,7 +88,7 @@ def demo(verbose: bool = False) -> None:
     """
     if verbose:
         z3.set_param("verbose", 15)
-    
+
     # Example 1: Simple arithmetic
     x, y = z3.BitVecs("x y", 6)
     fml1 = z3.And(x + y == 8, x - y == 2)

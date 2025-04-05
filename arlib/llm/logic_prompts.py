@@ -7,6 +7,7 @@
 
 from typing import Dict, List
 
+
 class LogicPrompts:
     @staticmethod
     def sat_checking_cot(formula: str, logic: str) -> str:

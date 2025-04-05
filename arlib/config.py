@@ -11,7 +11,6 @@ from pathlib import Path
 from arlib.global_params import global_config
 from arlib.utils.types import OSType
 
-
 # SMT solver configurations
 SMT_SOLVERS = {
     'z3': {
@@ -51,6 +50,7 @@ REQUIRED_LIBS = {
     'pysmt': False
 }
 
+
 def check_library(lib_name: str) -> bool:
     """Check if a Python library is available"""
     try:
@@ -59,22 +59,27 @@ def check_library(lib_name: str) -> bool:
     except ImportError:
         return False
 
+
 # Check library availability
 for lib in REQUIRED_LIBS:
     REQUIRED_LIBS[lib] = check_library(lib.replace('-', '_'))
 
 # Solver command strings with arguments
-m_smt_solver_bin = f"{SMT_SOLVERS['z3']['path']} {SMT_SOLVERS['z3']['args']}" if SMT_SOLVERS['z3']['available'] else None
-m_cvc5_solver_bin = f"{SMT_SOLVERS['cvc5']['path']} {SMT_SOLVERS['cvc5']['args']}" if SMT_SOLVERS['cvc5']['available'] else None
+m_smt_solver_bin = f"{SMT_SOLVERS['z3']['path']} {SMT_SOLVERS['z3']['args']}" if SMT_SOLVERS['z3'][
+    'available'] else None
+m_cvc5_solver_bin = f"{SMT_SOLVERS['cvc5']['path']} {SMT_SOLVERS['cvc5']['args']}" if SMT_SOLVERS['cvc5'][
+    'available'] else None
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 BIN_SOLVERS_PATH = PROJECT_ROOT / "bin_solvers"
 BENCHMARKS_PATH = PROJECT_ROOT / "benchmarks"
 
+
 def get_solver_status() -> Dict[str, bool]:
     """Get availability status of all solvers"""
     return {name: info['available'] for name, info in SMT_SOLVERS.items()}
+
 
 def get_library_status() -> Dict[str, bool]:
     """Get availability status of all required libraries"""

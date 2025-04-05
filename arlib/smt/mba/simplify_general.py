@@ -8,8 +8,11 @@ import sys
 import traceback
 import multiprocessing
 import numpy as np
-try: import z3
-except ModuleNotFoundError: pass
+
+try:
+    import z3
+except ModuleNotFoundError:
+    pass
 import argparse
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -17,6 +20,7 @@ sys.path.insert(0, os.path.join(currentdir, "utils"))
 from parse import Parser, parse, Node, NodeType, NodeState
 from node import mod_red, popcount
 from simplify import simplify_linear_mba, compute_bitwise_complexity
+
 
 # Verify that the original expression and the simplified one are equivalent
 # using Z3.
@@ -48,7 +52,7 @@ def verify_using_z3(orig, simpl, bitCount, timeout=None):
 
     Y = [z3.BitVec(v, bitCount) for v in tmpVars]
 
-    modulus = 2**bitCount
+    modulus = 2 ** bitCount
     exprEval = eval("(" + orig + ") % " + str(modulus))
     simplEval = eval("(" + simpl + ") % " + str(modulus))
 
@@ -68,7 +72,7 @@ def verify_using_z3(orig, simpl, bitCount, timeout=None):
 class GeneralSimplifier():
     def __init__(self, bitCount, modRed=False, verifBitCount=None):
         self.__bitCount = bitCount
-        self.__modulus = 2**bitCount
+        self.__modulus = 2 ** bitCount
         self.__modRed = modRed
         self.__verifBitCount = verifBitCount
         self.__vnumber = 0
@@ -96,10 +100,11 @@ class GeneralSimplifier():
     # Get the vector storing results of expression evaluation for all truth
     # value combinations, i.e., [e(0,0,...), e(1,0,...), e(0,1,...), e(1,1,...)].
     def __get_result_vector(self, node):
-        def f(X): return node.eval(X)
+        def f(X):
+            return node.eval(X)
 
         resultVector = []
-        for i in range(2**self.__vnumber):
+        for i in range(2 ** self.__vnumber):
             n = i
             par = []
             for j in range(self.__vnumber):
@@ -127,7 +132,7 @@ class GeneralSimplifier():
         for count in range(1, self.__vnumber):
             size = len(comb)
             nnew = 0
-            for e in comb[size-new:size]:
+            for e in comb[size - new:size]:
                 for v in range(e[-1] + 1, self.__vnumber):
                     comb.append(e + [v])
                     nnew += 1
@@ -197,14 +202,14 @@ class GeneralSimplifier():
 
     # Get the given product node's linear combination of basis expressions.
     def __get_product_linear_combination(self, node):
-        assert(len(node.children) == 2 or (len(node.children) == 3 and node.children[0].type == NodeType.CONSTANT))
+        assert (len(node.children) == 2 or (len(node.children) == 3 and node.children[0].type == NodeType.CONSTANT))
 
         linCombs = []
         for child in node.children[-2:]:
             linCombs.append(self.__get_linear_combination(child))
 
-        res = np.zeros(2**(2*self.__vnumber-1) + 2**(self.__vnumber-1), dtype=np.uint64)
-        baselen = 2**self.__vnumber
+        res = np.zeros(2 ** (2 * self.__vnumber - 1) + 2 ** (self.__vnumber - 1), dtype=np.uint64)
+        baselen = 2 ** self.__vnumber
 
         if len(node.children) == 3 and node.children[0].type == NodeType.CONSTANT:
             for i in range(len(linCombs[0])): linCombs[0][i] *= node.children[0].constant
@@ -214,42 +219,43 @@ class GeneralSimplifier():
             res[idx] = self.__mod_red(linCombs[0][b] * linCombs[1][b])
             idx += 1
 
-            for a in range(b+1, baselen):
+            for a in range(b + 1, baselen):
                 res[idx] = self.__mod_red(linCombs[0][b] * linCombs[1][a] + linCombs[0][a] * linCombs[1][b])
                 idx += 1
-        assert(idx == res.size)
+        assert (idx == res.size)
 
         return res
 
     # Get the given power node's linear combination of basis expressions.
     def __get_power_linear_combination(self, node):
-        assert(len(node.children) == 2 or node.type == NodeType.PRODUCT)
+        assert (len(node.children) == 2 or node.type == NodeType.PRODUCT)
 
         base = node.children[0]
         coeff = 1
         if node.type == NodeType.PRODUCT:
-            assert(node.children[0].type == NodeType.CONSTANT)
-            assert(node.children[1].type == NodeType.POWER)
-            assert(node.children[1].children[1].type == NodeType.CONSTANT)
-            assert(node.children[1].children[1].constant == 2)
+            assert (node.children[0].type == NodeType.CONSTANT)
+            assert (node.children[1].type == NodeType.POWER)
+            assert (node.children[1].children[1].type == NodeType.CONSTANT)
+            assert (node.children[1].children[1].constant == 2)
             base = node.children[1].children[0]
             coeff = node.children[0].constant
-        else: assert(node.children[1].constant == 2)
+        else:
+            assert (node.children[1].constant == 2)
 
         linComb = self.__get_linear_combination(base)
 
-        res = np.zeros(2**(2*self.__vnumber-1) + 2**(self.__vnumber-1), dtype=np.uint64)
-        baselen = 2**self.__vnumber
+        res = np.zeros(2 ** (2 * self.__vnumber - 1) + 2 ** (self.__vnumber - 1), dtype=np.uint64)
+        baselen = 2 ** self.__vnumber
 
         idx = 0
         for b in range(baselen):
-            res[idx] = self.__mod_red(linComb[b]**2)
+            res[idx] = self.__mod_red(linComb[b] ** 2)
             idx += 1
 
-            for a in range(b+1, baselen):
+            for a in range(b + 1, baselen):
                 res[idx] = self.__mod_red(2 * linComb[b] * linComb[a])
                 idx += 1
-        assert(idx == res.size)
+        assert (idx == res.size)
 
         if coeff != 1:
             for i in range(res.size): res[i] = self.__mod_red(int(res[i]) * coeff)
@@ -269,7 +275,7 @@ class GeneralSimplifier():
 
         self.__collect_and_enumerate_variables(node)
 
-        res = np.zeros(2**(2*self.__vnumber-1) + 2**(self.__vnumber-1), dtype=np.uint64)
+        res = np.zeros(2 ** (2 * self.__vnumber - 1) + 2 ** (self.__vnumber - 1), dtype=np.uint64)
         for i in indices:
             child = node.children[i]
             if child.type == NodeType.PRODUCT and not child.has_nonlinear_child():
@@ -281,7 +287,7 @@ class GeneralSimplifier():
 
         # TODO: Neglect result if not enough zeros.
 
-        baselen = 2**self.__vnumber
+        baselen = 2 ** self.__vnumber
 
         # Build result
         # TODO: Perform that in node representation.
@@ -293,22 +299,26 @@ class GeneralSimplifier():
                 simpl += self.__get_basis_expression(b) + "**2+"
             idx += 1
 
-            for a in range(b+1, baselen):
+            for a in range(b + 1, baselen):
                 if res[idx] != 0:
                     if res[idx] != 1: simpl += str(res[idx]) + "*"
                     simpl += self.__get_basis_expression(b) + "*" + self.__get_basis_expression(a) + "+"
                 idx += 1
-        assert(idx == res.size)
+        assert (idx == res.size)
 
         # Remove '+' at the end.
         if simpl != "": simpl = simpl[:-1]
 
         for i in sorted(indices[1:], reverse=True): del node.children[i]
-        if simpl != "": node.children[indices[0]] = parse(simpl, self.__bitCount, self.__modRed, True, True)
-        else: del node.children[indices[0]]
+        if simpl != "":
+            node.children[indices[0]] = parse(simpl, self.__bitCount, self.__modRed, True, True)
+        else:
+            del node.children[indices[0]]
 
-        if len(node.children) == 1: node.copy(node.children[0])
-        elif len(node.children) == 0: node.copy(parse("0", self.__bitCount, self.__modRed, True, True))
+        if len(node.children) == 1:
+            node.copy(node.children[0])
+        elif len(node.children) == 0:
+            node.copy(parse("0", self.__bitCount, self.__modRed, True, True))
 
         return True
 
@@ -338,7 +348,7 @@ class GeneralSimplifier():
     # For the given sum node, get the indices of all its children which are
     # product nodes with a suitably small amount of children.
     def __get_indices_of_simple_nonlinear_products_in_sum(self, node):
-        assert(node.type == NodeType.SUM)
+        assert (node.type == NodeType.SUM)
 
         if node.linearEnd >= len(node.children) - 1: return []
 
@@ -364,14 +374,14 @@ class GeneralSimplifier():
             node.children = child.children + node.children
             node.linearEnd = len(child.children)
         elif simpl == "0":
-            assert(node.type != NodeType.POWER)
+            assert (node.type != NodeType.POWER)
             # The linear part vanishes.
             if node.type in [NodeType.SUM, NodeType.INCL_DISJUNCTION, NodeType.EXCL_DISJUNCTION]:
                 del node.children[:node.linearEnd]
                 node.linearEnd = 0
                 if len(node.children) == 1: node.copy(node.children[0])
             else:
-                assert(node.type in [NodeType.PRODUCT, NodeType.CONJUNCTION])
+                assert (node.type in [NodeType.PRODUCT, NodeType.CONJUNCTION])
                 # The whole expression is zero.
                 node.copy(parse("0", self.__bitCount, self.__modRed, True, True))
         else:
@@ -396,7 +406,7 @@ class GeneralSimplifier():
     # One step of simplification of the nonlinear subexpression corresponding
     # to the given node.
     def __simplify_nonlinear_subexpression_step(self, node, parent, noRefactor, noSubst):
-        assert(not node.is_linear())
+        assert (not node.is_linear())
         changed = False
 
         # Simplify the linear part.
@@ -407,7 +417,7 @@ class GeneralSimplifier():
         if not noRefactor:
             ch = self.__refactor(node)
             if ch:
-                #changed = True
+                # changed = True
                 for child in node.children: self.__simplify_subexpression(child, node)
                 node.refine()
                 node.mark_linear()
@@ -565,7 +575,7 @@ class GeneralSimplifier():
         changed = False
 
         # Try substitution of all possible combinations of nodes to substitute.
-        for i in range(1, 2**len(nodes)):
+        for i in range(1, 2 ** len(nodes)):
             # Save runtime by restricting to subsets of up to 3 nodes.
             if len(nodes) > 5 and popcount(i) > 3: continue
             if len(nodes) > 9 and popcount(i) > 2: continue
@@ -573,7 +583,6 @@ class GeneralSimplifier():
             if self.__simplify_via_substitution_for_index(node, nodes, i): changed = True
 
         return changed
-
 
     # Simplify the subexpression corresponding to the given node.
     def __simplify_subexpression(self, node, parent, noRefactor=False, noSubst=False):
@@ -593,7 +602,7 @@ class GeneralSimplifier():
         if not changed: changed = str(node) != before
 
         if node.type == NodeType.CONSTANT:
-            assert(changed)
+            assert (changed)
             return changed
 
         if node.is_linear():
@@ -604,7 +613,6 @@ class GeneralSimplifier():
             changed = True
 
         return changed
-
 
     # Verify that the original expression and the simplified one are equivalent
     # using Z3.
@@ -621,14 +629,12 @@ class GeneralSimplifier():
         self.__collect_and_enumerate_variables(root)
         return self.__vnumber
 
-
     # Verify the given solution via evaluation.
     def __check_verify(self, orig, simplTree):
         if self.__verifBitCount == None: return True
 
         origTree = parse(orig, self.__bitCount, self.__modRed, False, False)
         return simplTree.check_verify(origTree, self.__verifBitCount)
-
 
     # Simplify the given MBA.
     # Note: only one underscore, for MacOS support, see https://github.com/DenuvoSoftwareSolutions/GAMBA/issues/1
@@ -655,7 +661,7 @@ class GeneralSimplifier():
             print("timed out... kill process...")
 
             # Terminate - may not work if process is stuck for good
-            #p.terminate()
+            # p.terminate()
             # OR Kill - will work for sure, no chance for process to finish nicely however
             p.kill()
 
@@ -693,11 +699,16 @@ def print_usage():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='GAMBA', description='Simplification of General Mixed Boolean-Arithmetic Expressions', epilog='Each command line input not preceded by option indicators is considered an expression to be simplified. Expressions are read from standard input if none are given on command line.')
+    parser = argparse.ArgumentParser(prog='GAMBA',
+                                     description='Simplification of General Mixed Boolean-Arithmetic Expressions',
+                                     epilog='Each command line input not preceded by option indicators is considered an expression to be simplified. Expressions are read from standard input if none are given on command line.')
     parser.add_argument("-b", default=64, dest="bitCount", help="Specify the bit number of variables", type=int)
-    parser.add_argument("-z", default=False, dest="useZ3", help="Enable a check for valid simplification using Z3", type=bool)
-    parser.add_argument("-m", default=False, dest="modRed", help="Enable a reduction of all constants modulo 2**b where b is the bit count", type=bool)
-    parser.add_argument("-v", default=None, dest="verifyBitCount", help="Specify a bit count for verification for nonlinear input", type=int)
+    parser.add_argument("-z", default=False, dest="useZ3", help="Enable a check for valid simplification using Z3",
+                        type=bool)
+    parser.add_argument("-m", default=False, dest="modRed",
+                        help="Enable a reduction of all constants modulo 2**b where b is the bit count", type=bool)
+    parser.add_argument("-v", default=None, dest="verifyBitCount",
+                        help="Specify a bit count for verification for nonlinear input", type=int)
     parser.add_argument('exprs', nargs='*', type=str)
     args = parser.parse_args()
 

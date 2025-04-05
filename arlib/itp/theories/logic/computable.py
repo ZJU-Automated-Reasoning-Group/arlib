@@ -5,7 +5,6 @@ import arlib.itp.theories.set as set_
 IntSet = set_.Set(smt.IntSort())
 computable = smt.Function("computable", IntSet, smt.BoolSort())
 
-
 # bounded quantifiers
 # Can define them actually
 n, m = smt.Ints("n m")
@@ -40,6 +39,5 @@ Krivine Machine
 
 
 """
-
 
 # https://en.wikipedia.org/wiki/Computably_enumerable_set

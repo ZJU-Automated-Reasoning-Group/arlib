@@ -36,6 +36,7 @@ from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstractio
 from arlib.tests.formula_generator import FormulaGenerator
 from arlib.utils.z3_expr_utils import get_variables
 
+
 # from ..utils.plot_util import ScatterPlot  # See arlib/scripts
 
 
@@ -86,6 +87,7 @@ class AbstractionResults:
                f"Zone time: {self.zone_time:.4f}, " \
                f"Octagon time: {self.octagon_time:.4f}, " \
                f"Bitwise time: {self.bitwise_time:.4f}"
+
 
 class ModelCounter:
     """Handles model counting operations"""
@@ -163,7 +165,7 @@ class AbstractionAnalyzer:
         except Exception as e:
             logger.error(f"Error analyzing abstractions: {str(e)}, line {sys.exc_info()[-1].tb_lineno}")
             self.sa.bitwise_abs_as_fml = z3.BoolVal(False)
-            
+
         try:
             results = AbstractionResults()
 
@@ -254,7 +256,7 @@ def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
         if results:
             logger.info(f"{file_path}: Analysis completed successfully")
             return results
-        
+
         logger.debug(f"Analysis failed: {file_path}")
         return None
 
@@ -290,11 +292,13 @@ def process_directory(dir_path: str, num_processes: int) -> None:
     parent_dir = os.path.dirname(dir_path)
     if not os.path.exists(f"{parent_dir}/results.csv"):
         with open(f"{parent_dir}/results.csv", "w") as f:
-            f.write("filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
+            f.write(
+                "filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
     with open(f"{parent_dir}/results.csv", "a") as csv:
         for f, r in results:
             if r is not None:
-                csv.write(f"{f},{r.interval_fp_rate},{r.zone_fp_rate},{r.octagon_fp_rate},{r.bitwise_fp_rate},{r.interval_time},{r.zone_time},{r.octagon_time},{r.bitwise_time}\n")
+                csv.write(
+                    f"{f},{r.interval_fp_rate},{r.zone_fp_rate},{r.octagon_fp_rate},{r.bitwise_fp_rate},{r.interval_time},{r.zone_time},{r.octagon_time},{r.bitwise_time}\n")
 
 
 def main():
@@ -391,6 +395,7 @@ def demo():
     except Exception as e:
         logger.error(f"Error in main: {str(e)}")
         return False
+
 
 if __name__ == '__main__':
     main()

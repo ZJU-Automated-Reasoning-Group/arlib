@@ -23,7 +23,7 @@ class TestBVCounter(TestCase):
             print("Warning: sharpSAT not available, falling back to enumeration")
             count = mc.count_model_by_bv_enumeration()
         self.assertTrue(count > 0)
-        
+
 
 if __name__ == '__main__':
     main()

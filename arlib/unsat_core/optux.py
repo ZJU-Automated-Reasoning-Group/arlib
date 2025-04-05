@@ -675,4 +675,3 @@ if __name__ == '__main__':
             # reporting the total oracle time
             if verbose > 1:
                 print('c oracle time: {0:.4f}'.format(optux.oracle_time()))
-               

@@ -32,19 +32,19 @@ class TestQuantifierElimination(TestCase):
     def test_simple_arithmetic(self):
         """Test QE with simple arithmetic formulas"""
         x, y = z3.Ints("x y")
-        
+
         # Simple linear formula: ∃x. (x > 5 ∧ x < 10)
         fml1 = z3.And(x > 5, x < 10)
         qf1 = qelim_exists_lme(fml1, x)
         qfml1 = z3.Exists(x, fml1)
         assert is_equivalent(qf1, qfml1)
-        
+
         # Simple formula with one other variable: ∃x. (x > y)
         fml2 = x > y
         qf2 = qelim_exists_lme(fml2, x)
         qfml2 = z3.Exists(x, fml2)
         assert is_equivalent(qf2, qfml2)
-        
+
         # Simple disjunction: ∃x. (x == 0 ∨ x == 1)
         fml3 = z3.Or(x == 0, x == 1)
         qf3 = qelim_exists_lme(fml3, x)
@@ -54,13 +54,13 @@ class TestQuantifierElimination(TestCase):
     def test_basic_real_arithmetic(self):
         """Test QE with basic real arithmetic formulas"""
         x, y = z3.Reals("x y")
-        
+
         # Simple real formula: ∃x. (x > 0 ∧ x < 1)
         fml1 = z3.And(x > 0, x < 1)
         qf1 = qelim_exists_lme(fml1, x)
         qfml1 = z3.Exists(x, fml1)
         assert is_equivalent(qf1, qfml1)
-        
+
         # Simple formula with one other variable: ∃x. (x < y)
         fml2 = x < y
         qf2 = qelim_exists_lme(fml2, x)
@@ -70,25 +70,25 @@ class TestQuantifierElimination(TestCase):
     def test_boolean_structure(self):
         """Test QE with more complex Boolean structures"""
         x, y = z3.Ints("x y")
-        
+
         # Nested OR-AND structure: ∃x. ((x < 0 ∨ x > 10) ∧ (x != y))
         fml1 = z3.And(z3.Or(x < 0, x > 10), x != y)
         qf1 = qelim_exists_lme(fml1, x)
         qfml1 = z3.Exists(x, fml1)
         assert is_equivalent(qf1, qfml1)
-        
+
         # Formula with XOR: ∃x. (x < y ⊕ x > 5)
         fml2 = z3.Xor(x < y, x > 5)
         qf2 = qelim_exists_lme(fml2, x)
         qfml2 = z3.Exists(x, fml2)
         assert is_equivalent(qf2, qfml2)
-        
+
         # Formula with implication: ∃x. (x > 0 → x < 10)
         fml3 = z3.Implies(x > 0, x < 10)
         qf3 = qelim_exists_lme(fml3, x)
         qfml3 = z3.Exists(x, fml3)
         assert is_equivalent(qf3, qfml3)
-        
+
         # Formula with nested structure: ∃x. ((x == 0 ∨ x == 1) ∧ (x < y ∨ x > y + 5))
         fml4 = z3.And(z3.Or(x == 0, x == 1), z3.Or(x < y, x > y + 5))
         qf4 = qelim_exists_lme(fml4, x)

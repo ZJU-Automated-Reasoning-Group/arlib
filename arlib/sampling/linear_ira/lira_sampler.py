@@ -18,12 +18,12 @@ class LIRASampler(Sampler):
     
     This class implements a sampler for linear integer and real arithmetic formulas using Z3.
     """
-    
+
     def __init__(self, **kwargs):
         """Initialize the LIRA sampler."""
         self.formula = None
         self.variables = []
-    
+
     def supports_logic(self, logic: Logic) -> bool:
         """
         Check if this sampler supports the given logic.
@@ -35,7 +35,7 @@ class LIRASampler(Sampler):
             True if the sampler supports the logic, False otherwise
         """
         return logic in [Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA]
-    
+
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
         Initialize the sampler with a formula.
@@ -44,13 +44,13 @@ class LIRASampler(Sampler):
             formula: The Z3 formula to sample from
         """
         self.formula = formula
-        
+
         # Extract variables from the formula
         self.variables = []
         for var in get_vars(formula):
             if is_int(var) or is_real(var):
                 self.variables.append(var)
-    
+
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
         Generate samples according to the given options.
@@ -63,23 +63,23 @@ class LIRASampler(Sampler):
         """
         if self.formula is None:
             raise ValueError("Sampler not initialized with a formula")
-        
+
         # Set random seed if provided
         if options.random_seed is not None:
             random.seed(options.random_seed)
-        
+
         # Create a solver
         solver = z3.Solver()
         solver.add(self.formula)
-        
+
         # Generate samples
         samples = []
         stats = {"time_ms": 0, "iterations": 0}
-        
+
         for _ in range(options.num_samples):
             if solver.check() == z3.sat:
                 model = solver.model()
-                
+
                 # Convert model to a dictionary
                 sample = {}
                 for var in self.variables:
@@ -93,9 +93,9 @@ class LIRASampler(Sampler):
                         except:
                             # Fallback to string conversion
                             sample[str(var)] = float(str(value))
-                
+
                 samples.append(sample)
-                
+
                 # Add blocking clause to prevent the same model
                 # For reals, we need to be careful about exact equality
                 block = []
@@ -107,14 +107,14 @@ class LIRASampler(Sampler):
                         # For reals, we add a small delta to avoid numerical issues
                         delta = 0.001
                         block.append(z3.Or(var < value - delta, var > value + delta))
-                
+
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1
             else:
                 break
-        
+
         return SamplingResult(samples, stats)
-    
+
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
         Get the sampling methods supported by this sampler.
@@ -123,7 +123,7 @@ class LIRASampler(Sampler):
             A set of supported sampling methods
         """
         return {SamplingMethod.ENUMERATION, SamplingMethod.DIKIN_WALK}
-    
+
     def get_supported_logics(self) -> Set[Logic]:
         """
         Get the logics supported by this sampler.
@@ -132,6 +132,7 @@ class LIRASampler(Sampler):
             A set of supported logics
         """
         return {Logic.QF_LRA, Logic.QF_LIA, Logic.QF_LIRA}
+
 
 class LIASampler(Sampler):
 

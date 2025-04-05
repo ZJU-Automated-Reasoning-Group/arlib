@@ -156,6 +156,8 @@ def BitVecNVal(x: int, N: int) -> smt.DatatypeRef:
 to_int_empty = itp.prove(to_int(BitVecNVal(0, 0)) == smt.IntVal(0), unfold=1)
 to_int_false = itp.prove(BitVecNVal(0, 1).to_int() == smt.IntVal(0), by=[to_int.defn])
 to_int_true = itp.prove(BitVecNVal(1, 1).to_int() == smt.IntVal(1), by=[to_int.defn])
+
+
 # (x + y).to_int() == x.to_int() + 2**(smt.Length(x)) * y.to_int()
 
 
@@ -210,7 +212,7 @@ def BVNot(x: smt.DatatypeRef) -> smt.DatatypeRef:
 
 
 def SelectConcat(
-    a: smt.ArrayRef, addr: smt.BitVecRef, n: int, le=True
+        a: smt.ArrayRef, addr: smt.BitVecRef, n: int, le=True
 ) -> smt.BitVecRef:
     """
     Concat out of an array.
@@ -236,7 +238,7 @@ def SelectConcat(
 
 
 def StoreConcat(
-    a: smt.ArrayRef, addr: smt.BitVecRef, data: smt.BitVecRef, le=True
+        a: smt.ArrayRef, addr: smt.BitVecRef, data: smt.BitVecRef, le=True
 ) -> smt.ArrayRef:
     """
     Store multiple bytes into an array.

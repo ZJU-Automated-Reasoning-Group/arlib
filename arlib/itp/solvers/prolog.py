@@ -72,7 +72,7 @@ def get_vars(e: smt.ExprRef) -> list[smt.ExprRef]:
 
 
 def interp(
-    t: lark.Tree,
+        t: lark.Tree,
 ) -> tuple[
     list[smt.BoolRef | smt.QuantifierRef],
     list[tuple[list[smt.ExprRef], list[smt.BoolRef]]],
@@ -111,9 +111,9 @@ parser = lark.Lark(grammar, start="start", parser="lalr")
 
 
 def prolog(
-    vs0: list[smt.ExprRef],
-    goals: list[smt.BoolRef],
-    rules0: Sequence[rw.Rule | smt.QuantifierRef | smt.BoolRef],
+        vs0: list[smt.ExprRef],
+        goals: list[smt.BoolRef],
+        rules0: Sequence[rw.Rule | smt.QuantifierRef | smt.BoolRef],
 ):
     """
     A small prolog interpreter. THis is a generator of solutions consisting of variable list, substitution pairs.

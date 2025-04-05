@@ -37,6 +37,7 @@ def eval_predicates(m: z3.ModelRef, preds: List[z3.ExprRef]) -> List[z3.ExprRef]
             pass
     return res
 
+
 def process_model(phi, qvars, preds, shared_models):
     """Worker function to process a single model"""
     s = z3.Solver()

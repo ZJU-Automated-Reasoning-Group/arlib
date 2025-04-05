@@ -3,14 +3,19 @@ import re
 from implicant import Implicant, Bitwise, BitwiseType
 
 usingGmpy = True
-try: import gmpy2
-except ModuleNotFoundError: usingGmpy = False
+try:
+    import gmpy2
+except ModuleNotFoundError:
+    usingGmpy = False
+
 
 # Returns the number of ones in the given number's binary representation.
 def popcount(x):
     if usingGmpy: return gmpy2.popcount(x)
-    try: return x.bit_count()
-    except AttributeError: return bin(x).count("1")
+    try:
+        return x.bit_count()
+    except AttributeError:
+        return bin(x).count("1")
 
 
 # A structure representing a disjunctive normal form, i.e., a disjunction of
@@ -31,21 +36,23 @@ class Dnf():
     # to its position, and classify the conjunctions according to their numbers
     # of ones.
     def __init_groups(self, vnumber, vec):
-        assert(len(vec) == 2**vnumber)
+        assert (len(vec) == 2 ** vnumber)
 
         self.__groups = [dict() for i in range(vnumber + 1)]
         for i in range(len(vec)):
             bit = vec[i]
 
             if bit == 0: continue
-            assert(bit == 1)
+            assert (bit == 1)
 
             impl = Implicant(vnumber, i)
             onesCnt = popcount(i)
             group = self.__groups[onesCnt]
 
-            if "0" in group: group["0"].append(impl)
-            else: group["0"] = [impl]
+            if "0" in group:
+                group["0"].append(impl)
+            else:
+                group["0"] = [impl]
 
     # Try to merge implicants (i.e., vector representations of conjunctions)
     # whose vectors differ in just one position. Note that, e.g., the
@@ -80,8 +87,10 @@ class Dnf():
                             newGroup = newGroups[newImpl.count_ones()]
                             newH = newImpl.get_indifferent_hash()
 
-                            if newH in newGroup: newGroup[newH].append(newImpl)
-                            else: newGroup[newH] = [newImpl]
+                            if newH in newGroup:
+                                newGroup[newH].append(newImpl)
+                            else:
+                                newGroup[newH] = [newImpl]
 
             for h in group:
                 for impl in group[h]:
@@ -106,7 +115,7 @@ class Dnf():
     # Remove impliciants which are already represented by others.
     def __drop_unrequired_implicants(self, vec):
         requ = set([i for i in range(len(vec)) if vec[i] == 1])
-        
+
         i = 0
         while i < len(self.primes):
             impl = self.primes[i]

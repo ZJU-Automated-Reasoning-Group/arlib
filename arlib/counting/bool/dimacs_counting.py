@@ -59,6 +59,7 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
         for cls in clauses:
             file.write(cls + " 0\n")
 
+
 def call_approxmc(clauses):
     """
     Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
@@ -73,6 +74,7 @@ def call_approxmc(clauses):
     c = counter.count()
     print("approxmc result: ", c)
     return c[0] * 2 ** (c[1])
+
 
 def call_sharp_sat(cnf_filename: str):
     """
@@ -216,4 +218,3 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         print("approxmc result: ", result)
         return result
     return sum(raw_solutions)
-

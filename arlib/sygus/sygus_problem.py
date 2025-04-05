@@ -1,5 +1,3 @@
-
-
 class SygusParser:
     def __init__(self, problem_str):
         self.problem_str = problem_str
@@ -18,5 +16,3 @@ class SygusParser:
         assert tokens[1].startswith("(= (")
         tokens = tokens[1].split(")")
         assert len(tokens) == 2
-
-    

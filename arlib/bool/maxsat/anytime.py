@@ -17,8 +17,8 @@ from pysat.formula import CNF
 
 class AnytimeMaxSAT:
     """Anytime MaxSAT solver using bit-vector optimization"""
-    
-    def __init__(self, hard: List[List[int]], soft: List[List[int]], 
+
+    def __init__(self, hard: List[List[int]], soft: List[List[int]],
                  weights: Optional[List[int]] = None,
                  solver_name: str = 'glucose4'):
         """Initialize the solver with hard and soft clauses"""
@@ -28,7 +28,7 @@ class AnytimeMaxSAT:
         self.sat_engine_name = solver_name
         self.best_cost = sum(self.weights)
         self.best_model = None
-        
+
     def _create_assumption_lits(self, bits: List[int], value: int) -> List[int]:
         """Create assumption literals for binary search"""
         assumptions = []
@@ -38,7 +38,7 @@ class AnytimeMaxSAT:
             else:
                 assumptions.append(-bit)
         return assumptions
-        
+
     def solve(self, timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
         """Solve MaxSAT problem with binary search
         
@@ -46,30 +46,30 @@ class AnytimeMaxSAT:
             (success, model, cost)
         """
         start_time = time.time()
-        
+
         # Create SAT solver instance
         sat_oracle = Solver(name=self.sat_engine_name, bootstrap_with=self.hard)
-        
+
         # Add soft clauses with selector variables
         selector_vars = []
-        max_var = max(abs(lit) for clause in self.hard + self.soft 
-                     for lit in clause)
+        max_var = max(abs(lit) for clause in self.hard + self.soft
+                      for lit in clause)
         next_var = max_var + 1
-        
+
         for clause in self.soft:
             sel = next_var
             next_var += 1
             selector_vars.append(sel)
             sat_oracle.add_clause(clause + [-sel])
-            
+
         # Binary search for optimal solution
         lb, ub = 0, sum(self.weights)
         best_model = None
-        
+
         while lb < ub and (time.time() - start_time) < timeout:
             target = (lb + ub) // 2
             assumptions = self._create_assumption_lits(selector_vars, target)
-            
+
             if sat_oracle.solve(assumptions=assumptions):
                 # Found satisfying assignment with cost <= target
                 model = sat_oracle.get_model()
@@ -80,7 +80,7 @@ class AnytimeMaxSAT:
             else:
                 # No solution with cost <= target exists
                 lb = target + 1
-                
+
         success = best_model is not None
         return success, best_model, self.best_cost
 
@@ -89,12 +89,9 @@ class AnytimeMaxSAT:
         return self.best_model, self.best_cost
 
 
-def solve_maxsat(hard: List[List[int]], soft: List[List[int]], 
-                weights: Optional[List[int]] = None,
-                timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
+def solve_maxsat(hard: List[List[int]], soft: List[List[int]],
+                 weights: Optional[List[int]] = None,
+                 timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
     """Convenience function to solve MaxSAT problems"""
     solver = AnytimeMaxSAT(hard, soft, weights)
     return solver.solve(timeout)
-
-
-

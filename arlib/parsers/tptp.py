@@ -59,7 +59,6 @@ ALPHA_NUMERIC        : (LOWER_ALPHA | UPPER_ALPHA | NUMERIC | "_")
 
 """
 
-
 term_grammar = r"""
 term                :  NAME -> const
             |        | _variable -> var

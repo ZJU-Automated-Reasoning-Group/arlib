@@ -8,12 +8,10 @@ This is controlled by setting the environment variable KNUCKLE_SOLVER to "cvc5" 
 import os
 from . import config
 
-
 Z3SOLVER = "z3"
 CVC5SOLVER = "cvc5"
 VAMPIRESOLVER = "vampire"
 solver = os.getenv("KNUCKLE_SOLVER")
-
 
 if solver is None or solver == Z3SOLVER:
     solver = "z3"
@@ -22,6 +20,7 @@ if solver is None or solver == Z3SOLVER:
 
     _py2expr = z3.z3._py2expr
 
+
     def is_if(x: z3.ExprRef) -> bool:
         """
         Check if an expression is an if-then-else.
@@ -29,6 +28,7 @@ if solver is None or solver == Z3SOLVER:
         True
         """
         return z3.is_app_of(x, z3.Z3_OP_ITE)
+
 
     def is_constructor(x: z3.ExprRef) -> bool:
         """
@@ -41,6 +41,7 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_CONSTRUCTOR)
 
+
     def is_accessor(x: z3.ExprRef) -> bool:
         """
         Check if an expression is an accessor.
@@ -51,6 +52,7 @@ if solver is None or solver == Z3SOLVER:
         True
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_ACCESSOR)
+
 
     def is_recognizer(x: z3.ExprRef) -> bool:
         """
@@ -63,6 +65,7 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_IS)
 
+
     def is_power(x: z3.ExprRef) -> bool:
         """
         Check if an expression is a power.
@@ -71,6 +74,7 @@ if solver is None or solver == Z3SOLVER:
         True
         """
         return z3.is_app_of(x, z3.Z3_OP_POWER)
+
 
     def is_uninterp(x: z3.ExprRef) -> bool:
         """
@@ -88,6 +92,7 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_UNINTERPRETED)
 
+
     Z3Solver = Solver
 elif solver == VAMPIRESOLVER:
     from z3 import *
@@ -103,6 +108,7 @@ elif solver == CVC5SOLVER:
 
     Z3PPObject = object
     FuncDecl = FuncDeclRef
+
 
     class Solver(cvc5.pythonic.Solver):
         def __init__(self):
@@ -123,6 +129,7 @@ elif solver == CVC5SOLVER:
         def unsat_core(self):
             return [cvc5.pythonic.BoolRef(x) for x in self.solver.getUnsatCore()]
 
+
     def Const(name, sort):
         # _to_expr doesn't have a DatatypeRef case
         x = cvc5.pythonic.Const(name, sort)
@@ -130,14 +137,17 @@ elif solver == CVC5SOLVER:
             x = DatatypeRef(x.ast, x.ctx, x.reverse_children)
         return x
 
+
     def Consts(names, sort):
         return [Const(name, sort) for name in names.split()]
+
 
     def _qsort(self):
         if self.is_lambda():
             return ArraySort(self.var_sort(0), self.body().sort())
         else:
             return BoolSort(self.ctx)
+
 
     QuantifierRef.sort = _qsort
 else:

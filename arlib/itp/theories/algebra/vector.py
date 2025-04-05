@@ -2,6 +2,7 @@ import arlib.itp as itp
 import arlib.itp.smt as smt
 import arlib.itp.property as prop
 
+
 # dispatching on the first argument isn't great
 # smul = itp.notation.SortDispatch(name="smul")
 
@@ -92,7 +93,6 @@ u, v, w = smt.Consts("u v w", V)
 add = smt.Function("vadd", V, V, V)
 itp.notation.add.register(V, add)
 
-
 add_comm = itp.axiom(smt.ForAll([u, v], u + v == v + u))
 add_assoc = itp.axiom(smt.ForAll([u, v, w], u + (v + w) == (u + v) + w))
 
@@ -100,7 +100,6 @@ zero = smt.Const("zero", V)
 
 add_zero = itp.axiom(smt.ForAll([u], u + zero == u))
 zero_add = itp.prove(smt.ForAll([u], zero + u == u), by=[add_comm, add_zero])
-
 
 """
 V.smul = smt.Function("smul", V, smt.RealSort(), V)

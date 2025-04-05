@@ -17,6 +17,7 @@ class BitwiseType(Enum):
             return self.value < other.value
         return NotImplemented
 
+
 # An abstract syntax tree structure representing a bitwise (sub-)expression.
 # Each node has a type (constant, variable or binary operation) and is possibly
 # negated. The bitwise negation is not realized via a separate node, but via a
@@ -24,7 +25,7 @@ class BitwiseType(Enum):
 class Bitwise():
     # Initialize a bitwise node with given type.
     def __init__(self, bType, negated=False, vidx=-1):
-        assert((vidx >= 0) == (bType == BitwiseType.VARIABLE))
+        assert ((vidx >= 0) == (bType == BitwiseType.VARIABLE))
 
         self.__type = bType
         self.__vidx = vidx
@@ -50,7 +51,7 @@ class Bitwise():
     # Returns a string representation of this node's operation. Requires that
     # this node represents a binary operation.
     def __op_to_string(self):
-        assert(self.__type > BitwiseType.VARIABLE)
+        assert (self.__type > BitwiseType.VARIABLE)
 
         if self.__type == BitwiseType.CONJUNCTION: return "&"
         if self.__type == BitwiseType.EXCL_DISJUNCTION: return "^"
@@ -68,7 +69,7 @@ class Bitwise():
             return ("~" if self.__negated else "") + variables[self.__vidx]
 
         withParentheses = withParentheses or self.__negated
-        assert(self.child_count() > 1)
+        assert (self.child_count() > 1)
 
         s = "~" if self.__negated else ""
         s += "(" if withParentheses else ""
@@ -82,7 +83,7 @@ class Bitwise():
     # Returns true iff this node's children are all contained in the
     # given one's children'.
     def __are_all_children_contained(self, other):
-        assert(other.__type == self.__type)
+        assert (other.__type == self.__type)
 
         oIndices = list(range(len(other.__children)))
         for child in self.__children:
@@ -108,7 +109,7 @@ class Bitwise():
 
     # Copy the only child's content to this node.
     def __pull_up_child(self):
-        assert(len(self.__children) == 1)
+        assert (len(self.__children) == 1)
         child = self.__children[0]
 
         self.__type = child.__type
@@ -182,7 +183,7 @@ class Bitwise():
     def __try_insert_xor(self, i, j):
         child1 = self.__children[i]
         child2 = self.__children[j]
-        
+
         t = self.__type
         ot = BitwiseType.INCL_DISJUNCTION if t == BitwiseType.CONJUNCTION else BitwiseType.CONJUNCTION
 
@@ -207,8 +208,10 @@ class Bitwise():
 
                 # (x&y) | (~x&~y) -> (x^~y)
                 else:
-                    if child1.__children[0].__negated: child1.__children[0].__negated = False
-                    else: child1.__children[1].__negated = not child1.__children[1].__negated
+                    if child1.__children[0].__negated:
+                        child1.__children[0].__negated = False
+                    else:
+                        child1.__children[1].__negated = not child1.__children[1].__negated
 
                 del self.__children[j]
                 return True
@@ -234,8 +237,10 @@ class Bitwise():
 
         if self.__type != BitwiseType.EXCL_DISJUNCTION:
             self.__negated = not self.__negated
-            if self.__type == BitwiseType.INCL_DISJUNCTION: self.__type = BitwiseType.CONJUNCTION
-            else: self.__type = BitwiseType.INCL_DISJUNCTION
+            if self.__type == BitwiseType.INCL_DISJUNCTION:
+                self.__type = BitwiseType.CONJUNCTION
+            else:
+                self.__type = BitwiseType.INCL_DISJUNCTION
 
         for child in self.__children:
             child.__negated = not child.__negated
@@ -266,7 +271,7 @@ class Bitwise():
         if len(commons) == 0: return False
 
         for child in self.__children:
-            assert(len(child.__children) > 0)
+            assert (len(child.__children) > 0)
             if len(child.__children) == 1:
                 child = child.__pull_up_child()
 
@@ -279,7 +284,7 @@ class Bitwise():
 
     # Try to factor a common node out of this node's children.
     def __try_extract(self):
-        assert(self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
+        assert (self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
 
         common = self.__get_common_child()
         if common == None: return None
@@ -292,7 +297,7 @@ class Bitwise():
     # Returns a node, if existent, which appear in all children and hence can
     # be factored out.
     def __get_common_child(self):
-        assert(self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
+        assert (self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
 
         # It is enough to consider the first child and check for all of its
         # children whether they appear in the other children too.
@@ -306,7 +311,7 @@ class Bitwise():
     # Returns true iff the given node can be factored out from all children but
     # the first one.
     def __has_child_in_remaining_children(self, node):
-        assert(self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
+        assert (self.__type in [BitwiseType.CONJUNCTION, BitwiseType.INCL_DISJUNCTION])
 
         for child in self.__children[1:]:
             if not child.__has_child(node): return False
@@ -325,4 +330,4 @@ class Bitwise():
                 del self.__children[i]
                 return
 
-        assert(False)
+        assert (False)

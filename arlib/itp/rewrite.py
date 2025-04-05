@@ -112,9 +112,9 @@ def beta(e):
     f(1)
     """
     if (
-        smt.is_select(e)
-        and isinstance(e.arg(0), smt.QuantifierRef)
-        and e.arg(0).is_lambda()
+            smt.is_select(e)
+            and isinstance(e.arg(0), smt.QuantifierRef)
+            and e.arg(0).is_lambda()
     ):
         args = [beta(c) for c in e.children()[1:]]
         f = e.arg(0)
@@ -214,7 +214,7 @@ def def_eq(e1: smt.ExprRef, e2: smt.ExprRef, trace=None) -> bool:
 
 
 def rewrite1(
-    t: smt.ExprRef, vs: list[smt.ExprRef], lhs: smt.ExprRef, rhs: smt.ExprRef
+        t: smt.ExprRef, vs: list[smt.ExprRef], lhs: smt.ExprRef, rhs: smt.ExprRef
 ) -> Optional[smt.ExprRef]:
     """
     Rewrite at root a single time.
@@ -226,7 +226,7 @@ def rewrite1(
 
 
 def apply(
-    goal: smt.BoolRef, vs: list[smt.ExprRef], head: smt.BoolRef, body: smt.BoolRef
+        goal: smt.BoolRef, vs: list[smt.ExprRef], head: smt.BoolRef, body: smt.BoolRef
 ) -> Optional[smt.BoolRef]:
     res = rewrite1(goal, vs, head, body)
     assert res is None or isinstance(res, smt.BoolRef)
@@ -271,16 +271,16 @@ class RewriteRule(NamedTuple):
 
     @classmethod
     def from_expr(
-        cls, expr: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof
+            cls, expr: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof
     ) -> "RewriteRule":
         """Convert a theorem of form `forall vs, lhs = rhs` to a rule."""
         return rewrite_of_expr(expr)
 
 
 def rewrite1_rule(
-    t: smt.ExprRef,
-    rule: RewriteRule,
-    trace: Optional[list[tuple[RewriteRule, dict[smt.ExprRef, smt.ExprRef]]]] = None,
+        t: smt.ExprRef,
+        rule: RewriteRule,
+        trace: Optional[list[tuple[RewriteRule, dict[smt.ExprRef, smt.ExprRef]]]] = None,
 ) -> Optional[smt.ExprRef]:
     """
     Rewrite at root a single time.
@@ -317,7 +317,7 @@ class RewriteRuleException(Exception): ...
 
 
 def rewrite_of_expr(
-    thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof,
+        thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof,
 ) -> RewriteRule:
     """
     Unpack theorem of form `forall vs, lhs = rhs` into a Rule tuple
@@ -351,9 +351,9 @@ def decl_index(rules: list[RewriteRule]) -> dict[smt.FuncDeclRef, RewriteRule]:
 
 
 def rewrite_slow(
-    t: smt.ExprRef,
-    rules: list[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof],
-    trace=None,
+        t: smt.ExprRef,
+        rules: list[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof],
+        trace=None,
 ) -> smt.ExprRef:
     """
     Repeat rewrite until no more rewrites are possible.
@@ -377,9 +377,9 @@ def rewrite_slow(
 
 
 def rewrite(
-    t: smt.ExprRef,
-    rules: Sequence[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof | RewriteRule],
-    trace=None,
+        t: smt.ExprRef,
+        rules: Sequence[smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof | RewriteRule],
+        trace=None,
 ) -> smt.ExprRef:
     """
     Repeat rewrite until no more rewrites are possible.
@@ -423,7 +423,7 @@ def rewrite(
 
 
 def all_narrow(
-    vs: list[smt.ExprRef], t: smt.ExprRef, lhs: smt.ExprRef, rhs: smt.ExprRef
+        vs: list[smt.ExprRef], t: smt.ExprRef, lhs: smt.ExprRef, rhs: smt.ExprRef
 ) -> list[tuple[smt.ExprRef, dict[smt.ExprRef, smt.ExprRef]]]:
     """
     Look for pattern lhs to unify with a subterm of t.
@@ -439,7 +439,7 @@ def all_narrow(
     """
     res = []
     if any(
-        t.eq(v) for v in vs
+            t.eq(v) for v in vs
     ):  # Non trivial overlap only `X ~ lhs` is not interesting.
         return res
     subst = itp.utils.unify(vs, t, lhs)
@@ -449,7 +449,7 @@ def all_narrow(
     for n, arg in enumerate(children):
         # recurse into subterms and lift result under f if found something
         for s, subst in all_narrow(vs, arg, lhs, rhs):
-            args = children[:n] + [s] + children[n + 1 :]
+            args = children[:n] + [s] + children[n + 1:]
             res.append((f(*args), subst))
     return res
 
@@ -521,7 +521,7 @@ def rule_of_expr(pf_or_thm: smt.ExprRef | itp.kernel.Proof) -> Rule:
 
 
 def backward_rule(
-    r: Rule, tgt: smt.BoolRef
+        r: Rule, tgt: smt.BoolRef
 ) -> Optional[tuple[dict[smt.ExprRef, smt.ExprRef], smt.BoolRef]]:
     """
     Apply a rule to a target term.
@@ -697,8 +697,8 @@ def kbo(vs: list[smt.ExprRef], t1: smt.ExprRef, t2: smt.ExprRef) -> Order:
                         return Order.NGE
                 raise Exception("Unexpected equality reached in kbo")
             elif (decl1.name(), decl1.get_id()) > (
-                decl2.name(),
-                decl2.get_id(),
+                    decl2.name(),
+                    decl2.get_id(),
             ):  # KBO2b
                 return Order.GR
             else:

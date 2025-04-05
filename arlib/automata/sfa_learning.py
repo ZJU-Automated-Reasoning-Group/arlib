@@ -8,9 +8,7 @@ import sys
 from typing import List, Dict, Set, Tuple, Optional, Union, Any
 
 
-
 class SFALearner:
     """
     Base class for learning Symbolic Finite Automata (SFA).
     """
- 

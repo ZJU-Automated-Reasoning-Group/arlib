@@ -3,6 +3,7 @@ Performing contextual simplification
 """
 import z3
 
+
 def subterms(t):
     seen = {}
 

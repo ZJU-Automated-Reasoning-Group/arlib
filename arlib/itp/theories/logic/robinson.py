@@ -13,7 +13,6 @@ N = smt.DeclareSort("N")
 # helper variables
 x, y, z = smt.Consts("x y z", N)
 
-
 # signature
 zero = smt.Const("zero", N)
 succ = smt.Function("succ", N, N)

@@ -17,5 +17,3 @@ we use the a resolution-based proof system by ourself (which can be slow)?
 import z3
 from typing import Dict, List, Set, Tuple, Union, Optional, Callable
 import contextlib
-
-

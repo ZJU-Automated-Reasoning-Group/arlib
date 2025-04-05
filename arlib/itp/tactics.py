@@ -54,7 +54,7 @@ class Calc:
         self.mode = self._Mode.EQ
 
     def _forall(
-        self, body: smt.BoolRef | smt.QuantifierRef
+            self, body: smt.BoolRef | smt.QuantifierRef
     ) -> smt.BoolRef | smt.QuantifierRef:
         if len(self.assume) == 1:
             body = smt.Implies(self.assume[0], body)
@@ -131,17 +131,17 @@ simps = {}
 
 
 def prove(
-    thm: smt.BoolRef,
-    by: Optional[itp.kernel.Proof | Sequence[itp.kernel.Proof]] = None,
-    admit=False,
-    timeout=1000,
-    dump=False,
-    solver=None,
-    # defns=True,
-    # induct=False,
-    # simps=simps,
-    # intros / fix / herb = False
-    unfold=0,
+        thm: smt.BoolRef,
+        by: Optional[itp.kernel.Proof | Sequence[itp.kernel.Proof]] = None,
+        admit=False,
+        timeout=1000,
+        dump=False,
+        solver=None,
+        # defns=True,
+        # induct=False,
+        # simps=simps,
+        # intros / fix / herb = False
+        unfold=0,
 ) -> itp.kernel.Proof:
     """Prove a theorem using a list of previously proved lemmas.
 
@@ -421,7 +421,7 @@ class Lemma:
             )
             return self.top_goal()
         elif (
-            smt.is_or(goal) and smt.is_not(goal.arg(0))
+                smt.is_or(goal) and smt.is_not(goal.arg(0))
         ):  # if implies a -> b gets classically unwound to Or(Not(a), b). TODO: Maybe I should remove this
             if goal.num_args() == 2:
                 self.goals.append(
@@ -473,7 +473,7 @@ class Lemma:
                 raise ValueError("Simplify failed. Ctx is already simplified.")
             self.lemmas.append(itp.kernel.prove(old == new))
             self.goals[-1] = goalctx._replace(
-                ctx=oldctx[:at] + [new] + oldctx[at + 1 :]
+                ctx=oldctx[:at] + [new] + oldctx[at + 1:]
             )
         return self.top_goal()
 
@@ -541,7 +541,7 @@ class Lemma:
             self.goals.append(
                 goalctx._replace(
                     sig=goalctx.sig + fs,
-                    ctx=ctx[:n] + [einstan_lemma.thm.arg(1)] + ctx[n + 1 :],
+                    ctx=ctx[:n] + [einstan_lemma.thm.arg(1)] + ctx[n + 1:],
                     goal=goal,
                 )
             )
@@ -659,13 +659,13 @@ class Lemma:
                 self.goals.pop()
                 for c in ctx[at].children():
                     self.goals.append(
-                        goalctx._replace(ctx=ctx[:at] + [c] + ctx[at + 1 :], goal=goal)
+                        goalctx._replace(ctx=ctx[:at] + [c] + ctx[at + 1:], goal=goal)
                     )
             elif smt.is_and(ctx[at]):
                 self.goals.pop()
                 self.goals.append(
                     goalctx._replace(
-                        ctx=ctx[:at] + ctx[at].children() + ctx[at + 1 :], goal=goal
+                        ctx=ctx[:at] + ctx[at].children() + ctx[at + 1:], goal=goal
                     )
                 )
             else:
@@ -781,7 +781,7 @@ class Lemma:
                 if at == -1:
                     at = len(ctx) - 1
                 self.goals.append(
-                    goalctx._replace(ctx=ctx[:at] + [target] + ctx[at + 1 :], goal=goal)
+                    goalctx._replace(ctx=ctx[:at] + [target] + ctx[at + 1:], goal=goal)
                 )
             return self.top_goal()
 
@@ -864,7 +864,7 @@ class Lemma:
             if at == -1:
                 at = len(goalctx.ctx) - 1
             self.goals.append(
-                goalctx._replace(ctx=goalctx.ctx[:at] + [e2] + goalctx.ctx[at + 1 :])
+                goalctx._replace(ctx=goalctx.ctx[:at] + [e2] + goalctx.ctx[at + 1:])
             )
 
         return self.top_goal()
@@ -908,14 +908,14 @@ class Lemma:
             return self.top_goal()
 
     def induct(
-        self,
-        x: smt.ExprRef,
-        using: Optional[
-            Callable[
-                [smt.ExprRef, Callable[[smt.ExprRef, smt.BoolRef], smt.BoolRef]],
-                itp.kernel.Proof,
-            ]
-        ] = None,
+            self,
+            x: smt.ExprRef,
+            using: Optional[
+                Callable[
+                    [smt.ExprRef, Callable[[smt.ExprRef, smt.BoolRef], smt.BoolRef]],
+                    itp.kernel.Proof,
+                ]
+            ] = None,
     ):
         """
         Apply an induction lemma instantiated on x.

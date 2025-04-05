@@ -43,7 +43,7 @@ class SATSolver(Enum):
         """Get a list of all solver names and aliases."""
         return [alias for solver in cls for alias in solver.value]
 
-    
+
 class EFBoolResult(Enum):
     """Result of EFBool Checking"""
     UNSAT = auto()

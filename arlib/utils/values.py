@@ -6,7 +6,6 @@ import itertools
 import z3
 from z3 import BitVecVal, Concat, Extract
 
-
 # Regular expression for extracting values from SMT-LIB strings
 RE_GET_EXPR_VALUE_ALL = re.compile(
     r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
@@ -63,7 +62,7 @@ def convert_smtlib_models_to_python_value(v):
         r = int(v[: v.find(" ")], 10)
     elif v.startswith('"') and v.endswith('"'):
         r = v[1:-1]  # Remove quotes for string values
-    elif "." in v:   # Real number
+    elif "." in v:  # Real number
         r = float(v)
     elif v.lstrip('-+').isdigit():  # Integer (possibly with sign)
         r = int(v)
@@ -165,5 +164,3 @@ def absolute_value_int(val):
     Absolute value for integer encoding
     """
     return z3.If(val >= 0, val, -val)
-
-    

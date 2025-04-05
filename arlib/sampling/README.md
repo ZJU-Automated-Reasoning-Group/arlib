@@ -1,6 +1,7 @@
 # Solution Sampling for Various Constraints
 
-This module provides various sampling algorithms for different SMT theories. The goal is to generate diverse, representative models (solutions) from the solution space of SMT formulas.
+This module provides various sampling algorithms for different SMT theories. The goal is to generate diverse,
+representative models (solutions) from the solution space of SMT formulas.
 
 ## Overview
 
@@ -14,7 +15,9 @@ The sampling module offers a unified interface for sampling models from SMT form
 ## Dependencies
 
 ### Required
+
 - Z3 SMT Solver (core dependency)
+
 ```bash
 pip install z3-solver
 ```

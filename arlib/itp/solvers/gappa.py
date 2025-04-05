@@ -1,6 +1,7 @@
 import arlib.itp.smt as smt
 import subprocess
 import arlib.itp.solvers as solvers
+
 # import itprag.theories.real as real
 
 
@@ -84,7 +85,7 @@ def gappa_of_real(e: smt.ArithRef):
             if nargs == 0:
                 return dname
             else:  # should I allow this?
-                return f"{dname}({','.join(map(gappa_of_real,e.children()))})"
+                return f"{dname}({','.join(map(gappa_of_real, e.children()))})"
     else:
         raise ValueError("Unsupported expression for Gappa: " + str(e))
 

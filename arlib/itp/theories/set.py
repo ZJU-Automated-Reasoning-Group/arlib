@@ -228,7 +228,6 @@ def Finite(A: smt.ArrayRef) -> smt.BoolRef:
         [finwit], itp.QForAll([x], A[x] == smt.Contains(finwit, smt.Unit(x)))
     )
 
-
 # TODO: Theorems: Finite is closed under most operations
 
 # @functools.cache

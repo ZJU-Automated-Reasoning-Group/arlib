@@ -313,7 +313,6 @@ valid_not = itp.prove(
     by=[valid.defn, tnot.defn],
 )
 
-
 x, y = smt.Consts("x y", TInt)
 ieq = itp.define("ieq", [x, y], Eq(x, y))
 ineq = itp.define("ineq", [x, y], NEq(x, y))

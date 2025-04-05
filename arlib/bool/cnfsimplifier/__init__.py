@@ -15,4 +15,3 @@ def simplify_numeric_clauses(clauses: List[List[int]]) -> List[List[int]]:
     cnf = NumericClausesReader().read(clauses)
     new_cnf = cnf_subsumption_elimination(cnf)  # why only subsumption?
     return new_cnf.get_numeric_clauses()
-

@@ -17,9 +17,9 @@ class SamplerFactory:
     This class provides methods for registering and creating instances of different
     sampler implementations.
     """
-    
+
     _samplers: Dict[Logic, List[Type[Sampler]]] = {}
-    
+
     @classmethod
     def register(cls, logic: Logic, sampler_class: Type[Sampler]):
         """
@@ -31,9 +31,9 @@ class SamplerFactory:
         """
         if logic not in cls._samplers:
             cls._samplers[logic] = []
-        
+
         cls._samplers[logic].append(sampler_class)
-    
+
     @classmethod
     def create(cls, logic: Logic, method: Optional[SamplingMethod] = None, **kwargs) -> Sampler:
         """
@@ -53,19 +53,19 @@ class SamplerFactory:
         if logic not in cls._samplers or not cls._samplers[logic]:
             available = ", ".join(str(l) for l in cls._samplers.keys())
             raise ValueError(f"No sampler available for logic {logic}. Available logics: {available}")
-        
+
         # If method is specified, find a sampler that supports it
         if method:
             for sampler_class in cls._samplers[logic]:
                 sampler = sampler_class(**kwargs)
                 if method in sampler.get_supported_methods():
                     return sampler
-            
+
             raise ValueError(f"No sampler available for logic {logic} and method {method}")
-        
+
         # Otherwise, return the first registered sampler
         return cls._samplers[logic][0](**kwargs)
-    
+
     @classmethod
     def available_logics(cls) -> Set[Logic]:
         """
@@ -75,7 +75,7 @@ class SamplerFactory:
             Set of available logics
         """
         return set(cls._samplers.keys())
-    
+
     @classmethod
     def available_methods(cls, logic: Logic) -> Set[SamplingMethod]:
         """
@@ -89,30 +89,33 @@ class SamplerFactory:
         """
         if logic not in cls._samplers:
             return set()
-        
+
         methods = set()
         for sampler_class in cls._samplers[logic]:
             sampler = sampler_class()
             methods.update(sampler.get_supported_methods())
-        
+
         return methods
 
 
 # Try to import and register available samplers
 try:
     from .finite_domain.bool_sampler import BooleanSampler
+
     SamplerFactory.register(Logic.QF_BOOL, BooleanSampler)
 except ImportError:
     pass
 
 try:
     from .finite_domain.bv_sampler import BitVectorSampler
+
     SamplerFactory.register(Logic.QF_BV, BitVectorSampler)
 except ImportError:
     pass
 
 try:
     from .linear_ira.lira_sampler import LIRASampler
+
     SamplerFactory.register(Logic.QF_LRA, LIRASampler)
     SamplerFactory.register(Logic.QF_LIA, LIRASampler)
     SamplerFactory.register(Logic.QF_LIRA, LIRASampler)
@@ -136,8 +139,8 @@ def create_sampler(logic: Logic, method: Optional[SamplingMethod] = None, **kwar
 
 
 def sample_models_from_formula(formula: z3.ExprRef,
-                  logic: Logic,
-                  options: Optional[SamplingOptions] = None) -> SamplingResult:
+                               logic: Logic,
+                               options: Optional[SamplingOptions] = None) -> SamplingResult:
     """
     High-level API for sampling models (solutions) from a formula.
     
@@ -151,7 +154,7 @@ def sample_models_from_formula(formula: z3.ExprRef,
     """
     if options is None:
         options = SamplingOptions()
-    
+
     sampler = create_sampler(logic, options.method)
     sampler.init_from_formula(formula)
     return sampler.sample(options)
@@ -159,8 +162,8 @@ def sample_models_from_formula(formula: z3.ExprRef,
 
 # For backward compatibility, but will be deprecated in future versions
 def sample_formula(formula: z3.ExprRef,
-                  logic: Logic,
-                  options: Optional[SamplingOptions] = None) -> SamplingResult:
+                   logic: Logic,
+                   options: Optional[SamplingOptions] = None) -> SamplingResult:
     """
     High-level API for sampling models from a formula.
     
@@ -188,19 +191,19 @@ def sample_formula(formula: z3.ExprRef,
 def demo():
     """Demonstrate the usage of the sampler factory."""
     import z3
-    
+
     # Create a simple formula
     x, y = z3.Reals("x y")
     formula = z3.And(x + y > 0, x - y < 1)
-    
+
     # Sample from the formula
     result = sample_models_from_formula(formula, Logic.QF_LRA, SamplingOptions(num_samples=5))
-    
+
     # Print the samples
     print(f"Generated {len(result)} models:")
     for i, sample in enumerate(result):
-        print(f"Model {i+1}: {sample}")
+        print(f"Model {i + 1}: {sample}")
 
 
 if __name__ == "__main__":
-    demo() 
+    demo()

@@ -17,7 +17,6 @@ zero = smt.Const("zero", SqMat)
 add_zero = itp.axiom(smt.ForAll([A], A + zero == A))
 zero_add = itp.prove(smt.ForAll([A], zero + A == A), by=[add_comm, add_zero])
 
-
 smul = smt.Function("smul", smt.RealSort(), SqMat, SqMat)
 itp.notation.mul.register(SqMat, lambda x, y: smul(y, x))
 itp.notation.rmul.register(SqMat, lambda x, y: smul(y, x))
@@ -27,7 +26,6 @@ smul_assoc = itp.axiom(smt.ForAll([A, r, s], smul(s, smul(r, A)) == smul(s * r, 
 smul_comm = itp.prove(
     smt.ForAll([A, s, r], smul(r, smul(s, A)) == smul(s, smul(r, A))), by=[smul_assoc]
 )
-
 
 matmul = smt.Function("mul", SqMat, SqMat, SqMat)
 itp.notation.matmul.register(SqMat, matmul)
@@ -42,7 +40,6 @@ mul_id = itp.axiom(smt.ForAll([A], A @ I == A))
 
 trans = smt.Function("trans", SqMat, SqMat)
 trans_idem = itp.axiom(smt.ForAll([A], trans(trans(A)) == A))
-
 
 inv = smt.Function("inv", SqMat, SqMat)
 is_inv = smt.Function("is_inv", SqMat, smt.BoolSort())

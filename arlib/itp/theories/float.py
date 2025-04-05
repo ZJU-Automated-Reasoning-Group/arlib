@@ -11,6 +11,7 @@ F32 = smt.FloatSingle()
 F64 = smt.FloatDouble()
 F128 = smt.FloatQuadruple()
 
+
 # https://www.why3.org/stdlib/ieee_float.html
 
 
@@ -40,10 +41,9 @@ round_def = itp.axiom(
     )
 )
 
-
 pow2sb = smt.IntVal(16777216)
 max_int = smt.IntVal(0xFFFF_FF00_0000_0000_0000_0000_0000_0000)
-max_real = smt.RealVal(2 - 2**-23) * 2**127  # smt.RealVal(0xFFFFFE * 2**121)
+max_real = smt.RealVal(2 - 2 ** -23) * 2 ** 127  # smt.RealVal(0xFFFFFE * 2**121)
 z = smt.Const("z", F32)
 max_real_thm = itp.prove(
     itp.QForAll([z], IsFinite(z), z <= smt.fpRealToFP(smt.RNE(), max_real, F32))
@@ -99,7 +99,6 @@ round_up_ge = itp.axiom(smt.ForAll([x], round(smt.RTP(), x) >= x))
 round_down_neg = itp.axiom(smt.ForAll([x], round(smt.RTN(), -x) == -round(smt.RTP(), x)))
 round_up_neg = itp.axiom(smt.ForAll([x], round(smt.RTP(), -x) == -round(smt.RTN(), x)))
 
-
 """
 round_idem_finite = itp.prove(
     itp.QForAll(
@@ -110,7 +109,6 @@ round_idem_finite = itp.prove(
     by=round_def,
 )
 """
-
 
 max64 = smt.RealVal(sys.float_info.max)
 z = smt.Const("z", F64)
@@ -123,7 +121,6 @@ min_float64 = itp.prove(
 """
 >>> assert True
 """
-
 
 """
 Single
@@ -149,12 +146,10 @@ Double
       x - 0x1p-52 * Abs.abs(x) - 0x1p-1074 <= round m x <= x + 0x1p-52 * Abs.abs(x) + 0x1p-1074
 """
 
-
 """
 
 
 """
-
 
 """
 get_default_rounding_mode (ctx=None)

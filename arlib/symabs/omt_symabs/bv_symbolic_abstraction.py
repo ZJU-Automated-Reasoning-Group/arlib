@@ -157,7 +157,7 @@ class BVSymbolicAbstraction:
             for var in self.vars:
                 vmin = self.min_once(var)
                 vmax = self.max_once(var)
-                
+
                 # Add bounds based on signed/unsigned comparison
                 if self.signed:
                     constraint = z3.And(var >= vmin, var <= vmax)
@@ -165,7 +165,8 @@ class BVSymbolicAbstraction:
                     constraint = z3.And(z3.UGE(var, vmin), z3.ULE(var, vmax))
                 constraints.append(constraint)
             self.interval_abs_as_fml = z3.And(constraints)
-        self.interval_abs_as_fml = z3.And(self.interval_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        self.interval_abs_as_fml = z3.And(self.interval_abs_as_fml,
+                                          z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\ninterval abs:", self.interval_abs_as_fml, sep="\n")
 
     def zone_abs(self):
@@ -224,7 +225,8 @@ class BVSymbolicAbstraction:
                     zone_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.zone_abs_as_fml = z3.And(zone_cnts)
-        self.zone_abs_as_fml = z3.And(self.zone_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        self.zone_abs_as_fml = z3.And(self.zone_abs_as_fml,
+                                      z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\nzone abs:", self.zone_abs_as_fml, sep="\n")
 
@@ -291,10 +293,11 @@ class BVSymbolicAbstraction:
                     oct_cnts.append(z3.And(z3.UGE(exp, exmin), z3.ULE(exp, exmax)))
 
             self.octagon_abs_as_fml = z3.And(oct_cnts)
-        self.octagon_abs_as_fml = z3.And(self.octagon_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        self.octagon_abs_as_fml = z3.And(self.octagon_abs_as_fml,
+                                         z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         self.formula = tmp
         print("\noctagon abs:", self.octagon_abs_as_fml, sep="\n")
-    
+
     def bitwise_abs(self):
         """
         Perform octagon abstraction on the formula.
@@ -359,8 +362,10 @@ class BVSymbolicAbstraction:
         #     if flag and var in self.vars:
         #         cnts.append(var == var)                
         self.bitwise_abs_as_fml = z3.And(cnts)
-        self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml, z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
+        self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml,
+                                         z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
         print("\nbitwise abs:", self.bitwise_abs_as_fml)
+
 
 def feat_test():
     x = z3.BitVec("x", 8)

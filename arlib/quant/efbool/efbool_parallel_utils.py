@@ -25,7 +25,8 @@ def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tupl
         return ans, solver.get_core()
 
 
-def parallel_check_assumptions(clauses: List[List[int]], assumptions_lists: List[List[int]], num_workers: int) -> List[List[int]]:
+def parallel_check_assumptions(clauses: List[List[int]], assumptions_lists: List[List[int]], num_workers: int) -> List[
+    List[int]]:
     """Solve clauses under a set of assumptions (deal with each one in parallel).
 
     Args:

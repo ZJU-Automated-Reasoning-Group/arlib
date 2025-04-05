@@ -16,9 +16,9 @@ class AllSMTSolverFactory:
     This class provides methods for registering and creating instances of different
     AllSMT solver implementations.
     """
-    
+
     _solvers: Dict[str, Type[AllSMTSolver]] = {}
-    
+
     @classmethod
     def register(cls, name: str, solver_class: Type[AllSMTSolver]):
         """
@@ -29,7 +29,7 @@ class AllSMTSolverFactory:
             solver_class: The solver class to register
         """
         cls._solvers[name.lower()] = solver_class
-    
+
     @classmethod
     def create(cls, name: str, **kwargs) -> AllSMTSolver:
         """
@@ -49,9 +49,9 @@ class AllSMTSolverFactory:
         if name not in cls._solvers:
             available = ", ".join(cls._solvers.keys())
             raise ValueError(f"Unknown solver: {name}. Available solvers: {available}")
-        
+
         return cls._solvers[name](**kwargs)
-    
+
     @classmethod
     def available_solvers(cls) -> list:
         """
@@ -66,18 +66,21 @@ class AllSMTSolverFactory:
 # Register the available solvers
 try:
     from .z3_solver import Z3AllSMTSolver
+
     AllSMTSolverFactory.register("z3", Z3AllSMTSolver)
 except ImportError:
     pass
 
 try:
     from .pysmt_solver import PySMTAllSMTSolver
+
     AllSMTSolverFactory.register("pysmt", PySMTAllSMTSolver)
 except ImportError:
     pass
 
 try:
     from .mathsat_solver import MathSATAllSMTSolver
+
     AllSMTSolverFactory.register("mathsat", MathSATAllSMTSolver)
 except ImportError:
     pass
@@ -127,10 +130,10 @@ def demo():
     # Create a Z3 solver
     z3_solver = create_allsmt_solver("z3")
     print(f"Created Z3 solver: {z3_solver}")
-    
+
     # List available solvers
     print(f"Available solvers: {AllSMTSolverFactory.available_solvers()}")
-    
+
     # Try to create each available solver
     for solver_name in AllSMTSolverFactory.available_solvers():
         try:
@@ -141,4 +144,4 @@ def demo():
 
 
 if __name__ == "__main__":
-    demo() 
+    demo()

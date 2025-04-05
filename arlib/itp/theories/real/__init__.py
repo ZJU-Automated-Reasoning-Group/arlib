@@ -8,7 +8,6 @@ import kdrag.smt as smt
 from kdrag.smt import ForAll, Function
 import kdrag as kd
 
-
 R = smt.RealSort()
 RFun = smt.ArraySort(R, R)
 RSeq = smt.ArraySort(smt.IntSort(), R)
@@ -35,7 +34,6 @@ kd.axiom(poly(smt.Lambda([x], x)))
 kd.axiom(kd.QForAll([f, g], poly(f), poly(g), poly(f + g)))
 kd.axiom(kd.QForAll([f, g], poly(f), poly(g), poly(f * g)))
 
-
 a, b = smt.Consts("a b", RSeq)
 i = smt.Int("i")
 seqadd = kd.notation.add.define([a, b], smt.Lambda([i], a[i] + b[i]))
@@ -44,7 +42,6 @@ seqmul = kd.notation.mul.define([a, b], smt.Lambda([i], a[i] * b[i]))
 seqdiv = kd.notation.div.define([a, b], smt.Lambda([i], a[i] / b[i]))
 
 Sum = smt.Function("Sum", RSeq, smt.IntSort(), smt.IntSort(), R)
-
 
 # NReal = kd.NewType("NReal", R)
 
@@ -119,7 +116,6 @@ abs_triangle = kd.prove(
     ForAll([x, y, z], abs(x - y) <= abs(x - z) + abs(z - y)), by=[abs.defn]
 )
 
-
 nonneg = kd.define("nonneg", [x], abs(x) == x)
 nonneg_ge_0 = kd.prove(ForAll([x], nonneg(x) == (x >= 0)), by=[nonneg.defn, abs.defn])
 
@@ -142,7 +138,6 @@ min_assoc = kd.prove(
 min_idem = kd.prove(ForAll([x], min(x, x) == x), by=[min.defn])
 min_le_2 = kd.prove(ForAll([x, y], min(x, y) <= x), by=[min.defn])
 min_le_3 = kd.prove(ForAll([x, y], min(x, y) <= y), by=[min.defn])
-
 
 n, m = smt.Ints("n m")
 to_real_add = kd.prove(
@@ -176,7 +171,7 @@ floor_gt = kd.prove(ForAll([x], x < floor(x) + 1), by=[floor.defn])
 # floor_minint = c.qed(defns=False)
 
 
-pow = kd.define("pow", [x, y], x**y)
+pow = kd.define("pow", [x, y], x ** y)
 pow_add = kd.axiom(
     kd.QForAll([x, y, z], x >= 0, pow(x, y + z) == pow(x, y) * pow(x, z))
 )
@@ -184,13 +179,12 @@ pow_one = kd.prove(kd.QForAll([x], pow(x, 1) == x), by=[pow.defn])
 pow_two = kd.prove(kd.QForAll([x], pow(x, 2) == x * x), by=[pow.defn])
 pow_three = kd.prove(kd.QForAll([x], pow(x, 3) == x * x * x), by=[pow.defn])
 # pow_zero = kd.kernel.prove(kd.QForAll([x], x > 0, pow(x, 0) == 1), by=[pow.defn])
-kd.kernel.prove(smt.Implies(x > 0, x**0 == 1))
+kd.kernel.prove(smt.Implies(x > 0, x ** 0 == 1))
 # pow_pos = kd.prove(kd.QForAll([x, y], x > 0, pow(x, y) > 0), by=[pow.defn])
 
 sqr = kd.define("sqr", [x], x * x)
 
-
-sqrt = kd.define("sqrt", [x], x**0.5)
+sqrt = kd.define("sqrt", [x], x ** 0.5)
 
 _l = kd.Lemma(kd.QForAll([x], x >= 0, sqrt(x) >= 0))
 _ = _l.fix()
@@ -198,7 +192,7 @@ _l.unfold()
 _l.auto()
 sqrt_pos = _l.qed()
 
-sqrt_define = kd.prove(smt.ForAll([x], sqrt(x) == x**0.5), by=[sqrt.defn, pow.defn])
+sqrt_define = kd.prove(smt.ForAll([x], sqrt(x) == x ** 0.5), by=[sqrt.defn, pow.defn])
 
 _l = kd.Lemma(kd.QForAll([x], x >= 0, sqrt(x) ** 2 == x))
 _ = _l.fix()
@@ -229,7 +223,6 @@ exp_div = kd.prove(smt.ForAll([x, y], exp(x) * exp(-x) == 1), by=[exp_add, exp_z
 exp_nzero = kd.prove(smt.ForAll([x], exp(x) != 0), by=[exp_div])
 exp_inv = kd.prove(smt.ForAll([x], exp(-x) == 1 / exp(x)), by=[exp_div])
 
-
 ln = smt.Function("ln", kd.R, kd.R)
 ln_exp = kd.axiom(smt.ForAll([x], ln(exp(x)) == x))
 # TODO. some of these are redundant depending on the range of ln being R.
@@ -237,7 +230,6 @@ ln_mul = kd.axiom(kd.QForAll([x, y], x > 0, y > 0, ln(x * y) == ln(x) + ln(y)))
 ln_one = kd.prove(smt.ForAll([x], ln(1) == 0), by=[ln_exp, exp_zero])
 
 exp_ln = kd.axiom(kd.QForAll([x], x > 0, exp(ln(x)) == x))
-
 
 cos = smt.Function("cos", R, R)  # smt.Const("cos", kd.R >> kd.R)
 sin = smt.Function("sin", R, R)  # smt.Const("sin", kd.R >> kd.R)
@@ -269,7 +261,6 @@ asin = smt.Function("asin", R, R)
 
 comp = kd.define("comp", [f, g], smt.Lambda([x], f(g(x))))
 kd.notation.matmul.register(RFun, comp)
-
 
 ident = kd.define("ident", [], smt.Lambda([x], x))
 const = kd.define("const", [x], smt.K(smt.RealSort(), x))
@@ -307,7 +298,6 @@ is_convergent = kd.define(
         smt.Exists([N], kd.QForAll([m], m > N, smt.Exists([x], abs(a[m] - x) < eps))),
     ),
 )
-
 
 zeroseq = smt.K(smt.IntSort(), smt.RealVal(0))
 deltaseq = kd.define("delta", [n, x], smt.Lambda([n], smt.If(n == 0, x, 0)))
@@ -365,7 +355,6 @@ has_lim_at = kd.define(
 lim = smt.Function("lim", RFun, R, R)
 lim_def = kd.axiom(kd.QForAll([f, x, y], has_lim_at(f, x, y), lim(f, x) == y))
 
-
 # limit of sequence as n -> infinity
 seqlim = kd.define(
     "seqlim",
@@ -393,7 +382,6 @@ cont_at = kd.define(
     ),
 )
 
-
 # smt.Function("cont_at", RFun, R, smt.BoolSort())
 
 is_diff = kd.define("is_diff", [f], smt.ForAll([x], diff_at(f, x)))
@@ -402,7 +390,6 @@ diff_cont = kd.axiom(kd.QForAll([f], is_diff(f), is_cont(f)))
 
 sin_diff = kd.axiom(is_diff(smt.Lambda([x], sin(x))))
 sin_cont = kd.prove(is_cont(smt.Lambda([x], sin(x))), by=[sin_diff, diff_cont])
-
 
 # Since not all functions are differentiable, the connection of deriv to the analytic definition of derivative is a proof obligation
 deriv = smt.Function("deriv", RFun, RFun)
@@ -418,6 +405,8 @@ deriv_mul = kd.axiom(ForAll([f, g], deriv(f * g) == deriv(f) * g + f * deriv(g))
 is_integ = smt.Function("is_integ", RFun, smt.BoolSort())
 
 Powser = kd.NewType("Powser", RSeq)
+
+
 # is_convergent_at
 
 # Bounds
@@ -453,4 +442,4 @@ def sqrt_bnd(n):
 
 def sin_lower(n, x):
     assert n >= 0
-    sum(x**n)
+    sum(x ** n)

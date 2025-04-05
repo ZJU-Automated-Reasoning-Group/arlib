@@ -3,7 +3,6 @@ This files takes a SyGuS instance in bit-vector theory and convert it to SMT ins
 TODO: is this finished?
 """
 
-
 from __future__ import print_function
 import argparse
 import re

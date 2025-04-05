@@ -172,6 +172,7 @@ class QBF:
 
             return result
         return None
+
     def __eq__(self, o):
         return self._prop.eq(o.get_prop()) and self._q_list == o.get_q_list()
 

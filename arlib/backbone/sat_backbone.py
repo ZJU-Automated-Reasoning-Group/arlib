@@ -40,7 +40,7 @@ class BackboneAlgorithm(Enum):
     BACKBONE_REFINEMENT = "backbone_refinement"
 
 
-def compute_backbone(cnf: CNF, algorithm: BackboneAlgorithm = BackboneAlgorithm.BACKBONE_REFINEMENT, 
+def compute_backbone(cnf: CNF, algorithm: BackboneAlgorithm = BackboneAlgorithm.BACKBONE_REFINEMENT,
                      solver_name: str = "cd", chunk_size: int = 10) -> Tuple[List[int], int]:
     """
     Compute the backbone of a SAT formula.
@@ -93,37 +93,37 @@ def compute_backbone_iterative(cnf: CNF, solver_name: str = "cd") -> Tuple[List[
     """
     solver = PySATSolver(solver=solver_name)
     solver.add_cnf(cnf)
-    
+
     # Check if formula is satisfiable
     result = solver.check_sat()
     if result == SolverResult.UNSAT:
         # If formula is UNSAT, there are no backbone literals
         return [], 1
-        
+
     backbone_literals = []
     num_solver_calls = 1  # Initial satisfiability check
-    
+
     # Get all variables in the formula
     variables = set(abs(lit) for clause in cnf.clauses for lit in clause)
-    
+
     for var in variables:
         # Check if F ∧ ¬var is satisfiable
         result = solver.check_sat_assuming([-var])
         num_solver_calls += 1
-        
+
         if result == SolverResult.UNSAT:
             # If F ∧ ¬var is UNSAT, then var is a backbone literal
             backbone_literals.append(var)
             continue
-            
+
         # Check if F ∧ var is satisfiable
         result = solver.check_sat_assuming([var])
         num_solver_calls += 1
-        
+
         if result == SolverResult.UNSAT:
             # If F ∧ var is UNSAT, then ¬var is a backbone literal
             backbone_literals.append(-var)
-    
+
     return backbone_literals, num_solver_calls
 
 
@@ -159,27 +159,27 @@ def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int
     """
     solver = PySATSolver(solver=solver_name)
     solver.add_cnf(cnf)
-    
+
     # Check if formula is satisfiable
     result = solver.check_sat()
     if result == SolverResult.UNSAT:
         # If formula is UNSAT, there are no backbone literals
         return [], 1
-    
+
     # Get a model
     model = solver.get_model()
     model_dict = {abs(lit): lit > 0 for lit in model}
-    
+
     backbone_literals = []
     num_solver_calls = 1  # Initial satisfiability check
-    
+
     # Get all variables in the formula
     variables = list(set(abs(lit) for clause in cnf.clauses for lit in clause))
-    
+
     # Process variables in chunks
     for i in range(0, len(variables), chunk_size):
-        chunk = variables[i:i+chunk_size]
-        
+        chunk = variables[i:i + chunk_size]
+
         # Create assumptions that flip the values of all variables in the chunk
         assumptions = []
         for var in chunk:
@@ -189,11 +189,11 @@ def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int
             else:
                 # If variable not in model, assign arbitrarily
                 assumptions.append(var)
-        
+
         # Check if formula is satisfiable with these assumptions
         result = solver.check_sat_assuming(assumptions)
         num_solver_calls += 1
-        
+
         if result == SolverResult.UNSAT:
             # There's at least one backbone literal in this chunk
             # Check each variable individually
@@ -202,11 +202,11 @@ def compute_backbone_chunking(cnf: CNF, solver_name: str = "cd", chunk_size: int
                     assumption = -var if model_dict[var] else var
                     result = solver.check_sat_assuming([assumption])
                     num_solver_calls += 1
-                    
+
                     if result == SolverResult.UNSAT:
                         # This variable is a backbone literal
                         backbone_literals.append(var if model_dict[var] else -var)
-    
+
     return backbone_literals, num_solver_calls
 
 
@@ -238,31 +238,31 @@ def compute_backbone_refinement(cnf: CNF, solver_name: str = "cd") -> Tuple[List
     """
     solver = PySATSolver(solver=solver_name)
     solver.add_cnf(cnf)
-    
+
     # Check if formula is satisfiable
     result = solver.check_sat()
     if result == SolverResult.UNSAT:
         # If formula is UNSAT, there are no backbone literals
         return [], 1
-    
+
     # Get initial model
     model = solver.get_model()
-    
+
     # Initialize potential backbone literals from the model
     potential_backbone = set(model)
     backbone_literals = []
     num_solver_calls = 1  # Initial satisfiability check
-    
+
     # Refine potential backbone literals
     while potential_backbone:
         # Pick a literal from potential backbone
         lit = next(iter(potential_backbone))
         potential_backbone.remove(lit)
-        
+
         # Check if formula is satisfiable with negation of literal
         result = solver.check_sat_assuming([-lit])
         num_solver_calls += 1
-        
+
         if result == SolverResult.UNSAT:
             # This literal is a backbone literal
             backbone_literals.append(lit)
@@ -271,7 +271,7 @@ def compute_backbone_refinement(cnf: CNF, solver_name: str = "cd") -> Tuple[List
             new_model = solver.get_model()
             # Refine potential backbone literals to those that appear in both models
             potential_backbone &= set(new_model)
-    
+
     return backbone_literals, num_solver_calls
 
 
@@ -294,61 +294,61 @@ def compute_backbone_with_approximation(cnf: CNF, solver_name: str = "cd") -> Tu
     """
     solver = PySATSolver(solver=solver_name)
     solver.add_cnf(cnf)
-    
+
     # Check if formula is satisfiable
     result = solver.check_sat()
     if result == SolverResult.UNSAT:
         # If formula is UNSAT, there are no backbone literals
         return [], [], 1
-    
+
     # Collect multiple models
     models = []
-    num_models = min(10, 2**min(10, len(cnf.nv)))  # Collect at most 10 models
+    num_models = min(10, 2 ** min(10, len(cnf.nv)))  # Collect at most 10 models
     models = solver.sample_models(num_models)
-    
+
     num_solver_calls = 1  # Initial satisfiability check
-    
+
     # Find common literals across all models (lower bound of backbone)
     if not models:
         return [], [], num_solver_calls
-        
+
     common_literals = set(models[0])
     for model in models[1:]:
         common_literals &= set(model)
-    
+
     # Verify each common literal to confirm it's a backbone literal
     definite_backbone = []
     for lit in common_literals:
         result = solver.check_sat_assuming([-lit])
         num_solver_calls += 1
-        
+
         if result == SolverResult.UNSAT:
             definite_backbone.append(lit)
-    
+
     # Compute upper bound: literals that might be backbone literals
     # (those not proven to not be in the backbone)
     potential_backbone = list(definite_backbone)
     variables = set(abs(lit) for clause in cnf.clauses for lit in clause)
-    
+
     for var in variables:
         # Skip variables we've already determined are backbone literals
         if var in [abs(lit) for lit in definite_backbone]:
             continue
-            
+
         # Check positive literal
         if var not in [abs(lit) for lit in potential_backbone]:
             result = solver.check_sat_assuming([-var])
             num_solver_calls += 1
             if result == SolverResult.UNSAT:
                 potential_backbone.append(var)
-        
+
         # Check negative literal
         if -var not in [abs(lit) for lit in potential_backbone]:
             result = solver.check_sat_assuming([var])
             num_solver_calls += 1
             if result == SolverResult.UNSAT:
                 potential_backbone.append(-var)
-    
+
     return definite_backbone, potential_backbone, num_solver_calls
 
 
@@ -368,17 +368,16 @@ def is_backbone_literal(cnf: CNF, literal: int, solver_name: str = "cd") -> Tupl
     """
     solver = PySATSolver(solver=solver_name)
     solver.add_cnf(cnf)
-    
+
     # Check if formula is satisfiable
     result = solver.check_sat()
     if result == SolverResult.UNSAT:
         # If formula is UNSAT, there are no backbone literals
         return False, 1
-    
+
     # Check if formula is satisfiable with negation of literal
     result = solver.check_sat_assuming([-literal])
-    
+
     # If formula is unsatisfiable with negation of literal,
     # then literal is a backbone literal
     return result == SolverResult.UNSAT, 2
-

@@ -27,11 +27,11 @@ class Clause:
             variable_list = [Variable(var) for var in variable_list]
         elif isinstance(variable_list, set):
             variable_list = [Variable(var) for var in variable_list]
-    
+
         self.variable_list = variable_list
         self.__size = len(self.variable_list)
         self.id = create_id()
-    
+
         self.literals_set = set()
         for var in self.variable_list:
             self.literals_set.add(var.variable_value)

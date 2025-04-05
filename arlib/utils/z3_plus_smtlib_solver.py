@@ -21,7 +21,6 @@ import z3
 
 from arlib.utils.smtlib_solver import SmtlibProc
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -38,7 +37,6 @@ class SequenceInterpolSolver(Enum):
 class OMTSolver(Enum):
     CVC5 = auto()
     OPTIMATHSAT = auto()
-
 
 
 def terminate(process, is_timeout):
@@ -81,7 +79,6 @@ def solve_with_bin_solver(cmd, timeout=300):
     if is_timeout[0]:
         return "timeout"
     return out
-
 
 
 class Z3SolverPlus(z3.Solver):

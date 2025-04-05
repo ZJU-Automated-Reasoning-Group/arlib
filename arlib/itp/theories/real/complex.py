@@ -13,12 +13,11 @@ mul = itp.define(
 itp.notation.mul.register(C, mul)
 conj = itp.define("conj", [z], C.C(z.re, -z.im))
 
-
 div = itp.notation.div.define(
     [z1, z2],
     C.C(
-        (z1.re * z2.re + z1.im * z2.im) / (z2.re**2 + z2.im**2),
-        (z1.im * z2.re - z1.re * z2.im) / (z2.re**2 + z2.im**2),
+        (z1.re * z2.re + z1.im * z2.im) / (z2.re ** 2 + z2.im ** 2),
+        (z1.im * z2.re - z1.re * z2.im) / (z2.re ** 2 + z2.im ** 2),
     ),
 )
 

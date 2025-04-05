@@ -19,7 +19,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
     
     This class implements the AllSMT solver interface using MathSAT as the underlying solver.
     """
-    
+
     def __init__(self, mathsat_path: str = None):
         """
         Initialize the MathSAT-based AllSMT solver.
@@ -31,7 +31,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
         self._model_count = 0
         self._mathsat_path = mathsat_path
         self._model_limit_reached = False
-        
+
         # If mathsat_path is not provided, try to get it from global config
         if not self._mathsat_path:
             try:
@@ -39,7 +39,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
                 self._mathsat_path = global_config.get_solver_path("mathsat")
             except (ImportError, AttributeError):
                 self._mathsat_path = "mathsat"  # Default to 'mathsat' command
-    
+
     def _z3_to_smtlib2(self, solver, keys):
         """
         Convert Z3 constraints to SMT-LIB2 format with proper all-SAT tracking.
@@ -86,7 +86,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
         smtlib2 += f"(check-allsat ({bool_labels_str}))\n"
 
         return smtlib2
-    
+
     def solve(self, expr, keys, model_limit: int = 100):
         """
         Enumerate all satisfying models for the given expression over the specified keys.
@@ -102,12 +102,12 @@ class MathSATAllSMTSolver(AllSMTSolver):
         # Create Z3 solver and add the expression
         solver = Solver()
         solver.add(expr)
-        
+
         # Reset model storage
         self._models = []
         self._model_count = 0
         self._model_limit_reached = False
-        
+
         # Create temporary file for SMT-LIB2 instance
         with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as tmp:
             try:
@@ -132,7 +132,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
                     if line.strip():
                         self._model_count += 1
                         self._models.append(line.strip())
-                        
+
                         # Check if we've reached the model limit
                         if self._model_count >= model_limit:
                             self._model_limit_reached = True
@@ -141,9 +141,9 @@ class MathSATAllSMTSolver(AllSMTSolver):
             finally:
                 # Clean up temporary file
                 os.unlink(tmp.name)
-        
+
         return self._models
-    
+
     def get_model_count(self) -> int:
         """
         Get the number of models found in the last solve call.
@@ -152,7 +152,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
             int: The number of models
         """
         return self._model_count
-    
+
     @property
     def models(self):
         """
@@ -162,7 +162,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
             List of models as strings (MathSAT output format)
         """
         return self._models
-    
+
     def print_models(self, verbose: bool = False):
         """
         Print all models found in the last solve call.
@@ -173,10 +173,10 @@ class MathSATAllSMTSolver(AllSMTSolver):
         if not self._models:
             print("No models found.")
             return
-        
+
         for i, model in enumerate(self._models):
-            print(f"Model {i+1}: {model}")
-        
+            print(f"Model {i + 1}: {model}")
+
         if self._model_limit_reached:
             print(f"Model limit reached. Found {self._model_count} models (there may be more).")
         else:
@@ -186,14 +186,14 @@ class MathSATAllSMTSolver(AllSMTSolver):
 def demo():
     """Demonstrate the usage of the MathSAT-based AllSMT solver."""
     from z3 import Ints, And
-    
+
     x, y = Ints('x y')
     expr = And(x + y == 5, x > 0, y > 0)
-    
+
     solver = MathSATAllSMTSolver()
     solver.solve(expr, [x, y], model_limit=10)
     solver.print_models()
 
 
 if __name__ == "__main__":
-    demo() 
+    demo()

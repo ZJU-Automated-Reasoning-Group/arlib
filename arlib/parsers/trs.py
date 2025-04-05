@@ -1,6 +1,5 @@
 import lark
 
-
 grammar = """
 
 start : var theory rules
@@ -15,7 +14,6 @@ NAME : /[a-zA-Z0-9_]+/
 %import common.WS
 %ignore WS
 """
-
 
 example = """
 

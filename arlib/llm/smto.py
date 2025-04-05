@@ -31,6 +31,7 @@ from openai import OpenAI
 import time
 from dataclasses import dataclass
 
+
 @dataclass
 class OracleInfo:
     """Information about an oracle function"""
@@ -57,20 +58,20 @@ class OraxSolver:
         self.oracles: Dict[str, OracleInfo] = {}
         self.solver = z3.Solver()
         self.cache: Dict[str, Dict] = {}  # Cache for oracle results
-        
+
     def register_oracle(self, oracle_info: OracleInfo):
         """Register an oracle function"""
         self.oracles[oracle_info.name] = oracle_info
-        
+
     def query_llm(self, oracle: OracleInfo, inputs: Dict) -> Optional[Union[int, float, bool, str]]:
         """Query LLM to simulate oracle function"""
         # Construct prompt with oracle description and examples
         prompt = f"Act as the following function:\n{oracle.description}\n\nExamples:\n"
         for example in oracle.examples:
             prompt += f"Input: {example['input']}\nOutput: {example['output']}\n"
-        
+
         prompt += f"\nNow, given the input: {inputs}\nWhat is the output?"
-        
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -84,7 +85,7 @@ class OraxSolver:
         except Exception as e:
             print(f"LLM query failed: {e}")
             return None
-            
+
     def _parse_llm_response(self, response: str, output_type: z3.SortRef) -> Optional[Union[int, float, bool, str]]:
         """Parse LLM response according to expected output type"""
         try:
@@ -102,7 +103,7 @@ class OraxSolver:
     def add_constraint(self, constraint: z3.BoolRef):
         """Add constraint to the solver"""
         self.solver.add(constraint)
-        
+
     def check(self) -> Optional[z3.ModelRef]:
         """
         Check satisfiability with oracle feedback loop
@@ -113,18 +114,18 @@ class OraxSolver:
             result = self.solver.check()
             if result == z3.unsat:
                 return None
-                
+
             model = self.solver.model()
             is_valid = self._validate_model_with_oracles(model)
-            
+
             if is_valid:
                 return model
-                
+
             # Add learned constraints from oracle feedback
             self._add_oracle_constraints(model)
-            
+
         return None
-        
+
     def _validate_model_with_oracles(self, model: z3.ModelRef) -> bool:
         """Validate model by checking oracle constraints"""
         for oracle_name, oracle_info in self.oracles.items():
@@ -133,15 +134,15 @@ class OraxSolver:
                 if decl.name() == oracle_name:
                     args = [model.eval(arg, True) for arg in decl.children()]
                     expected = model.eval(decl(), True)
-                    
+
                     # Query LLM for actual result
                     inputs = {f"arg{i}": arg for i, arg in enumerate(args)}
                     actual = self.query_llm(oracle_info, inputs)
-                    
+
                     if actual is None or actual != expected:
                         return False
         return True
-        
+
     def _add_oracle_constraints(self, model: z3.ModelRef):
         """Add learned constraints from oracle feedback"""
         for oracle_name, oracle_info in self.oracles.items():
@@ -149,23 +150,24 @@ class OraxSolver:
                 if decl.name() == oracle_name:
                     args = [model.eval(arg, True) for arg in decl.children()]
                     inputs = {f"arg{i}": arg for i, arg in enumerate(args)}
-                    
+
                     # Check cache first
                     cache_key = f"{oracle_name}_{inputs}"
                     if cache_key not in self.cache:
                         self.cache[cache_key] = self.query_llm(oracle_info, inputs)
-                        
+
                     actual = self.cache[cache_key]
                     if actual is not None:
                         # Add constraint that this oracle application must equal actual result
                         constraint = decl() == actual
                         self.solver.add(constraint)
 
+
 def example_usage():
     """Example usage of OraxSolver"""
     # Initialize solver
     solver = OraxSolver("your-api-key")
-    
+
     # Register an oracle for string length
     strlen_oracle = OracleInfo(
         name="strlen",
@@ -178,16 +180,16 @@ def example_usage():
         ]
     )
     solver.register_oracle(strlen_oracle)
-    
+
     # Create variables and constraints
     s = z3.String('s')
     length = z3.Int('length')
-    
+
     # Add constraints
     solver.add_constraint(z3.Length(s) == length)
     solver.add_constraint(length > 5)
     solver.add_constraint(length < 10)
-    
+
     # Solve
     model = solver.check()
     if model:

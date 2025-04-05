@@ -59,6 +59,7 @@ class SATSolver(Enum):
         """Get a list of all solver names and aliases."""
         return [alias for solver in cls for alias in solver.value]
 
+
 def internal_single_solve(solver_name, clauses, assumptions):
     """Used by parallel solving"""
     solver = Solver(name=solver_name, bootstrap_with=clauses)
@@ -88,14 +89,14 @@ class PySATSolver:
             return SolverResult.SAT
         else:
             return SolverResult.UNSAT
-    
+
     def check_sat_assuming(self, assumptions: List[int]) -> SolverResult:
         res = self._solver.solve(assumptions=assumptions)
         if res:
             return SolverResult.SAT
         else:
             return SolverResult.UNSAT
-        
+
     def get_unsat_core(self, assumptions: List[int]) -> List[int]:
         res = self._solver.solve(assumptions=assumptions)
         if res:
@@ -177,7 +178,6 @@ class PySATSolver:
 
     def get_model(self) -> List[int]:
         return self._solver.get_model()
-    
 
     def internal_parallel_solve(self, clauses: List[List], assumptions_lists: List[List]):
         """

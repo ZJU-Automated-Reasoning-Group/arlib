@@ -89,7 +89,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
     This class implements the AllSMT solver interface using PySMT as the underlying solver.
     It accepts Z3 expressions as input and converts them to PySMT format internally.
     """
-    
+
     def __init__(self, solver_name: str = None):
         """
         Initialize the PySMT-based AllSMT solver.
@@ -102,7 +102,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
         self._solver_name = solver_name
         self._pysmt_vars = []
         self._model_limit_reached = False
-    
+
     def solve(self, expr, keys, model_limit: int = 100):
         """
         Enumerate all satisfying models for the given expression over the specified keys.
@@ -119,41 +119,41 @@ class PySMTAllSMTSolver(AllSMTSolver):
         z3_formula = z3.And(expr)
         self._pysmt_vars, pysmt_formula = Z3ToPySMTConverter.convert(z3_formula)
         target_logic = get_logic(pysmt_formula)
-        
+
         # Reset model storage
         self._models = []
         self._model_count = 0
         self._model_limit_reached = False
-        
+
         try:
             with Solver(logic=target_logic, name=self._solver_name) as solver:
                 solver.add_assertion(pysmt_formula)
-                
+
                 while solver.solve():
                     # Create a model with variable assignments
                     model = {}
                     for var in self._pysmt_vars:
                         model[var] = solver.get_value(var)
-                    
+
                     self._model_count += 1
                     self._models.append(model)
-                    
+
                     # Check if we've reached the model limit
                     if self._model_count >= model_limit:
                         self._model_limit_reached = True
                         break
-                    
+
                     # Add constraint to find different model in next iteration
                     block_model = []
                     for var in self._pysmt_vars:
                         block_model.append(Not(EqualsOrIff(var, model[var])))
                     solver.add_assertion(Or(block_model))
-            
+
             return self._models
-            
+
         except Exception as e:
             raise Exception(f"Error during model sampling: {str(e)}")
-    
+
     def get_model_count(self) -> int:
         """
         Get the number of models found in the last solve call.
@@ -162,7 +162,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
             int: The number of models
         """
         return self._model_count
-    
+
     @property
     def models(self):
         """
@@ -172,7 +172,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
             List of PySMT models
         """
         return self._models
-    
+
     def print_models(self, verbose: bool = False):
         """
         Print all models found in the last solve call.
@@ -183,15 +183,15 @@ class PySMTAllSMTSolver(AllSMTSolver):
         if not self._models:
             print("No models found.")
             return
-        
+
         for i, model in enumerate(self._models):
             if verbose:
-                print(f"Model {i+1}:")
+                print(f"Model {i + 1}:")
                 for var, value in model.items():
                     print(f"  {var} = {value}")
             else:
-                print(f"Model {i+1}: {model}")
-        
+                print(f"Model {i + 1}: {model}")
+
         if self._model_limit_reached:
             print(f"Model limit reached. Found {self._model_count} models (there may be more).")
         else:
@@ -201,11 +201,11 @@ class PySMTAllSMTSolver(AllSMTSolver):
 def demo():
     """Demonstrate the usage of the PySMT-based AllSMT solver with Z3 input."""
     from z3 import Ints, Bools, And, Or, Not
-    
+
     # Define Z3 variables
     x, y = Ints('x y')
     a, b = Bools('a b')
-    
+
     # Define Z3 constraints
     expr = And(
         a == (x + y > 0),
@@ -213,7 +213,7 @@ def demo():
         x > 0,
         y > 0
     )
-    
+
     # Create solver and solve with a model limit
     solver = PySMTAllSMTSolver()
     solver.solve(expr, [a, b, x, y], model_limit=10)
@@ -221,4 +221,4 @@ def demo():
 
 
 if __name__ == "__main__":
-    demo() 
+    demo()

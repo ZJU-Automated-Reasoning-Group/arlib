@@ -464,7 +464,7 @@ class FormulaInfo:
 
     def logic_has_bv(self):
         return "BV" in self.get_logic()
-    
+
     def has_theory(self, theory_name):
         """Check if formula contains a specific theory.
         
@@ -535,16 +535,16 @@ class FormulaInfo:
             has_fp = self.has_theory('fp')
             has_strings = self.has_theory('string')
             has_bv = self.has_theory('bv')
-            
+
             # Base logic string
             logic_str = ""
             if not self.has_quantifier():
                 logic_str = "QF_"
-            
+
             # Detect arithmetic theories
             is_arith = False
             arith_type = ""
-            
+
             if not self.has_quantifier():  # Quantifier-free logic
                 if self.apply_probe("is-qflia"):
                     arith_type = "LIA"
@@ -577,34 +577,34 @@ class FormulaInfo:
                 elif self.apply_probe("is-nira") or self.apply_probe("is-lira"):
                     arith_type = "LIRA"
                     is_arith = True
-            
+
             # Build the logic string based on all theories present
             theories = []
-            
+
             # Add array support if present
             if has_arrays:
                 theories.append("A")
-            
+
             # Add bit-vector support if present
             if has_bv:
                 theories.append("BV")
-            
+
             # Add floating-point support if present
             if has_fp:
                 theories.append("FP")
-            
+
             # Add string support if present
             if has_strings:
                 theories.append("S")
-            
+
             # Check for uninterpreted functions
             if self.apply_probe("has-uninterpreted-functions") or self.apply_probe("is-propositional"):
                 theories.append("UF")
-            
+
             # Combine theories with the arithmetic type
             if is_arith:
                 theories.append(arith_type)
-            
+
             if not theories:
                 if self.apply_probe("is-propositional"):
                     self._logic = "QF_UF"
@@ -617,11 +617,11 @@ class FormulaInfo:
                     theories = non_arith + [arith_type]
                 else:
                     theories = non_arith
-                
+
                 self._logic = logic_str + "".join(theories)
-            
+
             return self._logic
-            
+
         except Exception as ex:
             import logging
             logging.warning(f"Error determining SMT logic: {ex}")
@@ -687,11 +687,13 @@ def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
 
 if __name__ == "__main__":
     import doctest
-    
+
+
     # Additional test cases for new get_z3_logic functionality
     def additional_tests():
         """
@@ -745,5 +747,6 @@ if __name__ == "__main__":
         'QF_ALIAS'
         """
         pass
-    
+
+
     doctest.testmod()

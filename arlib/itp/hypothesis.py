@@ -25,6 +25,8 @@ smt_sorts = st.recursive(
 )
 
 names = st.sampled_from("x y z".split())
+
+
 # I think we'll get more interesting bugs with more name clashes rather than exploring weird names
 
 
@@ -56,7 +58,6 @@ smt_int_expr = st.recursive(
         ),
     ),
 )
-
 
 smt_bool_val: st.SearchStrategy[smt.BoolRef] = st.sampled_from(
     [smt.BoolVal(True), smt.BoolVal(False)]
@@ -108,7 +109,6 @@ smt_bool_expr = st.recursive(
         st.tuples(children, children).map(lambda x: smt.Implies(x[0], x[1])),
     ),
 )
-
 
 smt_string_val = st.text().map(smt.StringVal)
 
@@ -200,7 +200,7 @@ def smt_seq_val(s: smt.SortRef) -> st.SearchStrategy[smt.SeqRef]:
 
 
 def z3_array_val(
-    dom: st.SearchStrategy[smt.ExprRef], ran: st.SearchStrategy[smt.ExprRef]
+        dom: st.SearchStrategy[smt.ExprRef], ran: st.SearchStrategy[smt.ExprRef]
 ) -> st.SearchStrategy[smt.ArrayRef]:
     def of_list(l: list[tuple[smt.ExprRef, smt.ExprRef]]) -> smt.ArrayRef:
         k, v = l.pop()
@@ -213,9 +213,9 @@ def z3_array_val(
 
 
 def val_of_sort(
-    s: smt.SortRef,
-    knot_tie: Optional[tuple[smt.SortRef, st.SearchStrategy[smt.ExprRef]]] = None,
-    slow_generic=False,
+        s: smt.SortRef,
+        knot_tie: Optional[tuple[smt.SortRef, st.SearchStrategy[smt.ExprRef]]] = None,
+        slow_generic=False,
 ) -> st.SearchStrategy[smt.ExprRef]:
     """
     Make a search strategy of values of a given SMT sort.

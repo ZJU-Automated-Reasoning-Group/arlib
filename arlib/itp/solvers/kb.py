@@ -70,7 +70,7 @@ def orient(eq: smt.BoolRef | smt.QuantifierRef, order=rw.kbo) -> rw.RewriteRule:
 
 
 def simplify(
-    t: smt.BoolRef | smt.QuantifierRef, rules: list[rw.RewriteRule]
+        t: smt.BoolRef | smt.QuantifierRef, rules: list[rw.RewriteRule]
 ) -> smt.BoolRef | smt.QuantifierRef:
     """
     Simplify an equation using a set of rewrite rules.
@@ -127,7 +127,7 @@ def basic(E, order=rw.kbo):
 
 
 def huet(
-    E: list[smt.BoolRef | smt.QuantifierRef], order=rw.kbo
+        E: list[smt.BoolRef | smt.QuantifierRef], order=rw.kbo
 ) -> list[rw.RewriteRule]:
     """
     Huet completion is a particular strategy.

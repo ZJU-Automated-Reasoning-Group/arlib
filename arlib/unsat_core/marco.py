@@ -180,7 +180,7 @@ def enumerate_sets(csolver, map):
             MUS = csolver.shrink(seed)
             yield "MUS", csolver.to_c_lits(MUS)
             map.block_up(MUS)
-             
+
 
 if __name__ == "__main__":
     main()

@@ -36,6 +36,7 @@ def unary_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List:
 
     return results
 
+
 def _check_single_constraint(precond: z3.ExprRef, cnt: z3.ExprRef) -> int:
     """Helper function to check a single constraint with precondition"""
     solver = z3.Solver()  # Create a new solver for thread safety
@@ -48,14 +49,13 @@ def _check_single_constraint(precond: z3.ExprRef, cnt: z3.ExprRef) -> int:
         return 0
     return 2
 
+
 def parallel_unary_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], max_workers: int = None) -> List:
     # This function is very likely to be thread-unafe
     # Each thread should have an independent z3 context.
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Map each constraint to a thread that checks it
-        futures = [executor.submit(_check_single_constraint, precond, cnt) 
-                  for cnt in cnt_list]
+        futures = [executor.submit(_check_single_constraint, precond, cnt)
+                   for cnt in cnt_list]
         # Collect results in order
         return [future.result() for future in futures]
-    
-

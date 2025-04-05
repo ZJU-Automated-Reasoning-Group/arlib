@@ -20,8 +20,9 @@ Basic idea: Abstraction/refinement to SMT(`QF_UFLLA`/`QF_UFLRA`)
       the original formula is also satisfiable.
 
 Publications
+
 - Icremental Linearization for Satisfiability and Verification Modulo Nonlinear Arithmetic and Transcendental Functions.
-Ahmed Irfan. PhD thesis
+  Ahmed Irfan. PhD thesis
 
 ### Local Search
 

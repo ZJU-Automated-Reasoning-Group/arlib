@@ -4,6 +4,7 @@ Plotting the DNNF, OBDD, etc., given the input files.
 
 import copy
 
+
 def export_dtree_file(output_dtree_file, dtree):
     output = open(output_dtree_file, 'w')
     output.write('dtree {}\n'.format(dtree.node_id + 1))

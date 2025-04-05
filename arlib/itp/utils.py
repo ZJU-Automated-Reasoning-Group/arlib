@@ -31,7 +31,7 @@ def open_binder(lam: smt.QuantifierRef) -> tuple[list[smt.ExprRef], smt.ExprRef]
 
 
 def open_binder_unhygienic(
-    lam: smt.QuantifierRef,
+        lam: smt.QuantifierRef,
 ) -> tuple[list[smt.ExprRef], smt.ExprRef]:
     """
     Do not use this. Use `open_binder`. Opens a quantifier with unfresh variables.
@@ -46,7 +46,7 @@ def open_binder_unhygienic(
 
 
 def pmatch(
-    vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, subst=None
+        vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, subst=None
 ) -> Optional[dict[smt.ExprRef, smt.ExprRef]]:
     """
     Pattern match t against pat considering vs as variables. Returns substitution dictionary if succeeds
@@ -105,10 +105,10 @@ def pmatch(
                 todo.append((pat.arg(i), t.arg(i)))
         elif isinstance(pat, smt.QuantifierRef):
             if (
-                not isinstance(t, smt.QuantifierRef)
-                or not quant_kind_eq(t, pat)
-                or t.num_vars() != pat.num_vars()
-                or any(t.var_sort(i) != pat.var_sort(i) for i in range(t.num_vars()))
+                    not isinstance(t, smt.QuantifierRef)
+                    or not quant_kind_eq(t, pat)
+                    or t.num_vars() != pat.num_vars()
+                    or any(t.var_sort(i) != pat.var_sort(i) for i in range(t.num_vars()))
             ):
                 return None
             vs1, patbody = open_binder(pat)
@@ -121,7 +121,7 @@ def pmatch(
 
 
 def pmatch_fo(
-    vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, subst=None
+        vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, subst=None
 ) -> Optional[dict[smt.ExprRef, smt.ExprRef]]:
     """
     First order pattern matching. Faster and simpler.
@@ -159,7 +159,7 @@ def pmatch_fo(
 
 
 def pmatch_rec(
-    vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, into_binder=False
+        vs: list[smt.ExprRef], pat: smt.ExprRef, t: smt.ExprRef, into_binder=False
 ) -> Optional[tuple[smt.ExprRef, dict[smt.ExprRef, smt.ExprRef]]]:
     todo = [t]
     while todo:
@@ -170,13 +170,13 @@ def pmatch_rec(
         elif smt.is_app(t):
             todo.extend(t.children())
         elif (
-            isinstance(t, smt.QuantifierRef) and into_binder
+                isinstance(t, smt.QuantifierRef) and into_binder
         ):  # going into the binder is dicey
             todo.append(t.body())
 
 
 def unify(
-    vs: list[smt.ExprRef], p1: smt.ExprRef, p2: smt.ExprRef
+        vs: list[smt.ExprRef], p1: smt.ExprRef, p2: smt.ExprRef
 ) -> Optional[dict[smt.ExprRef, smt.ExprRef]]:
     """Unification"""
     subst = {}
@@ -210,7 +210,7 @@ def unify(
 
 
 def unify_db(
-    p1: smt.ExprRef, p2: smt.ExprRef
+        p1: smt.ExprRef, p2: smt.ExprRef
 ) -> Optional[dict[smt.ExprRef, smt.ExprRef]]:
     """Unification using de Bruijn indices as variables"""
     subst = {}
@@ -291,9 +291,9 @@ def quant_kind_eq(t1: smt.QuantifierRef, t2: smt.QuantifierRef) -> bool:
     """
     # TODO: could make a faster version using Z3 kind tags
     return (
-        t1.is_forall() == t2.is_forall()
-        and t1.is_exists() == t2.is_exists()
-        and t1.is_lambda() == t2.is_lambda()
+            t1.is_forall() == t2.is_forall()
+            and t1.is_exists() == t2.is_exists()
+            and t1.is_lambda() == t2.is_lambda()
     )
 
 
@@ -317,10 +317,10 @@ def alpha_eq(t1, t2):
     #    return False
     elif smt.is_quantifier(t1):
         if (
-            smt.is_quantifier(t2)
-            and quant_kind_eq(t1, t2)
-            and t1.num_vars() == t2.num_vars()
-            and [t1.var_sort(i) == t2.var_sort(i) for i in range(t1.num_vars())]
+                smt.is_quantifier(t2)
+                and quant_kind_eq(t1, t2)
+                and t1.num_vars() == t2.num_vars()
+                and [t1.var_sort(i) == t2.var_sort(i) for i in range(t1.num_vars())]
         ):
             # It is ok to keep de bruijn indices here and not use open_binder?
             # vs, body1 = open_binder(t1)
@@ -336,9 +336,9 @@ def alpha_eq(t1, t2):
             return False
     elif smt.is_var(t1):
         return (
-            smt.is_var(t2)
-            and smt.get_var_index(t1) == smt.get_var_index(t2)
-            and t1.sort() == t2.sort()
+                smt.is_var(t2)
+                and smt.get_var_index(t1) == smt.get_var_index(t2)
+                and t1.sort() == t2.sort()
         )  # sort check is probably redundant if quantifier bound?
     else:
         raise Exception("Unexpected terms in alpha_eq", t1, t2)
@@ -431,7 +431,7 @@ def sanity_check_consistency(thms: list[smt.ExprRef | itp.kernel.Proof], timeout
 
 
 def prune(
-    thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof, by=[], timeout=1000
+        thm: smt.BoolRef | smt.QuantifierRef | itp.kernel.Proof, by=[], timeout=1000
 ) -> list[smt.ExprRef | itp.kernel.Proof]:
     """
     Prune the theorems used using unsat core. Helpful to speedup future proof verification.
@@ -494,7 +494,7 @@ def subterms(t: smt.ExprRef, into_binder=False):
 def sorts(t: smt.ExprRef):
     """Generate all sorts in a term"""
     for t in subterms(
-        t, into_binder=True
+            t, into_binder=True
     ):  # TODO: May want to get sorts of quantified variables that don't appear in bodies.
         yield t.sort()
 
@@ -507,16 +507,16 @@ def decls(t: smt.ExprRef) -> set[smt.FuncDeclRef]:
 def is_value(t: smt.ExprRef):
     # TODO, could make faster check using Z3 internals
     return (
-        smt.is_int_value(t)
-        or smt.is_rational_value(t)
-        or smt.is_algebraic_value(t)
-        or smt.is_bv_value(t)
-        or smt.is_true(t)
-        or smt.is_false(t)
-        or smt.is_string_value(t)
-        or smt.is_fp_value(t)
-        or smt.is_fprm_value(t)
-        or (smt.is_constructor(t) and all(is_value(c) for c in t.children()))
+            smt.is_int_value(t)
+            or smt.is_rational_value(t)
+            or smt.is_algebraic_value(t)
+            or smt.is_bv_value(t)
+            or smt.is_true(t)
+            or smt.is_false(t)
+            or smt.is_string_value(t)
+            or smt.is_fp_value(t)
+            or smt.is_fprm_value(t)
+            or (smt.is_constructor(t) and all(is_value(c) for c in t.children()))
     )
 
 
@@ -543,9 +543,9 @@ def lemma_db() -> dict[str, itp.kernel.Proof]:
             if is_proof(thm):
                 db[modname + "." + name] = thm
             elif (
-                isinstance(thm, smt.SortRef)
-                or isinstance(thm, smt.FuncDeclRef)
-                or isinstance(thm, smt.ExprRef)
+                    isinstance(thm, smt.SortRef)
+                    or isinstance(thm, smt.FuncDeclRef)
+                    or isinstance(thm, smt.ExprRef)
             ):
                 for name2, thm2 in thm.__dict__.items():
                     if is_proof(thm2):
@@ -558,7 +558,7 @@ def lemma_db() -> dict[str, itp.kernel.Proof]:
 
 
 def search_expr(
-    e: smt.ExprRef, pfs: dict[object, itp.kernel.Proof]
+        e: smt.ExprRef, pfs: dict[object, itp.kernel.Proof]
 ) -> dict[tuple[str, itp.kernel.Proof], Any]:
     """
     Search for expressions in the proof database that match `e` using pattern matching.
@@ -579,7 +579,7 @@ def search_expr(
             t_subst = itp.utils.pmatch_rec(rule.vs, rule.lhs, e, into_binder=True)
             if t_subst is None:
                 if (
-                    smt.is_const(rule.rhs) and rule.rhs not in itp.kernel.defns
+                        smt.is_const(rule.rhs) and rule.rhs not in itp.kernel.defns
                 ):  # Lots of trivial rules that match `== x`
                     continue
                 t_subst = itp.utils.pmatch_rec(rule.vs, rule.rhs, e, into_binder=True)
@@ -596,7 +596,7 @@ def search_expr(
 
 
 def search_decl(
-    f: smt.FuncDeclRef, db: dict[object, itp.kernel.Proof]
+        f: smt.FuncDeclRef, db: dict[object, itp.kernel.Proof]
 ) -> dict[tuple[str, itp.kernel.Proof], Any]:
     """
     Search for declarations in the proof database that contain function declaration f
@@ -609,7 +609,7 @@ def search_decl(
 
 
 def search(
-    *es: smt.FuncDeclRef | smt.ExprRef, db: dict[Any, itp.kernel.Proof] = {}
+        *es: smt.FuncDeclRef | smt.ExprRef, db: dict[Any, itp.kernel.Proof] = {}
 ) -> dict[tuple[str, itp.kernel.Proof], Any]:
     """
     Search for function declarations or expressions.
@@ -659,8 +659,8 @@ def prompt(prompt: str):
     ]
     for file_path in py_files:
         if any(
-            excluded in os.path.relpath(file_path, root_dir).split(os.sep)
-            for excluded in excluded_subdirs
+                excluded in os.path.relpath(file_path, root_dir).split(os.sep)
+                for excluded in excluded_subdirs
         ):
             continue
         with open(file_path, "r", encoding="utf-8") as file:

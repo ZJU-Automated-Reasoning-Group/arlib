@@ -1,5 +1,6 @@
 from bitwise import Bitwise, BitwiseType
 
+
 # A structure representing a conjunction of possibly negated variables. It is
 # mainly represented as a vector whose entry with index 0 is 1 if the i-th
 # variable occurs unnegatedly in the conjunction, 0 if it appears negatedly and
@@ -23,7 +24,7 @@ class Implicant():
             self.vec.append(value & 1)
             value >>= 1
 
-        assert(len(self.vec) == vnumber)
+        assert (len(self.vec) == vnumber)
 
     # Returns a string representation of this implicant.
     def __str__(self):
@@ -43,9 +44,9 @@ class Implicant():
     # Try to merge this implicant with the given one. Returns a merged
     # implicant if this is possible and None otherwise.
     def try_merge(self, other):
-        assert(len(self.vec) == len(other.vec))
-        
-        diffIdx = -1        
+        assert (len(self.vec) == len(other.vec))
+
+        diffIdx = -1
         for i in range(len(self.vec)):
             if self.vec[i] == other.vec[i]:
                 continue
@@ -53,7 +54,7 @@ class Implicant():
             # Already found a difference, no other difference allowed.
             if diffIdx != -1:
                 return None
-            
+
             diffIdx = i
 
         newImpl = self.__get_copy()
@@ -93,8 +94,8 @@ class Implicant():
 
     # Returns a more detailed string representation.
     def get(self, variables):
-        assert(len(variables) == len(self.vec))
-        
+        assert (len(variables) == len(self.vec))
+
         s = ""
         for i in range(len(self.vec)):
             # The variable has no influence.

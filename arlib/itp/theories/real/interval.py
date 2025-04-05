@@ -25,7 +25,6 @@ join_union = itp.prove(
     by=[setof.defn, join.defn, R.min.defn, R.max.defn],
 )
 
-
 width = itp.define("width", [i], i.hi - i.lo)
 mid = itp.define("mid", [i], (i.lo + i.hi) / 2)
 

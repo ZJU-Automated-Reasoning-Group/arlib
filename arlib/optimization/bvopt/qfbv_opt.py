@@ -26,7 +26,7 @@ class BVOptimize:
         clauses_numeric = self.bit_blast()
         cnf = CNF(from_clauses=clauses_numeric)
         name = random.choice(sat_solvers_in_pysat)
-        
+
         try:
             with Solver(name=name, bootstrap_with=cnf) as solver:
                 if solver.solve():
@@ -48,7 +48,7 @@ class BVOptimize:
             # Original optimization logic
             clauses_numeric = self.bit_blast()
             # ... rest of the existing optimization code ...
-            
+
         except Exception as ex:
             logger.error(f"Optimization failed: {ex}")
             return None
@@ -58,7 +58,7 @@ class BVOptimize:
         if self.fml is None:
             logger.error("No formula provided")
             return None
-            
+
         try:
             return self.maximize_with_maxsat(obj, is_signed)
         except Exception as ex:

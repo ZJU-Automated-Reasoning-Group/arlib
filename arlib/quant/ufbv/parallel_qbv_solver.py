@@ -319,14 +319,14 @@ def extract_max_bits_for_formula(fml):
 
 
 def solve_with_approx_partitioned(formula_str, reduction_type, q_type, bit_places, polarity,
-                                result_queue, local_max_bit_width):
+                                  result_queue, local_max_bit_width):
     """Modified to accept formula as string"""
     # Parse formula string in worker process
     formula = z3.And(z3.parse_smt2_string(formula_str))
-    
+
     while (bit_places < (local_max_bit_width - 2) or max_bit_width == 0):
         approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
-        
+
         # Create new context and solver
         new_ctx = z3.Context()
         new_ctx_fml = approximated_formula.translate(new_ctx)
@@ -334,11 +334,11 @@ def solve_with_approx_partitioned(formula_str, reduction_type, q_type, bit_place
         t = z3.Tactic("ufbv", ctx=new_ctx)
         s = t.solver()
         s.add(new_ctx_fml)
-        
+
         result = s.check()
         # Convert result to string for queue
         result_str = str(result)
-        
+
         if q_type == Quantification.UNIVERSAL:
             if result == z3.CheckSatResult(z3.Z3_L_TRUE) or result == z3.CheckSatResult(z3.Z3_L_UNDEF):
                 (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
@@ -354,6 +354,7 @@ def solve_with_approx_partitioned(formula_str, reduction_type, q_type, bit_place
 
     solve_without_approx(formula_str, result_queue, True)
 
+
 def solve_without_approx(formula_str, result_queue, randomness=False):
     """Modified to accept formula as string"""
     formula = z3.And(z3.parse_smt2_string(formula_str))
@@ -362,6 +363,7 @@ def solve_without_approx(formula_str, result_queue, randomness=False):
         s.set("smt.random_seed", random.randint(0, 10))
     s.add(formula)
     result_queue.put(str(s.check()))
+
 
 def split_list(lst, n):
     """Split a list into n approximately equal chunks.
@@ -375,10 +377,11 @@ def split_list(lst, n):
     k, m = divmod(len(lst), n)
     return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
 
+
 def solve_qbv_parallel(formula):
     # Convert formula to string
     formula_str = formula.sexpr()
-    
+
     reduction_type = ReductionType.ZERO_EXTENSION
     timeout = 60
     workers = 4

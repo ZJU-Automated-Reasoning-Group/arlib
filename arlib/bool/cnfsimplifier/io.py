@@ -28,7 +28,7 @@ class PySATCNFReader:
             clause_list.append(Clause(var_list))
         cnf = Cnf(clause_list)
         return cnf
-    
+
 
 class NumericClausesReader:
     """

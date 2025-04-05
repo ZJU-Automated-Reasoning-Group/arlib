@@ -6,7 +6,7 @@ Given a formula and a set of predicates {P1,...,Pn},
 decide for each Pi, whether F and Pi is satisfiable or not.
 
 ## Applications
-  
+
 - k-induction (in checking mulitple properties)
 - Optimization Modulo Theories (for symbolic abstraction)
 - Value-flow analysis (in checking mulitple properties)

@@ -4,7 +4,8 @@ This module provides tools for enumerating all satisfying models (AllSMT) for SM
 
 ## Overview
 
-The AllSMT module offers a unified interface for enumerating all satisfying models of SMT formulas using different underlying solvers. It provides:
+The AllSMT module offers a unified interface for enumerating all satisfying models of SMT formulas using different
+underlying solvers. It provides:
 
 - A common interface for different solver backends
 - Support for Z3, PySMT, and MathSAT
@@ -92,7 +93,8 @@ solver.print_models(verbose=True)
 
 ### Handling Potentially Infinite Model Sets
 
-For integer or real formulas, the number of models can be infinite. The `model_limit` parameter prevents the solver from running indefinitely:
+For integer or real formulas, the number of models can be infinite. The `model_limit` parameter prevents the solver from
+running indefinitely:
 
 ```python
 from arlib.allsmt import create_allsmt_solver

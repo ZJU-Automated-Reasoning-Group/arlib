@@ -2,6 +2,7 @@ import arlib.itp as itp
 import arlib.itp.smt as smt
 import arlib.itp.theories.set as set_
 import functools
+
 # https://plato.stanford.edu/Entries/logic-intuitionistic/#FormSystMathMath
 # https://en.wikipedia.org/wiki/Kripke_semantics#Semantics_of_intuitionistic_logic
 # def modus(A : smt.BoolRef, AB : smt.BoolRef) -> itp.Proof:
@@ -108,7 +109,6 @@ itp.notation.or_.register(Prop, or_)
 itp.notation.invert.register(Prop, not_)
 
 impl_aba = itp.prove(itp.QForAll([a, b], valid(impl_(a, impl_(b, a)))), unfold=1)
-
 
 impl_aba = itp.prove(itp.QForAll([a, b], Valid(Implies(a, Implies(b, a)))))
 and_elim1 = itp.prove(itp.QForAll([a, b], Valid(Implies(And(a, b), a))))

@@ -11,7 +11,6 @@ Nat.declare("Z")
 Nat.declare("S", ("pred", Nat))
 Nat = Nat.create()
 
-
 S = Nat.S
 Z = Nat.Z
 one = S(Z)
@@ -81,7 +80,6 @@ def add_x_zero():
 
 
 add_x_zero = add_x_zero()
-
 
 l = itp.Lemma(smt.ForAll([x], add(x, Nat.Z) == x))
 _x1 = l.fix()

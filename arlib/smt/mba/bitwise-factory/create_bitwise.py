@@ -17,7 +17,7 @@ from bitwise import Bitwise
 # Class for creating bitwise expressions for a given number of variables.
 class BitwiseFactory():
     def __init__(self, vnumber, variables=None, noTable=False):
-        assert(variables == None or len(variables) >= vnumber)
+        assert (variables == None or len(variables) >= vnumber)
 
         self.__vnumber = vnumber
         self.__variables = variables
@@ -37,30 +37,34 @@ class BitwiseFactory():
     # used number t of variables. Requires that the number of variables is not
     # larger than 3.
     def __init_table(self):
-        if self.__vnumber == 1: self.__init_table_1var()
-        elif self.__vnumber == 2: self.__init_table_2vars()
-        elif self.__vnumber == 3: self.__init_table_3vars()
-        else: assert(False)
+        if self.__vnumber == 1:
+            self.__init_table_1var()
+        elif self.__vnumber == 2:
+            self.__init_table_2vars()
+        elif self.__vnumber == 3:
+            self.__init_table_3vars()
+        else:
+            assert (False)
 
     # Initializes the lookup table for 1 variable.
     def __init_table_1var(self):
         self.__table = [
-                        "0",    # [0 0]
-                        "X[0]"  # [0 1]
-                       ]
+            "0",  # [0 0]
+            "X[0]"  # [0 1]
+        ]
 
     # Initializes the lookup table for 2 variables.
     def __init_table_2vars(self):
         self.__table = [
-                        "0",                # [0 0 0 0]
-                        "(X[0]&~X[1])",     # [0 1 0 0]
-                        "(~X[0]&X[1])",     # [0 0 1 0]
-                        "(X[0]^X[1])",      # [0 1 1 0]
-                        "(X[0]&X[1])",      # [0 0 0 1]
-                        "X[0]",             # [0 1 0 1]
-                        "X[1]",             # [0 0 1 1]
-                        "(X[0]|X[1])"       # [0 1 1 1]
-                       ]
+            "0",  # [0 0 0 0]
+            "(X[0]&~X[1])",  # [0 1 0 0]
+            "(~X[0]&X[1])",  # [0 0 1 0]
+            "(X[0]^X[1])",  # [0 1 1 0]
+            "(X[0]&X[1])",  # [0 0 0 1]
+            "X[0]",  # [0 1 0 1]
+            "X[1]",  # [0 0 1 1]
+            "(X[0]|X[1])"  # [0 1 1 1]
+        ]
 
     # Initializes the lookup table for 3 variables.
     def __init_table_3vars(self):
@@ -74,7 +78,6 @@ class BitwiseFactory():
                 bitwiseExprList.append(b)
 
         self.__table = bitwiseExprList
-
 
     # Create a bitwise expression with given truth value vector.
     def __create_bitwise(self, vector):
@@ -103,7 +106,7 @@ class BitwiseFactory():
         index = 0
         add = 1
         for i in range(len(vector) - 1):
-            if vector[i+1] != offset: index += add
+            if vector[i + 1] != offset: index += add
             add <<= 1
 
         return index
@@ -147,7 +150,7 @@ class BitwiseFactory():
         # If the vector's first entry is nonzero after subtracting the offset,
         # negate the truth values and negate the bitwise thereafter.
         if not self.__noTable and self.__vnumber <= 3 and vector[0] != offset:
-            assert(vector[0] == offset + 1)
+            assert (vector[0] == offset + 1)
             for i in range(len(vector)):
                 vector[i] = offset + (vector[i] - offset + 1) % 2
             negated = True
@@ -190,8 +193,8 @@ if __name__ == "__main__":
     vnumber = int(sys.argv[1])
     vec = list(map(int, sys.argv[2].strip('[]').split(' ')))
 
-    if len(vec) != 2**vnumber:
-        sys.exit("Incorrect number of truth values! Requires exactly " + str(2**vnumber) + " values.")
+    if len(vec) != 2 ** vnumber:
+        sys.exit("Incorrect number of truth values! Requires exactly " + str(2 ** vnumber) + " values.")
 
     offset = 0
     variables = None
@@ -224,14 +227,15 @@ if __name__ == "__main__":
             if len(vec) < vnumber:
                 sys.exit("Incorrect number of variables! Requires at least " + str(vnumber) + " values.")
 
-        elif sys.argv[i] == "-n": noTable = True
+        elif sys.argv[i] == "-n":
+            noTable = True
 
-        else: sys.exit("Unknown option " + sys.argv[i] + "!")
+        else:
+            sys.exit("Unknown option " + sys.argv[i] + "!")
 
     if vec.count(offset) + vec.count(offset + 1) != len(vec):
-        sys,exit("Error: Only offset and offset+1 allowed in truth vector!")
+        sys, exit("Error: Only offset and offset+1 allowed in truth vector!")
 
     print("*** Truth values " + str(vec))
     bw = create_bitwise(vnumber, vec, 0, variables, noTable)
     print("*** ... yields " + bw)
-

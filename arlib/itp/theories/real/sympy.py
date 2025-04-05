@@ -5,7 +5,6 @@ import arlib.itp.smt as smt
 import sympy
 import sympy.abc
 
-
 sympy_env = {**sympy.__dict__, **sympy.abc.__dict__}
 
 

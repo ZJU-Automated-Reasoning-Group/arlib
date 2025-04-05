@@ -342,4 +342,3 @@ if __name__ == '__main__':
 
                 print('v', ' '.join([str(clid) for clid in mus]), '0')
                 print('c oracle time: {0:.4f}'.format(musx.oracle_time()))
-               

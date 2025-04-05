@@ -6,6 +6,7 @@ import arlib.itp as itp
 import arlib.itp.smt as smt
 import functools
 
+
 # https://pmc.ncbi.nlm.nih.gov/articles/PMC7324132/ An SMT Theory of Fixed-Point Arithmetic
 # https://www.why3.org/stdlib/mach.fxp.html
 

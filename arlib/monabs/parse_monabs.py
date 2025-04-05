@@ -11,7 +11,6 @@ from typing import List, Any
 from functools import reduce
 from z3 import *
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +20,7 @@ class MonAbsSMTLIBParser:
         self.solver = Solver()
         self.variables = {}
         self.functions = {}  # Store declared functions
-        self.let_bindings = {} # Store let bindings
+        self.let_bindings = {}  # Store let bindings
         # Stack of constraints for each scope level
         # First list (index 0) contains global constraints
         self.constraints_stack: List[List[Any]] = [[]]
@@ -238,15 +237,15 @@ class MonAbsSMTLIBParser:
             return self.parse_constant(expr)
 
         op = expr[0]
-        
+
         if isinstance(op, list):
             flatten_expr = expr[0]
             flatten_expr.append(expr[1])
             return self.build_special_operator(flatten_expr)
-        
+
         if op == 'let':
             return self.build_let_expression(expr)
-        
+
         args = [self.build_expression(arg) for arg in expr[1:]]
 
         # Theory-specific operations
@@ -277,7 +276,7 @@ class MonAbsSMTLIBParser:
             # Bit-vector constant
             value = int(expr[1][2:])  # Extract the value after 'bv'
             width = int(expr[2])  # Extract the bit-width
-            return BitVecVal(value, width) 
+            return BitVecVal(value, width)
         elif expr[1] == 'sign_extend':
             # Sign extension
             extension_bits = int(expr[2])
@@ -291,7 +290,7 @@ class MonAbsSMTLIBParser:
             return Extract(high, low, value)
         else:
             raise ValueError(f"Unknown special operator: {expr[1]}")
-    
+
     def build_let_expression(self, expr):
         bindings = expr[1]
         body = expr[2]
@@ -301,9 +300,9 @@ class MonAbsSMTLIBParser:
             var_name = binding[0]
             var_expr = self.build_expression(binding[1])
             self.let_bindings[var_name] = var_expr
-        
+
         return self.build_expression(body)
-        
+
     def build_standard_expression(self, op, args):
         """Build expression for standard operations"""
         if op == '+':
@@ -485,6 +484,7 @@ smt_content_bv = """
 (check-sat)
 (pop 1)
 """
+
 
 def main():
     parser = MonAbsSMTLIBParser(only_parse=True, logic='QF_BV')

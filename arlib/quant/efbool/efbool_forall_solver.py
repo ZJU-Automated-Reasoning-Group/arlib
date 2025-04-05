@@ -23,7 +23,7 @@ class BoolForallSolver(object):
                 Supported solvers: cd, g3, g4, gh, lgl, m22, mc, mgh, mpl
         """
         self.solver_name = solver_name
-        self.solver = Solver(name=self.solver_name) # seems not used
+        self.solver = Solver(name=self.solver_name)  # seems not used
         self.universal_bools = forall_vars
         self.existential_bools = exists_vars
         self.clauses = []
@@ -57,13 +57,13 @@ class BoolForallSolver(object):
         solver = Solver(self.solver_name, bootstrap_with=neg_clauses)
         for v in existential_model:
             solver.add_clause([v])
-            
+
         if not solver.solve():
             return None  # Model is good
-            
+
         if reduce_model:
-            existential_counter_model = [val for val in solver.get_model() 
-                                       if abs(val) in existential_bools]
+            existential_counter_model = [val for val in solver.get_model()
+                                         if abs(val) in existential_bools]
             return self.reduce_counter_example(existential_model, existential_counter_model)
         return [-v for v in existential_model]
 
@@ -71,23 +71,23 @@ class BoolForallSolver(object):
         """Check candidates given by the exists solver in parallel"""
         if not models:
             return []
-            
+
         # Prepare data for parallel processing
-        model_data = [(model, self.neg_clauses, self.reduce_model, self.existential_bools) 
-                     for model in models]
-        
+        model_data = [(model, self.neg_clauses, self.reduce_model, self.existential_bools)
+                      for model in models]
+
         # Use number of CPU cores for parallelization
         num_processes = min(len(models), multiprocessing.cpu_count())
-        
+
         blocking_clauses = []
         with Pool(processes=num_processes) as pool:
             results = pool.map(self.check_single_model, model_data)
-            
+
         # Process results
         for result in results:
             if result is None:
                 # Found a good model
                 return []
             blocking_clauses.append(result)
-                
+
         return blocking_clauses

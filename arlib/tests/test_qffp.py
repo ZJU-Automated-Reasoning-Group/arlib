@@ -42,7 +42,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq x ((_ to_fp 8 24) roundNearestTiesToEven 1.0)))
     (check-sat)
     """,
-    
+
     # Test with subtraction (SAT)
     """
     (set-logic QF_FP)
@@ -52,7 +52,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq (fp.sub roundNearestTiesToEven x y) z))
     (check-sat)
     """,
-    
+
     # Test with multiplication (SAT)
     """
     (set-logic QF_FP)
@@ -62,7 +62,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.eq (fp.mul roundNearestTiesToEven x y) z))
     (check-sat)
     """,
-    
+
     # Test with multiple constraints (SAT)
     """
     (set-logic QF_FP)
@@ -74,7 +74,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.lt x z))
     (check-sat)
     """,
-    
+
     # Test with contradictory constraints (UNSAT)
     """
     (set-logic QF_FP)
@@ -84,7 +84,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.lt y x))
     (check-sat)
     """,
-    
+
     # Test with special values (SAT)
     """
     (set-logic QF_FP)
@@ -92,7 +92,7 @@ QF_FP_TEST_FORMULAS = [
     (assert (fp.isNaN x))
     (check-sat)
     """,
-    
+
     # Test with rounding modes (SAT)
     """
     (set-logic QF_FP)
@@ -118,14 +118,14 @@ class TestQFFP(TestCase):
             try:
                 fml = z3.And(z3.parse_smt2_string(smt2string))
                 if is_simple_formula(fml):
-                    print(f"Formula {i+1} is a simple formula, skipping...")
+                    print(f"Formula {i + 1} is a simple formula, skipping...")
                     continue
             except Exception as ex:
                 print(ex)
                 print(smt2string)
                 continue
 
-            print(f"!!!Solving {i+1}-th formula!!!")
+            print(f"!!!Solving {i + 1}-th formula!!!")
 
             sol = QFFPSolver()
             res = sol.solve_smt_string(smt2string)

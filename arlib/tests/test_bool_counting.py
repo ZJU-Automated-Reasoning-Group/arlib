@@ -33,7 +33,6 @@ class TestModelCounting(unittest.TestCase):
         count = count_z3_models_by_enumeration(formula)
         self.assertEqual(count, 0)
 
-
     def test_z3_tautology(self):
         # Formula: a or (not a)
         a = z3.Bool('a')
@@ -78,13 +77,14 @@ class TestModelCounting(unittest.TestCase):
 
     def test_pysmt_large_formula(self):
         # Create a chain of implications: a1 → a2 → a3 → ... → an
-        return # failed
+        return  # failed
         n = 5
         vars = [Symbol(f'a{i}') for i in range(n)]
-        implications = [Or(Not(vars[i]), vars[i+1]) for i in range(n-1)]
+        implications = [Or(Not(vars[i]), vars[i + 1]) for i in range(n - 1)]
         formula = And(implications)
         count = count_pysmt_models_by_enumeration(formula)
-        self.assertEqual(count, 2**n - n)  # Number of solutions for implication chain
+        self.assertEqual(count, 2 ** n - n)  # Number of solutions for implication chain
+
 
 if __name__ == '__main__':
     unittest.main()

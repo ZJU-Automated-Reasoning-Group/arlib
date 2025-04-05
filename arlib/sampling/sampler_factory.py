@@ -10,10 +10,10 @@ from arlib.sampling.sampler import Logic, Sampler
 
 class SamplerFactory:
     """Factory class to create appropriate sampler instances."""
-    
+
     @staticmethod
-    def create_sampler(logic: Logic, 
-                      method: SamplingMethod = SamplingMethod.ENUMERATION) -> Sampler:
+    def create_sampler(logic: Logic,
+                       method: SamplingMethod = SamplingMethod.ENUMERATION) -> Sampler:
         """Create a sampler instance based on logic and method."""
 
         samplers = {
@@ -23,25 +23,25 @@ class SamplerFactory:
             Logic.QF_LIA: LIRASampler,
             Logic.QF_LIRA: LIRASampler,
         }
-        
+
         sampler_cls = samplers.get(logic)
         if not sampler_cls:
             raise ValueError(f"No sampler available for logic {logic}")
-            
+
         return sampler_cls()
 
 
 def sample_formula(formula: z3.ExprRef,
-                  logic: Logic,
-                  options: SamplingOptions = None) -> SamplingResult:
+                   logic: Logic,
+                   options: SamplingOptions = None) -> SamplingResult:
     """High-level API for sampling from a formula."""
     if options is None:
         options = SamplingOptions()
-        
+
     sampler = SamplerFactory.create_sampler(logic, options.method)
     sampler.init_from_formula(formula)
     return sampler.sample(options)
-    
+
 
 def demo_sampler():
     x, y = z3.Reals("x y")
@@ -51,6 +51,7 @@ def demo_sampler():
     options = SamplingOptions(num_samples=10)
     res = sampler.sample(options)
     print(res.samples)
+
 
 if __name__ == "__main__":
     demo_sampler()

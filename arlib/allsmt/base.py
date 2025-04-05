@@ -14,7 +14,7 @@ class AllSMTSolver(ABC):
     
     This class defines the interface that all AllSMT solver implementations must follow.
     """
-    
+
     @abstractmethod
     def solve(self, expr, keys, model_limit: int = 100):
         """
@@ -29,7 +29,7 @@ class AllSMTSolver(ABC):
             List of models satisfying the expression
         """
         pass
-    
+
     @abstractmethod
     def get_model_count(self) -> int:
         """
@@ -39,7 +39,7 @@ class AllSMTSolver(ABC):
             int: The number of models
         """
         pass
-    
+
     @property
     @abstractmethod
     def models(self):
@@ -50,7 +50,7 @@ class AllSMTSolver(ABC):
             List of models
         """
         pass
-    
+
     @abstractmethod
     def print_models(self, verbose: bool = False):
         """
@@ -59,4 +59,4 @@ class AllSMTSolver(ABC):
         Args:
             verbose: Whether to print detailed information about each model
         """
-        pass 
+        pass

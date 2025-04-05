@@ -5,7 +5,8 @@ from copy import deepcopy
 from typing import List
 from pysat.formula import CNF  # IDPool
 from pysat.solvers import Solver
-from arlib.bool.cnfsimplifier import PySATCNFReader, cnf_subsumption_elimination, cnf_hidden_subsumption_elimination, cnf_asymmetric_subsumption_elimination, cnf_asymmetric_tautoly_elimination, \
+from arlib.bool.cnfsimplifier import PySATCNFReader, cnf_subsumption_elimination, cnf_hidden_subsumption_elimination, \
+    cnf_asymmetric_subsumption_elimination, cnf_asymmetric_tautoly_elimination, \
     cnf_tautoly_elimination, cnf_hidden_tautoly_elimination, cnf_blocked_clause_elimination, \
     cnf_hidden_blocked_clause_elimination
 
@@ -53,7 +54,7 @@ def simplify_pysat_cnf(fml: CNF) -> CNF:
     """
     # Convert to internal format
     cnf = PySATCNFReader().read(fml)
-    
+
     # Apply all simplification techniques
     cnf = cnf_subsumption_elimination(cnf)
     cnf = cnf_hidden_subsumption_elimination(cnf)
@@ -63,7 +64,7 @@ def simplify_pysat_cnf(fml: CNF) -> CNF:
     cnf = cnf_asymmetric_tautoly_elimination(cnf)
     cnf = cnf_blocked_clause_elimination(cnf)
     cnf = cnf_hidden_blocked_clause_elimination(cnf)
-    
+
     # Convert back to PySAT CNF format
     return CNF(from_clauses=cnf.get_numeric_clauses())
 

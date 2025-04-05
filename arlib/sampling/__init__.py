@@ -54,7 +54,7 @@ __all__ = [
     'SamplingOptions',
     'SamplingResult',
     'Sampler',
-    
+
     # Factory functions
     'create_sampler',
     'sample_models_from_formula',

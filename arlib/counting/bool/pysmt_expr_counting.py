@@ -44,11 +44,12 @@ def count_pysmt_models_by_enumeration(formula, max_models: int = None) -> int:
                 block.append(Not(var))
             else:
                 block.append(var)
-        
+
         # Add blocking clause to prevent this model from appearing again
         solver.add_assertion(Or(block))
 
     return count
+
 
 def pysmt_to_dimacs(formula) -> tuple[List[str], List[str]]:
     """

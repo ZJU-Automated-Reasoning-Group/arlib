@@ -48,30 +48,29 @@ def solve_with_z3(universal_vars, fml):
 class TestEFBVSolver(TestCase):
 
     def test_efbv_solver(self):
-            for _ in range(15):
-                existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
-                vars_fml = [str(v) for v in get_variables(fml)]
-                if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
-                    continue
-                if is_simple_formula(fml):
-                    continue
-                # print(fml)
-                # print(existential_vars)
-                # seq_solver = SequentialEFBVSolver(mode="z3")
-                # res_seq = seq_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
-                par_solver = ParallelEFBVSolver(mode="canary")
-                res_par = par_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
+        for _ in range(15):
+            existential_vars, universal_vars, fml = gen_small_bv_formula("bv")
+            vars_fml = [str(v) for v in get_variables(fml)]
+            if not ("w" in vars_fml and "x" in vars_fml and "y" in vars_fml):
+                continue
+            if is_simple_formula(fml):
+                continue
+            # print(fml)
+            # print(existential_vars)
+            # seq_solver = SequentialEFBVSolver(mode="z3")
+            # res_seq = seq_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
+            par_solver = ParallelEFBVSolver(mode="canary")
+            res_par = par_solver.solve_efsmt_bv(existential_vars, universal_vars, fml)
 
-                res_b, model = solve_with_z3(universal_vars, fml)
-                if res_par != res_b:
-                    print("inconsistent!!")
-                    print(res_par, res_b)
-                    print(fml)
-                    print(model)
-                    break
+            res_b, model = solve_with_z3(universal_vars, fml)
+            if res_par != res_b:
+                print("inconsistent!!")
                 print(res_par, res_b)
-                # break
-
+                print(fml)
+                print(model)
+                break
+            print(res_par, res_b)
+            # break
 
 
 if __name__ == '__main__':

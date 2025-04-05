@@ -1,12 +1,16 @@
 # Enhanced SMT Server
 
-This directory contains an enhanced SMT server that provides an SMT-LIB2 interface to Z3 and other advanced features from the arlib library.
+This directory contains an enhanced SMT server that provides an SMT-LIB2 interface to Z3 and other advanced features
+from the arlib library.
 
 ## Overview
 
-The SMT server (`smt_server.py`) is a Python program that can be called via IPC. It can take SMT-LIB2 commands (e.g., declare-const, assert, check-sat, push/pop, get-model, get-value, etc.) from another program and respond to those commands.
+The SMT server (`smt_server.py`) is a Python program that can be called via IPC. It can take SMT-LIB2 commands (e.g.,
+declare-const, assert, check-sat, push/pop, get-model, get-value, etc.) from another program and respond to those
+commands.
 
 The enhanced version adds support for advanced arlib features:
+
 - AllSMT (enumerating all satisfying models)
 - UNSAT core computation
 - Backbone literals computation
@@ -29,16 +33,19 @@ python -m arlib.cli.smt_server --help
 ```
 
 Available options:
+
 - `--input-pipe PATH`: Path to input pipe (default: /tmp/smt_input)
 - `--output-pipe PATH`: Path to output pipe (default: /tmp/smt_output)
 - `--log-level LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
 Example with custom pipes and debug logging:
+
 ```bash
 python -m arlib.cli.smt_server --input-pipe /tmp/my_input --output-pipe /tmp/my_output --log-level DEBUG
 ```
 
 This will create two named pipes:
+
 - `/tmp/smt_input`: For sending commands to the server (or custom path if specified)
 - `/tmp/smt_output`: For receiving responses from the server (or custom path if specified)
 
@@ -64,7 +71,8 @@ A test script is provided to demonstrate the functionality:
 python -m arlib.cli.test_smt_server
 ```
 
-The test script will automatically start the SMT server if it's not already running and will shut it down when the tests are complete.
+The test script will automatically start the SMT server if it's not already running and will shut it down when the tests
+are complete.
 
 ## Supported Commands
 

@@ -11,20 +11,20 @@ arb = flint.arb  # type: ignore
 a, b = smt.Reals("a b")
 flint_decls = {
     real.sqrt: arb.sqrt,
-    real.sqr: lambda x: x**2,
+    real.sqr: lambda x: x ** 2,
     real.exp: arb.exp,
     real.ln: arb.log,
     real.sin: arb.sin,
     real.cos: arb.cos,
     real.tan: arb.tan,
     real.atan: arb.atan,
-    real.pow: lambda x, y: x**y,
+    real.pow: lambda x, y: x ** y,
     real.pi.decl(): arb.pi,
     (a + b).decl(): op.add,
     (a * b).decl(): op.mul,
     (a / b).decl(): op.truediv,
     (a - b).decl(): op.sub,
-    (a**b).decl(): op.pow,
+    (a ** b).decl(): op.pow,
 }
 
 

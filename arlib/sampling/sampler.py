@@ -27,7 +27,7 @@ class SamplingMethod(Enum):
 
 
 class SamplingResult:
-    def __init__(self, samples: List[Dict[str, Any]], 
+    def __init__(self, samples: List[Dict[str, Any]],
                  stats: Optional[Dict[str, Any]] = None):
         self.samples = samples
         self.stats = stats or {}
@@ -50,7 +50,7 @@ class SamplingOptions:
 
 class Sampler(ABC):
     """Abstract base class for all samplers."""
-    
+
     @abstractmethod
     def supports_logic(self, logic: Logic) -> bool:
         """Check if this sampler supports the given logic."""
@@ -69,4 +69,3 @@ class Sampler(ABC):
     def get_supported_methods(self) -> List[SamplingMethod]:
         """Return list of supported sampling methods."""
         pass
-

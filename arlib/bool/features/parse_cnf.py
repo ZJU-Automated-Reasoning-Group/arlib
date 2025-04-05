@@ -61,5 +61,3 @@ def parse_pysat_cnf(cnf: CNF) -> Tuple[List[List[int]], int, int]:
     for clause in cnf.clauses:
         clauses_list.append([int(x) for x in clause])
     return clauses_list, c, v
-
-

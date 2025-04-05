@@ -51,5 +51,6 @@ def demo_pysmt_itp():
     if isinstance(itp, z3.ExprRef):
         print("success!")
 
+
 if __name__ == '__main__':
     demo_pysmt_itp()

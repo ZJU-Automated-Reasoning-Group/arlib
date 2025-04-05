@@ -345,7 +345,7 @@ class BaseSolver:
             if format != "fof":
                 # Write sorts in TPTP THF format
                 for sort in collect_sorts(
-                    self.adds + [thm for thm, name in self.assert_tracks]
+                        self.adds + [thm for thm, name in self.assert_tracks]
                 ):
                     # Write sort declarations (only for user-defined sorts)
                     name = sort.name()
@@ -365,7 +365,7 @@ class BaseSolver:
                 # Declare all function symbols in TPTP THF format
                 fp.write("% Declarations\n")
                 for f in collect_decls(
-                    self.adds + [thm for thm, name in self.assert_tracks]
+                        self.adds + [thm for thm, name in self.assert_tracks]
                 ):
                     if f not in predefined and f.name() not in predefined_names:
                         if f.arity() == 0:
@@ -413,7 +413,7 @@ class BaseSolver:
         # Gather up all datatypes referenced
         predefined = set()
         for sort in collect_sorts(
-            self.adds + [thm for thm, name in self.assert_tracks]
+                self.adds + [thm for thm, name in self.assert_tracks]
         ):
             if isinstance(sort, smt.DatatypeSortRef):
                 fp.write(smtlib_datatypes([sort]))
@@ -572,7 +572,7 @@ class VampireSolver(BaseSolver):
         assert self.res is not None
         # https://github.com/teorth/equational_theories/blob/main/equational_theories/Generated/VampireProven/src/vampire_proofs_cyc.py
         for eqnum, statement, reason in re.findall(
-            r"(\d+)\. ([^[]+) \[([^\]]+)\]", self.res.stdout.decode()
+                r"(\d+)\. ([^[]+) \[([^\]]+)\]", self.res.stdout.decode()
         ):
             res.append((int(eqnum), statement, reason))  # TODO: Deeper parsing
         return res

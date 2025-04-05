@@ -3,6 +3,7 @@ import arlib.itp as itp
 import arlib.itp.smt as smt
 import arlib.itp.property as prop
 
+
 # https://isabelle.in.tum.de/library/HOL/HOL/Lattices.html
 
 

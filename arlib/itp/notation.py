@@ -22,7 +22,6 @@ smt.BoolRef.__and__ = lambda self, other: smt.And(self, other)
 smt.BoolRef.__or__ = lambda self, other: smt.Or(self, other)
 smt.BoolRef.__invert__ = lambda self: smt.Not(self)
 
-
 smt.SortRef.__rshift__ = lambda self, other: smt.ArraySort(self, other)  # type: ignore
 
 smt.ArrayRef.__call__ = lambda self, *arg: self[arg]
@@ -107,7 +106,6 @@ _x, _y = smt.Reals("x y")
 add.register(smt.IntSort(), (_n + _m).decl())
 add.register(smt.RealSort(), (_x + _y).decl())
 
-
 radd = SortDispatch(name="radd")
 """Sort based dispatch for `+` syntax"""
 smt.ExprRef.__radd__ = lambda x, y: radd(x, y)  # type: ignore
@@ -187,7 +185,6 @@ smt.ExprRef.induct = lambda x, P: induct(x, P)  # type: ignore
 getitem = SortDispatch(name="getitem")
 """Sort based dispatch for `[]` getitem syntax"""
 smt.ExprRef.__getitem__ = lambda x, y: getitem(x, y)  # type: ignore
-
 
 to_int = SortDispatch(name="to_int")
 """Sort based dispatch for `to_int`"""
@@ -270,7 +267,7 @@ def cond(*cases, default=None) -> smt.ExprRef:
             if not smt.is_bool(c):
                 raise Exception("Condition must be boolean", c)
             if isinstance(
-                t, smt.ExprRef
+                    t, smt.ExprRef
             ):  # looping through allows (some_cond , 0) to be a case if z3 will infer what 0 will be
                 sort = t.sort()
                 break

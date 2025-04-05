@@ -19,19 +19,19 @@ from arlib.utils.z3_expr_utils import get_variables
 
 class LatteCounter:
     """Counter for linear integer arithmetic formulas using LattE"""
-    
+
     def __init__(self, latte_path: Optional[str] = None):
         """Initialize the counter with optional path to LattE executable"""
         self.latte_path = latte_path or self._find_latte()
         if not self.latte_path:
             raise RuntimeError("LattE executable not found")
-            
+
     def _find_latte(self) -> Optional[str]:
         """Find LattE executable in system path"""
         candidates = ['count', 'latte-count', 'latte-int']
         for cmd in candidates:
-            path = subprocess.check_output(['which', cmd], 
-                                        stderr=subprocess.DEVNULL).strip()
+            path = subprocess.check_output(['which', cmd],
+                                           stderr=subprocess.DEVNULL).strip()
             if path:
                 return path.decode()
         return None
@@ -42,18 +42,18 @@ class LatteCounter:
         vars = get_variables(formula)
         s = z3.Solver()
         s.add(formula)
-        
+
         # Convert to polytope format
         # Format: 
         # dim
         # number_of_constraints
         # b -a1 -a2 ... -an
         # (for each constraint: a1x1 + a2x2 + ... + anxn <= b)
-        
+
         polytope = []
         polytope.append(str(len(vars)))
         # TODO: extract linear constraints and convert to matrix form
-        
+
         return "\n".join(polytope)
 
     def count_models(self, formula: z3.ExprRef) -> int:
@@ -61,13 +61,13 @@ class LatteCounter:
         # Check if formula is in the supported fragment
         if not self._is_lia_formula(formula):
             raise ValueError("Formula must be in linear integer arithmetic")
-            
+
         # Create temporary file for polytope
         with tempfile.NamedTemporaryFile(mode='w', suffix='.hrep') as f:
             polytope = self._formula_to_polytope(formula)
             f.write(polytope)
             f.flush()
-            
+
             # Run LattE
             try:
                 output = subprocess.check_output(
@@ -91,11 +91,10 @@ def count_lia_models(formula: z3.ExprRef) -> int:
     counter = LatteCounter()
     return counter.count_models(formula)
 
-    
+
 if __name__ == "__main__":
     # Example usage
     x, y = z3.Ints('x y')
     formula = z3.And(x > 0, y < 10, x + y == 5)
     count = count_lia_models(formula)
     print(f"Number of models: {count}")
-    

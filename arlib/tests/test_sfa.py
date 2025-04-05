@@ -10,22 +10,22 @@ class TestSFA(unittest.TestCase):
         self.states = {'q0', 'q1'}
         self.sort = IntSort()
         x = Int('x')
-        
+
         self.predicates = {
             'even': x % 2 == 0,
             'odd': x % 2 == 1
         }
-        
+
         self.transitions = {
             ('q0', 'even'): 'q1',
             ('q0', 'odd'): 'q0',
             ('q1', 'even'): 'q1',
             ('q1', 'odd'): 'q0'
         }
-        
+
         self.initial_state = 'q0'
         self.accepting_states = {'q1'}
-        
+
         self.sfa = SFA(
             self.states,
             self.predicates,
@@ -64,7 +64,7 @@ class TestSFA(unittest.TestCase):
         # Create SFA with unsatisfiable predicate
         x = Int('x')
         predicates = {'impossible': And(x > 0, x < 0)}
-        
+
         sfa = SFA(
             {'q0'},
             predicates,
@@ -73,7 +73,7 @@ class TestSFA(unittest.TestCase):
             {'q0'},
             IntSort()
         )
-        
+
         word = [IntVal(0)]
         self.assertFalse(sfa.accepts(word))
 
@@ -85,7 +85,7 @@ class TestSFA(unittest.TestCase):
             'positive': x > 0,
             'less_than_10': x < 10
         }
-        
+
         sfa = SFA(
             {'q0', 'q1'},
             predicates,
@@ -97,7 +97,7 @@ class TestSFA(unittest.TestCase):
             {'q1'},
             IntSort()
         )
-        
+
         # Should accept as number satisfies 'positive'
         word = [IntVal(5)]
         self.assertTrue(sfa.accepts(word))
@@ -106,7 +106,7 @@ class TestSFA(unittest.TestCase):
         """Test case where no valid transition exists"""
         x = Int('x')
         predicates = {'positive': x > 0}
-        
+
         sfa = SFA(
             {'q0', 'q1'},
             predicates,
@@ -115,7 +115,7 @@ class TestSFA(unittest.TestCase):
             {'q1'},
             IntSort()
         )
-        
+
         # Should reject as -1 doesn't satisfy 'positive'
         word = [IntVal(-1)]
         self.assertFalse(sfa.accepts(word))
@@ -142,8 +142,8 @@ class TestSFA(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             SFA(self.states, self.predicates, self.transitions,
                 'invalid', self.accepting_states, self.sort)
-        self.assertEqual(str(cm.exception), 
-                        "Initial state 'invalid' not in states")
+        self.assertEqual(str(cm.exception),
+                         "Initial state 'invalid' not in states")
 
     def test_init_invalid_accepting_states(self):
         """Test SFA initialization with invalid accepting states"""
@@ -152,7 +152,7 @@ class TestSFA(unittest.TestCase):
             SFA(self.states, self.predicates, self.transitions,
                 self.initial_state, invalid_accepting, self.sort)
         self.assertEqual(str(cm.exception),
-                        "Accepting states {'invalid'} not in states")
+                         "Accepting states {'invalid'} not in states")
 
     def test_init_non_boolean_predicate(self):
         """Test SFA initialization with non-boolean predicate"""
@@ -165,7 +165,7 @@ class TestSFA(unittest.TestCase):
             SFA(self.states, invalid_predicates, self.transitions,
                 self.initial_state, self.accepting_states, self.sort)
         self.assertEqual(str(cm.exception),
-                        "Predicate 'value' must be a boolean expression")
+                         "Predicate 'value' must be a boolean expression")
 
     def test_init_invalid_transition_state(self):
         """Test SFA initialization with invalid transition state"""
@@ -177,7 +177,7 @@ class TestSFA(unittest.TestCase):
             SFA(self.states, self.predicates, invalid_transitions,
                 self.initial_state, self.accepting_states, self.sort)
         self.assertEqual(str(cm.exception),
-                        "Transition from invalid state 'invalid'")
+                         "Transition from invalid state 'invalid'")
 
     def test_init_invalid_transition_predicate(self):
         """Test SFA initialization with invalid transition predicate"""
@@ -189,7 +189,7 @@ class TestSFA(unittest.TestCase):
             SFA(self.states, self.predicates, invalid_transitions,
                 self.initial_state, self.accepting_states, self.sort)
         self.assertEqual(str(cm.exception),
-                        "Unknown predicate 'invalid'")
+                         "Unknown predicate 'invalid'")
 
     def test_init_invalid_transition_next_state(self):
         """Test SFA initialization with invalid next state"""
@@ -201,7 +201,7 @@ class TestSFA(unittest.TestCase):
             SFA(self.states, self.predicates, invalid_transitions,
                 self.initial_state, self.accepting_states, self.sort)
         self.assertEqual(str(cm.exception),
-                        "Transition to invalid state 'invalid'")
+                         "Transition to invalid state 'invalid'")
 
     def test_is_universal_without_domain_constraint(self):
         """Test is_universal without domain constraint"""
@@ -215,9 +215,9 @@ class TestSFA(unittest.TestCase):
         states = {'q0'}
         predicates = {'positive': x > 0}
         transitions = {('q0', 'positive'): 'q0'}
-        
+
         sfa = SFA(states, predicates, transitions, 'q0', {'q0'}, self.sort)
-        
+
         # Should be universal for positive integers
         self.assertTrue(sfa.is_universal(x > 0))
 
@@ -228,9 +228,9 @@ class TestSFA(unittest.TestCase):
         x = Int('x')
         predicates = {'any': BoolVal(True)}  # Fix: Use Z3 boolean value
         transitions = {('q0', 'any'): 'q0'}
-        
+
         sfa = SFA(states, predicates, transitions, 'q0', set(), self.sort)
-        
+
         # Empty language is not universal
         self.assertFalse(sfa.is_universal())
 
@@ -241,9 +241,9 @@ class TestSFA(unittest.TestCase):
         x = Int('x')
         predicates = {'true': BoolVal(True)}  # Fix: Use Z3 boolean value
         transitions = {('q0', 'true'): 'q0'}
-        
+
         sfa = SFA(states, predicates, transitions, 'q0', {'q0'}, self.sort)
-        
+
         # Should be universal
         self.assertTrue(sfa.is_universal())
 
@@ -254,11 +254,12 @@ class TestSFA(unittest.TestCase):
         predicates = {'true': BoolVal(True)}  # Fix: Use Z3 boolean value
         # q1 is unreachable
         transitions = {('q0', 'true'): 'q0'}
-        
+
         sfa = SFA(states, predicates, transitions, 'q0', {'q0', 'q1'}, self.sort)
-        
+
         # Should still be universal as all reachable paths are accepting
         self.assertTrue(sfa.is_universal())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -88,7 +88,7 @@ class TestDFA(unittest.TestCase):
         }
         dfa = DFA(states, self.alphabet, transitions, 'q0', {'q1', 'q2'})
         min_dfa = dfa.minimize()
-        
+
         # Should merge q1 and q2 into single state
         self.assertEqual(len(min_dfa.states), 2)
         self.assertTrue(min_dfa.accepts('a'))
@@ -99,4 +99,3 @@ class TestDFA(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
