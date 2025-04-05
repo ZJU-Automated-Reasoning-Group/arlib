@@ -6,31 +6,51 @@ There are many interesting research topics. You are welcome to contribute to the
 
 - Parallel CDCL(T): See `arlib/smt/pcdclt`
 - SMT for finite field: See  `arlib/smt/ff`
-
+- LLM-driven constraint solving: See `arlib/llm`
+- Symbolic abstraction techniques: See `arlib/symabs`
 
 ## Interfaces
 
 - Python API
 - CLI tools
 
+
 ## Features
 
 ### Quadratic Programming
 
 - https://github.com/qpsolvers/qpsolvers
+- Multi-objective optimization support
+- Mixed-integer quadratic programming
 
 ### Projection
 
- - Fourier-Motzkin elimination
- - Simplex method
+- Fourier-Motzkin elimination
+- Simplex method
+- Virtual substitution techniques
+- Cylindrical algebraic decomposition
   
 ### Advanced Profiling
 
-- https://github.com/viperproject/smt-scope: A tool for visualising, analysing and understanding quantifier instantiations made via E-matching in a run of an SMT solver 
+- https://github.com/viperproject/smt-scope: A tool for visualising, analysing and understanding quantifier instantiations made via E-matching in a run of an SMT solver
+- Solver runtime and memory usage analysis
+- Constraint complexity metrics
+- Visualization of search space exploration
+- Performance bottleneck identification
+
+### Parallelization and Distribution
+
+- Distributed solving on clusters
+- GPU-accelerated constraint solving
+- Portfolio solving with diverse configurations
 
 ## Documentation
 
-See  `arlib/docs`
+See `arlib/docs`
+
+- Interactive tutorials and examples
+- API reference with complete examples
+- Performance guidelines and optimization tips
 
 ## Applications
 You are welcome to contribute to the following applications:
@@ -43,9 +63,19 @@ You are welcome to contribute to the following applications:
 - `Synthesis`: enumerative, deductive
 - `Optimization`: superoptimization, polyhedral compilation
 
-### Domaina Specific
+### Domain Specific
 
-- `Dobfuscation`,
+- `Deobfuscation`
 - `Cryptanalysis`, e.g., https://github.com/ranea/CASCADA, https://github.com/kste/cryptosmt, https://github.com/hadipourh/zero
-- `ML/LLM`: kernal fusion
+- `ML/LLM`: kernel fusion, verification of neural networks, symbolic reasoning for LLMs
+- `Program Repair`: automatic bug fixing with constraint solving
+- `Security`: vulnerability detection, exploit generation, formal verification of security protocols
+- `Planning and Scheduling`: constraint-based AI planning
+
+## Infrastructure
+
+- Continuous integration with comprehensive testing
+- Performance benchmarking framework
+- Docker containers for easy deployment
+- Cloud service integration
 
