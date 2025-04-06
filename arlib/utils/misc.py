@@ -3,17 +3,19 @@
 
 from __future__ import annotations
 
-import operator
 import os
 import re as _re
+import shutil
 import struct
 import sys
 from textwrap import fill, dedent
+from typing import Callable, Dict, List, Optional, Union
 
 
 class Undecidable(ValueError):
-    # an error to be raised when a decision cannot be made definitively
-    # where a definitive answer is needed
+    """An error to be raised when a decision cannot be made definitively
+    where a definitive answer is needed.
+    """
     pass
 
 
@@ -31,7 +33,6 @@ def filldedent(s, w=70, **kwargs):
     See Also
     ========
     strlines, rawlines
-
     """
     return '\n' + fill(dedent(str(s)).strip('\n'), width=w, **kwargs)
 
@@ -69,20 +70,21 @@ def strlines(s, c=64, short=False):
         raise ValueError('expecting string input')
     if '\n' in s:
         return rawlines(s)
+    
     q = '"' if repr(s).startswith('"') else "'"
     q = (q,) * 2
+    
     if '\\' in s:  # use r-string
-        m = '(\nr%s%%s%s\n)' % q
-        j = '%s\nr%s' % q
+        m = f'(\nr{q[0]}%s{q[1]}\n)'
+        j = f'{q[0]}\nr{q[1]}'
         c -= 3
     else:
-        m = '(\n%s%%s%s\n)' % q
-        j = '%s\n%s' % q
+        m = f'(\n{q[0]}%s{q[1]}\n)'
+        j = f'{q[0]}\n{q[1]}'
         c -= 2
-    out = []
-    while s:
-        out.append(s[:c])
-        s = s[c:]
+    
+    out = [s[i:i+c] for i in range(0, len(s), c)]
+    
     if short and len(out) == 1:
         return (m % out[0]).splitlines()[1]  # strip bounding (\n...\n)
     return m % j.join(out)
@@ -151,32 +153,35 @@ def rawlines(s):
     lines = s.split('\n')
     if len(lines) == 1:
         return repr(lines[0])
+    
     triple = ["'''" in s, '"""' in s]
     if any(li.endswith(' ') for li in lines) or '\\' in s or all(triple):
         rv = []
-        # add on the newlines
         trailing = s.endswith('\n')
         last = len(lines) - 1
+        
         for i, li in enumerate(lines):
             if i != last or trailing:
                 rv.append(repr(li + '\n'))
             else:
                 rv.append(repr(li))
+        
         return '(\n    %s\n)' % '\n    '.join(rv)
     else:
         rv = '\n    '.join(lines)
         if triple[0]:
-            return 'dedent("""\\\n    %s""")' % rv
+            return f'dedent("""\\\n    {rv}""")'
         else:
-            return "dedent('''\\\n    %s''')" % rv
+            return f"dedent('''\\\n    {rv}''')"
 
 
-ARCH = str(struct.calcsize('P') * 8) + "-bit"
+# System architecture information
+ARCH = f"{struct.calcsize('P') * 8}-bit"
 
 # XXX: PyPy does not support hash randomization
 HASH_RANDOMIZATION = getattr(sys.flags, 'hash_randomization', False)
 
-_debug_tmp: list[str] = []
+_debug_tmp: List[str] = []
 _debug_iter = 0
 
 
@@ -199,36 +204,27 @@ def debug_decorator(func):
         def tree(subtrees):
             def indent(s, variant=1):
                 x = s.split("\n")
-                r = "+-%s\n" % x[0]
+                r = f"+−{x[0]}\n"
                 for a in x[1:]:
-                    if a == "":
+                    if not a:
                         continue
-                    if variant == 1:
-                        r += "| %s\n" % a
-                    else:
-                        r += "  %s\n" % a
+                    r += f"{'| ' if variant == 1 else '  '}{a}\n"
                 return r
 
-            if len(subtrees) == 0:
+            if not subtrees:
                 return ""
-            f = []
+            
+            result = []
             for a in subtrees[:-1]:
-                f.append(indent(a))
-            f.append(indent(subtrees[-1], 2))
-            return ''.join(f)
-
-        # If there is a bug and the algorithm enters an infinite loop, enable the
-        # following lines. It will print the names and parameters of all major functions
-        # that are called, *before* they are called
-        # from functools import reduce
-        # print("%s%s %s%s" % (_debug_iter, reduce(lambda x, y: x + y, \
-        #    map(lambda x: '-', range(1, 2 + _debug_iter))), f.__name__, args))
+                result.append(indent(a))
+            result.append(indent(subtrees[-1], 2))
+            return ''.join(result)
 
         r = f(*args, **kw)
 
         _debug_iter -= 1
-        s = "%s%s = %s\n" % (f.__name__, args, r)
-        if _debug_tmp != []:
+        s = f"{f.__name__}{args} = {r}\n"
+        if _debug_tmp:
             s += tree(_debug_tmp)
         _debug_tmp = oldtmp
         _debug_tmp.append(s)
@@ -262,49 +258,6 @@ def debugf(string, args):
         print(string % args, file=sys.stderr)
 
 
-def find_executable(executable, path=None):
-    """Try to find 'executable' in the directories listed in 'path' (a
-    string listing directories separated by 'os.pathsep'; defaults to
-    os.environ['PATH']).  Returns the complete filename or None if not
-    found
-    """
-    from .exceptions import arlib_deprecation_warning
-    arlib_deprecation_warning(
-        """
-        arlib.utils.misc.find_executable() is deprecated. Use the standard
-        library shutil.which() function instead.
-        """,
-        deprecated_since_version="1.7",
-        active_deprecations_target="deprecated-find-executable",
-    )
-    if path is None:
-        path = os.environ['PATH']
-    paths = path.split(os.pathsep)
-    extlist = ['']
-    if os.name == 'os2':
-        (base, ext) = os.path.splitext(executable)
-        # executable files on OS/2 can have an arbitrary extension, but
-        # .exe is automatically appended if no dot is present in the name
-        if not ext:
-            executable = executable + ".exe"
-    elif sys.platform == 'win32':
-        pathext = os.environ['PATHEXT'].lower().split(os.pathsep)
-        (base, ext) = os.path.splitext(executable)
-        if ext.lower() not in pathext:
-            extlist = pathext
-    for ext in extlist:
-        execname = executable + ext
-        if os.path.isfile(execname):
-            return execname
-        else:
-            for p in paths:
-                f = os.path.join(p, execname)
-                if os.path.isfile(f):
-                    return f
-
-    return None
-
-
 def func_name(x, short=False):
     """Return function name of `x` (if defined) else the `type(x)`.
     If short is True and there is a shorter alias for the result,
@@ -331,17 +284,19 @@ def func_name(x, short=False):
         'Equality': 'Eq',
         'Unequality': 'Ne',
     }
+    
     typ = type(x)
-    if str(typ).startswith("<type '"):
-        typ = str(typ).split("'")[1].split("'")[0]
-    elif str(typ).startswith("<class '"):
-        typ = str(typ).split("'")[1].split("'")[0]
+    type_str = str(typ)
+    
+    if type_str.startswith("<type '") or type_str.startswith("<class '"):
+        typ = type_str.split("'")[1]
+    
     rv = getattr(getattr(x, 'func', x), '__name__', typ)
+    
     if '.' in rv:
         rv = rv.split('.')[-1]
-    if short:
-        rv = alias.get(rv, rv)
-    return rv
+        
+    return alias.get(rv, rv) if short else rv
 
 
 def _replace(reps):
@@ -361,10 +316,9 @@ def _replace(reps):
     """
     if not reps:
         return lambda x: x
-    D = lambda match: reps[match.group(0)]
-    pattern = _re.compile("|".join(
-        [_re.escape(k) for k, v in reps.items()]), _re.M)
-    return lambda string: pattern.sub(D, string)
+        
+    pattern = _re.compile("|".join(_re.escape(k) for k in reps.keys()), _re.M)
+    return lambda string: pattern.sub(lambda match: reps[match.group(0)], string)
 
 
 def replace(string, *reps):
@@ -450,33 +404,46 @@ def translate(s, a, b=None, c=None):
     >>> translate(abc, {'ab': 'x', 'bc': 'y'}) in ('xc', 'ay')
     True
     """
-
-    mr = {}
+    # Handle delete-only case
     if a is None:
         if c is not None:
-            raise ValueError('c should be None when a=None is passed, instead got %s' % c)
+            raise ValueError(f'c should be None when a=None is passed, instead got {c}')
         if b is None:
             return s
+        # Delete characters in b
+        return s.translate(str.maketrans('', '', b))
+    
+    # Handle dictionary mapping case
+    if isinstance(a, dict):
+        mr = a.copy()
         c = b
-        a = b = ''
+        
+        # Extract single-character mappings
+        singles = {k: v for k, v in list(mr.items()) if len(k) == 1 and len(v) == 1}
+        for k in singles:
+            del mr[k]
+            
+        # Create translation tables
+        if singles:
+            a, b = ''.join(k for k in singles), ''.join(singles[k] for k in singles)
+        else:
+            a = b = ''
+    
+    # Handle character-by-character mapping
+    elif len(a) != len(b):
+        raise ValueError('oldchars and newchars have different lengths')
     else:
-        if isinstance(a, dict):
-            short = {}
-            for k in list(a.keys()):
-                if len(k) == 1 and len(a[k]) == 1:
-                    short[k] = a.pop(k)
-            mr = a
-            c = b
-            if short:
-                a, b = [''.join(i) for i in list(zip(*short.items()))]
-            else:
-                a = b = ''
-        elif len(a) != len(b):
-            raise ValueError('oldchars and newchars have different lengths')
-
+        mr = {}  # No multi-character replacements
+    
+    # Apply deletions if specified
     if c:
-        val = str.maketrans('', '', c)
-        s = s.translate(val)
+        s = s.translate(str.maketrans('', '', c))
+    
+    # Apply multi-character replacements
     s = replace(s, mr)
-    n = str.maketrans(a, b)
-    return s.translate(n)
+    
+    # Apply single-character replacements
+    if a:
+        s = s.translate(str.maketrans(a, b))
+        
+    return s

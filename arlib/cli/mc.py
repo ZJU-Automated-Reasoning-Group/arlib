@@ -7,7 +7,7 @@ import logging
 import sys
 from typing import Optional, Sequence
 
-from arlib.smt.bv.qfbv_counting import count_models
+from arlib.counting.qfbv_counting import count_models
 from arlib.sampling.general_sampler import count_solutions
 
 

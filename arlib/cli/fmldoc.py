@@ -105,7 +105,7 @@ def handle_validate(args):
     # Try parsing based on format
     try:
         if args.format == 'smtlib2':
-            from arlib.smt.ff.ff_ir import EnhancedSMTParser
+            from arlib.smt.ff.ff_parser import FFParser as EnhancedSMTParser
             parser = EnhancedSMTParser()
             parser.parse_smt(content)
         elif args.format == 'dimacs':
@@ -145,7 +145,7 @@ def handle_analyze(args):
         print(f"Number of clauses: {num_clauses}")
 
     elif args.format == 'smtlib2':
-        from arlib.smt.ff.ff_ir import EnhancedSMTParser
+        from arlib.smt.ff.ff_parser import FFParser as EnhancedSMTParser
         parser = EnhancedSMTParser()
         # Count declarations and assertions
         decls = len([l for l in content.splitlines() if l.strip().startswith('(declare-')])

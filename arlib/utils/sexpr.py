@@ -9,6 +9,7 @@ Example:
     "(+ 1 (* 2 3))" -> ['+', 1, ['*', 2, 3]]
 """
 
+import json
 from typing import Union, List, Optional
 from dataclasses import dataclass
 
@@ -143,3 +144,29 @@ def parse_sexpr_string(program: str) -> Optional[SExpr]:
         Parsed S-expression as nested Python lists/atoms
     """
     return parse(program)
+
+
+def sexpr_to_string(expr: SExpr) -> str:
+    """
+    Convert an S-expression to a string representation.
+
+    Args:
+        expr: The S-expression to convert
+
+    Returns:
+        String representation of the S-expression
+    """
+    if isinstance(expr, list):
+        return f"({' '.join(sexpr_to_string(e) for e in expr)})"
+    elif isinstance(expr, (int, float)):
+        return str(expr)
+    else:
+        return str(expr)
+
+
+def sexpr_to_json(expr: SExpr) -> str:
+    """
+    Convert an S-expression to a JSON string.
+    """
+    return json.dumps(expr)
+

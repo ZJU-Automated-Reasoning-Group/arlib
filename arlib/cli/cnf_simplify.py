@@ -77,8 +77,7 @@ def main():
     cnf = parse_dimacs(args.input)
 
     # Apply simplifications
-    # FIXME: how to decide the phase of the simplifications
-    # if the user specify mupltile ones
+    # FIXME: how to decide the phase of the simplifications if the user specify multiple ones
     if args.all or args.tautology:
         cnf = cnf.tautology_elimination()
     if args.all or args.hidden_tautology:

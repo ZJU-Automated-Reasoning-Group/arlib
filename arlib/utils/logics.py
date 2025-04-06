@@ -582,6 +582,60 @@ QF_AUFBVLIRA = Logic(name="QF_AUFBVLIRA",
                      integer_arithmetic=True,
                      real_arithmetic=True)
 
+QF_FP = Logic(name="QF_FP",
+              description= \
+                  """Quantifier-free floating-point arithmetic.""",
+              quantifier_free=True,
+              floating_point=True)
+
+QF_FPBV = Logic(name="QF_FPBV",
+                description= \
+                    """Quantifier-free floating-point arithmetic and bitvectors.""",
+                quantifier_free=True,
+                floating_point=True,
+                bit_vectors=True)
+
+FP = Logic(name="FP",
+           description= \
+               """Floating-point arithmetic with quantifiers.""",
+           floating_point=True)
+
+QF_S = Logic(name="QF_S",
+             description= \
+                 """Quantifier-free theory of strings.""",
+             quantifier_free=True,
+             strings=True)
+
+QF_BVFP = Logic(name="QF_BVFP",
+                description= \
+                    """Quantifier-free bitvectors and floating-point.""",
+                quantifier_free=True,
+                bit_vectors=True,
+                floating_point=True)
+
+QF_DT = Logic(name="QF_DT",
+              description= \
+                  """Quantifier-free datatypes.""",
+              quantifier_free=True,
+              custom_type=True)
+
+QF_UFDT = Logic(name="QF_UFDT",
+                description= \
+                    """Quantifier-free uninterpreted functions with datatypes.""",
+                quantifier_free=True,
+                uninterpreted=True,
+                custom_type=True)
+
+QF_AUFLIRA = Logic(name="QF_AUFLIRA",
+                   description= \
+                       """Quantifier-free arrays, uninterpreted functions, linear integer and real arithmetic.""",
+                   quantifier_free=True,
+                   arrays=True,
+                   uninterpreted=True,
+                   integer_arithmetic=True,
+                   real_arithmetic=True,
+                   linear=True)
+
 AUTO = Logic(name="Auto",
              description="Special logic used to indicate that the logic to be used depends on the formula.")
 
@@ -616,7 +670,15 @@ SMTLIB2_LOGICS = frozenset([AUFLIA,
                             QF_UFNRA,
                             QF_UFNIA,
                             QF_UFLIRA,
-                            QF_SLIA
+                            QF_SLIA,
+                            QF_FP,
+                            QF_FPBV,
+                            FP,
+                            QF_S,
+                            QF_BVFP,
+                            QF_DT,
+                            QF_UFDT,
+                            QF_AUFLIRA
                             ])
 
 LOGICS = SMTLIB2_LOGICS | frozenset([QF_BOOL, BOOL, QF_AUFBVLIRA, QF_NIRA])
@@ -635,6 +697,8 @@ ARLIB_LOGICS = frozenset([QF_BOOL, QF_IDL, QF_LIA, QF_LRA, QF_RDL, QF_UF, QF_UFI
                           QF_ABV, QF_AUFBV, QF_AUFLIA, QF_ALIA, QF_AX,
                           QF_AUFBVLIRA,
                           QF_NRA, QF_NIA, QF_NIRA, UFBV, BV,
+                          # Adding support for new logics
+                          QF_FP, QF_FPBV, FP, QF_S, QF_BVFP, QF_DT, QF_UFDT, QF_AUFLIRA,
                           ])
 
 # Arlib Logics includes additional features:

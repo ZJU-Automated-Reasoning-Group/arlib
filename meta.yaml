@@ -1,0 +1,55 @@
+{% set name = "py-arlib" %}
+{% set version = "0.0.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: .
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+  entry_points:
+    - arlib-smt-server=arlib.cli.smt_server:main
+    - arlib-fmldoc=arlib.cli.fmldoc:main
+    - arlib-chcpp=arlib.tools.chctools.chcpp:main
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools >=76.0.0
+  run:
+    - python >=3.6
+    - pysmt ==0.9.6
+    - z3-solver ==4.12.0
+    - psutil >=5.9.0
+    - python-sat ==0.1.8.dev1
+    - tqdm >=4.65.0
+    - six >=1.15.0
+    - pytest >=7.1.0
+    - requests >=2.32.3
+    - setuptools >=76.0.0
+
+test:
+  imports:
+    - arlib
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://github.com/ZJU-Automated-Reasoning-Group/arlib
+  license: MIT
+  license_family: MIT
+  summary: A library for various automated reasoning tasks.
+  doc_url: https://github.com/ZJU-Automated-Reasoning-Group/arlib
+  dev_url: https://github.com/ZJU-Automated-Reasoning-Group/arlib
+
+extra:
+  recipe-maintainers:
+    - rainoftime 
