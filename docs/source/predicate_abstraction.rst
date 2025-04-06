@@ -22,8 +22,28 @@ Depending on the nature of the problem domain, one may either want to generate:
 Here, the notions of weakness, strength and implication are with respect
 to entailment in the given theory T.
 
-Predicate Abstraction in Arlib
------------------------------
+
+Consider the following simple C loop:
+
+```c
+int i = 0;
+while (i < 10) {
+    i++;
+}
+```
+Suppose we choose the following predicates as our abstraction:
+
+```c
+P1: i < 10
+P2: i >= 10
+```
+
+An element in the abstract domain is a Boolean combination of the predicates.
+For example, P1 ∨ P2 is an element in the abstract domain.
+
+The predicate abstraction algorithm aims to infer an inductive invariant for the loop expressed as a Boolean combination of the predicates (similar to an interval invariant in the interval abstract domain).
+
+
 
 
 References

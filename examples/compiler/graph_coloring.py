@@ -148,5 +148,6 @@ def main():
         else:
             print(f"No valid coloring exists with {num_colors} colors (verified in {solve_time:.4f} seconds)")
 
+
 if __name__ == "__main__":
     main()

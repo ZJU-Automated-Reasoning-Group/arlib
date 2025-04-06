@@ -65,17 +65,10 @@ You are welcome to contribute to the following applications:
 
 ### Domain Specific
 
-- `Deobfuscation`
 - `Cryptanalysis`, e.g., https://github.com/ranea/CASCADA, https://github.com/kste/cryptosmt, https://github.com/hadipourh/zero
 - `ML/LLM`: kernel fusion, verification of neural networks, symbolic reasoning for LLMs
 - `Program Repair`: automatic bug fixing with constraint solving
-- `Security`: vulnerability detection, exploit generation, formal verification of security protocols
+- `Security`: vulnerability detection, exploit generation, formal verification of security protocols, deobfuscation (e.g., for MBA)
 - `Planning and Scheduling`: constraint-based AI planning
 
-## Infrastructure
-
-- Continuous integration with comprehensive testing
-- Performance benchmarking framework
-- Docker containers for easy deployment
-- Cloud service integration
 
