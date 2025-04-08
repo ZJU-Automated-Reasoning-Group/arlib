@@ -15,6 +15,7 @@ get_env().allow_empty_var_names = True
 
 
 def readModel(parser, model_file, input_file):
+    """Read a model file and return the status and the model."""
     with open(model_file) as script:
         lino = 0
         for line in script:
@@ -60,6 +61,7 @@ def readModel(parser, model_file, input_file):
 
 
 def readSmtFile(parser, smt_file):
+    """Read a SMT file and return the formula and the symbols."""
     with open(smt_file) as stream:
         script = parser.get_script(stream)
         formula = script.get_strict_formula()
@@ -67,6 +69,7 @@ def readSmtFile(parser, smt_file):
 
 
 def checkFullModel(model, interpretation, symbols):
+    """Check if the model is full."""
     if len(model) + len(interpretation) > len(symbols):
         print("model_validator_pysmt_status=UNKNOWN")
         print("model_validator_pysmt_error=more_variables_in_model_than_input")
@@ -80,6 +83,7 @@ def checkFullModel(model, interpretation, symbols):
 
 
 def validateModel(smt_file, model_file, input_file):
+    """Validate a model."""
     try:
         if not path.exists(smt_file):
             raise Exception("File not found: {}".format(smt_file))

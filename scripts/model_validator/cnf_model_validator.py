@@ -7,6 +7,7 @@ import linecache
 
 
 def parse_model(file_name):
+    """Parse a model file and return the status and the model."""
     status = linecache.getline(file_name, 1)
     status = status[:-1]
     model = linecache.getline(file_name, 2)
@@ -15,6 +16,7 @@ def parse_model(file_name):
 
 
 def parse_problem(prob_file, model):
+    """Parse a problem file and return the status of the model."""
     for line in open(prob_file, "r"):
         line = line.rstrip()
         if len(line) == 0 or line[0] == 'p' or line[0] == 'c':
