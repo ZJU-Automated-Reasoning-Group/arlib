@@ -26,6 +26,7 @@ requirements:
     - python >=3.6
     - pysmt ==0.9.6
     - z3-solver ==4.12.0
+    - pyapproxmc ==4.1.24
     - psutil >=5.9.0
     - python-sat ==0.1.8.dev1
     - tqdm >=4.65.0

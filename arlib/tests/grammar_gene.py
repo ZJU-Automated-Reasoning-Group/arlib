@@ -116,8 +116,6 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
            '--strategy', strategy,
            '--cnfratio', str(cnfratio),
            '--cntsize', str(cntsize),
-           '--disable', 'option_fuzzing',
-           '--difftest', '1',
            '--logic', logic]
 
     p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -149,8 +147,6 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
            '--strategy', strategy,
            '--cnfratio', str(cnfratio),
            '--cntsize', str(cntsize),
-           '--disable', 'option_fuzzing',
-           '--difftest', '1',
            '--logic', logic]
 
     p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

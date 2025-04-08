@@ -303,7 +303,7 @@ def compute_backbone_with_approximation(cnf: CNF, solver_name: str = "cd") -> Tu
 
     # Collect multiple models
     models = []
-    num_models = min(10, 2 ** min(10, len(cnf.nv)))  # Collect at most 10 models
+    num_models = min(10, 2 ** min(10, cnf.nv))  # Collect at most 10 models
     models = solver.sample_models(num_models)
 
     num_solver_calls = 1  # Initial satisfiability check

@@ -24,6 +24,7 @@ REQUIRED = [
     'PySMT==0.9.6',
     'z3-solver==4.12.0',
     'psutil~=5.9.0',
+    'pyapproxmc==4.1.24',
     #'Cython~=0.29.34',
     'python-sat==0.1.8.dev1',
     'tqdm~=4.65.0',
@@ -31,7 +32,7 @@ REQUIRED = [
     'six~=1.15.0',
     'pytest~=7.1.0',
     'requests~=2.32.3',
-    'setuptools~=76.0.0',
+    'setuptools~=76.0.0'
 ]
 
 # The rest you shouldn't have to touch too much :)

@@ -86,7 +86,6 @@ import sys
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNFPlus, WCNFPlus
 from pysat.solvers import Solver, SolverNames
-from six.moves import range
 
 # cardinality encodings
 # ==============================================================================

@@ -22,7 +22,9 @@ class TestBVCounter(TestCase):
         else:
             print("Warning: sharpSAT not available, falling back to enumeration")
             count = mc.count_model_by_bv_enumeration()
-        self.assertTrue(count > 0)
+        # Fix tuple comparison issue - both methods return (count, time)
+        count_value = count[0]  # Extract the actual count from the tuple
+        self.assertTrue(count_value > 0)
 
 
 if __name__ == '__main__':

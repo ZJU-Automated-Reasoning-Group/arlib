@@ -118,7 +118,6 @@ import six
 from pysat.card import ITotalizer
 from pysat.formula import CNFPlus, WCNFPlus, IDPool
 from pysat.solvers import Solver
-from six.moves import range
 
 # names of BLO strategies
 # ==============================================================================
