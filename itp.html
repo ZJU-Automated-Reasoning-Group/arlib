@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Theorem Proving (ITP) &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Knowledge Compilation" href="knowledge_compilation.html" />
+    <link rel="prev" title="Interpolant Generation" href="interpolant.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interactive Theorem Proving (ITP)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-components">Core Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#solvers">Solvers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kernel">Kernel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tactics">Tactics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#datatypes">Datatypes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#theories">Theories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notation">Notation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rewriting">Rewriting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#proofs-by-induction">Proofs by Induction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debugging-proofs">Debugging Proofs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#external-solver-integration">External Solver Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-classes">Core Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#proof">Proof</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#core-functions">Core Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#prove">prove</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#axiom">axiom</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#define">define</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interactive Theorem Proving (ITP)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/itp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interactive-theorem-proving-itp">
+<h1>Interactive Theorem Proving (ITP)<a class="headerlink" href="#interactive-theorem-proving-itp" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">arlib.itp</span></code> module provides a framework for interactive theorem proving with SMT solvers. It offers a Python interface for writing formal proofs, defining axioms, and verifying mathematical properties.</p>
+<p>This module serves as a bridge between Python and various SMT (Satisfiability Modulo Theories) solvers like Z3, CVC5, and Vampire, providing:</p>
+<ul class="simple">
+<li><p>A kernel that maintains the logical integrity of proofs</p></li>
+<li><p>Various tactics for constructing proofs</p></li>
+<li><p>Support for datatypes and inductive definitions</p></li>
+<li><p>A library of theories (arithmetic, sets, sequences, etc.)</p></li>
+<li><p>Notation helpers for writing mathematical formulas</p></li>
+<li><p>Utilities for simplification and rewriting</p></li>
+</ul>
+</section>
+<section id="core-components">
+<h2>Core Components<a class="headerlink" href="#core-components" title="Link to this heading"></a></h2>
+<section id="solvers">
+<h3>Solvers<a class="headerlink" href="#solvers" title="Link to this heading"></a></h3>
+<p>A shim layer in <code class="docutils literal notranslate"><span class="pre">smt.py</span></code> that enables using different SMT solvers:</p>
+<ul class="simple">
+<li><p>Z3 (default)</p></li>
+<li><p>CVC5</p></li>
+<li><p>Vampire</p></li>
+</ul>
+<p>You can select the solver by setting the <code class="docutils literal notranslate"><span class="pre">KNUCKLE_SOLVER</span></code> environment variable before import.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;KNUCKLE_SOLVER&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cvc5&quot;</span>  <span class="c1"># or &quot;vampire&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.itp</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">arlib.itp.smt</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">smt</span>
+</pre></div>
+</div>
+</section>
+<section id="kernel">
+<h3>Kernel<a class="headerlink" href="#kernel" title="Link to this heading"></a></h3>
+<p>The core logical system in <code class="docutils literal notranslate"><span class="pre">kernel.py</span></code> that ensures the soundness of proofs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Proof</span></code> - Represents a proven theorem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prove()</span></code> - Attempts to prove a theorem with the selected SMT solver</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axiom()</span></code> - Introduces an axiom (use with caution)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">define()</span></code> - Creates definitions with their corresponding axioms</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prove a theorem</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Real</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">theorem</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Implies</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">proof</span> <span class="o">=</span> <span class="n">prove</span><span class="p">(</span><span class="n">theorem</span><span class="p">)</span>
+
+<span class="c1"># Define a function</span>
+<span class="n">square</span> <span class="o">=</span> <span class="n">define</span><span class="p">(</span><span class="s2">&quot;square&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tactics">
+<h3>Tactics<a class="headerlink" href="#tactics" title="Link to this heading"></a></h3>
+<p>Higher-level proof strategies in <code class="docutils literal notranslate"><span class="pre">tactics.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Lemma</span></code> - For defining and proving lemmas</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Calc</span></code> - For equational reasoning</p></li>
+<li><p>Various other tactics for common proof patterns</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@Lemma</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">square_positive</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">premise</span> <span class="o">=</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">conclusion</span> <span class="o">=</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">smt</span><span class="o">.</span><span class="n">Implies</span><span class="p">(</span><span class="n">premise</span><span class="p">,</span> <span class="n">conclusion</span><span class="p">)</span>
+
+<span class="c1"># Equational reasoning</span>
+<span class="nd">@Lemma</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">square_expand</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="n">calc</span> <span class="o">=</span> <span class="n">Calc</span><span class="p">(</span><span class="n">square</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">))</span>
+    <span class="n">calc</span><span class="o">.</span><span class="n">equals</span><span class="p">((</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">))</span>
+    <span class="n">calc</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="n">a</span><span class="o">*</span><span class="n">b</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">calc</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">a</span><span class="o">*</span><span class="n">b</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">calc</span><span class="o">.</span><span class="n">proof</span>
+</pre></div>
+</div>
+</section>
+<section id="datatypes">
+<h3>Datatypes<a class="headerlink" href="#datatypes" title="Link to this heading"></a></h3>
+<p>Support for defining and working with complex data structures in <code class="docutils literal notranslate"><span class="pre">datatype.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Struct</span></code> - For product types</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Enum</span></code> - For sum types</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Inductive</span></code> - For inductive datatypes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InductiveRel</span></code> - For inductive relations</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a list datatype</span>
+<span class="n">List</span> <span class="o">=</span> <span class="n">Inductive</span><span class="p">(</span><span class="s2">&quot;List&quot;</span><span class="p">)</span>
+<span class="n">List</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s2">&quot;nil&quot;</span><span class="p">)</span>
+<span class="n">List</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s2">&quot;cons&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;head&quot;</span><span class="p">,</span> <span class="n">smt</span><span class="o">.</span><span class="n">IntSort</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;tail&quot;</span><span class="p">,</span> <span class="n">List</span><span class="p">))</span>
+<span class="n">List</span> <span class="o">=</span> <span class="n">List</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+<span class="c1"># Define a point struct</span>
+<span class="n">Point</span> <span class="o">=</span> <span class="n">Struct</span><span class="p">(</span><span class="s2">&quot;Point&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">smt</span><span class="o">.</span><span class="n">RealSort</span><span class="p">(),</span> <span class="n">y</span><span class="o">=</span><span class="n">smt</span><span class="o">.</span><span class="n">RealSort</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="theories">
+<h3>Theories<a class="headerlink" href="#theories" title="Link to this heading"></a></h3>
+<p>Mathematical theories implemented in the <code class="docutils literal notranslate"><span class="pre">theories</span></code> directory:</p>
+<ul class="simple">
+<li><p>Basic types: <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">bool</span></code>, <code class="docutils literal notranslate"><span class="pre">nat</span></code>, <code class="docutils literal notranslate"><span class="pre">bitvec</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p>Data structures: <code class="docutils literal notranslate"><span class="pre">list</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code>, <code class="docutils literal notranslate"><span class="pre">seq</span></code>, <code class="docutils literal notranslate"><span class="pre">option</span></code></p></li>
+<li><p>Algebraic structures in <code class="docutils literal notranslate"><span class="pre">algebra/</span></code></p></li>
+<li><p>Real analysis in <code class="docutils literal notranslate"><span class="pre">real/</span></code></p></li>
+<li><p>Logical foundations in <code class="docutils literal notranslate"><span class="pre">logic/</span></code></p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import a theory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.itp.theories</span><span class="w"> </span><span class="kn">import</span> <span class="nb">set</span>
+
+<span class="c1"># Use the theory</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Const</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="nb">set</span><span class="o">.</span><span class="n">SetSort</span><span class="p">(</span><span class="n">smt</span><span class="o">.</span><span class="n">IntSort</span><span class="p">()))</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Const</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="nb">set</span><span class="o">.</span><span class="n">SetSort</span><span class="p">(</span><span class="n">smt</span><span class="o">.</span><span class="n">IntSort</span><span class="p">()))</span>
+
+<span class="c1"># Prove a property about sets</span>
+<span class="n">union_commutative</span> <span class="o">=</span> <span class="n">prove</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="notation">
+<h3>Notation<a class="headerlink" href="#notation" title="Link to this heading"></a></h3>
+<p>Helpers for writing mathematical formulas in <code class="docutils literal notranslate"><span class="pre">notation.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">QForAll</span></code> - Universal quantifier with nicer syntax</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QExists</span></code> - Existential quantifier with nicer syntax</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cond</span></code> - Conditionals</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define variables</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Real</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Real</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+
+<span class="c1"># Universal quantification</span>
+<span class="n">forall_xy</span> <span class="o">=</span> <span class="n">QForAll</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="n">y</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># Existential quantification</span>
+<span class="n">exists_x</span> <span class="o">=</span> <span class="n">QExists</span><span class="p">([</span><span class="n">x</span><span class="p">],</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="n">smt</span><span class="o">.</span><span class="n">RealVal</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="rewriting">
+<h3>Rewriting<a class="headerlink" href="#rewriting" title="Link to this heading"></a></h3>
+<p>Support for term rewriting in <code class="docutils literal notranslate"><span class="pre">rewrite.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">simp</span></code> - Simplifies terms according to rewrite rules</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a term</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Real</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">term</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">0</span>
+
+<span class="c1"># Simplify it</span>
+<span class="n">simplified</span> <span class="o">=</span> <span class="n">simp</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>  <span class="c1"># x</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-features">
+<h2>Advanced Features<a class="headerlink" href="#advanced-features" title="Link to this heading"></a></h2>
+<section id="proofs-by-induction">
+<h3>Proofs by Induction<a class="headerlink" href="#proofs-by-induction" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prove a property about list length</span>
+<span class="nd">@Lemma</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">length_non_negative</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
+    <span class="c1"># The property to prove</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Lambda</span><span class="p">([</span><span class="n">xs</span><span class="p">],</span> <span class="n">length</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Base case: nil</span>
+    <span class="n">base_case</span> <span class="o">=</span> <span class="n">prove</span><span class="p">(</span><span class="n">P</span><span class="p">(</span><span class="n">List</span><span class="o">.</span><span class="n">nil</span><span class="p">))</span>
+
+    <span class="c1"># Inductive case</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">xs1</span> <span class="o">=</span> <span class="n">smt</span><span class="o">.</span><span class="n">Const</span><span class="p">(</span><span class="s1">&#39;xs1&#39;</span><span class="p">,</span> <span class="n">List</span><span class="p">)</span>
+    <span class="n">inductive_case</span> <span class="o">=</span> <span class="n">prove</span><span class="p">(</span>
+        <span class="n">smt</span><span class="o">.</span><span class="n">Implies</span><span class="p">(</span><span class="n">P</span><span class="p">(</span><span class="n">xs1</span><span class="p">),</span> <span class="n">P</span><span class="p">(</span><span class="n">List</span><span class="o">.</span><span class="n">cons</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">xs1</span><span class="p">)))</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Apply induction principle</span>
+    <span class="k">return</span> <span class="n">prove</span><span class="p">(</span><span class="n">P</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="n">base_case</span><span class="p">,</span> <span class="n">inductive_case</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="debugging-proofs">
+<h3>Debugging Proofs<a class="headerlink" href="#debugging-proofs" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">proof</span> <span class="o">=</span> <span class="n">prove</span><span class="p">(</span><span class="n">complex_theorem</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">dump</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Proof failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="external-solver-integration">
+<h3>External Solver Integration<a class="headerlink" href="#external-solver-integration" title="Link to this heading"></a></h3>
+<p>The module supports integrating with external provers through the <code class="docutils literal notranslate"><span class="pre">solvers</span></code> package:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">VampireSolver</span></code> - Interface to the Vampire theorem prover</p></li>
+<li><p>Other solvers like Gappa, EggLog, and APRove</p></li>
+</ul>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>Global configuration options in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">solver</span></code> - The default solver to use</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">admit_enabled</span></code> - Whether to allow admitting theorems without proof</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timing</span></code> - Enable/disable performance logging</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The module is part of the arlib package. External solvers may need separate installation.
+See <code class="docutils literal notranslate"><span class="pre">solvers/install.sh</span></code> for installing supported external solvers.</p>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+<section id="core-classes">
+<h3>Core Classes<a class="headerlink" href="#core-classes" title="Link to this heading"></a></h3>
+<section id="proof">
+<h4>Proof<a class="headerlink" href="#proof" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Proof</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thm</span><span class="p">:</span> <span class="n">smt</span><span class="o">.</span><span class="n">BoolRef</span><span class="p">,</span> <span class="n">reason</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">admit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Represents a proven theorem.</p>
+<p><strong>Properties:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">thm</span></code>: The theorem that has been proven (a Z3 BoolRef)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reason</span></code>: The reasons or premises used in the proof</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">admit</span></code>: Whether the theorem was admitted without proof</p></li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__call__(*args)</span></code>: Instance a universally quantified theorem with specific terms</p></li>
+</ul>
+</section>
+</section>
+<section id="core-functions">
+<h3>Core Functions<a class="headerlink" href="#core-functions" title="Link to this heading"></a></h3>
+<section id="prove">
+<h4>prove<a class="headerlink" href="#prove" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">prove</span><span class="p">(</span><span class="n">thm</span><span class="p">:</span> <span class="n">smt</span><span class="o">.</span><span class="n">BoolRef</span><span class="p">,</span> <span class="n">by</span><span class="p">:</span> <span class="n">Proof</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Proof</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+          <span class="n">admit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dump</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Proof</span>
+</pre></div>
+</div>
+<p>Attempts to prove a theorem using the specified SMT solver.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">thm</span></code>: The theorem to prove</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">by</span></code>: Previously proven lemmas to use as premises</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">admit</span></code>: If True, admit the theorem without proof</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code>: Solver timeout in milliseconds</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dump</span></code>: Whether to dump solver state (for debugging)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">solver</span></code>: Custom solver to use</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">Proof</span></code> object representing the proven theorem</p></li>
+</ul>
+</section>
+<section id="axiom">
+<h4>axiom<a class="headerlink" href="#axiom" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">axiom</span><span class="p">(</span><span class="n">thm</span><span class="p">:</span> <span class="n">smt</span><span class="o">.</span><span class="n">BoolRef</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;axiom&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Proof</span>
+</pre></div>
+</div>
+<p>Declares an axiom (use with caution).</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">thm</span></code>: The axiom to declare</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">by</span></code>: A description or reason for the axiom</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">Proof</span></code> object for the axiom</p></li>
+</ul>
+</section>
+<section id="define">
+<h4>define<a class="headerlink" href="#define" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">define</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">smt</span><span class="o">.</span><span class="n">ExprRef</span><span class="p">],</span> <span class="n">body</span><span class="p">:</span> <span class="n">smt</span><span class="o">.</span><span class="n">ExprRef</span><span class="p">,</span>
+           <span class="n">lift_lambda</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">smt</span><span class="o">.</span><span class="n">FuncDeclRef</span>
+</pre></div>
+</div>
+<p>Defines a new function and creates its corresponding definition axiom.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: The name of the function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">args</span></code>: The arguments of the function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">body</span></code>: The body/definition of the function</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lift_lambda</span></code>: Whether to lift lambda expressions</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p>The function declaration</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="interpolant.html" class="btn btn-neutral float-left" title="Interpolant Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="knowledge_compilation.html" class="btn btn-neutral float-right" title="Knowledge Compilation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

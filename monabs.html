@@ -1,0 +1,210 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monadic Predicate Abstraction &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optimization Modulo Theory" href="optimization.html" />
+    <link rel="prev" title="Knowledge Compilation" href="knowledge_compilation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Monadic Predicate Abstraction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction-to-monadic-predicate-abstraction">Introduction to Monadic Predicate Abstraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monadic-predicate-abstraction-in-arlib">Monadic Predicate Abstraction in Arlib</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-comparison">Performance Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Monadic Predicate Abstraction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/monabs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="monadic-predicate-abstraction">
+<h1>Monadic Predicate Abstraction<a class="headerlink" href="#monadic-predicate-abstraction" title="Link to this heading"></a></h1>
+<section id="introduction-to-monadic-predicate-abstraction">
+<h2>Introduction to Monadic Predicate Abstraction<a class="headerlink" href="#introduction-to-monadic-predicate-abstraction" title="Link to this heading"></a></h2>
+<p>Given a formula F and a set of predicates {P1, …, Pn}, monadic predicate abstraction decides for
+each Pi whether F and Pi is satisfiable or not. This is a fundamental operation in many program analysis
+and verification tasks.</p>
+<p>Applications:</p>
+<ul class="simple">
+<li><p>In symbolic execution, F is a path condition, and Pi is a predicate related to certain properties.</p></li>
+<li><p>In program verification, F is an invariant, and Pi represents properties to be verified.</p></li>
+<li><p>In static analysis, monadic predicate abstraction can help determine which branches are feasible.</p></li>
+</ul>
+</section>
+<section id="monadic-predicate-abstraction-in-arlib">
+<h2>Monadic Predicate Abstraction in Arlib<a class="headerlink" href="#monadic-predicate-abstraction-in-arlib" title="Link to this heading"></a></h2>
+<p>Arlib provides several implementations of monadic predicate abstraction with different performance characteristics:</p>
+<ol class="arabic simple">
+<li><p><strong>Unary Check</strong> (<cite>unary_check.py</cite>): Basic implementation that checks each predicate individually.
+- <cite>unary_check</cite>: Standard implementation
+- <cite>unary_check_cached</cite>: Optimized version with caching</p></li>
+<li><p><strong>Disjunctive Check</strong> (<cite>dis_check.py</cite>): Checks predicates using a disjunctive approach.
+- <cite>disjunctive_check</cite>: Standard implementation
+- <cite>disjunctive_check_incremental</cite>: Incremental version for better performance</p></li>
+<li><p><strong>UNSAT Check</strong> (<cite>unsat_check.py</cite>): Leverages UNSAT core computation for efficient checking.</p></li>
+<li><p><strong>Parallel Check</strong> (<cite>parallel_check.py</cite>): Parallelized implementation for improved performance on multi-core systems.</p></li>
+</ol>
+<p>The module also includes PySMT-specific implementations (<cite>unary_check_pysmt.py</cite>, <cite>dis_check_pysmt.py</cite>) for compatibility with the PySMT framework.</p>
+</section>
+<section id="usage-example">
+<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+import z3
+from arlib.monabs.unary_check import unary_check
+from arlib.monabs.dis_check import disjunctive_check_incremental</p>
+<p># Define variables
+x, y, z = z3.Ints(‘x y z’)</p>
+<p># Define formula and predicates
+formula = z3.And(x &gt; 0, y &gt; x, z &lt; y)
+predicates = [x &lt; 10, y &lt; 20, z &gt; 5, x + y &gt; z]</p>
+<p># Run monadic predicate abstraction
+result_unary = unary_check(formula, predicates)
+result_incremental = disjunctive_check_incremental(formula, predicates)</p>
+<p># Results are boolean lists indicating satisfiability of each predicate
+print(“Unary check results:”, result_unary)
+print(“Incremental check results:”, result_incremental)
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>For more advanced usage and benchmarking, refer to the <cite>run_monabs.py</cite> script in the repository root.</p>
+</section>
+<section id="performance-comparison">
+<h2>Performance Comparison<a class="headerlink" href="#performance-comparison" title="Link to this heading"></a></h2>
+<p>The different implementations offer various performance trade-offs:</p>
+<ul class="simple">
+<li><p><cite>unary_check</cite>: Simple but potentially slower for many predicates</p></li>
+<li><p><cite>unary_check_cached</cite>: Improved performance through caching</p></li>
+<li><p><cite>disjunctive_check</cite>: Better for related predicates</p></li>
+<li><p><cite>disjunctive_check_incremental</cite>: Best for incremental solving</p></li>
+<li><p><cite>unsat_check</cite>: Efficient for formulas with many unsatisfiable predicates</p></li>
+<li><p><cite>parallel_check</cite>: Best for multi-core systems with many predicates</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><ol class="upperalpha simple" start="20">
+<li><p>Ball, R. Majumdar, T. Millstein, and S. K. Rajamani. “Automatic predicate abstraction of C programs.” In PLDI, 2001.</p></li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="5">
+<li><ol class="upperalpha simple" start="13">
+<li><p>Clarke, O. Grumberg, S. Jha, Y. Lu, and H. Veith. “Counterexample-guided abstraction refinement.” In CAV, 2000.</p></li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="knowledge_compilation.html" class="btn btn-neutral float-left" title="Knowledge Compilation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="optimization.html" class="btn btn-neutral float-right" title="Optimization Modulo Theory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

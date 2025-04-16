@@ -1,0 +1,199 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer Research, Honours/Master Thesis Project Topics &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Abduction" href="abduction.html" />
+    <link rel="prev" title="Welcome to arlib’s Documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Summer Research, Honours/Master Thesis Project Topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#beyond-smt-solving">1. Beyond SMT Solving</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parallel-bit-vector-optimizations">Parallel Bit-Vector Optimizations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bit-vector-interpolation">Bit-Vector Interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bit-vector-model-counting">Bit-Vector Model Counting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bit-vector-model-sampling">Bit-Vector Model Sampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#smt-solving-for-specific-theories">2. SMT Solving for Specific Theories</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-string-constraints">SMT Solving for String Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-galois-field">SMT Solving for Galois Field</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-exists-forall-problems-over-bit-vectors">SMT Solving for Exists-Forall Problems over Bit-Vectors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Summer Research, Honours/Master Thesis Project Topics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/topics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="summer-research-honours-master-thesis-project-topics">
+<h1>Summer Research, Honours/Master Thesis Project Topics<a class="headerlink" href="#summer-research-honours-master-thesis-project-topics" title="Link to this heading"></a></h1>
+<section id="beyond-smt-solving">
+<h2>1. Beyond SMT Solving<a class="headerlink" href="#beyond-smt-solving" title="Link to this heading"></a></h2>
+<section id="parallel-bit-vector-optimizations">
+<h3>Parallel Bit-Vector Optimizations<a class="headerlink" href="#parallel-bit-vector-optimizations" title="Link to this heading"></a></h3>
+<p>Optimization Modulo Theory (OMT) is an extension of SMT, which is used for checking the
+satisfiability of logical formulas with respect to background theories such as
+arithmetic, arrays, and bit vectors.
+OMT extends SMT by adding optimization capabilities, enabling it to find solutions
+that minimize or maximize a given objective function.</p>
+<p>Here, we are interested in OMT(BV) problems, where the solution space is characterized by a
+quantifier-free bit-vector formula.
+Please refer to <cite>arlib/bv/bvopt.py</cite> for single-objective and multi-objectives optimization.</p>
+<p>(In some algorithms, we may reduce a single-objective optimization problem to a special
+multi-objectives optimization problem (e.g., “Bit-vector optimization, TACAS’16”))</p>
+</section>
+<section id="bit-vector-interpolation">
+<h3>Bit-Vector Interpolation<a class="headerlink" href="#bit-vector-interpolation" title="Link to this heading"></a></h3>
+<p>Given two contradictory formulas <cite>A</cite> and <cite>B</cite>, a Craig interpolant <cite>I</cite> is a formula that satisfies the following conditions:
+- <cite>I</cite> is a logical consequence of <cite>A</cite>.
+- <cite>I</cite> and <cite>B</cite> are contradictory
+- <cite>I</cite> contains only the variables that are common to <cite>A</cite> and <cite>B</cite>.</p>
+<p>Please refer to <cite>arlib/bv/bvitp.py</cite>.</p>
+</section>
+<section id="bit-vector-model-counting">
+<h3>Bit-Vector Model Counting<a class="headerlink" href="#bit-vector-model-counting" title="Link to this heading"></a></h3>
+<p>Model counting is the problem of determining the number of possible solutions
+(models) to a given formula.</p>
+<p>Refer to <cite>arlib/bv/bv_counting</cite>.</p>
+</section>
+<section id="bit-vector-model-sampling">
+<h3>Bit-Vector Model Sampling<a class="headerlink" href="#bit-vector-model-sampling" title="Link to this heading"></a></h3>
+<p>Given a satisfiable formula <cite>P</cite>, how to generate multiple and diverse solutions <cite>P</cite>?</p>
+</section>
+</section>
+<section id="smt-solving-for-specific-theories">
+<h2>2. SMT Solving for Specific Theories<a class="headerlink" href="#smt-solving-for-specific-theories" title="Link to this heading"></a></h2>
+<section id="smt-solving-for-string-constraints">
+<h3>SMT Solving for String Constraints<a class="headerlink" href="#smt-solving-for-string-constraints" title="Link to this heading"></a></h3>
+<p>(We have an idea about parallel string constraint solving)</p>
+</section>
+<section id="smt-solving-for-galois-field">
+<h3>SMT Solving for Galois Field<a class="headerlink" href="#smt-solving-for-galois-field" title="Link to this heading"></a></h3>
+<p>A Galois Field, also known as a finite field, is a mathematical structure that
+consists of a finite set of elements and two operations, typically addition
+and multiplication. Galois Fields are used in many areas of mathematics,
+computer science, and engineering, such as coding theory, cryptography, and
+digital signal processing.</p>
+</section>
+<section id="smt-solving-for-exists-forall-problems-over-bit-vectors">
+<h3>SMT Solving for Exists-Forall Problems over Bit-Vectors<a class="headerlink" href="#smt-solving-for-exists-forall-problems-over-bit-vectors" title="Link to this heading"></a></h3>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to arlib’s Documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abduction.html" class="btn btn-neutral float-right" title="Abduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

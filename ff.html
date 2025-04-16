@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMT Solving for Finite Field &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interpolant Generation" href="interpolant.html" />
+    <link rel="prev" title="Model Counting" href="counting.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SMT Solving for Finite Field</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SMT Solving for Finite Field</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ff.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="smt-solving-for-finite-field">
+<h1>SMT Solving for Finite Field<a class="headerlink" href="#smt-solving-for-finite-field" title="Link to this heading"></a></h1>
+<section id="overview">
+<span id="ff-solving"></span><h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Finite filed arithmetic is a fundamental component of many cryptographic protocols.</p>
+<p>Recent works have significantly advanced SMT solving for finite fields, including:</p>
+<ul class="simple">
+<li><p>MCSat-based techniques in Yices2</p></li>
+<li><p>Split Gröbner Bases approaches</p></li>
+<li><p>Non-linear reasoning methods</p></li>
+</ul>
+</section>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h2>
+<p>Arlib provides a flexible implementation for SMT solving over finite fields in the <code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code> module. It supports multiple encoding strategies:</p>
+<ul class="simple">
+<li><p><strong>Bit-vector encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_bv_solver.py</span></code>): Translates finite field operations to bit-vector constraints</p></li>
+<li><p><strong>Integer encoding</strong> (<code class="docutils literal notranslate"><span class="pre">ff_int_solver.py</span></code>): Uses modular arithmetic via integer constraints</p></li>
+</ul>
+<p>The core components include:</p>
+<ul class="simple">
+<li><p>Formula parsing and representation (<code class="docutils literal notranslate"><span class="pre">ff_parser.py</span></code>)</p></li>
+<li><p>Translation to bit-vector formulas using Z3</p></li>
+<li><p>Translation to integer arithmetic with modular operations</p></li>
+<li><p>Support for standard finite field operations (addition, multiplication, equality)</p></li>
+</ul>
+<p><strong>Bit-vector Encoding</strong></p>
+<p>The bit-vector approach represents finite field elements as fixed-width bit-vectors:</p>
+<ul class="simple">
+<li><p>Field elements are encoded as bit-vectors with width log₂(field_size)</p></li>
+<li><p>Field operations are translated to bit-vector operations with modular constraints</p></li>
+<li><p>Range constraints ensure values stay within the field bounds</p></li>
+</ul>
+<p><strong>Integer Encoding</strong></p>
+<p>The integer encoding represents field elements as integers with modular arithmetic:</p>
+<ul class="simple">
+<li><p>Field elements are constrained to the range [0, field_size-1]</p></li>
+<li><p>Field operations are translated to integer operations with explicit modulo operations</p></li>
+<li><p>This approach leverages integers and non-linear arithmetic reasoning in SMT solvers</p></li>
+</ul>
+</section>
+<section id="usage-example">
+<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading"></a></h2>
+<p>Here’s a simple example of using the finite field solver:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.smt.ff.ff_bv_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_qfff</span>
+
+<span class="c1"># Example formula in SMT-LIB format</span>
+<span class="n">smt_input</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">(set-info :smt-lib-version 2.6)</span>
+<span class="s2">(set-logic QF_FF)</span>
+<span class="s2">(declare-fun x () (_ FiniteField 17))</span>
+<span class="s2">(declare-fun y () (_ FiniteField 17))</span>
+<span class="s2">(assert (= (ff.add x y) #f3m17))</span>
+<span class="s2">(assert (= (ff.mul x y) #f5m17))</span>
+<span class="s2">(check-sat)</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="c1"># Solve the formula</span>
+<span class="n">solve_qfff</span><span class="p">(</span><span class="n">smt_input</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will solve the system of equations x + y = 3 and x * y = 5 in the finite field GF(17).</p>
+</section>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Hader, T., Kaufmann, D., Irfan, A., Graham-Lengrand, S., &amp; Kovács, L. (2024).</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/2402.17927">MCSat-based Finite Field Reasoning in the Yices2 SMT Solver</a>.
+ArXiv:2402.17927.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Ozdemir, A., Pailoor, S., Bassa, A., Ferles, K., Barrett, C., &amp; Dillig, I. (2024).</dt><dd><p>Split Gröbner Bases for Satisfiability Modulo Finite Fields.
+In <em>Computer Aided Verification (CAV)</em>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Ozdemir, A., Kremer, G., Tinelli, C., &amp; Barrett, C. (2023).</dt><dd><p>Satisfiability modulo finite fields.
+In <em>Computer Aided Verification (CAV)</em>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Hader, T., Kaufmann, D., &amp; Kovács, L. (2023).</dt><dd><p>SMT solving over finite field arithmetic.
+In <em>Logic for Programming, Artificial Intelligence and Reasoning (LPAR)</em>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Hader, T. (2022).</dt><dd><p>Non-linear SMT-reasoning over finite fields.
+Master’s thesis, TU Wien.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Hader, T., &amp; Kovács, L. (2022).</dt><dd><p>Non-linear SMT-reasoning over finite fields.
+In <em>SMT Workshop</em>. Extended Abstract.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="counting.html" class="btn btn-neutral float-left" title="Model Counting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="interpolant.html" class="btn btn-neutral float-right" title="Interpolant Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

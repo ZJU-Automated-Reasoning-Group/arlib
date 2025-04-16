@@ -1,0 +1,183 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predicate Abstraction &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="UNSAT Core Extraction" href="unsat_core.html" />
+    <link rel="prev" title="Symbolic Abstraction" href="symbolic_abstraction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Predicate Abstraction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction-to-predicate-abstraction">Introduction to Predicate Abstraction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">}</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Predicate Abstraction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/predicate_abstraction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="predicate-abstraction">
+<h1>Predicate Abstraction<a class="headerlink" href="#predicate-abstraction" title="Link to this heading"></a></h1>
+<section id="introduction-to-predicate-abstraction">
+<h2>Introduction to Predicate Abstraction<a class="headerlink" href="#introduction-to-predicate-abstraction" title="Link to this heading"></a></h2>
+<p>Predicate abstraction is a technique for constructing finite-state abstractions
+from large or infinite-state systems.</p>
+<p>The fundamental operation in predicate abstraction can be summarized as follows:
+Given a formula φ and a set of predicates P in a theory T, generate the most
+precise approximation of φ using P.</p>
+<p>Depending on the nature of the problem domain, one may either want to generate:</p>
+<ol class="lowerroman simple">
+<li><p>the best underapproximation of φ, i.e., the weakest Boolean combination
+of P that implies φ (denoted by FP(φ)) or</p></li>
+<li><p>the best overapproximation of φ, i.e., the strongest Boolean combination of P
+that is implied by φ (denoted by GP(φ)).</p></li>
+</ol>
+<p>Here, the notions of weakness, strength and implication are with respect
+to entailment in the given theory T.</p>
+<p>Consider the following simple C loop:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>c
+int i = 0;
+while (i &lt; 10) {</p>
+<blockquote>
+<div><p>i++;</p>
+</div></blockquote>
+<section id="id5">
+<h3>}<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p>Suppose we choose the following predicates as our abstraction:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`c</span>
+<span class="pre">P1:</span> <span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">10</span>
+<span class="pre">P2:</span> <span class="pre">i</span> <span class="pre">&gt;=</span> <span class="pre">10</span>
+<span class="pre">`</span></code></p>
+<p>An element in the abstract domain is a Boolean combination of the predicates.
+For example, P1 ∨ P2 is an element in the abstract domain.</p>
+<p>The predicate abstraction algorithm aims to infer an inductive invariant for the loop expressed as a Boolean combination of the predicates (similar to an interval invariant in the interval abstract domain).</p>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>[GS97] S. Graf and H. Saidi. Construction of abstract state graphs with PVS. In
+CAV’97</p></li>
+<li><p>[CKSY04] E. Clarke, D. Kroening, N. Sharygina, and K. Yorav. Predicate abstraction
+of ANSI–C programs using SAT. FMSD’04</p></li>
+<li><p>[LBC03] S. K. Lahiri, R. E. Bryant, and B. Cook. A symbolic approach to predicate
+abstraction. In CAV’03</p></li>
+<li><p>[LB04] S. K. Lahiri and R. E. Bryant. Constructing Quantified Invariants via
+Predicate Abstraction. In VMCAI’04</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="symbolic_abstraction.html" class="btn btn-neutral float-left" title="Symbolic Abstraction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="unsat_core.html" class="btn btn-neutral float-right" title="UNSAT Core Extraction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
