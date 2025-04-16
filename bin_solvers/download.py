@@ -186,8 +186,12 @@ def setup_solvers():
         if binary_path and os.path.exists(binary_path):
             target_name = solver_name
             shutil.copy2(binary_path, target_name)
-            os.chmod(target_name, 0o755)
-            print(f"✓ Binary setup successful")
+            if os.path.exists(target_name):
+                os.chmod(target_name, 0o755)
+                print(f"✓ Binary setup successful")
+            else:
+                print(f"✗ Failed to copy binary for {solver_name}")
+                success = False
 
             # Step 4: Cleanup
             print(f"\nStep 4: Cleaning up temporary files")
@@ -205,6 +209,16 @@ def setup_solvers():
 
         print(f"\nStatus: {'✓ Success' if success else '✗ Failed'}")
 
+    # Make sure all binaries have proper permissions
+    # for solver_name in ['cvc5', 'z3', 'mathsat']:
+    for solver_name in ['cvc5', 'z3']:
+        binary_path = os.path.join(DOWNLOAD_DIR, solver_name)
+        if os.path.exists(binary_path):
+            try:
+                os.chmod(binary_path, 0o755)
+            except Exception as e:
+                print(f"Warning: Could not set permissions for {solver_name}: {e}")
+                
     return success
 
 

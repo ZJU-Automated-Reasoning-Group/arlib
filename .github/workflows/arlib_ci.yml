@@ -92,7 +92,7 @@ jobs:
       run: |
         cd bin_solvers
         python download.py
-        chmod +x cvc5 z3 mathsat
+        chmod +x cvc5 z3
         cd ..
     
     - name: Run tests
