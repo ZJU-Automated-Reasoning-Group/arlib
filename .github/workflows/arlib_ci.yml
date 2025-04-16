@@ -2,9 +2,9 @@ name: Arlib CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ master ]
   schedule:
     - cron: '0 0 * * 0'  # Weekly run on Sundays
 
@@ -62,32 +62,52 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install pytest pytest-cov black flake8 mypy
-        pip install -r requirements.txt
+        python -m pip install pytest pytest-cov
+        python -m pip install -r requirements.txt
+        python -m pip install -e .
     
-    - name: Download and build solvers
+    - name: Download solvers
       run: |
-        python bin_solvers/download.py
-        python bin_solvers/build_sharpsat.py
+        cd bin_solvers
+        python download.py
+        chmod +x cvc5 z3 mathsat
+        cd ..
     
-    - name: Run tests with coverage
-      run: |
-        pytest --cov=arlib --cov-report=xml
-
+    - name: Run tests
+      run: bash unit_test.sh --coverage
+      
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         fail_ci_if_error: false
 
+  docs:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+        python -m pip install -e .
+        python -m pip install -r docs/requirements.txt
+    
     - name: Build documentation
       run: |
-        pip install -r docs/requirements.txt
         cd docs && make html
-
-    - name: Deploy documentation
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.os == 'ubuntu-22.04' && matrix.python-version == '3.10'
+    
+    - name: Deploy documentation to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/build/html
+        publish_dir: ./docs/build/html 
