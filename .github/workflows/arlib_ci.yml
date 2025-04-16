@@ -45,7 +45,8 @@ jobs:
           build-essential \
           default-jre \
           zip \
-          ninja-build
+          ninja-build \
+          python3-venv
 
     - name: Install system dependencies (macOS)
       if: runner.os == 'macOS'
@@ -58,13 +59,34 @@ jobs:
           gperf \
           boost \
           ninja
+        # venv is included with Python on macOS from GitHub Actions
     
-    - name: Install Python dependencies
+    - name: Setup Python virtual environment (Linux)
+      if: runner.os == 'Linux'
       run: |
+        python -m pip install --upgrade pip setuptools wheel virtualenv
+        python -m venv venv
+        source venv/bin/activate
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install pytest pytest-cov
         python -m pip install -r requirements.txt
         python -m pip install -e .
+        echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+        echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+    
+    - name: Setup Python virtual environment (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        python -m pip install --upgrade pip setuptools wheel virtualenv
+        python -m venv venv
+        source venv/bin/activate
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install pytest pytest-cov
+        python -m pip install -r requirements.txt
+        python -m pip install -e .
+        echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+        echo "export PATH=$VIRTUAL_ENV/bin:$PATH" >> ~/.bash_profile
+        echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
     
     - name: Download solvers
       run: |
@@ -95,12 +117,22 @@ jobs:
       with:
         python-version: '3.10'
     
-    - name: Install dependencies
+    - name: Install system dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-venv
+    
+    - name: Setup Python virtual environment
+      run: |
+        python -m pip install --upgrade pip setuptools wheel virtualenv
+        python -m venv venv
+        source venv/bin/activate
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         python -m pip install -e .
         python -m pip install -r docs/requirements.txt
+        echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+        echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
     
     - name: Build documentation
       run: |
