@@ -24,17 +24,17 @@ SOLVER_URLS = {
     'mac_arm64': {
         'cvc5': "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.3/cvc5-macOS-arm64",
         'z3': "https://github.com/Z3Prover/z3/releases/download/z3-4.10.2/z3-4.10.2-arm64-osx-11.0.zip",
-        'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-osx.tar.gz"
+        # 'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-osx.tar.gz"
     },
     'mac_x64': {
         'cvc5': "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.3/cvc5-macOS",
         'z3': "https://github.com/Z3Prover/z3/releases/download/z3-4.10.2/z3-4.10.2-x64-osx-10.16.zip",
-        'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-osx.tar.gz"
+        # 'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-osx.tar.gz"
     },
     'linux': {
         'cvc5': "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.3/cvc5-Linux",
         'z3': "https://github.com/Z3Prover/z3/releases/download/z3-4.10.2/z3-4.10.2-x64-glibc-2.31.zip",
-        'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-linux-x86_64.tar.gz"
+        # 'mathsat': "https://mathsat.fbk.eu/download.php?file=mathsat-5.6.9-linux-x86_64.tar.gz"
     }
 }
 
