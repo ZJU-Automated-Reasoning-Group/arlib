@@ -32,7 +32,7 @@ REQUIRED = [
     'six~=1.15.0',
     'pytest~=7.1.0',
     'requests~=2.32.3',
-    'setuptools~=76.0.0'
+    'setuptools~=70.0.0'
 ]
 
 # The rest you shouldn't have to touch too much :)

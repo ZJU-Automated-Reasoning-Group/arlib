@@ -48,11 +48,11 @@ def get_binary_path(solver_name, archive_name):
         if match:
             base_name = match.group(1)
             return f'{base_name}/bin/z3'
-    elif solver_name == 'mathsat':
-        match = re.search(r'mathsat-(\d+\.\d+\.\d+)-(.*?)(\.tar\.gz|\.zip)', archive_name)
-        if match:
-            version, platform, _ = match.groups()
-            return f'mathsat-{version}-{platform}/bin/mathsat'
+    # elif solver_name == 'mathsat':
+    #     match = re.search(r'mathsat-(\d+\.\d+\.\d+)-(.*?)(\.tar\.gz|\.zip)', archive_name)
+    #     if match:
+    #         version, platform, _ = match.groups()
+    #        return f'mathsat-{version}-{platform}/bin/mathsat'
     return None
 
 
@@ -128,12 +128,12 @@ def find_binary(solver_name, archive_name):
 
 
 def get_extracted_dir(solver_name, archive_name):
-    if solver_name == 'mathsat':
-        match = re.search(r'mathsat-(\d+\.\d+\.\d+)-(.*?)(\.tar\.gz|\.zip)', archive_name)
-        if match:
-            version, platform, _ = match.groups()
-            return f'mathsat-{version}-{platform}'
-    elif solver_name == 'z3':
+    # if solver_name == 'mathsat':
+    #     match = re.search(r'mathsat-(\d+\.\d+\.\d+)-(.*?)(\.tar\.gz|\.zip)', archive_name)
+    #     if match:
+    #         version, platform, _ = match.groups()
+    #         return f'mathsat-{version}-{platform}'
+    if solver_name == 'z3':
         match = re.search(r'(z3-\d+\.\d+\.\d+-.*?)(\.zip|\.tar\.gz)', archive_name)
         if match:
             return match.group(1)
