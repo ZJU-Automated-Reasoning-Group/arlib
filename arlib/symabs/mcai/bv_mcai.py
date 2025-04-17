@@ -117,6 +117,8 @@ class AbstractionAnalyzer:
         self.variables = variables
         self.sa = BVSymbolicAbstraction()
         self.sa.init_from_fml(formula)
+        self.sa.do_simplification()
+        print("simplified formula: ", self.sa.formula)
 
     def compute_false_positives(self, abs_formula) -> Tuple[bool, float, float]:
         """Compute false positive rate for an abstraction"""
@@ -226,7 +228,7 @@ def setup_logging(log_file: Optional[str] = None):
     return logging.getLogger(__name__)
 
 
-def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
+def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
     """Process a single SMT-LIB2 file"""
     try:
         # Parse SMT-LIB2 file
@@ -255,6 +257,12 @@ def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
         # TODO: also save the results in the log file (or some csv file)
         if results:
             logger.info(f"{file_path}: Analysis completed successfully")
+            if args.file:
+                if not os.path.exists(args.csv):
+                    with open(args.csv, "w") as f:
+                        f.write(f"filename,interval_fp_rate,zone_fp_rate,octagon_fp_rate,bitwise_fp_rate,interval_time,zone_time,octagon_time,bitwise_time\n")
+                with open(args.csv, "a") as csv:
+                    csv.write(f"{file_path},{results.interval_fp_rate},{results.zone_fp_rate},{results.octagon_fp_rate},{results.bitwise_fp_rate},{results.interval_time},{results.zone_time},{results.octagon_time},{results.bitwise_time}\n")
             return results
 
         logger.debug(f"Analysis failed: {file_path}")
@@ -265,7 +273,7 @@ def process_smt_file(file_path: str) -> Optional[AbstractionResults]:
         return None
 
 
-def process_directory(dir_path: str, num_processes: int) -> None:
+def process_directory(dir_path: str, num_processes: int, args) -> None:
     """Process all SMT-LIB2 files in directory using parallel processing"""
     smt_files = [
         str(f) for f in Path(dir_path).glob("**/*.smt2")
@@ -283,7 +291,7 @@ def process_directory(dir_path: str, num_processes: int) -> None:
 
     results = []
     for file in smt_files:
-        results.append((file, process_smt_file(file)))
+        results.append((file, process_smt_file(file, args)))
 
     successful = sum(1 for f, r in results if r is not None)
     final_results = sum([r for f, r in results if r is not None], start=AbstractionResults()) / successful
@@ -335,6 +343,12 @@ def main():
         default=mp.cpu_count()
     )
 
+    parser.add_argument(
+        "-c", "--csv",
+        help="Path to csv file (optional)",
+        default=f"results.csv"
+    )
+
     args = parser.parse_args()
 
     # Setup logging
@@ -347,12 +361,12 @@ def main():
         try:
             if args.file:
                 logger.info(f"Processing single file: {args.file}")
-                success = process_smt_file(args.file)
+                success = process_smt_file(args.file, args)
                 sys.exit(0 if success else 1)
 
             elif args.directory:
                 logger.info(f"Processing directory: {args.directory}")
-                process_directory(args.directory, args.processes)
+                process_directory(args.directory, args.processes, args)
 
         except Exception as e:
             logger.error(f"Fatal error: {str(e)}")
