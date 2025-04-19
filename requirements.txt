@@ -9,4 +9,5 @@ pytest-cov~=5.0.0
 tqdm==4.65.0
 requests==2.32.3
 setuptools~=70.0.0
+lark==1.2.2
 # networkx==3.1

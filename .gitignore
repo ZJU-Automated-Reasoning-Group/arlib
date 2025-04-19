@@ -1,5 +1,6 @@
 # Build artifacts and temporary files
 .coverage*
+fully_existentially_constraints.txt
 *egg-info
 *.prof
 *.qdimacs
