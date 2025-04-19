@@ -56,7 +56,7 @@ For Summer Research, Final Year Project Topics, please refer to
 ## Documentation
 
 We release the docs here:
-https://pyarlib.readthedocs.io/en/latest/
+https://zju-automated-reasoning-group.github.io/arlib
 
 
 ## Publications

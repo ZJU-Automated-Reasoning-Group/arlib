@@ -20,6 +20,7 @@ from typing import List
 import z3
 
 from arlib.utils.smtlib_solver import SmtlibProc
+from arlib.global_params.paths import global_config
 
 logger = logging.getLogger(__name__)
 
@@ -87,12 +88,20 @@ class Z3SolverPlus(z3.Solver):
         super(Z3SolverPlus, self).__init__()
 
         self.debug = debug
+        
+        # Get CVC5 path from global config
+        cvc5_path = global_config.get_solver_path("cvc5")
+        if not cvc5_path:
+            logger.warning("CVC5 not found in global config. Using 'cvc5' command from PATH.")
+            cvc5_path = "cvc5"
+        
+        # Use CVC5 path from global_params
         # abductve inference
-        self.abduction_solver = "cvc5 --produce-abducts -q"
+        self.abduction_solver = f"{cvc5_path} --produce-abducts -q"
         # quantifier elimination
-        self.binary_qe_solver = "cvc5 -q --produce-models"
+        self.binary_qe_solver = f"{cvc5_path} -q --produce-models"
         # binary interpolant (NOTE: cvc5 uses the original definition of interpolant)
-        self.binary_interpol_solver = "cvc5 --produce-interpols=default -q"
+        self.binary_interpol_solver = f"{cvc5_path} --produce-interpols=default -q"
         # sequence interpolant
         self.sequence_interpol_solver = None
         # implicant/implicate
@@ -100,7 +109,7 @@ class Z3SolverPlus(z3.Solver):
         # model interpolant (interpolant subject to a model), a recent special feature of Yices2
         self.model_interpol_solver = None
         # sygus
-        self.sygus_solver = "cvc5 -q --lang=sygus2"
+        self.sygus_solver = f"{cvc5_path} -q --lang=sygus2"
         # OMT, MaxSMT
         self.omt_solver = "optimathsat -optimization=true -model_generation=true"
         # all-sat
