@@ -1,22 +1,26 @@
+"""
+LLM provider factory for SMTO (Satisfiability Modulo Theories and Oracles)
+This module provides a unified interface to various LLM providers for oracle handling.
+"""
+
 import logging
 import os
-from typing import Optional, List, Dict, Any, Union
-import openai
+from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-# Import other LLM libraries
-import anthropic
+# Import LLM libraries conditionally
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 try:
-    import google.generativeai as genai
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
 except ImportError:
-    genai = None
-
-try:
-    import zhipuai
-except ImportError:
-    zhipuai = None
+    ANTHROPIC_AVAILABLE = False
 
 
 @dataclass
@@ -55,8 +59,10 @@ class OpenAIProvider(LLMProvider):
     """OpenAI API provider"""
 
     def __init__(self, config: LLMConfig):
+        if not OPENAI_AVAILABLE:
+            raise ImportError("OpenAI package not installed. Install with 'pip install openai'")
         self.config = config
-        openai.api_key = config.api_key
+        self.client = openai.OpenAI(api_key=config.api_key)
 
     def generate(self, prompt: str, **kwargs) -> str:
         params = {
@@ -65,7 +71,8 @@ class OpenAIProvider(LLMProvider):
             "max_tokens": self.config.max_tokens,
             **kwargs
         }
-        response = openai.Completion.create(prompt=prompt, **params)
+        # Modern API requires messages
+        response = self.client.completions.create(prompt=prompt, **params)
         return response.choices[0].text.strip()
 
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
@@ -75,7 +82,7 @@ class OpenAIProvider(LLMProvider):
             "max_tokens": self.config.max_tokens,
             **kwargs
         }
-        response = openai.ChatCompletion.create(messages=messages, **params)
+        response = self.client.chat.completions.create(messages=messages, **params)
         return response.choices[0].message.content.strip()
 
 
@@ -83,98 +90,37 @@ class AnthropicProvider(LLMProvider):
     """Anthropic API provider"""
 
     def __init__(self, config: LLMConfig):
+        if not ANTHROPIC_AVAILABLE:
+            raise ImportError("Anthropic package not installed. Install with 'pip install anthropic'")
         self.config = config
         self.client = anthropic.Anthropic(api_key=config.api_key)
 
     def generate(self, prompt: str, **kwargs) -> str:
-        params = {
-            "model": self.config.model,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
+        # Anthropic doesn't support pure completions, convert to messages format
+        response = self.client.messages.create(
+            model=self.config.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
             **kwargs
-        }
-        response = self.client.completions.create(prompt=prompt, **params)
-        return response.completion.strip()
+        )
+        return response.content[0].text.strip()
 
     def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # Convert messages to Anthropic format
+        # Convert standard format to Anthropic format if needed
         anthropic_messages = []
         for msg in messages:
             role = "user" if msg["role"] == "user" else "assistant"
             anthropic_messages.append({"role": role, "content": msg["content"]})
 
-        params = {
-            "model": self.config.model,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-            **kwargs
-        }
-        response = self.client.messages.create(messages=anthropic_messages, **params)
-        return response.content[0].text
-
-
-class GeminiProvider(LLMProvider):
-    """Google Gemini API provider"""
-
-    def __init__(self, config: LLMConfig):
-        if genai is None:
-            raise ImportError(
-                "Google Generative AI package not installed. Install with 'pip install google-generativeai'")
-        self.config = config
-        genai.configure(api_key=config.api_key)
-        self.model = genai.GenerativeModel(model_name=config.model)
-
-    def generate(self, prompt: str, **kwargs) -> str:
-        response = self.model.generate_content(prompt,
-                                               temperature=self.config.temperature,
-                                               max_output_tokens=self.config.max_tokens,
-                                               **kwargs)
-        return response.text
-
-    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # Convert to Gemini format
-        gemini_messages = []
-        for msg in messages:
-            role = "user" if msg["role"] == "user" else "model"
-            gemini_messages.append({"role": role, "parts": [msg["content"]]})
-
-        chat = self.model.start_chat(history=gemini_messages)
-        response = chat.send_message("",
-                                     temperature=self.config.temperature,
-                                     max_output_tokens=self.config.max_tokens,
-                                     **kwargs)
-        return response.text
-
-
-class ZhipuProvider(LLMProvider):
-    """Zhipu AI API provider"""
-
-    def __init__(self, config: LLMConfig):
-        if zhipuai is None:
-            raise ImportError("Zhipu AI package not installed. Install with 'pip install zhipuai'")
-        self.config = config
-        zhipuai.api_key = config.api_key
-
-    def generate(self, prompt: str, **kwargs) -> str:
-        response = zhipuai.model.invoke(
+        response = self.client.messages.create(
             model=self.config.model,
-            prompt=prompt,
+            messages=anthropic_messages,
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
             **kwargs
         )
-        return response.get("response", "")
-
-    def chat(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        # Convert to Zhipu format if needed
-        response = zhipuai.model.chat.completions.create(
-            model=self.config.model,
-            messages=messages,
-            temperature=self.config.temperature,
-            max_tokens=self.config.max_tokens,
-            **kwargs
-        )
-        return response.get("choices", [{}])[0].get("message", {}).get("content", "")
+        return response.content[0].text.strip()
 
 
 def create_llm(config: Optional[LLMConfig] = None) -> LLMProvider:
@@ -185,8 +131,6 @@ def create_llm(config: Optional[LLMConfig] = None) -> LLMProvider:
     providers = {
         "openai": OpenAIProvider,
         "anthropic": AnthropicProvider,
-        "gemini": GeminiProvider,
-        "zhipu": ZhipuProvider,
     }
 
     provider_class = providers.get(config.provider.lower())

@@ -104,10 +104,30 @@ jobs:
         file: ./coverage.xml
         fail_ci_if_error: false
 
+  # Check if docs have changed
+  check_docs_changes:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    outputs:
+      docs_changed: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '**/*.md'
+              - 'README.md'
+
   docs:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [test, check_docs_changes]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && needs.check_docs_changes.outputs.docs_changed == 'true'
     
     steps:
     - uses: actions/checkout@v3
