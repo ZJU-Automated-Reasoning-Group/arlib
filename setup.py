@@ -33,7 +33,9 @@ REQUIRED = [
     'pytest~=7.1.0',
     'requests~=2.32.3',
     'setuptools~=70.0.0',
-    'lark==1.2.2'
+    'lark==1.2.2',  
+    'multipledispatch==1.0.0',
+    'toolz==1.0.0'
 ]
 
 # The rest you shouldn't have to touch too much :)

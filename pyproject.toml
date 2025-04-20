@@ -24,7 +24,9 @@ dependencies = [
     'pytest~=7.1.0',
     'requests~=2.32.3',
     'setuptools~=70.0.0',
-    'lark==1.2.2'
+    'lark==1.2.2',
+    'toolz==1.0.0',
+    'multipledispatch==1.0.0'
 ]
 
 [project.optional-dependencies]
