@@ -5,7 +5,7 @@ Process-based Parallel CDCL(T)-style SMT Solving
 
 import logging
 import multiprocessing
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, Queue, Process
 from multiprocessing import Manager
 from ctypes import c_char_p
 from typing import List, Optional, Tuple, Set
@@ -31,68 +31,75 @@ DEFAULT_SAMPLE_SIZE = 10
 # End of options
 
 
-def check_theory_consistency(init_theory_fml,
-                             assumptions: List[str], bin_solver):
+def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solver):
     """
-    TODO: this function should be able to take a set of assumptions?
-    Check T-consistency
-    :param init_theory_fml: the initial theory formula (it is not a good idea
-         to pass it everytime when we call this function, because init_theory_fml is const
-    :param assumptions: a list of Boolean variables
-    :param bin_solver: the binary solver
-    :return: unsat core if T-inconsistent; raise TheorySolverSuccess if T-consistent
+    Long-running theory worker process that handles multiple theory checks.
+    
+    :param worker_id: ID of this worker
+    :param init_theory_fml: The initial theory formula (constant throughout solving)
+    :param task_queue: Queue to receive new tasks (assumptions to check)
+    :param result_queue: Queue to send back results
+    :param bin_solver: Path to binary solver executable
     """
-    logger.debug("One theory worker starts: {}".format(bin_solver))
+    logger.debug(f"Theory worker {worker_id} started with solver: {bin_solver}")
+    
+    # Initialize the theory solver once
     theory_solver = SMTLibTheorySolver(bin_solver)
     theory_solver.add(init_theory_fml.value)
-    if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
-        return theory_solver.get_unsat_core()
-    raise TheorySolverSuccess()
-    # return ""  # empty core indicates SAT?
+    
+    while True:
+        # Get next task from queue
+        task_id, assumptions = task_queue.get()
+        
+        # Special signal to terminate
+        if task_id == -1:
+            logger.debug(f"Theory worker {worker_id} shutting down")
+            break
+            
+        try:
+            # Check the current assumptions
+            logger.debug(f"Worker {worker_id} checking assumptions")
+            if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
+                unsat_core = theory_solver.get_unsat_core()
+                result_queue.put((task_id, unsat_core))
+            else:
+                # Signal that this model is theory-consistent (SAT)
+                result_queue.put((task_id, ""))
+        except Exception as e:
+            # Handle any errors
+            logger.error(f"Worker {worker_id} encountered error: {str(e)}")
+            result_queue.put((task_id, f"ERROR:{str(e)}"))
 
 
-def theory_solve(init_theory_fml,
-                 all_assumptions: List[str], pool: multiprocessing.Pool):
+def theory_solve_with_workers(all_assumptions: List[str], task_queue, result_queue, num_workers):
     """
-    Call theory solvers to solve a set of assumptions.
-    :param init_theory_fml: The theory formula encoding the mapping between
-            Boolean variables and the theory atoms they encode
-            (e.g., b1 = x >= 3, b2 = y <= 5, where b1 and b2 are Boolean variables)
-    :param all_assumptions: The set of assumptions to be checked,
-            (e.g., [[b1, b2], [b1], [not b1, b2]]
-    :param pool: The process pool for parallel solving
-    :return: The set of unsat cores (given by the theory solvers)
-            Note that the theory solvers may throw an exception TheorySolverSuccess,
+    Submit theory solving tasks to worker processes and collect results.
+    
+    :param all_assumptions: List of sets of assumptions to check
+    :param task_queue: Queue to send tasks to workers
+    :param result_queue: Queue to receive results from workers
+    :param num_workers: Number of worker processes
+    :return: List of unsat cores from theory solvers
     """
-    results = []
-    # TODO: If len(all_assumptions) == 1, then there is only one model to check.
-    #   For such cases, we may use a portfolio mode (TBD)
-    """
-    if len(all_assumptions) == 1:
-        logger.debug("Only one Boolean model to decide: try portfolio")
-        for i in range(4):
-            print(m_portfolio_solvers[i])
-            result = pool.apply_async(check_theory_consistency,
-                                      (init_theory_fml, all_assumptions[0], m_portfolio_solvers[i]))
-            results.append(result)
-    else:
-        for i in range(len(all_assumptions)):
-            result = pool.apply_async(check_theory_consistency,
-                                      (init_theory_fml, all_assumptions[i], m_smt_solver_bin + " -in "))
-            results.append(result)
-    """
-    for i in range(len(all_assumptions)):
-        result = pool.apply_async(check_theory_consistency,
-                                  (init_theory_fml, all_assumptions[i], m_smt_solver_bin))
-        results.append(result)
-
+    # Submit all tasks to the queue
+    for i, assumptions in enumerate(all_assumptions):
+        task_queue.put((i, assumptions))
+    
+    # Collect all results
     raw_unsat_cores = []
-    for i in range(len(all_assumptions)):
-        result = results[i].get()
-        if result == "":  # empty core indicates SAT?
-            return []  # if it is true, we may need to raise TheorySolverSuccess
+    for _ in range(len(all_assumptions)):
+        task_id, result = result_queue.get()
+        
+        if result.startswith("ERROR:"):
+            logger.error(f"Theory solving error: {result}")
+            continue
+            
+        if result == "":  # empty core indicates SAT
+            # If any model is theory-consistent, we're done
+            return []
+            
         raw_unsat_cores.append(result)
-
+    
     return raw_unsat_cores
 
 
@@ -156,40 +163,54 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
         logger.debug("Solved by the preprocessor")
         return preprocessor.status
 
-    pool = multiprocessing.Pool(processes=cpu_count())  # process pool
-
-    # print(bool_manager.numeric_clauses)
+    # Use number of CPUs as worker count
+    num_workers = cpu_count()
+    
+    # Initialize task and result queues
+    task_queue = Queue()
+    result_queue = Queue()
+    
+    # Initialize boolean solver
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
 
+    # Prepare theory formula (remains constant throughout solving)
     init_theory_fml_str = " (set-logic {}) ".format(logic) + \
                           " (set-option :produce-unsat-cores true) " + \
                           " ".join(th_manager.smt2_signature) + \
                           "(assert {})".format(th_manager.smt2_init_cnt)
 
-    # print(init_theory_fml_str)
-    # According to https://stackoverflow.com/questions/17377426/shared-variable-in-pythons-multiprocessing
-    # It seems Manger is slower than Value, but we cannot directly use Value for string?
+    # Create a shared version of the theory formula
     manager = Manager()
     init_theory_fml_str_shared = manager.Value(c_char_p, init_theory_fml_str)
 
-    logger.debug("Finish initializing Bool solvers")
+    # Start worker processes
+    workers = []
+    for i in range(num_workers):
+        p = Process(target=theory_worker, 
+                   args=(i, init_theory_fml_str_shared, task_queue, result_queue, m_smt_solver_bin))
+        p.daemon = True
+        p.start()
+        workers.append(p)
+    
+    logger.debug(f"Started {num_workers} theory worker processes")
 
-    sample_number = 10
+    sample_number = num_samples_per_round
     result = SolverResult.UNKNOWN
+    
     try:
         while True:
             is_sat = bool_solver.check_sat()
             if not is_sat:
                 result = SolverResult.UNSAT
                 break
-            # FIXME: should we identify and distinguish aux. vars introduced by tseitin' transformation?
+                
             logger.debug("Boolean abstraction is satisfiable")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
-            logger.debug("Finish sampling Boolean models; Start checking T-consistency!")
+            logger.debug(f"Finish sampling {len(bool_models)} Boolean models; Start checking T-consistency!")
 
             all_assumptions = process_pysat_models(bool_models, bool_manager)
-            raw_unsat_cores = theory_solve(init_theory_fml_str_shared, all_assumptions, pool)
+            raw_unsat_cores = theory_solve_with_workers(all_assumptions, task_queue, result_queue, num_workers)
 
             if len(raw_unsat_cores) == 0:
                 result = SolverResult.SAT
@@ -198,29 +219,33 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
             logger.debug("Theory solvers finished; Raw unsat cores: {}".format(raw_unsat_cores))
             blocking_clauses = []
             for core in raw_unsat_cores:
-                blocking_clauses.append(parse_raw_unsat_core(core, bool_manager))
+                blocking_clause = parse_raw_unsat_core(core, bool_manager)
+                blocking_clauses.append(blocking_clause)
 
-            # TODO: simplify the blocking clauses
-            logger.debug("Blocking clauses from cores: {}".format(blocking_clauses))
+            logger.debug("Blocking clauses from theory solver: {}".format(blocking_clauses))
+
             if M_SIMPLIFY_BLOCKING_CLAUSES:
                 blocking_clauses = simplify_numeric_clauses(blocking_clauses)
-                logger.debug("Simplified blocking clauses: {}".format(blocking_clauses))
+                logger.debug("After simplifications: {}".format(blocking_clauses))
 
-            bool_solver.add_clauses(blocking_clauses)
+            for cls in blocking_clauses:
+                bool_solver.add_clause(cls)
 
-    except TheorySolverSuccess:
-        # print("One theory solver success!!")
-        result = SolverResult.SAT
-    except SMTLIBSolverError as ex:
-        # print(ex)
-        result = SolverResult.ERROR
-    except PySMTSolverError as ex:
-        # print(ex)
-        result = SolverResult.ERROR
-    # except Exception as ex:
-    #    result = SolverResult.ERROR
-
-    pool.close()
-    pool.join()
+    except Exception as e:
+        logger.error(f"Error in main solving loop: {str(e)}")
+        result = SolverResult.UNKNOWN
+    finally:
+        # Signal all workers to terminate
+        for _ in range(num_workers):
+            task_queue.put((-1, None))  # -1 is the signal to terminate
+        
+        # Wait for workers to terminate (with timeout)
+        for p in workers:
+            p.join(timeout=1.0)
+            
+        # Force terminate any remaining workers
+        for p in workers:
+            if p.is_alive():
+                p.terminate()
 
     return result

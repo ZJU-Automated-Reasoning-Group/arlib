@@ -4,7 +4,6 @@ Interface for CDCL(T)-based Solver
 # import itertools
 from abc import ABC, abstractmethod
 from arlib.smt.pcdclt.parallel_cdclt_process import parallel_cdclt_process
-from arlib.smt.pcdclt.parallel_cdclt_thread import parallel_cdclt_thread
 from arlib.smt.pcdclt.simple_cdclt import boolean_abstraction
 from arlib.utils import SolverResult
 
@@ -84,7 +83,6 @@ class ParallelCDCLTSolver(CDCLTSolver):
         """
         Mode
         -  process: process-based
-        -  thread: thread-based
         -  preprocess: only perform preprocessing and dump the Boolean skeleton!
         """
         super().__init__(**kwargs)
@@ -94,8 +92,6 @@ class ParallelCDCLTSolver(CDCLTSolver):
     def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:
         if self.parallel_mode == "process":
             return parallel_cdclt_process(smt2string, logic)
-        if self.parallel_mode == "thread":
-            return parallel_cdclt_thread(smt2string, logic)
         if self.parallel_mode == "preprocess":
             cls = boolean_abstraction(smt2string)
             dump_bool_skeleton(cls, self.smt2_file + ".cnf")

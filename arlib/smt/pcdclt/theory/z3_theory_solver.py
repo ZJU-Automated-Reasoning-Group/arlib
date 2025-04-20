@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class Z3TheorySolver(object):
+    """
+    Use Z3 as the theory solver of of the parallel CDCL(T) engine
+    Note: this is only used for multi-process communicating (where the formulas are passed as strings)
+    """
 
     def __init__(self, logic: str = None):
         if logic:
@@ -34,10 +38,10 @@ class Z3TheorySolver(object):
           the self.z3_solver may not be able to understand the meanings of assumptions
         """
         logger.debug("Theory solver working...")
-        # cnts = "(assert ( and {}))\n".format(" ".join(assumptions))
-        # self.add(cnts)
-        # return self.check_sat()
-        raise NotImplementedError
+        # Parse each assumption string into a Z3 expression
+        z3_assumptions = [z3.parse_smt2_string(assumption)[0] for assumption in assumptions]
+        # Check satisfiability under the assumptions
+        return self.z3_solver.check(z3_assumptions)
 
     def get_unsat_core(self):
         """TODO: make the return type of this function consistent"""

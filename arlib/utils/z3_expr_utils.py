@@ -73,7 +73,8 @@ from z3.z3util import get_vars
 
 def get_expr_vars(exp) -> List[z3.ExprRef]:
     """z3.z3util.get_vars can be very slow; so we use the
-    cutomized version
+    cutomized version.
+    TBD: check if this is correct and design a more efficient version.
     """
     try:
         syms = set()
@@ -194,7 +195,14 @@ def get_function_symbols(exp: z3.ExprRef) -> Set[z3.FuncDeclRef]:
 
 
 def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
-    """To Skolem normal form? (How about snf)"""
+    """To Skolem normal form?
+    About Skolemization: https://en.wikipedia.org/wiki/Skolemization
+    In short, Skolemization is a process of removing existential quantifiers from a formula.
+    Rules:
+    - ∃x. φ(x) → φ(c) where c is a new Skolem constant.
+    - ∀x. ∃y. φ(x,y) → ∀x. φ(x,f(x)) where f is a new Skolem function.
+    In the second rule, f is a new function introduced for the existential quantifier
+    """
     goal = z3.Goal()
     goal.add(exp)
     tactic = z3.Tactic('snf')

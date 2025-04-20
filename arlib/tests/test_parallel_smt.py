@@ -76,7 +76,6 @@ class TestParallelSMTSolver(TestCase):
                 self.skipTest(f"Error parsing SMT2 string: {ex}")
 
             sol = ParallelCDCLTSolver(mode="process")
-            # sol = ParallelCDCLSolver(mode="thread")
             res = sol.solve_smt2_string(smt2string, logic="ALL")
             res_z3 = solve_with_z3(smt2string)
             print(res, res_z3)

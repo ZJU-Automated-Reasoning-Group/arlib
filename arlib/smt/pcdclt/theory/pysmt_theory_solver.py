@@ -2,14 +2,6 @@
 """
 Use PySMT as the theory solver of the parallel CDCL(T) engine.
 
-This will allow us to easily call the solvers supported by pySMT
-Note that we only use it for dealing with a conjunction of formulas.
-"""
-
-# coding: utf-8
-"""
-Use PySMT as the theory solver of the parallel CDCL(T) engine.
-
 This will allow us to easily call the solvers supported by pySMT.
 Note that we only use it for dealing with a conjunction of formulas.
 """

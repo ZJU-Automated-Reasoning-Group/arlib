@@ -1,5 +1,6 @@
 # Build artifacts and temporary files
 .coverage*
+.benchmarks
 fully_existentially_constraints.txt
 *egg-info
 *.prof
@@ -38,18 +39,13 @@ callgrind.out.*
 
 # Downloaded/external tools
 vampire*
-leo3.jar
 eprover*/
 twee*
 nanoCoP*
 Prover9/
 kissat*
 gappa*
-aprove.jar
 TPTP4X/
-setup_llm.sh
-rebase.sh
-
 # Special patterns
 !test
 

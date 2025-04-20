@@ -1,6 +1,5 @@
 import logging
 from arlib.smt.pcdclt.parallel_cdclt_process import parallel_cdclt_process
-from arlib.smt.pcdclt.parallel_cdclt_process_new import parallel_cdclt_process_new
 from arlib.tests import TestCase, main
 
 
@@ -20,7 +19,7 @@ class TestParallelSMTSolver2(TestCase):
         # with Profiler(True):
         # print(simple_cdclt(fml))
         # print(parallel_cdclt_process(fml, logic="ALL"))
-        print(parallel_cdclt_process_new(fml, logic="ALL"))
+        print(parallel_cdclt_process(fml, logic="ALL"))
 
 
 if __name__ == '__main__':

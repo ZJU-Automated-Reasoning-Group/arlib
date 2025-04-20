@@ -1,7 +1,8 @@
 # coding: utf-8
 """
 Use one or more binary solvers as the theory solver of the parallel CDCL(T) engine.
-Note that we only use it for dealing with a conjunction of formulas.
+
+Note that we only use it for dealing with a conjunction of formulas (check theory consistency in DPLL(T))
 """
 import logging
 from typing import List
