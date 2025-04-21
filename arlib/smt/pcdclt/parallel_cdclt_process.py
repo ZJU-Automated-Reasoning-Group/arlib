@@ -13,7 +13,7 @@ from typing import List, Optional, Tuple, Set
 from arlib.smt.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
 from arlib.smt.pcdclt.theory import SMTLibTheorySolver
-from arlib.utils import SolverResult, parse_sexpr_string
+from arlib.utils import SolverResult, SExprParser
 from arlib.smt.pcdclt.exceptions import TheorySolverSuccess, PySMTSolverError
 from arlib.utils.exceptions import SMTLIBSolverError
 from arlib.config import m_smt_solver_bin
@@ -111,7 +111,7 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager) -> List
          (e.g., the mapping between the name and the numerical ID)
     :return: The blocking clauses built from the unsat core
     """
-    parsed_core = parse_sexpr_string(core)
+    parsed_core = SExprParser.parse_sexpr_string(core)
     print(parsed_core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]

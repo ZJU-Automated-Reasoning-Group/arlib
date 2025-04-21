@@ -1,8 +1,6 @@
 """Utils for manipulating values"""
 
 import re
-from typing import List
-import itertools
 import z3
 from z3 import BitVecVal, Concat, Extract
 
@@ -10,15 +8,6 @@ from z3 import BitVecVal, Concat, Extract
 RE_GET_EXPR_VALUE_ALL = re.compile(
     r"\(([a-zA-Z0-9_]*)[ \n\s]*(#b[0-1]*|#x[0-9a-fA-F]*|[(]?_ bv[0-9]* [0-9]*|true|false|[-+]?[0-9]+|[-+]?[0-9]*\.[0-9]+|\"[^\"]*\")\)"
 )
-
-
-def powerset(elements: List):
-    """Generates the powerset of the given elements set.
-
-    E.g., powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
-    """
-    return itertools.chain.from_iterable(itertools.combinations(elements, r)
-                                         for r in range(len(elements) + 1))
 
 
 # Bit Operations

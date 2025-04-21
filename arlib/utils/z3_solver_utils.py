@@ -1,14 +1,14 @@
 """
 A few APIs that (typically) require SMT solving
-- is_valid
-- is_entail
-- is_sat
-- is_equiv
-- compact_check
-- prime_implicant
-- to_dnf
-- exclusive_to_dnf
-- get_models
+- **is_valid**: decide validity of phi
+- **is_entail**: decide whether a entails b or not (i.e., b is a consequence of a)
+- **is_sat**: decide satisfiability of phi
+- **is_equiv**: decide equivalence between a and b
+- **compact_check**: given a precond G and a set of cnts: f1, f2,..., fn, decide if the following cnts are satisfiable: And(G, f1), And(G, f2), ..., And(G, fn)
+- **prime_implicant**: find a subset ps' of ps such that /\ ps => e
+- **to_dnf**: convert a formula to DNF
+- **exclusive_to_dnf**: convert a formula to DNF
+- **get_models**: return the first k models satisfiying f
 """
 
 from typing import List

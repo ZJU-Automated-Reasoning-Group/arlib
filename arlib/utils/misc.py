@@ -1,4 +1,14 @@
 """Miscellaneous stuff that does not really fit anywhere else.
+
+- powerset: computes the powerset of a given set
+- filldedent: dedents a string and fills it with the given width
+- strlines: returns a cut-and-pastable string that, when printed, is equivalent to the input.
+- rawlines: returns a cut-and-pastable string that, when printed, is equivalent to the input.
+- debug_decorator: if ARLIB_DEBUG is True, it will print a nice execution tree with arguments and results of all decorated functions, else do nothing.
+- debug: Print ``*args`` if ARLIB_DEBUG is True, else do nothing.
+- func_name: Return function name of `x` (if defined) else the `type(x)`.
+- _replace: Return a function that can make the replacements, given in ``reps``, on a string.
+- replace: Return ``string`` with all keys in ``reps`` replaced with their corresponding values, longer strings first, irrespective of the order they are given.
 """
 
 from __future__ import annotations
@@ -10,13 +20,17 @@ import struct
 import sys
 from textwrap import fill, dedent
 from typing import Callable, Dict, List, Optional, Union
+import itertools
 
 
-class Undecidable(ValueError):
-    """An error to be raised when a decision cannot be made definitively
-    where a definitive answer is needed.
+def powerset(elements: List):
+    """Generates the powerset of the given elements set.
+
+    E.g., powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
     """
-    pass
+    return itertools.chain.from_iterable(itertools.combinations(elements, r)
+                                         for r in range(len(elements) + 1))
+
 
 
 def filldedent(s, w=70, **kwargs):
@@ -186,12 +200,12 @@ _debug_iter = 0
 
 
 def debug_decorator(func):
-    """If arlib_DEBUG is True, it will print a nice execution tree with
+    """If ARLIB_DEBUG is True, it will print a nice execution tree with
     arguments and results of all decorated functions, else do nothing.
     """
-    from arlib import arlib_DEBUG
+    from arlib import ARLIB_DEBUG
 
-    if not arlib_DEBUG:
+    if not ARLIB_DEBUG:
         return func
 
     def maketree(f, *args, **kw):
@@ -241,20 +255,20 @@ def debug_decorator(func):
 
 def debug(*args):
     """
-    Print ``*args`` if arlib_DEBUG is True, else do nothing.
+    Print ``*args`` if ARLIB_DEBUG is True, else do nothing.
     """
-    from arlib import arlib_DEBUG
-    if arlib_DEBUG:
+    from arlib import ARLIB_DEBUG
+    if ARLIB_DEBUG:
         print(*args, file=sys.stderr)
 
 
 def debugf(string, args):
     """
-    Print ``string%args`` if arlib_DEBUG is True, else do nothing. This is
+    Print ``string%args`` if ARLIB_DEBUG is True, else do nothing. This is
     intended for debug messages using formatted strings.
     """
-    from arlib import arlib_DEBUG
-    if arlib_DEBUG:
+    from arlib import ARLIB_DEBUG
+    if ARLIB_DEBUG:
         print(string % args, file=sys.stderr)
 
 
