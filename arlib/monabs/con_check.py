@@ -88,12 +88,13 @@ def disjunctive_check_incremental_cached(solver: z3.Solver, cnt_list: List[z3.Ex
     solver.push()
     solver.add(f)
     res = solver.check()
-    solver.pop()
     if res == z3.unsat:
         for i in check_list:
             results[i] = 0
+        solver.pop()
     elif res == z3.sat:
         m = solver.model()
+        solver.pop()
         new_check_list = []
         for i in check_list:
             if results[i] is None and z3.is_true(m.eval(cnt_list[i], model_completion=True)):
