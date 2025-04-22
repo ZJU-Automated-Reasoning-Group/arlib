@@ -164,14 +164,14 @@ def conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogorith
                 solver.push()
                 for idx in idx_list:
                     solver.assert_and_track(cnt_list[idx], str(idx))
-        
-        if alogorithm == 0:
-            unary_check_cached(precond, cnt_list, results, waiting_list_idx)
-        elif alogorithm == 1:
-            unary_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
-        elif alogorithm == 2:
-            disjunctive_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
-        else:
-            raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
+
+    if alogorithm == 0:
+        unary_check_cached(precond, cnt_list, results, waiting_list_idx)
+    elif alogorithm == 1:
+        unary_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
+    elif alogorithm == 2:
+        disjunctive_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
+    else:
+        raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
  
     return results
