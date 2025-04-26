@@ -62,6 +62,11 @@ Please refer to ``alrib/sampling``
               pass
 
 
+======
+Related Work
+======
+
+- https://github.com/batchenRothenberg/SMTSampler
 
 ======
 References

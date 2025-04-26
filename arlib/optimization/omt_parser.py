@@ -58,41 +58,8 @@ class OMTParser:
                 print("obj: ", obj)
 
 
-# (set-option :opt.priority box)
-def demo_omt_parser():
-    from arlib.optimization.opt_util import optimize_as_long
-    fml_one = """
-    (declare-const x (_ BitVec 16)) \n (declare-const y (_ BitVec 16)) \n
-    (assert (bvult x (_ bv100 16))) \n (assert (bvule y (_ bv98 16))) \n
-    (maximize (bvsub x y)) \n (minimize (bvadd x y)) \n (minimize (bvneg y)) \n (check-sat)
-    """
-    fml_two = """
-    (declare-const x (_ BitVec 4)) \n (declare-const y (_ BitVec 4)) \n
-    (assert (bvult x (_ bv5 4))) \n (assert (bvuge y (_ bv3 4))) \n
-    (maximize x) \n (minimize x) \n (maximize y) \n (minimize y) \n (check-sat)
-    """
-    if True:
-        x, y = z3.BitVecs("x y", 4)
-        fml = z3.And(z3.ULT(x, 5), z3.UGE(y, 3))
-        print(optimize_as_long(fml=fml, obj=-x, minimize=False))  # 15?
-        # print(optimize_as_long(fml=fml, obj=x, minimize=True))
-        # print(optimize_as_long(fml=fml, obj=y, minimize=False))
-        # print(optimize_as_long(fml=fml, obj=y, minimize=True))
-        # print(box_optimize_as_long(fml, minimize=[], maximize=[x, -x, y, -y]))
-    else:
-        s = OMTParser()
-        s.parse_with_z3(fml_two)
-        print(s.objectives)
-        # use Z3
-        print(box_optimize_as_long(z3.And(s.assertions), minimize=[], maximize=s.objectives)[1])
-        # use our implementation
-        opt = BVOptimize()
-        opt.from_smt_formula(z3.And(s.assertions))
-        res = opt.boxed_optimize(goals=s.objectives, is_signed=False)
-        print(res)
 
 
 if __name__ == "__main__":
-    # a, b, c, d = z3.Ints('a b c d')
-    # fml = z3.Or(z3.And(a == 3, b == 3), z3.And(a == 1, b == 1, c == 1, d == 1))
-    demo_omt_parser()
+    a, b, c, d = z3.Ints('a b c d')
+    fml = z3.Or(z3.And(a == 3, b == 3), z3.And(a == 1, b == 1, c == 1, d == 1))

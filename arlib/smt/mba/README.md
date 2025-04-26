@@ -1,5 +1,7 @@
 # GAMBA
 
+From  https://github.com/DenuvoSoftwareSolutions/GAMBA
+
 GAMBA is a tool for the simplification of mixed Boolean-arithmetic expressions (MBAs).
 GAMBA is short for General Advanced Mixed Boolean Arithmetic simplifier.
 It uses the linear algebraic simplifier [SiMBA](https://github.com/DenuvoSoftwareSolutions/SiMBA) to iteratively
@@ -217,7 +219,19 @@ Installing NumPy:
 
 Copyright (c) 2023 Denuvo GmbH, released under [GPLv3](LICENSE).
 
-## Contact
 
-- Benjamin Reichenwallner: benjamin(dot)reichenwallner(at)denuvo(dot)com
-- Peter Meerwald-Stadler: peter(dot)meerwald(at)denuvo(dot)com
+## Related Work 
+
+- CCS 23: Simplifying Mixed Boolean-Arithmetic Obfuscation by Program Synthesis and Term Rewriting. https://github.com/astean1001/ProMBA 
+https://dl.acm.org/doi/pdf/10.1145/3576915.3623186
+- CCS'22: Efficient deobfuscation of linear mixed boolean-arithmetic expressions.
+- USENIX Sec'21: MBA-Blast: Unveiling and simplifying mixed Boolean-Arithmetic obfuscation, https://github.com/softsec-unh/MBA-Blast
+- PLDI'20: https://github.com/softsec-unh/MBA-Solver
+
+- https://github.com/DenuvoSoftwareSolutions/SiMBA
+Efficient deobfuscation of linear mixed Boolean-arithmetic expressions
+- SIMPLIFYING MBA EXPRESSION USING E-GRAPHS
+https://arxiv.org/pdf/2404.05431v1
+
+- https://github.com/mazeworks-security/MSiMBA
+- https://github.com/mazeworks-security/Simplifier

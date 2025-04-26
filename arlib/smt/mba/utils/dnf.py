@@ -1,6 +1,7 @@
 import re
 
-from implicant import Implicant, Bitwise, BitwiseType
+from arlib.smt.mba.utils.implicant import Implicant
+from arlib.smt.mba.utils.bitwise import Bitwise, BitwiseType
 
 usingGmpy = True
 try:

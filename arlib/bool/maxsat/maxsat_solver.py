@@ -6,13 +6,30 @@ of Nadel's algorithm for OMT(BV) "Bit-Vector Optimization (TACAS'16)".
 """
 
 import copy
-
+import time
+import logging
 from pysat.formula import WCNF
 from pysat.solvers import Solver
+from dataclasses import dataclass
+from typing import List, Optional, Dict
+
 
 from .fm import FM  # is the FM correct???
 from .rc2 import RC2
-from .bs import obv_bs
+from .bs import obv_bs, obv_bs_anytime
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class MaxSATSolverResult:
+    """Stores the results of a MaxSAT solving operation"""
+    cost: float
+    solution: Optional[List[int]] = None
+    runtime: Optional[float] = None
+    status: str = "unknown"
+    statistics: Optional[Dict] = None
 
 
 class MaxSATSolver:
@@ -91,3 +108,61 @@ class MaxSATSolver:
         return assumption_lits
 
         # return obv_bs(self.hard, len(self.soft))  # FIXME: @wwq, it seems that this function has bugs
+
+    def solve(self) -> MaxSATSolverResult:
+        """
+        Solve the MaxSAT problem using the selected engine
+        
+        Returns:
+            SolverResult containing cost, solution, runtime and statistics
+        """
+        start_time = time.time()
+        result = MaxSATSolverResult(float('inf'))
+        
+        try:
+            if self.maxsat_engine == "FM":
+                fm = FM(self.wcnf, verbose=0)
+                fm.compute()
+                result.cost = fm.cost
+                result.solution = fm.model
+                result.status = "optimal" if fm.found_optimum() else "satisfied"
+                
+            elif self.maxsat_engine == "RC2":
+                rc2 = RC2(self.wcnf)
+                model = rc2.compute()
+                result.cost = rc2.cost
+                result.solution = model
+                result.status = "optimal" if model is not None else "unknown"
+                
+            elif self.maxsat_engine == "OBV-BS":
+                bits = [self.soft[i][0] for i in reversed(range(len(self.soft)))]
+                solution = obv_bs(self.hard, bits)
+                result.cost = sum(1 for bit in solution if bit > 0)
+                result.solution = solution
+                result.status = "optimal"
+                
+            elif self.maxsat_engine == "OBV-BS-ANYTIME":
+                bits = [self.soft[i][0] for i in reversed(range(len(self.soft)))]
+                solution = obv_bs_anytime(self.hard, bits, time_limit=self.timeout)
+                result.cost = sum(1 for bit in solution if bit > 0)
+                result.solution = solution
+                result.status = "optimal" if len(solution) == len(bits) else "timeout"
+                
+            else:
+                logger.warning(f"Unknown engine {self.maxsat_engine}, using FM")
+                fm = FM(self.wcnf, verbose=0)
+                fm.compute()
+                result.cost = fm.cost
+                result.solution = fm.model
+                result.status = "optimal" if fm.found_optimum() else "satisfied"
+
+        except Exception as e:
+            logger.error(f"Error solving MaxSAT problem: {str(e)}")
+            result.status = "error"
+            result.statistics = {"error": str(e)}
+            
+        finally:
+            result.runtime = time.time() - start_time
+
+
+        return result

@@ -1,4 +1,6 @@
-from bitwise import Bitwise, BitwiseType
+
+
+from arlib.smt.mba.utils.bitwise import Bitwise, BitwiseType
 
 
 # A structure representing a conjunction of possibly negated variables. It is

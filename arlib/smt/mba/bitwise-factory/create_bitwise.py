@@ -7,11 +7,9 @@ import re
 import sys
 import traceback
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-utilsdir = os.path.join(currentdir, "utils")
-sys.path.insert(0, utilsdir)
-from dnf import Dnf
-from bitwise import Bitwise
+
+from arlib.smt.mba.utils.dnf import Dnf
+from arlib.smt.mba.utils.bitwise import Bitwise
 
 
 # Class for creating bitwise expressions for a given number of variables.
