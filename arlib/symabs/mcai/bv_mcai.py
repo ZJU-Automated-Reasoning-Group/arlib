@@ -118,10 +118,25 @@ class AbstractionAnalyzer:
         self.sa = BVSymbolicAbstraction()
         self.sa.init_from_fml(formula)
         self.sa.do_simplification()
-        print("simplified formula: ", self.sa.formula)
+        self.formula = self.sa.formula
+        logger.info("simplified formula: ", self.sa.formula)
+        counter = ModelCounter()
+        if not counter.is_sat(self.formula):
+            logger.info(f"Formula is unsatisfiable")
+            exit(1)
+        # Count models
+        model_count = counter.count_models(self.formula)
+        logger.info(f"SharpSAT model count: {model_count}")
+        if model_count[0] == -1:
+            logger.info(f"model count failed")
+            exit(1)
 
     def compute_false_positives(self, abs_formula) -> Tuple[bool, float, float]:
         """Compute false positive rate for an abstraction"""
+        solver = z3.Solver()
+        solver.add(abs_formula)
+        if solver.check() == z3.unsat:
+            return True, -1.0, -1.0
         solver = z3.Solver()
         solver.add(z3.And(abs_formula, z3.Not(self.formula)))
 
@@ -139,6 +154,7 @@ class AbstractionAnalyzer:
         fp_count, time_fp = mc_fp.count_models_by_sharp_sat()
         if abs_count < 0 or fp_count < 0:
             return True, -1.0, -1.0
+        logger.info(f"fp_count={fp_count}, abs_count={abs_count}")
         return True, fp_count / abs_count, time_fp
 
     def analyze_abstractions(self) -> Optional[AbstractionResults]:
@@ -178,6 +194,7 @@ class AbstractionAnalyzer:
                 ("Octagon", self.sa.octagon_abs_as_fml),
                 ("Bitwise", self.sa.bitwise_abs_as_fml)
             ]:
+                logger.info(f"{domain}:\n{formula}")
                 if formula == z3.BoolVal(False):
                     logger.warning(f"Skipping {domain} domain")
                     continue
@@ -240,15 +257,6 @@ def process_smt_file(file_path: str, args) -> Optional[AbstractionResults]:
         if not variables:
             logger.warning(f"No bit-vector variables found in {file_path}")
             return None
-
-        counter = ModelCounter()
-        if not counter.is_sat(formula):
-            logger.info(f"{file_path}: Formula is unsatisfiable")
-            return None
-
-        # Count models
-        model_count = counter.count_models(formula)
-        logger.info(f"{file_path}: SharpSAT model count: {model_count}")
 
         # Analyze abstractions
         analyzer = AbstractionAnalyzer(formula, variables)

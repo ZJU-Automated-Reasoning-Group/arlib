@@ -60,20 +60,42 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
             file.write(cls + " 0\n")
 
 
-def call_approxmc(clauses):
+def call_approxmc(clauses, timeout=300):
     """
     Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
+    
+    Args:
+        clauses: List of clauses to count
+        timeout: Maximum time in seconds to run the solver (default: 300 seconds)
+        
+    Returns:
+        int: Number of solutions, or -1 if timeout or error occurs
     """
-    counter = Counter()
-    for clause in clauses:
-        clause_list = [int(x) for x in clause.split(" ")]
-        print(clause_list)
-        if 0 in clause_list:
-            clause_list.remove(0)
-        counter.add_clause(clause_list)
-    c = counter.count()
-    print("approxmc result: ", c)
-    return c[0] * 2 ** (c[1])
+    try:
+        counter = Counter()
+        for clause in clauses:
+            clause_list = [int(x) for x in clause.split(" ")]
+            if 0 in clause_list:
+                clause_list.remove(0)
+            counter.add_clause(clause_list)
+            
+        # 设置超时
+        timer = Timer(timeout, lambda: counter.interrupt())
+        timer.start()
+        
+        try:
+            c = counter.count()
+            print("approxmc result: ", c)
+            return c[0] * 2 ** (c[1])
+        except Exception as ex:
+            print("Exception in approxmc counting:", ex)
+            return -1
+        finally:
+            timer.cancel()
+            
+    except Exception as ex:
+        print("Error in approxmc setup:", ex)
+        return -1
 
 
 def call_sharp_sat(cnf_filename: str):
