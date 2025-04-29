@@ -123,9 +123,9 @@ class BVSymbolicAbstraction:
         Returns the conjunction of the minimized and maximized expressions.
         """
 
-        # n_queries = len(multi_queries)
-        # timeout = n_queries * self.single_query_timeout * 2 # is this reasonable?
-        min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries)
+        n_queries = len(multi_queries)
+        timeout = n_queries * self.single_query_timeout * 2 # is this reasonable?
+        min_res, max_res = box_optimize(self.formula, minimize=multi_queries, maximize=multi_queries, timeout=timeout)
         # TODO: the res of handler.xx() is not a BitVec val, but Int?
         # TODO: what if it is a value large than the biggest integer of the size (is it possible? e.g., due to overflow)
         cnts = []
@@ -320,47 +320,6 @@ class BVSymbolicAbstraction:
                     cnts.append(z3.Extract(i, i, var) == 0)
                     continue
                 cnts.append(z3.Or(z3.Extract(i, i, var) == 0, z3.Extract(i, i, var) == 1))
-        # v = self.vars[::]
-        # for var1 in self.vars:
-        #     for var2 in self.vars:
-        #         if var1 == var2:
-        #             continue
-        #         if var2 ^ var1 not in v:
-        #             v.append(var1 ^ var2)
-        #         if var2 & var1 not in v:
-        #             v.append(var1 & var2)
-        #         if var2 | var1 not in v:
-        #             v.append(var1 | var2)
-        # # for var in v:
-        # #     flag = True
-        # #     for i in range(var.size() - 1):
-        # #         sol = z3.Solver()
-        # #         sol.add(self.formula)
-        # #         for b1 in (0, 1):
-        # #             for b2 in (0, 1):
-        # #                 sol.push()
-        # #                 sol.add(z3.Extract(i, i, var) == b1)
-        # #                 sol.add(z3.Extract(i + 1, i + 1, var) == b2)
-        # #                 if sol.check() == z3.unsat:
-        # #                     cnts.append(z3.Extract(i + 1, i, var) != b2 * 2 + b1)
-        # #                     flag = False
-        # #                 sol.pop()
-        # #     if flag and var in self.vars:
-        # #         cnts.append(var == var)
-        # for var in v:
-        #     flag = True
-        #     sol = z3.Solver()
-        #     sol.add(self.formula)
-        #     for i in range(var.size()):
-        #         for b in (0, 1):
-        #             sol.push()
-        #             sol.add(z3.Extract(i, i, var) == b)
-        #             if sol.check() == z3.unsat:
-        #                 cnts.append(z3.Extract(i, i, var) == 1 - b)
-        #                 flag = False
-        #             sol.pop()
-        #     if flag and var in self.vars:
-        #         cnts.append(var == var)                
         self.bitwise_abs_as_fml = z3.And(cnts)
         self.bitwise_abs_as_fml = z3.And(self.bitwise_abs_as_fml,
                                          z3.And([bool_var == bool_var for bool_var in self.bool_vars]))
