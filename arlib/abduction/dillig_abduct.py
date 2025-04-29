@@ -9,7 +9,7 @@ quantifier elimination.
 
 import z3
 from arlib.utils import is_sat, is_entail, get_variables
-from arlib.abduction.mistral_z3 import MSASolver
+from arlib.optimization.msa.mistral_msa import MSASolver
 
 
 def generalize_model(model, pre_cond, post_cond):

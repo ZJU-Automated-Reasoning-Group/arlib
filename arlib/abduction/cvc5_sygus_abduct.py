@@ -1,15 +1,38 @@
-"""Z3 to CVC5 abduction interface."""
+"""CVC5 abduction interface.
+
+- IJCAR20: Scalable algorithms for abduction via enumerative syntax-guided synthesis. Reynolds, A., Barbosa, H., Larraz, D., Tinelli, C.: 
+- https://homepage.divms.uiowa.edu/~ajreynol/pres-sygus2023.pdf
+
+Consider the following example:
+
+(set-option :produce-abducts true)
+(set-logic QF_LRA)
+(declare-const x Real)
+(declare-const y Real)
+(declare-const z Real)
+(assert (and (>= x 0.0) (< y 7.0)))
+(get-abduct A (>= y 5.0))
+
+在这个例子中，归纳推理试图找到一个约束A，使得：
+- A与当前的断言相容（可满足）
+- A与现有约束一起能够推出y ≥ 5.0
+
+It seems that we can also specify a grammar for the abduct, e.g.:
+(get-abduct <conj> <grammar>)
+"""
+
 import z3
 import tempfile
 import subprocess
 import os
-from typing import Tuple
+from typing import Tuple, List
+from arlib.abduction.utils import get_variables
 
 
 def z3_to_smtlib2_abduction(formula: z3.ExprRef, target_var: str) -> str:
     """Convert Z3 formula to SMT-LIB2 format with abduction syntax."""
     base_smt = formula.sexpr()
-    logic = "QF_LIA" if contains_only_linear_arithmetic(formula) else "ALL"
+    logic = "QF_LIA"
     
     # Extract variable declarations
     var_decls = []
@@ -21,44 +44,6 @@ def z3_to_smtlib2_abduction(formula: z3.ExprRef, target_var: str) -> str:
 (assert true)
 (get-abduct {target_var} {base_smt})
 """
-
-
-def get_variables(formula: z3.ExprRef) -> dict:
-    """Extract variable names and their types from a Z3 formula."""
-    var_types = {}
-    
-    def collect_vars(f):
-        if z3.is_const(f):
-            var_name = str(f)
-            if not (var_name == "True" or var_name == "False" or var_name.isdigit()):
-                try:
-                    int(var_name)  # Skip numerical constants
-                except ValueError:
-                    var_types[var_name] = f.sort()
-        for child in f.children():
-            collect_vars(child)
-    
-    collect_vars(formula)
-    return var_types
-
-
-def contains_only_linear_arithmetic(formula: z3.ExprRef) -> bool:
-    """Check if formula contains only linear integer arithmetic."""
-    has_non_lia = [False]
-    
-    def check(f):
-        if z3.is_const(f) and not f.sort() == z3.IntSort():
-            has_non_lia[0] = True
-        elif z3.is_app(f):
-            if f.decl().kind() in [z3.Z3_OP_MUL, z3.Z3_OP_DIV, z3.Z3_OP_IDIV, z3.Z3_OP_MOD]:
-                children = f.children()
-                if len(children) >= 2 and all(not z3.is_int_value(c) for c in children[:2]):
-                    has_non_lia[0] = True
-        for child in f.children():
-            check(child)
-    
-    check(formula)
-    return not has_non_lia[0]
 
 
 def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
@@ -75,7 +60,7 @@ def solve_abduction(formula: z3.ExprRef) -> Tuple[bool, str]:
             from arlib.global_params.paths import global_config
             cvc5_path = global_config.get_solver_path("cvc5")
         except (ImportError, AttributeError):
-            cvc5_path = "cvc5"
+            cvc5_path = "cvc5" # try system cvc5
             if subprocess.run(["which", "cvc5"], capture_output=True).returncode != 0:
                 return False, "CVC5 not found in PATH"
         
