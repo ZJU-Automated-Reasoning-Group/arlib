@@ -3,7 +3,7 @@ Using pySMT to compute propositional itp
 """
 
 import z3
-# from pysmt.shortcuts import binary_interpolant, sequence_interpolant
+from pysmt.shortcuts import binary_interpolant, sequence_interpolant
 from pysmt.shortcuts import Solver, Interpolator
 from pysmt.shortcuts import Symbol
 from pysmt.typing import BOOL
@@ -41,7 +41,6 @@ def pysmt_sequence_itp(formulas: [z3.ExprRef]):
     itp = sequence_interpolant(pysmt_formulas)
     return itp
 """
-
 
 def demo_pysmt_itp():
     x, y, z = z3.Bools("x y z")

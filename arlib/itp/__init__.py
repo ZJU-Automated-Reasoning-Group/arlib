@@ -1,3 +1,14 @@
+"""
+This module provides a proof assistant for the Z3 theorem prover.
+
+It includes the following features:
+- Proofs
+- Axioms
+- Definitions
+
+(Note: here, "ITP" means "Interactive Theorem Proving", not "Interpolation")
+"""
+
 from . import smt
 from . import kernel
 from . import notation

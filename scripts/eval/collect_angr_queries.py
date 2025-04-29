@@ -10,6 +10,10 @@ Usage:
 Arguments:
     binary_path: Path to the target binary
     output_dir: Optional directory to store SMT2 files
+
+
+To dump OMT queries, use the following variant of claripy
+https://github.com/notch1p/claripy
 """
 
 import os
@@ -105,6 +109,7 @@ def main():
     except Exception as e:
         logging.error(f"Failed to collect queries: {str(e)}")
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
