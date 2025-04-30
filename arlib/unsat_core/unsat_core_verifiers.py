@@ -1,4 +1,5 @@
-"""Contains different verifiers used in IntelliSMT framework.
+"""
+Validate the unsat core returned by the minimizer.
 """
 import cvc5
 

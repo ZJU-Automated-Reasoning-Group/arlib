@@ -13,4 +13,5 @@ lark==1.2.2
 # networkx==3.1
 multipledispatch==1.0.0
 toolz==1.0.0
+numpy~=2.2.0
 #pytest-benchmark==5.1.0

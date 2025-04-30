@@ -21,21 +21,21 @@ VERSION = '0.0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'PySMT==0.9.6',
+    'PySMT==0.9.0',
     'z3-solver==4.12.0',
-    'psutil~=5.9.0',
-    'pyapproxmc==4.1.24',
-    #'Cython~=0.29.34',
     'python-sat==0.1.8.dev1',
-    'tqdm~=4.65.0',
-    # 'meson>=0.64',
-    'six~=1.15.0',
+    'pyapproxmc==4.1.24',
+    'six==1.17.0',
+    'psutil~=5.9.0',
     'pytest~=7.1.0',
-    'requests~=2.32.3',
+    'pytest-cov~=5.0.0',
+    'tqdm==4.65.0',
+    'requests==2.32.3',
     'setuptools~=70.0.0',
-    'lark==1.2.2',  
+    'lark==1.2.2',
     'multipledispatch==1.0.0',
-    'toolz==1.0.0'
+    'toolz==1.0.0',
+    'numpy~=2.2.0',
 ]
 
 # The rest you shouldn't have to touch too much :)

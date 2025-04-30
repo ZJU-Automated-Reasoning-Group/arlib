@@ -20,23 +20,10 @@ class TestZ3PlusSMTLIBSolver(TestCase):
         I = s.binary_interpolant(A, B)
         print(I)
 
-        """
-        pre = gen_formula_of_logic("QF_LIA")
-        post = gen_formula_of_logic("QF_LIA")
-        # print(pre)
-        pre_vars = [str(var) for var in get_variables(pre)]
-        post_vars = [str(var) for var in get_variables(post)]
-        if entail(pre, post) and len(list(set(pre_vars).intersection(set(post_vars)))) > 0:
-            s = Z3SolverPlus()
-            print(s.binary_interpolant(pre, post))  # And(x >= 1)
-            return True
-        return False
-        """
-
     def test_qe(self):
         """ Compute interpolant with cv5
         """
-        return
+        # return
         x, y, z = z3.Ints("x y z")
         fml = z3.And(x > 1, y > 0)
         qfml = z3.Exists(x, fml)
@@ -46,7 +33,7 @@ class TestZ3PlusSMTLIBSolver(TestCase):
     def test_abduct(self):
         """Abduction using cvc5
         """
-        return
+        # return
         a, b, c = z3.Ints("a b c")
         pre = z3.And(b >= c)
         post = b > 10
@@ -56,7 +43,7 @@ class TestZ3PlusSMTLIBSolver(TestCase):
     def test_sygus(self):
         """ SyGuS with cvc5
         """
-        return
+        # return
         fun = z3.Function("gle", z3.IntSort(), z3.IntSort(), z3.BoolSort())
 
         x, y, z = z3.Ints("x y z")
@@ -84,7 +71,6 @@ class TestZ3PlusSMTLIBSolver(TestCase):
         # todo: map the result back to z3; multiple fnctions, etc.
 
     def test_sygus2(self):
-        return
         max2 = z3.Function("max2", z3.BitVecSort(32), z3.BitVecSort(32), z3.BitVecSort(32))
         x, y = z3.BitVecs("x y", 32)
         cnts_for_max = [z3.UGE(max2(x, y), x), z3.UGE(max2(x, y), y), z3.Or(x == max2(x, y), y == max2(x, y))]
@@ -95,7 +81,6 @@ class TestZ3PlusSMTLIBSolver(TestCase):
         """
         multiple functions
         """
-        return
         addexpr1 = z3.Function("addexpr1", z3.IntSort(), z3.IntSort(), z3.IntSort())
         addexpr2 = z3.Function("addexpr2", z3.IntSort(), z3.IntSort(), z3.IntSort())
         x, y, z = z3.Ints("x y z")
@@ -109,7 +94,7 @@ class TestZ3PlusSMTLIBSolver(TestCase):
         """
         multiple functions
         """
-        return
+        #return
         ff = z3.Function("ff", z3.StringSort(), z3.StringSort(), z3.StringSort())
         x, y, z = z3.Strings("x y z")
         cnts = [z3.Length(ff(x, y)) >= z3.Length(x), z3.Length(ff(x, y)) >= z3.Length(y)]
