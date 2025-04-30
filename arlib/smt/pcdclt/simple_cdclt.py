@@ -10,7 +10,7 @@ import sys
 from typing import List
 
 from arlib.smt.pcdclt import BooleanFormulaManager, SMTPreprocessor4Process
-from arlib.config import m_smt_solver_bin
+from arlib.config import SMT_SOLVERS_PATH
 from arlib.smt.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, RE_GET_EXPR_VALUE_ALL
 from arlib.utils.smtlib_solver import SMTLIBSolver
@@ -30,7 +30,7 @@ class SMTLibBoolSolver:
     def __init__(self, manager: BooleanFormulaManager):
         self.fml_manager = manager
         self.bin_solver = None
-        self.bin_solver = SMTLIBSolver(m_smt_solver_bin)
+        self.bin_solver = SMTLIBSolver(SMT_SOLVERS_PATH["z3"]["path"])
 
     def __del__(self):
         self.bin_solver.stop()

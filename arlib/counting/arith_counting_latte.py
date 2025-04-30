@@ -13,7 +13,7 @@ from typing import List, Optional
 import z3
 from pathlib import Path
 
-from arlib.config import check_library
+
 from arlib.utils.z3_expr_utils import get_variables
 
 

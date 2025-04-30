@@ -1,7 +1,6 @@
 """
 Dillig-style abduction implementation.
 
-
 The key idea is to find a minimal satisfying assignment (MSA) that makes
 the formula pre_cond -> post_cond valid, and then generalize it through
 quantifier elimination.

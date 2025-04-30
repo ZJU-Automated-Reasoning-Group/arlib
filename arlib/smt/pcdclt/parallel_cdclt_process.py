@@ -16,7 +16,7 @@ from arlib.smt.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, SExprParser
 from arlib.smt.pcdclt.exceptions import TheorySolverSuccess, PySMTSolverError
 from arlib.utils.exceptions import SMTLIBSolverError
-from arlib.config import m_smt_solver_bin
+from arlib.config import SMT_SOLVERS_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -186,6 +186,7 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
 
     # Start worker processes
     workers = []
+    m_smt_solver_bin = SMT_SOLVERS_PATH["z3"]["path"]
     for i in range(num_workers):
         p = Process(target=theory_worker, 
                    args=(i, init_theory_fml_str_shared, task_queue, result_queue, m_smt_solver_bin))
