@@ -35,7 +35,7 @@ REQUIRED = [
     'lark==1.2.2',
     'multipledispatch==1.0.0',
     'toolz==1.0.0',
-    'numpy~=2.2.0',
+    'numpy>=2.0.2',
 ]
 
 # The rest you shouldn't have to touch too much :)

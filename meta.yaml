@@ -37,7 +37,7 @@ requirements:
     - lark ==1.2.2
     - multipledispatch ==1.0.0
     - toolz ==1.0.0
-    - numpy >=2.2.0
+    - numpy >=2.0.2
 
 test:
   imports:

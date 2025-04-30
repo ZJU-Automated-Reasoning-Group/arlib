@@ -14,11 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
-        python-version: [3.8, 3.9, '3.10', '3.11']
-        exclude:
-          - os: macos-latest
-            python-version: 3.8
+        os: [ubuntu-22.04, ubuntu-24.04, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        #exclude:
+        #  - os: macos-latest
+        #    python-version: 3.8
 
     steps:
     - uses: actions/checkout@v3
@@ -39,11 +39,9 @@ jobs:
           libgmp-dev \
           swig \
           cmake \
-          autoconf \
           gperf \
           libboost-all-dev \
           build-essential \
-          default-jre \
           zip \
           ninja-build \
           python3-venv
@@ -55,7 +53,6 @@ jobs:
           gmp \
           swig \
           cmake \
-          autoconf \
           gperf \
           boost \
           ninja
