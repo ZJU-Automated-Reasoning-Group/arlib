@@ -1,6 +1,13 @@
 """
 Test cases for the Polyhorn solver
+PolyHorn rlies on numpy
 """
+
+try:
+    import numpy as np
+except ImportError:
+    print("Numpy is required to run the Polyhorn solver")
+    exit(1)
 
 from arlib.quant.polyhorn.main import add_default_config, execute, load_config
 

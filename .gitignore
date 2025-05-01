@@ -5,7 +5,7 @@ fully_existentially_constraints.txt
 *egg-info
 *.prof
 *.qdimacs
-*.dot
+# *.dot  do not ignore dot files, as they are used as input for the CFL solver
 *.pdf
 tmp*
 tmp.ipynb

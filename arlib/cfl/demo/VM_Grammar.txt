@@ -1,0 +1,9 @@
+Terminals:  
+   dbar d abar a  
+Variables:  
+   M V  
+Start:  
+   M  
+Productions:  
+   M -> dbar V d;  
+   V -> ( M ? abar ) * M ? ( a M ? ) *

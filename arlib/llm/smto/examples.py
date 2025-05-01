@@ -3,8 +3,8 @@ Usage examples for SMTO solver.
 """
 
 import z3
-from arlib.llm.smto import OraxSolver
-from arlib.llm.oracles import OracleInfo, WhiteboxOracleInfo, OracleAnalysisMode, OracleType
+from arlib.llm.smto.smto import OraxSolver
+from arlib.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleAnalysisMode, OracleType
 
 
 def blackbox_example():
