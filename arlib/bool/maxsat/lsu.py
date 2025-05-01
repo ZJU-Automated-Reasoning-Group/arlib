@@ -273,8 +273,8 @@ class LSU:
             the upper bound on the created sum by adding the corresponding unit
             size clause. Each such clause is added on the fly with no restart
             of the underlying SAT oracle.
-            :param cost: the cost of the next MaxSAT solution is enforced to be
-                *lower* than this current cost
+            :param cost: the cost of the next MaxSAT solution is enforced to
+                be *lower* than this current cost
             :type cost: int
         """
 
@@ -417,8 +417,8 @@ if __name__ == '__main__':
 
     if files:
         # reading standard CNF or WCNF
-        if re.search('cnf(\.(gz|bz2|lzma|xz))?$', files[0]):
-            if re.search('\.wcnf(\.(gz|bz2|lzma|xz))?$', files[0]):
+        if re.search(r'cnf(\.(gz|bz2|lzma|xz))?$', files[0]):
+            if re.search(r'\.wcnf(\.(gz|bz2|lzma|xz))?$', files[0]):
                 formula = WCNF(from_file=files[0])
             else:  # expecting '*.cnf'
                 formula = CNF(from_file=files[0]).weighted()
@@ -427,7 +427,7 @@ if __name__ == '__main__':
                       expect_interrupt=(timeout != None), verbose=verbose)
 
         # reading WCNF+
-        elif re.search('\.wcnf[p,+](\.(gz|bz2|lzma|xz))?$', files[0]):
+        elif re.search(r'\.wcnf[p,+](\.(gz|bz2|lzma|xz))?$', files[0]):
             formula = WCNFPlus(from_file=files[0])
             lsu = LSUPlus(formula, solver=solver,
                           expect_interrupt=(timeout != None), verbose=verbose)

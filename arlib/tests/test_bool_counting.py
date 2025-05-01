@@ -87,4 +87,8 @@ class TestModelCounting(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    from arlib.global_params import global_config
+    if global_config.is_solver_available('sharp_sat'):
+        unittest.main()
+    else:
+        print("SharpSAT is not available, skipping tests.")

@@ -327,10 +327,10 @@ if __name__ == '__main__':
 
     if files:
         # parsing the input formula
-        if re.search('\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
+        if re.search(r'\.wcnf[p|+]?(\.(gz|bz2|lzma|xz))?$', files[0]):
             formula = WCNFPlus(from_file=files[0])
         else:  # expecting '*.cnf[,p,+].*'
-            formula = CNFPlus(from_file=files[0]).weighted()
+            formula = CNFPlus(from_file=files[0])
 
         with MUSX(formula, solver=solver, verbosity=verbose) as musx:
             mus = musx.compute()

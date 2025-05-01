@@ -118,8 +118,9 @@ def call_sharp_sat(cnf_filename: str):
     timer.start()
     try:
         find_sol_line = False
-        for line in iter(p.stdout.readline, ''):
-            if not line: break
+        for line in iter(p.stdout.readline, b''):
+            if not line: 
+                break
             decode_line = line.decode('UTF-8')
             if find_sol_line:
                 # print("sharpSAT res: ", decode_line)
@@ -130,17 +131,26 @@ def call_sharp_sat(cnf_filename: str):
     except Exception as ex:
         # print(ex)
         print("exception when running sharpSAT, will return false")
+    finally:
+        timer.cancel()
+        p.stdout.close()
+        
+        # Make sure the process is terminated
+        if p.poll() is None:
+            p.terminate()
+            try:
+                p.wait(timeout=5)  # Wait up to 5 seconds for graceful termination
+            except subprocess.TimeoutExpired:
+                p.kill()  # Kill if termination doesn't complete
+                p.wait()
+        
+        # Clean up the temp file
         if os.path.isfile(cnf_filename):
             os.remove(cnf_filename)
-    if is_timeout[0]: logging.debug("sharpSAT timeout")  # should we put it in the above try scope?
-    p.stdout.close()  # close?
-    timer.cancel()
-    if p.poll() is None:
-        p.terminate()
-    # process time is not current (it seems to miss the time spent on sharpSAT
-    # print("Time:", counting_timer() - time_start)
-    if os.path.isfile(cnf_filename):
-        os.remove(cnf_filename)
+            
+    if is_timeout[0]: 
+        logging.debug("sharpSAT timeout")
+        
     return solutions
 
 
@@ -218,25 +228,37 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
             new_clauses.append(str(lit))
         new_header = ["p cnf {0} {1}".format(cnf.nv, len(clauses) + len(cube))]
         write_dimacs_to_file(new_header, new_clauses, output_file)
-        # TODO: write to different cnf files
         cnf_tasks.append(output_file)
 
     results = []
     pool = multiprocessing.Pool(processes=cpu_count())  # process pool
-    for i in range(len(cnf_tasks)):
-        result = pool.apply_async(call_sharp_sat,
-                                  (cnf_tasks[i],))
-        results.append(result)
+    try:
+        for i in range(len(cnf_tasks)):
+            result = pool.apply_async(call_sharp_sat,
+                                    (cnf_tasks[i],))
+            results.append(result)
 
-    raw_solutions: List[int] = []
-    for i in range(len(cnf_tasks)):
-        result = results[i].get()
-        raw_solutions.append(int(result))
+        raw_solutions: List[int] = []
+        for i in range(len(cnf_tasks)):
+            result = results[i].get()
+            raw_solutions.append(int(result))
 
-    print("results: ", raw_solutions)
-    if -1 in raw_solutions:
-        print("sharpSAT failed, calling approxmc")
-        result = call_approxmc(clauses)
-        print("approxmc result: ", result)
-        return result
-    return sum(raw_solutions)
+        print("results: ", raw_solutions)
+        if -1 in raw_solutions:
+            print("sharpSAT failed, calling approxmc")
+            result = call_approxmc(clauses)
+            print("approxmc result: ", result)
+            return result
+        return sum(raw_solutions)
+    finally:
+        # Ensure the pool is properly closed
+        pool.close()
+        pool.join()
+        
+        # Remove any temporary files that might be left
+        for file_path in cnf_tasks:
+            if os.path.isfile(file_path):
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
