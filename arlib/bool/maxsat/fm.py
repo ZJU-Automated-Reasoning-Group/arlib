@@ -358,8 +358,8 @@ class FM(object):
             where :math:`r` is a fresh (unused) relaxation variable. After the
             clauses get relaxed, a new cardinality encoding is added to the
             formula enforcing the sum of the new relaxation variables to be not
-            greater than 1, :math:`\sum_{c\in\phi}{r\leq 1}`, where
-            :math:`\phi` denotes the unsatisfiable core.
+            greater than 1, :math:`\\sum_{c\\in\\phi}{r\\leq 1}`, where
+            :math:`\\phi` denotes the unsatisfiable core.
         """
 
         if len(self.core) > 1:

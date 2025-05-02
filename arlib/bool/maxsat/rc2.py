@@ -645,7 +645,7 @@ class RC2(object):
             Detect and adapt intrinsic AtMost1 constraints. Assume
             there is a subset of soft clauses
             :math:`\\mathcal{S}'\\subseteq \\mathcal{S}` s.t.
-            :math:`\sum_{c\in\\mathcal{S}'}{c\leq 1}`, i.e. at most
+            :math:`\\sum_{c\\in\\mathcal{S}'}{c\\leq 1}`, i.e. at most
             one of the clauses of :math:`\\mathcal{S}'` can be
             satisfied.
             Each AtMost1 relationship between the soft clauses can be
@@ -657,7 +657,7 @@ class RC2(object):
             unit-propagated to be false. Note that this method for
             detection of AtMost1 constraints is *incomplete*, because
             in general unit propagation does not suffice to test
-            whether or not :math:`\\mathcal{F}\wedge l_i\\models
+            whether or not :math:`\\mathcal{F}\\wedge l_i\\models
             \\neg{l_j}`.
             Each intrinsic AtMost1 constraint detected this way is
             handled by calling :func:`process_am1`.
@@ -743,7 +743,7 @@ class RC2(object):
             has cost at least :math:`|\\mathcal{S}'|-1` (assuming
             *unweighted* MaxSAT). Furthermore, it is safe to replace
             all clauses of :math:`\\mathcal{S}'` with a single soft
-            clause :math:`\sum_{c\in\\mathcal{S}'}{c}`.
+            clause :math:`\\sum_{c\\in\\mathcal{S}'}{c}`.
             Here, input parameter ``am1`` plays the role of subset
             :math:`\\mathcal{S}'` mentioned above. The procedure bumps
             the MaxSAT cost by ``self.minw * (len(am1) - 1)``.
@@ -845,13 +845,13 @@ class RC2(object):
             Core exhaustion was originally referred to as *cover
             optimization* in [6]_.
             Given a totalizer object ``tobj`` representing a sum of
-            some *relaxation* variables :math:`r\in R` that augment
+            some *relaxation* variables :math:`r\\in R` that augment
             soft clauses :math:`\\mathcal{C}_r`, the idea is to
             increase the right-hand side of the sum (which is equal to
             1 by default) as much as possible, reaching a value
             :math:`k` s.t. formula
-            :math:`\\mathcal{H}\wedge\\mathcal{C}_r\wedge(\sum_{r\in
-            R}{r\leq k})` is still unsatisfiable while increasing it
+            :math:`\\mathcal{H}\\wedge\\mathcal{C}_r\\wedge(\\sum_{r\\in
+            R}{r\\leq k})` is still unsatisfiable while increasing it
             further makes the formula satisfiable (here
             :math:`\\mathcal{H}` denotes the hard part of the
             formula).

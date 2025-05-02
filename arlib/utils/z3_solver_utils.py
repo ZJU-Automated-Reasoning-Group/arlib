@@ -5,7 +5,7 @@ A few APIs that (typically) require SMT solving
 - **is_sat**: decide satisfiability of phi
 - **is_equiv**: decide equivalence between a and b
 - **compact_check**: given a precond G and a set of cnts: f1, f2,..., fn, decide if the following cnts are satisfiable: And(G, f1), And(G, f2), ..., And(G, fn)
-- **prime_implicant**: find a subset ps' of ps such that /\ ps => e
+- **prime_implicant**: find a subset ps' of ps such that /\\ ps => e
 - **to_dnf**: convert a formula to DNF
 - **exclusive_to_dnf**: convert a formula to DNF
 - **get_models**: return the first k models satisfiying f
