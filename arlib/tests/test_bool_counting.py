@@ -2,7 +2,7 @@ import unittest
 import z3
 from pysmt.shortcuts import Symbol, And, Or, Not
 import pytest
-# import six  # Add missing six module
+import six  # Add missing six module
 
 from arlib.counting.bool.z3py_expr_counting import count_z3_solutions, \
     count_z3_models_by_enumeration
