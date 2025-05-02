@@ -10,7 +10,7 @@ Example:
 """
 
 import json
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Tuple
 from dataclasses import dataclass
 
 # Type definitions
@@ -36,7 +36,7 @@ class SExprParser:
             return f"{self.message} at position {self.position}: {self.expression}"
 
     @staticmethod
-    def tokenize(expression: str) -> list[str]:
+    def tokenize(expression: str) -> List[str]:
         """
         Convert a string into a list of S-expression tokens.
 
@@ -85,7 +85,7 @@ class SExprParser:
             raise cls.ParseError(str(e), len(tokens), expression)
 
     @classmethod
-    def _parse_tokens(cls, tokens: list[str], depth: int) -> tuple[SExpr, list[str]]:
+    def _parse_tokens(cls, tokens: List[str], depth: int) -> Tuple[SExpr, List[str]]:
         """
         Recursively parse a list of tokens into an S-expression.
 
