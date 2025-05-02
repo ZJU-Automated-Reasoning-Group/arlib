@@ -94,13 +94,13 @@ jobs:
         cd ..
     
     - name: Run tests
-      run: bash unit_test.sh --coverage
+      run: bash unit_test.sh
       
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+    #- name: Upload coverage to Codecov
+    #  uses: codecov/codecov-action@v3
+    #  with:
+    #    file: ./coverage.xml
+    #    fail_ci_if_error: false
 
   # Check if docs have changed
   check_docs_changes:

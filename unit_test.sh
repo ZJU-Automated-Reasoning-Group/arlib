@@ -97,7 +97,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Build pytest command
-PYTEST_CMD="$PYTHON_CMD -m pytest"
+PYTEST_CMD="$PYTHON_CMD -m pytest -W ignore::RuntimeWarning:unittest.case"
 
 # Add options based on flags
 [[ "$SKIP_SLOW" = true ]] && PYTEST_CMD+=" -m 'not slow'"

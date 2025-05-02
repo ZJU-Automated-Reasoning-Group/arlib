@@ -644,7 +644,7 @@ class RC2(object):
         """
             Detect and adapt intrinsic AtMost1 constraints. Assume
             there is a subset of soft clauses
-            :math:`\\mathcal{S}'\subseteq \\mathcal{S}` s.t.
+            :math:`\\mathcal{S}'\\subseteq \\mathcal{S}` s.t.
             :math:`\sum_{c\in\\mathcal{S}'}{c\leq 1}`, i.e. at most
             one of the clauses of :math:`\\mathcal{S}'` can be
             satisfied.
