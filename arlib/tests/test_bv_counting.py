@@ -18,11 +18,14 @@ class TestBVCounter(TestCase):
         mc.init_from_fml(fml)
         # Check if sharpSAT is available
         if global_config.is_solver_available("sharp_sat"):
+            print("Using sharpSAT")
             count = mc.count_models_by_sharp_sat()
         else:
             print("Warning: sharpSAT not available, falling back to enumeration")
             count = mc.count_model_by_bv_enumeration()
         # Fix tuple comparison issue - both methods return (count, time)
+        # count = mc.count_model_by_enumeration_parallel()
+        print(count)
         count_value = count[0]  # Extract the actual count from the tuple
         self.assertTrue(count_value > 0)
 

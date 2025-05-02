@@ -77,7 +77,7 @@ def check_candidate_models_set(formula: z3.ExprRef, assignments: List):
     for candidate in assignments:
         if check_candidate_model(formula, variables, candidate):
             num_solutions += 1
-    print("num solutions a a subset: ", num_solutions)
+    logging.info("num solutions a a subset: %d", num_solutions)
     return num_solutions
 
 
@@ -101,11 +101,10 @@ class BVModelCounter:
             self.formula = z3.And(z3.parse_smt2_file(filename))
             for var in get_variables(self.formula):
                 if z3.is_bv(var):
-                    # print(var)
                     self.vars.append(var)
             logging.debug("Init model counter success!")
         except z3.Z3Exception as ex:
-            print(ex)
+            logging.error(ex)
             return None
 
     def init_from_fml(self, fml):
@@ -115,7 +114,7 @@ class BVModelCounter:
                 if z3.is_bv(var):
                     self.vars.append(var)
         except z3.Z3Exception as ex:
-            print(ex)
+            logging.error(ex)
             return None
 
     def count_model_by_bv_enumeration(self):
@@ -128,17 +127,18 @@ class BVModelCounter:
         logging.debug("Start BV enumeration-based")
         solutions = 0
         for assignment in itertools.product(*[tuple(range(0, int(math.pow(2, x.sort().size())))) for x in self.vars]):
-            # print(assignment)
+            # logging.info("assignment: %s", assignment)
             ret = check_candidate_model(self.formula, self.vars, assignment)
             if ret:
                 solutions = solutions + 1
-        print("Time:", counting_timer() - time_start)
-        print("BV enumeration total solutions: ", solutions)
+        logging.info("Time: %s", counting_timer() - time_start)
+        logging.info("BV enumeration total solutions: %d", solutions)
         return solutions, counting_timer() - time_start
 
-    # TODO: fix
+
     def count_model_by_enumeration_parallel(self):
         # time_start = time.process_time()
+        # TODO: fix
         time_start = counting_timer()
         logging.debug("Start parallel BV enumeration-based")
         solutions = 0
@@ -151,7 +151,7 @@ class BVModelCounter:
         cpus = multiprocessing.cpu_count()
         batched_assignments = split_list(all_assignments, cpus)
         results = []
-        print("N cores: ", cpus)
+        logging.info("N cores: %d", cpus)
         # https://github.com/Z3Prover/z3/blob/520ce9a5ee6079651580b6d83bc2db0f342b8a20/examples/python/parallel.py
         for i in range(0, cpus):
             # use new context
@@ -164,11 +164,11 @@ class BVModelCounter:
         pool.join()
         final_res = []
         for result in results:
-            print("on result: ", result)
+            logging.info("on result: %d", result)
             final_res.append(result.get())
         # TODO: check in parallel
-        print("Time:", counting_timer() - time_start)
-        print("BV enumeration total solutions: ", solutions)
+        logging.info("Time: %s", counting_timer() - time_start)
+        logging.info("BV enumeration total solutions: %d", solutions)
         return solutions, counting_timer() - time_start
 
     def count_models_by_sharp_sat(self):
@@ -176,8 +176,8 @@ class BVModelCounter:
         time_start = counting_timer()
         # solutions = count_dimacs_solutions(header, clauses)
         solutions = count_dimacs_solutions_parallel(header, clauses)
-        print("Time:", counting_timer() - time_start)
-        print("sharpSAT total solutions: ", solutions)
+        logging.info("Time: %s", counting_timer() - time_start)
+        logging.info("sharpSAT total solutions: %d", solutions)
         return solutions, counting_timer() - time_start
 
 

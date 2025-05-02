@@ -63,10 +63,14 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
         tasks.append((i_fml, i_context))
 
     answers_async = [None for _ in fmls]
+    terminated = multiprocessing.Value('i', 0)  # Shared flag to track if pool was terminated
+    
     with multiprocessing.Pool(num_workers) as p:
         def terminate_others(val):
             if val:
-                p.terminate()  # TODO: when do we need this?
+                with terminated.get_lock():
+                    terminated.value = 1
+                p.terminate()  # Terminate pool if a result is found
 
         for i, task in enumerate(tasks):
             answers_async[i] = p.apply_async(
@@ -75,9 +79,28 @@ def parallel_check_candidates_multiprocessing(fmls: List[z3.ExprRef], num_worker
                     task[0], task[1]
                 ),
                 callback=lambda val: terminate_others(val[0]))
+        
+        # Give tasks time to complete
         p.close()
         p.join()
 
-    answers = [answer_async.get() for answer_async in answers_async if answer_async.ready()]
-    res = [pres for pans, pres in answers]
-    return res
+    # Only process results if the pool wasn't terminated prematurely
+    results = []
+    with terminated.get_lock():
+        if terminated.value == 0:
+            # Normal completion - collect all ready results
+            answers = [answer_async.get() for answer_async in answers_async if answer_async.ready()]
+            results = [pres for pans, pres in answers]
+        else:
+            # Pool was terminated - get only the successful result
+            for answer_async in answers_async:
+                if answer_async.ready():
+                    try:
+                        result = answer_async.get(timeout=0.1)
+                        if result[0]:  # This was the successful one
+                            results = [result[1]]
+                            break
+                    except:
+                        pass  # Ignore errors from terminated tasks
+    
+    return results

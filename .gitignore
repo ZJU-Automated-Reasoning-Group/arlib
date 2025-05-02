@@ -1,7 +1,11 @@
 # Build artifacts and temporary files
-.coverage*
-.benchmarks
 fully_existentially_constraints.txt
+.hypothesis
+.coverage*
+/htmlcov
+.tox
+.mypy_cache
+.benchmarks
 *egg-info
 *.prof
 *.qdimacs
@@ -14,6 +18,7 @@ tmp.py
 # Directories
 build*/
 dist/
+_build/
 release/
 cmake-build-debug/
 doc/html/
