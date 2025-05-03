@@ -184,9 +184,16 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
     manager = Manager()
     init_theory_fml_str_shared = manager.Value(c_char_p, init_theory_fml_str)
 
+    # Get the solver with proper arguments
+    z3_config = SMT_SOLVERS_PATH["z3"]
+    m_smt_solver_bin = z3_config["path"]
+    if "-in" not in z3_config.get("args", ""):
+        m_smt_solver_bin = f"{m_smt_solver_bin} -in"
+    else:
+        m_smt_solver_bin = f"{m_smt_solver_bin} {z3_config['args']}"
+    
     # Start worker processes
     workers = []
-    m_smt_solver_bin = SMT_SOLVERS_PATH["z3"]["path"]
     for i in range(num_workers):
         p = Process(target=theory_worker, 
                    args=(i, init_theory_fml_str_shared, task_queue, result_queue, m_smt_solver_bin))
@@ -209,6 +216,11 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
             logger.debug("Boolean abstraction is satisfiable")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
             logger.debug(f"Finish sampling {len(bool_models)} Boolean models; Start checking T-consistency!")
+            
+            # If there are no more Boolean models, formula is UNSAT
+            if len(bool_models) == 0:
+                result = SolverResult.UNSAT
+                break
 
             all_assumptions = process_pysat_models(bool_models, bool_manager)
             raw_unsat_cores = theory_solve_with_workers(all_assumptions, task_queue, result_queue, num_workers)

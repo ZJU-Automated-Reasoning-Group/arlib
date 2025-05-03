@@ -36,6 +36,7 @@ REQUIRED = [
     'multipledispatch==1.0.0',
     'toolz==1.0.0',
     'numpy',
+    'hypothesis',
 ]
 
 # The rest you shouldn't have to touch too much :)

@@ -117,18 +117,23 @@ def update_meta_yaml(meta_path, dependencies):
         formatted_deps = []
         for dep in dependencies:
             # Extract the package name and version specification
-            parts = re.match(r'([^=<>~!]+)(.+)', dep)
-            if parts:
-                pkg_name = parts.group(1).strip()
-                version_spec = parts.group(2).strip()
-                
-                # Handle different version specifications
-                if '~=' in version_spec:
-                    version_spec = version_spec.replace('~=', '>=')
-                
-                formatted_deps.append(f"    - {pkg_name} {version_spec}")
+            # Check if the dependency contains version specifiers
+            if any(spec in dep for spec in ['=', '<', '>', '~', '!']):
+                parts = re.match(r'([^=<>~!]+)(.+)', dep)
+                if parts:
+                    pkg_name = parts.group(1).strip()
+                    version_spec = parts.group(2).strip()
+                    
+                    # Handle different version specifications
+                    if '~=' in version_spec:
+                        version_spec = version_spec.replace('~=', '>=')
+                    
+                    formatted_deps.append(f"    - {pkg_name} {version_spec}")
+                else:
+                    # Fallback in case regex fails
+                    formatted_deps.append(f"    - {dep}")
             else:
-                # If no version is specified
+                # If no version is specified, just use the dependency name as is
                 formatted_deps.append(f"    - {dep}")
         
         # Create the new run section

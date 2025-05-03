@@ -1874,4 +1874,4 @@ class _Config:
 config = _Config()
 
 
-from nnf import amc, dsharp, kissat, operators, pysat, tseitin  # noqa: E402
+from arlib.bool.nnf import amc, dsharp, kissat, operators, pysat, tseitin  # noqa: E402
