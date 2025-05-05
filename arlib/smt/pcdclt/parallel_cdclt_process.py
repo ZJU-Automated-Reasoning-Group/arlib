@@ -9,6 +9,9 @@ from multiprocessing import cpu_count, Queue, Process
 from multiprocessing import Manager
 from ctypes import c_char_p
 from typing import List, Optional, Tuple, Set
+import os
+import time
+from datetime import datetime
 
 from arlib.smt.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
@@ -17,19 +20,19 @@ from arlib.utils import SolverResult, SExprParser
 from arlib.smt.pcdclt.exceptions import TheorySolverSuccess, PySMTSolverError
 from arlib.utils.exceptions import SMTLIBSolverError
 from arlib.config import SMT_SOLVERS_PATH
+from arlib.smt.pcdclt.cdclt_config import (
+    LOG_SMT_QUERIES, SMT_LOG_DIR, NUM_SAMPLES,
+    SIMPLIFY as M_SIMPLIFY_BLOCKING_CLAUSES
+)
 
 logger = logging.getLogger(__name__)
 
 """
-
-# Some options to be configured (assuming use Z3 for now
+# Some options to be configured (assuming use Z3 for now)
 """
-M_SIMPLIFY_BLOCKING_CLAUSES = True
-DEFAULT_SAMPLE_SIZE = 10
-
+DEFAULT_SAMPLE_SIZE = NUM_SAMPLES
 
 # End of options
-
 
 def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solver):
     """
@@ -43,8 +46,17 @@ def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solv
     """
     logger.debug(f"Theory worker {worker_id} started with solver: {bin_solver}")
     
+    # Set up logging directory for this worker if enabled
+    log_dir = None
+    if LOG_SMT_QUERIES:
+        # Create a timestamped subfolder for this run
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir = os.path.join(SMT_LOG_DIR, f"run_{timestamp}")
+        os.makedirs(log_dir, exist_ok=True)
+        logger.debug(f"Theory worker {worker_id} will log queries to {log_dir}")
+    
     # Initialize the theory solver once
-    theory_solver = SMTLibTheorySolver(bin_solver)
+    theory_solver = SMTLibTheorySolver(bin_solver, worker_id=worker_id, log_dir=log_dir)
     theory_solver.add(init_theory_fml.value)
     
     while True:
@@ -58,7 +70,7 @@ def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solv
             
         try:
             # Check the current assumptions
-            logger.debug(f"Worker {worker_id} checking assumptions")
+            logger.debug(f"Worker {worker_id} checking assumptions with {len(assumptions)} literals")
             if SolverResult.UNSAT == theory_solver.check_sat_assuming(assumptions):
                 unsat_core = theory_solver.get_unsat_core()
                 result_queue.put((task_id, unsat_core))
@@ -81,6 +93,8 @@ def theory_solve_with_workers(all_assumptions: List[str], task_queue, result_que
     :param num_workers: Number of worker processes
     :return: List of unsat cores from theory solvers
     """
+    logger.debug(f"Submitting {len(all_assumptions)} theory check tasks to {num_workers} workers")
+    
     # Submit all tasks to the queue
     for i, assumptions in enumerate(all_assumptions):
         task_queue.put((i, assumptions))
@@ -96,10 +110,12 @@ def theory_solve_with_workers(all_assumptions: List[str], task_queue, result_que
             
         if result == "":  # empty core indicates SAT
             # If any model is theory-consistent, we're done
+            logger.debug("Found a theory-consistent model (SAT)")
             return []
             
         raw_unsat_cores.append(result)
     
+    logger.debug(f"All models theory-inconsistent, collected {len(raw_unsat_cores)} unsat cores")
     return raw_unsat_cores
 
 
@@ -147,7 +163,7 @@ def process_pysat_models(bool_models: List[List[int]],
     return all_assumptions
 
 
-def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10) -> SolverResult:
+def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=DEFAULT_SAMPLE_SIZE) -> SolverResult:
     """
     The main function of the parallel CDCL(T) SMT solving enigne
     :param smt2string: The formula to be solved
@@ -191,6 +207,11 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=10
         m_smt_solver_bin = f"{m_smt_solver_bin} -in"
     else:
         m_smt_solver_bin = f"{m_smt_solver_bin} {z3_config['args']}"
+    
+    # Create SMT query log directory if needed
+    if LOG_SMT_QUERIES and not os.path.exists(SMT_LOG_DIR):
+        os.makedirs(SMT_LOG_DIR, exist_ok=True)
+        logger.debug(f"Created SMT query log directory: {SMT_LOG_DIR}")
     
     # Start worker processes
     workers = []

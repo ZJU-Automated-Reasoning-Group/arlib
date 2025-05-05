@@ -3,6 +3,7 @@ Configurations for the CDCL-based SMT engine
 """
 
 from enum import Enum
+import os
 
 
 class InitAbstractionStrategy(Enum):
@@ -65,3 +66,53 @@ m_init_abstraction = InitAbstractionStrategy.ATOM
 
 # Set the Boolean Sampler Strategy
 m_boolean_sampler_strategy = BooleanSamplerStrategy.NO_UNIFORM
+
+# Solver configuration
+MAX_SOLVER_TIME_SEC = 300
+MIN_SOLVER_TIME_SEC = 30
+MAX_UNKNOWN_TIMES = 1
+
+# Query splitting
+MAX_QUERY_SIZE = 5000
+ALLOW_AUTO_SPLITTING = True
+
+# Formula rewriting
+CONVERT_TO_BOOL_WHEN_POSSIBLE = True
+REMOVE_VAR_ARGS = True
+
+# Boolean abstraction
+SIMPLIFY = True
+MIN_BOOLEAN_SUBS = 0
+MIN_SKIP_SUBST = 0
+CNF_SIMPLIFY = True
+
+# Portfolio
+ALLOW_PORTFOLIO = True
+PORTFOLIO_SELECTION_SIZE = 2
+
+# Portfolio settings
+PAR_VARS = None
+PAR_CNTS = None
+PAR_MIN_LEVEL = 1
+
+# Sampling
+NUM_SAMPLES = 10
+BOOL_SOLVER_RANDOM_SEED = 1
+
+# T-consistency Checking
+PARALLEL_T_CHECKING = True
+MAX_T_CHECKING_PROCESSES = 0  # 0 means use number of CPUs
+
+# SMT Query Logging
+LOG_SMT_QUERIES = True  # Set to False to disable logging
+SMT_LOG_DIR = os.path.join(os.getcwd(), "smt_query_logs")  # Default log directory
+SMT_LOG_QUERY_CONTENT = True  # Log the full content of SMT queries
+SMT_LOG_QUERY_RESULTS = True  # Log the results of SMT queries
+SMT_LOG_ASSUMPTIONS = True    # Log assumptions for check-sat-assuming calls
+
+# Boolean Solver
+SOLVER_ENGINE = 'glucose4'  # Default SAT solver engine
+
+# Proof Production
+PRODUCE_PROOF = False
+PROOF_FILE = ""
