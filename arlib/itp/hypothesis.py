@@ -9,7 +9,7 @@ This can be useful for:
 - Testing Z3 intended meaning
 """
 
-import arlib.itp as kd
+import arlib.itp as itp
 import arlib.itp.smt as smt
 import hypothesis
 import hypothesis.strategies as st
@@ -117,7 +117,7 @@ def sort_occurs(s, s2, visited=None):
     """
     Check if a sort occurs in the datatype.
 
-    >>> import kdrag.theories.list as list
+    >>> import arlib.itp.theories.list as list
     >>> sort_occurs(smt.IntSort(), list.List(smt.IntSort()))
     True
     >>> sort_occurs(smt.IntSort(), list.List(smt.BoolSort()))
@@ -286,7 +286,7 @@ def nitpick(thm: smt.QuantifierRef, deadline=100, **hyp_settings):
     def nitpick(**kwargs):
         t0 = smt.substitute_vars(body, *[kwargs[str(i)] for i in range(N - 1, -1, -1)])
         hypothesis.note(("Starting point: ", t0))
-        t1 = kd.rewrite.simp(t0, max_iter=1000000000)
+        t1 = itp.rewrite.simp(t0, max_iter=1000000000)
         hypothesis.note(("Simplifies to: ", t1))
         if not smt.is_true(t1):
             s = smt.Solver()

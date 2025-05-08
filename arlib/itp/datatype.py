@@ -20,6 +20,7 @@ pred(n)
 import arlib.itp.smt as smt
 import arlib.itp as itp
 import typing
+from typing import List, Tuple, Dict
 from arlib.itp.kernel import Inductive
 
 
@@ -159,12 +160,12 @@ smt.DatatypeSortRef.__len__ = datatype_len  # type: ignore
 
 def pattern_match(
         x: smt.DatatypeRef, pat: smt.DatatypeRef
-) -> tuple[list[smt.BoolRef], dict[smt.DatatypeRef, smt.DatatypeRef]]:
+) -> Tuple[List[smt.BoolRef], Dict[smt.DatatypeRef, smt.DatatypeRef]]:
     """
     A Symbolic execution of sorts of pattern matching.
     Returns the constraints and substitutions for variables
 
-    >>> import kdrag.theories.nat as nat
+    >>> import itp.theories.nat as nat
     >>> n,m = smt.Consts("n m", nat.Nat)
     >>> pattern_match(n, nat.S(nat.S(m)))
     ([is(S, n), is(S, pred(n))], {m: pred(pred(n))})
@@ -193,7 +194,7 @@ def pattern_match(
         ):  # or smt.is_real_value(pat) or smt.is_true(pat) or smt.is_false(pat):
             constraints.append(x == pat)
         elif smt.is_const(pat):  # possible variable
-            if pat.decl() in kd.kernel.defns:  # actually a defined constant
+            if pat.decl() in itp.kernel.defns:  # actually a defined constant
                 constraints.append(x == pat)
             elif pat in subst:
                 constraints.append(x == subst[pat])  # non-linear patterns
@@ -206,8 +207,8 @@ def pattern_match(
 
 
 def multipattern_match(
-        *cases: tuple[smt.DatatypeRef, smt.DatatypeRef],
-) -> tuple[list[smt.BoolRef], dict[smt.DatatypeRef, smt.DatatypeRef]]:
+        *cases: Tuple[smt.DatatypeRef, smt.DatatypeRef],
+) -> Tuple[List[smt.BoolRef], Dict[smt.DatatypeRef, smt.DatatypeRef]]:
     subst = {}
     constraints = []
     for x, pat in cases:
@@ -221,14 +222,14 @@ def datatype_match_(x, *cases, default=None):
     """
     Pattern matching for datatypes.
 
-    >>> import kdrag.theories.nat as nat
+    >>> import arlib.itp.theories.nat as nat
     >>> x = smt.Const("x", nat.Nat)
     >>> x.match_((nat.S(x), nat.S(x)), (nat.one, nat.one), default=x)
     If(is(S, x),
        S(pred(x)),
        If(And(is(S, x), is(Z, pred(x))), S(Z), x))
 
-    >>> import kdrag.theories.list as list_
+    >>> import arlib.itp.theories.list as list_
     >>> IntList = list_.List(smt.IntSort())
     >>> l = smt.Const("l", IntList)
     >>> x,y,z = smt.Ints("x y z")
@@ -252,14 +253,14 @@ def datatype_match_(x, *cases, default=None):
         else:
             cond = smt.And(constraints)
         newcases.append((cond, body))
-    return kd.cond(*newcases, default=default)
+    return itp.cond(*newcases, default=default)
 
 
 smt.DatatypeRef.match_ = datatype_match_  # type: ignore
 
 
 def Struct(
-        name: str, *fields: tuple[str, smt.SortRef], pred=None
+        name: str, *fields: Tuple[str, smt.SortRef], pred=None
 ) -> smt.DatatypeSortRef:
     """
     Define a record datatype.
@@ -274,7 +275,7 @@ def Struct(
     x(Point(ToReal(1), ToReal(2)))
     >>> PosPoint = Struct("PosPoint", ("x", smt.RealSort()), ("y", smt.RealSort()), pred = lambda p: smt.And(p.x > 0, p.y > 0))
     >>> p = smt.Const("p", PosPoint)
-    >>> kd.QForAll([p], p.x > -42)
+    >>> itp.QForAll([p], p.x > -42)
     ForAll(p, Implies(And(x(p) > 0, y(p) > 0), x(p) > -42))
     """
     rec = Inductive(name)
@@ -282,19 +283,19 @@ def Struct(
     rec = rec.create()
     rec.mk = rec.constructor(0)
     wf_cond = [
-        n for (n, (_, sort)) in enumerate(fields) if sort in kd.notation.wf.methods
+        n for (n, (_, sort)) in enumerate(fields) if sort in itp.notation.wf.methods
     ]
     if pred is None and len(wf_cond) == 1:
         acc = rec.accessor(0, wf_cond[0])
-        kd.notation.wf.register(rec, lambda x: rec.accessor(0, acc(x).wf()))
+        itp.notation.wf.register(rec, lambda x: rec.accessor(0, acc(x).wf()))
     elif pred is None and len(wf_cond) > 1:
-        kd.notation.wf.register(
+        itp.notation.wf.register(
             rec, lambda x: smt.And(*[rec.accessor(0, n)(x).wf() for n in wf_cond])
         )
     elif pred is not None and len(wf_cond) == 0:
-        kd.notation.wf.register(rec, lambda x: pred(x))
+        itp.notation.wf.register(rec, lambda x: pred(x))
     elif pred is not None and len(wf_cond) > 0:
-        kd.notation.wf.register(
+        itp.notation.wf.register(
             rec,
             lambda x: smt.And(pred(x), *[rec.accessor(0, n)(x).wf() for n in wf_cond]),
         )
@@ -307,13 +308,13 @@ def NewType(name: str, sort: smt.SortRef, pred=None) -> smt.DatatypeSortRef:
 
     >>> NatI = NewType("NatI", smt.IntSort(), pred = lambda x: x.val >= 0)
     >>> x = smt.Const("x", NatI)
-    >>> kd.QForAll([x], x.val >= -7)
+    >>> itp.QForAll([x], x.val >= -7)
     ForAll(x, Implies(val(x) >= 0, val(x) >= -7))
     """
     return Struct(name, ("val", sort), pred=pred)
 
 
-def Enum(name: str, args: str | list[str]) -> smt.DatatypeSortRef:
+def Enum(name: str, args: str | List[str]) -> smt.DatatypeSortRef:
     """Shorthand for simple enumeration datatypes. Similar to python's Enum.
     >>> Color = Enum("Color", "Red Green Blue")
     >>> smt.And(Color.Red != Color.Green, Color.Red != Color.Blue)
@@ -381,7 +382,7 @@ def InductiveRel(name: str, *params: smt.ExprRef) -> smt.Datatype:
             cases.append((precond, res))
         args = [ev]
         args.extend(params)
-        rel = kd.define(relname, args, kd.cond(*cases))
+        rel = itp.define(relname, args, itp.cond(*cases))
         return rel
 
     def create():
@@ -398,11 +399,11 @@ def InductiveRel(name: str, *params: smt.ExprRef) -> smt.Datatype:
     return dt
 
 
-def inj_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
+def inj_lemmas(dt: smt.DatatypeSortRef) -> List[itp.kernel.Proof]:
     """
     Injectivity lemmas for a datatype. Z3 internally understands these, but can be useful to be explicit about them in some situations
 
-    >>> import kdrag.theories.nat as nat
+    >>> import arlib.itp.theories.nat as nat
     >>> inj_lemmas(nat.Nat)[0]
     |- ForAll([x!..., y!...],
            (S(x!...) == S(y!...)) == And(x!... == y!...))
@@ -418,7 +419,7 @@ def inj_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
                 smt.FreshConst(cons.domain(j), prefix="y") for j in range(cons.arity())
             ]
             pfs.append(
-                kd.kernel.prove(
+                itp.kernel.prove(
                     smt.ForAll(
                         xs + ys,
                         (cons(*xs) == cons(*ys))
@@ -429,10 +430,10 @@ def inj_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
     return pfs
 
 
-def recognizer_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
+def recognizer_lemmas(dt: smt.DatatypeSortRef) -> List[itp.kernel.Proof]:
     """
 
-    >>> import kdrag.theories.nat as nat
+    >>> import arlib.itp.theories.nat as nat
     >>> recognizer_lemmas(nat.Nat)[0]
     |- is(Z, Z) == True
     """
@@ -447,18 +448,18 @@ def recognizer_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
                     for j in range(cons.arity())
                 ]
                 pfs.append(
-                    kd.kernel.prove(smt.ForAll(xs, (recog(cons(*xs)) == (i == i1))))
+                    itp.kernel.prove(smt.ForAll(xs, (recog(cons(*xs)) == (i == i1))))
                 )
             else:
-                pfs.append(kd.kernel.prove(recog(cons()) == (i1 == i)))
+                pfs.append(itp.kernel.prove(recog(cons()) == (i1 == i)))
     return pfs
 
 
-def distinct_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
+def distinct_lemmas(dt: smt.DatatypeSortRef) -> List[itp.kernel.Proof]:
     """
     Constructors are distinct lemmas.
 
-    >>> import kdrag.theories.nat as nat
+    >>> import arlib.itp.theories.nat as nat
     >>> distinct_lemmas(nat.Nat)[0]
     |- ForAll(x!..., S(x!...) != Z)
     """
@@ -474,18 +475,18 @@ def distinct_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
                     for j in range(cons1.arity())
                 ]
                 pfs.append(
-                    kd.kernel.prove(smt.ForAll(xs + xs1, cons(*xs) != cons1(*xs1)))
+                    itp.kernel.prove(smt.ForAll(xs + xs1, cons(*xs) != cons1(*xs1)))
                 )
             else:
-                pfs.append(kd.kernel.prove(cons() != cons1()))
+                pfs.append(itp.kernel.prove(cons() != cons1()))
     return pfs
 
 
-def accessor_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
+def accessor_lemmas(dt: smt.DatatypeSortRef) -> List[itp.kernel.Proof]:
     """
     Accessor lemmas for a datatype.
 
-    >>> import kdrag.theories.nat as nat
+    >>> import arlib.itp.theories.nat as nat
     >>> accessor_lemmas(nat.Nat)[0]
     |- ForAll(x!..., pred(S(x!...)) == x!...)
     """
@@ -495,5 +496,5 @@ def accessor_lemmas(dt: smt.DatatypeSortRef) -> list[kd.kernel.Proof]:
         xs = [smt.FreshConst(cons.domain(k), prefix="x") for k in range(cons.arity())]
         for j in range(cons.arity()):
             acc = dt.accessor(i, j)
-            pfs.append(kd.kernel.prove(smt.ForAll(xs, acc(cons(*xs)) == xs[j])))
+            pfs.append(itp.kernel.prove(smt.ForAll(xs, acc(cons(*xs)) == xs[j])))
     return pfs

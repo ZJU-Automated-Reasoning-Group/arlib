@@ -89,7 +89,7 @@ class SortDispatch:
 
     def define(self, args, body):
         """
-        Shorthand to define a new function for this dispatch. Calls kdrag.define.
+        Shorthand to define a new function for this dispatch. Calls itp.define.
         """
         assert isinstance(self.name, str)
         defn = itp.define(self.name, args, body)
@@ -252,11 +252,11 @@ def cond(*cases, default=None) -> smt.ExprRef:
     If default is not given, a check is performed for totality.
 
     >>> x = smt.Int("x")
-    >>> kd.cond((x < 0, 2 * x), (x == 0, 3 * x), (x > 0, 5 * x))
+    >>> itp.cond((x < 0, 2 * x), (x == 0, 3 * x), (x > 0, 5 * x))
     If(x < 0,
        2*x,
        If(x == 0, 3*x, If(x > 0, 5*x, unreachable...)))
-    >>> kd.cond((x < 0, 2 * x), (x == 0, 3 * x), default = 5 * x)
+    >>> itp.cond((x < 0, 2 * x), (x == 0, 3 * x), default = 5 * x)
     If(x < 0, 2*x, If(x == 0, 3*x, 5*x))
     """
     sort = None

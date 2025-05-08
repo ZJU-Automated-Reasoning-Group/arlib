@@ -4,9 +4,9 @@ Definitions about the reals.
 Transcendental functions and bounds.
 """
 
-import kdrag.smt as smt
-from kdrag.smt import ForAll, Function
-import kdrag as kd
+import arlib.itp.smt as smt
+from arlib.itp.smt import ForAll, Function
+import arlib.itp as kd
 
 R = smt.RealSort()
 RFun = smt.ArraySort(R, R)
