@@ -1,8 +1,6 @@
-"""
-Quantifier Elimination via Lazy Model Enumeration (LME-QE)
+"""Quantifier Elimination via Lazy Model Enumeration (LME-QE)
 
-Implementation based on the paper:
-"Quantifier elimination via lazy model enumeration" (CAV)
+Quantifier elimination via lazy model enumeration (CAV 2013)
 
 The algorithm eliminates existential quantifiers through iterative model enumeration
 and projection. It works by:
@@ -14,8 +12,7 @@ and projection. It works by:
 
 It seems that Z3's a tacitic named "fm", whch uses Fourier–Motzkin elimination.
 Can we use it for performing QE for conjunction of literals?
-E.g., "Exists X . P(X, Y) /\ Q(X, Y) /\ R(X, Y) ...", where P, Q, and R are atomic predicate symbols (or literals?)
-"""
+E.g., "Exists X . P(X, Y) /\ Q(X, Y) /\ R(X, Y) ...", where P, Q, and R are atomic predicate symbols (or literals?)"""
 
 from typing import List
 
