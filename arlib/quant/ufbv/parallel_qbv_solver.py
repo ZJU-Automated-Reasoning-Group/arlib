@@ -25,14 +25,48 @@ import multiprocessing
 import logging
 import random
 import z3
+import tempfile
+import subprocess
+import os
+import signal
+import atexit
 # from z3.z3util import get_vars
 
 from arlib.quant.ufbv.reduction_types import zero_extension, right_zero_extension
 from arlib.quant.ufbv.reduction_types import one_extension, right_one_extension
 from arlib.quant.ufbv.reduction_types import sign_extension, right_sign_extension
 
+from arlib.global_params import global_config
+
+# Path to Z3 executable
+Z3_PATH = global_config.get_solver_path("z3")
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 process_queue = []
 
+# Setup handlers to clean up processes on exit
+def cleanup_processes():
+    for p in process_queue:
+        if p.is_alive():
+            p.terminate()
+
+atexit.register(cleanup_processes)
+
+def signal_handler(signum, frame):
+    """Handle signals to clean up processes"""
+    cleanup_processes()
+    exit(1)
+
+# Register signal handlers
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+if hasattr(signal, 'SIGQUIT'):
+    signal.signal(signal.SIGQUIT, signal_handler)
+if hasattr(signal, 'SIGHUP'):
+    signal.signal(signal.SIGHUP, signal_handler)
 
 # glock = multiprocessing.Lock()
 class Quantification(Enum):
@@ -322,47 +356,142 @@ def solve_with_approx_partitioned(formula_str, reduction_type, q_type, bit_place
                                   result_queue, local_max_bit_width):
     """Modified to accept formula as string"""
     # Parse formula string in worker process
-    formula = z3.And(z3.parse_smt2_string(formula_str))
+    try:
+        formula = z3.And(z3.parse_smt2_string(formula_str))
+    except Exception as e:
+        logger.error(f"Error parsing formula: {e}")
+        result_queue.put("unknown")
+        return
 
     while (bit_places < (local_max_bit_width - 2) or max_bit_width == 0):
-        approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
-
-        # Create new context and solver
-        new_ctx = z3.Context()
-        new_ctx_fml = approximated_formula.translate(new_ctx)
-        # Fix: Create tactic and solver correctly with context
-        t = z3.Tactic("ufbv", ctx=new_ctx)
-        s = t.solver()
-        s.add(new_ctx_fml)
-
-        result = s.check()
-        # Convert result to string for queue
-        result_str = str(result)
-
-        if q_type == Quantification.UNIVERSAL:
-            if result == z3.CheckSatResult(z3.Z3_L_TRUE) or result == z3.CheckSatResult(z3.Z3_L_UNDEF):
+        try:
+            approximated_formula = rec_go(formula, [], reduction_type, q_type, bit_places, polarity)
+            
+            temp_path = None
+            try:
+                # Use external Z3 process instead of internal Z3 API
+                with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+                    temp_path = temp_file.name
+                    formula_text = approximated_formula.sexpr()
+                    # Add option to disable traceback and debug messages
+                    temp_file.write("(set-option :print-success false)\n")
+                    temp_file.write("(set-option :produce-unsat-cores false)\n")
+                    temp_file.write("(set-option :produce-proofs false)\n")
+                    temp_file.write("(set-option :trace false)\n")
+                    temp_file.write("(set-option :verbose 0)\n")
+                    temp_file.write(formula_text)
+                    if "(check-sat)" not in formula_text:
+                        temp_file.write("\n(check-sat)")
+                
+                logger.debug(f"Running Z3 with bit width {bit_places}, reduction {reduction_type}, q_type {q_type}")
+                result = subprocess.run(
+                    [Z3_PATH, "-smt2", "-q", temp_path],
+                    capture_output=True,
+                    text=True,
+                    timeout=60
+                )
+                
+                # Parse result - look for the last line containing sat/unsat/unknown
+                output_lines = result.stdout.strip().split('\n')
+                result_str = "unknown"
+                for line in output_lines:
+                    line = line.strip()
+                    if line in ["sat", "unsat", "unknown"]:
+                        result_str = line
+                
+                if q_type == Quantification.UNIVERSAL:
+                    if result_str == "sat" or result_str == "unknown":
+                        (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
+                    elif result_str == "unsat":
+                        result_queue.put(result_str)
+                        return
+                else:
+                    if result_str == "sat":
+                        result_queue.put(result_str)
+                        return
+                    elif result_str == "unsat" or result_str == "unknown":
+                        (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Z3 timeout with bit width {bit_places}")
                 (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
-            elif result == z3.CheckSatResult(z3.Z3_L_FALSE):
-                result_queue.put(result_str)
-                return
-        else:
-            if result == z3.CheckSatResult(z3.Z3_L_TRUE):
-                result_queue.put(result_str)
-                return
-            elif result == z3.CheckSatResult(z3.Z3_L_FALSE) or result == z3.CheckSatResult(z3.Z3_L_UNDEF):
+            except Exception as e:
+                logger.error(f"Error running Z3: {e}")
                 (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
+            finally:
+                if temp_path and os.path.exists(temp_path):
+                    try:
+                        os.unlink(temp_path)
+                    except:
+                        pass
+        except Exception as e:
+            logger.error(f"Error in approximation: {e}")
+            (reduction_type, bit_places) = next_approx(reduction_type, bit_places)
 
+    # If we got here, we've run out of approximations to try
+    # Fall back to a direct solve with the original formula
     solve_without_approx(formula_str, result_queue, True)
 
 
 def solve_without_approx(formula_str, result_queue, randomness=False):
-    """Modified to accept formula as string"""
-    formula = z3.And(z3.parse_smt2_string(formula_str))
-    s = z3.Tactic("ufbv").solver()
-    if randomness:
-        s.set("smt.random_seed", random.randint(0, 10))
-    s.add(formula)
-    result_queue.put(str(s.check()))
+    """Modified to accept formula as string and use external Z3 process"""
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+            temp_path = temp_file.name
+            # Make sure formula_str contains SMT-LIB content
+            # Add option to disable traceback and debug messages
+            temp_file.write("(set-option :print-success false)\n")
+            temp_file.write("(set-option :produce-unsat-cores false)\n")
+            temp_file.write("(set-option :produce-proofs false)\n")
+            temp_file.write("(set-option :trace false)\n")
+            # Set quiet mode
+            temp_file.write("(set-option :global-decls false)\n")
+            temp_file.write("(set-option :verbose 0)\n")
+            temp_file.write(formula_str)
+            if "(check-sat)" not in formula_str:
+                temp_file.write("\n(check-sat)")
+            
+            if randomness:
+                # Set random seed in SMT2 format
+                rand_seed = random.randint(0, 10)
+                temp_file.write(f"\n(set-option :smt.random_seed {rand_seed})")
+        
+        logger.debug("Running direct Z3 solve without approximation")
+        result = subprocess.run(
+            [Z3_PATH, "-smt2", "-q", temp_path],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        # Parse result - look for the last line containing sat/unsat/unknown
+        output_lines = result.stdout.strip().split('\n')
+        result_str = "unknown"
+        for line in output_lines:
+            line = line.strip()
+            if line in ["sat", "unsat", "unknown"]:
+                result_str = line
+                
+        logger.debug(f"Z3 result: {result_str}")
+        
+        if result_str == "sat":
+            result_queue.put("sat")
+        elif result_str == "unsat":
+            result_queue.put("unsat")
+        else:
+            result_queue.put("unknown")
+    except subprocess.TimeoutExpired:
+        logger.warning("Z3 direct solve timeout")
+        result_queue.put("unknown")
+    except Exception as e:
+        logger.error(f"Error in solve_without_approx: {e}")
+        result_queue.put("unknown")
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
 
 
 def split_list(lst, n):
@@ -376,6 +505,67 @@ def split_list(lst, n):
     """
     k, m = divmod(len(lst), n)
     return [lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n)]
+
+
+def solve_sequential(formula):
+    """Solve the formula without parallelization using external Z3 process.
+    
+    This is used as a fallback when workers=1.
+    """
+    formula_str = formula.sexpr()
+    temp_path = None
+    
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+            temp_path = temp_file.name
+            # Add option to disable traceback and debug messages
+            temp_file.write("(set-option :print-success false)\n")
+            temp_file.write("(set-option :produce-unsat-cores false)\n")
+            temp_file.write("(set-option :produce-proofs false)\n")
+            temp_file.write("(set-option :trace false)\n")
+            # Set quiet mode
+            temp_file.write("(set-option :global-decls false)\n")
+            temp_file.write("(set-option :verbose 0)\n")
+            temp_file.write(formula_str)
+            if "(check-sat)" not in formula_str:
+                temp_file.write("\n(check-sat)")
+    
+        logger.debug("Running sequential solve without parallelization")
+        result = subprocess.run(
+            [Z3_PATH, "-smt2", "-q", temp_path],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        
+        # Parse result - look for the last line containing sat/unsat/unknown
+        output_lines = result.stdout.strip().split('\n')
+        result_str = "unknown"
+        for line in output_lines:
+            line = line.strip()
+            if line in ["sat", "unsat", "unknown"]:
+                result_str = line
+        
+        logger.debug(f"Z3 sequential result: {result_str}")
+        
+        if result_str == "sat":
+            return z3.CheckSatResult(z3.Z3_L_TRUE)
+        elif result_str == "unsat":
+            return z3.CheckSatResult(z3.Z3_L_FALSE)
+        else:
+            return z3.CheckSatResult(z3.Z3_L_UNDEF)
+    except subprocess.TimeoutExpired:
+        logger.warning("Z3 sequential solve timeout")
+        return z3.CheckSatResult(z3.Z3_L_UNDEF)
+    except Exception as e:
+        logger.error(f"Error in solve_sequential: {e}")
+        return z3.CheckSatResult(z3.Z3_L_UNDEF)
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
 
 
 def solve_qbv_parallel(formula):
@@ -450,32 +640,151 @@ def solve_qbv_parallel(formula):
 
 
 def solve_qbv_file_parallel(formula_file: str):
-    # Parse SMT2 formula to Z3 format
-    formula = z3.And(z3.parse_smt2_file(formula_file))
-    return solve_qbv_parallel(formula)
+    """Parse and solve formula from an SMT2 file using parallel approximation
+    
+    Args:
+        formula_file: Path to the SMT2 file
+    
+    Returns:
+        Z3 CheckSatResult (sat, unsat, or unknown)
+    """
+    try:
+        # Read SMT2 file content directly instead of parsing with Z3
+        with open(formula_file, 'r') as f:
+            formula_str = f.read()
+        
+        # Check if it's a valid SMT2 file
+        if not formula_str or not ("(assert" in formula_str):
+            logger.error(f"Invalid SMT2 file: {formula_file}")
+            return z3.CheckSatResult(z3.Z3_L_UNDEF)
+        
+        # Parse to Z3 format for max bit width extraction
+        formula = z3.And(z3.parse_smt2_file(formula_file))
+        
+        # Pass the raw SMT2 string to the solver
+        return solve_qbv_parallel(formula)
+    except Exception as e:
+        logger.error(f"Error in solve_qbv_file_parallel: {e}")
+        return z3.CheckSatResult(z3.Z3_L_UNDEF)
 
 
 def solve_qbv_str_parallel(fml_str: str):
-    # Parse SMT2 formula to Z3 format
-    formula = z3.And(z3.parse_smt2_string(fml_str))
-    return solve_qbv_parallel(formula)
+    """Parse and solve formula from an SMT2 string using parallel approximation
+    
+    Args:
+        fml_str: SMT2 format string
+    
+    Returns:
+        Z3 CheckSatResult (sat, unsat, or unknown)
+    """
+    try:
+        # Verify it's a valid SMT2 string
+        if not fml_str or not ("(assert" in fml_str):
+            # Add assert if missing
+            if not "(assert" in fml_str:
+                fml_str = f"(assert {fml_str})"
+        
+        # Parse to Z3 format for max bit width extraction
+        formula = z3.And(z3.parse_smt2_string(fml_str))
+        
+        # Pass the formula to the solver
+        return solve_qbv_parallel(formula)
+    except Exception as e:
+        logger.error(f"Error in solve_qbv_str_parallel: {e}")
+        return z3.CheckSatResult(z3.Z3_L_UNDEF)
 
 
 def demo_qbv():
-    fml_str = ''' \n
-(assert \n
- (exists ((s (_ BitVec 5)) )(forall ((t (_ BitVec 5)) )(not (= (bvnand s t) (bvor s (bvneg t))))) \n
- ) \n
- ) \n
-(check-sat)
-'''
-    solve_qbv_str_parallel(fml_str)
+    """Demonstrate the parallel QBV solver with some examples"""
+    try:
+        print("=" * 60)
+        print("DEMO: Parallel QBV Solver with External Z3")
+        print("=" * 60)
+        
+        # Example 1: BV NAND/OR formula
+        print("\nExample 1: BV NAND/OR formula")
+        fml_str = '''(assert 
+ (exists ((s (_ BitVec 5)) )(forall ((t (_ BitVec 5)) )(not (= (bvnand s t) (bvor s (bvneg t))))) 
+ ) 
+ )
+(check-sat)'''
+        print(f"Formula: {fml_str}")
+        result = solve_qbv_str_parallel(fml_str)
+        print(f"Result: {result}")
+        
+        # Example 2: Simple formula
+        print("\nExample 2: Simple BV formula")
+        simple_fml_str = '''(assert 
+ (exists ((x (_ BitVec 4))) (forall ((y (_ BitVec 4))) (= (bvadd x y) (bvadd y x)))
+ )
+)
+(check-sat)'''
+        print(f"Formula: {simple_fml_str}")
+        result = solve_qbv_str_parallel(simple_fml_str)
+        print(f"Result: {result}")
+        
+        # Example 3: Create a temporary file
+        print("\nExample 3: Using a formula file")
+        with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+            temp_path = temp_file.name
+            file_content = '''(assert 
+ (exists ((x (_ BitVec 8))) 
+   (forall ((y (_ BitVec 8))) 
+     (=> (bvult y x) (exists ((z (_ BitVec 8))) (= (bvadd y z) x)))
+   )
+ )
+)
+(check-sat)'''
+            temp_file.write(file_content)
+        
+        try:
+            print(f"Formula file: {temp_path}")
+            print(f"Formula content:\n{file_content}")
+            result = solve_qbv_file_parallel(temp_path)
+            print(f"Result: {result}")
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+                
+        print("\nDemo complete")
+    except Exception as e:
+        logger.error(f"Error in demo: {e}")
 
 
 if __name__ == "__main__":
-    # TODO: if terminated by the caller, we should kill the processes in the process_queue??
-    # signal.signal(signal.SIGINT, signal_handler)
-    # signal.signal(signal.SIGTERM, signal_handler)
-    # signal.signal(signal.SIGQUIT, signal_handler)
-    # signal.signal(signal.SIGHUP, signal_handler)
-    demo_qbv()
+    try:
+        # Parse command line arguments
+        import argparse
+        parser = argparse.ArgumentParser(description='Parallel QBV Solver with external Z3')
+        
+        # Add arguments
+        parser.add_argument('--file', type=str, help='SMT2 file to solve')
+        parser.add_argument('--formula', type=str, help='SMT2 formula string to solve')
+        parser.add_argument('--demo', action='store_true', help='Run demo examples')
+        parser.add_argument('--debug', action='store_true', help='Enable debug logging')
+        
+        args = parser.parse_args()
+        
+        # Set logging level
+        if args.debug:
+            logger.setLevel(logging.DEBUG)
+        
+        # Determine what to run
+        if args.file:
+            print(f"Solving file: {args.file}")
+            result = solve_qbv_file_parallel(args.file)
+            print(f"Result: {result}")
+        elif args.formula:
+            print(f"Solving formula: {args.formula}")
+            result = solve_qbv_str_parallel(args.formula)
+            print(f"Result: {result}")
+        elif args.demo:
+            demo_qbv()
+        else:
+            # Default to demo
+            demo_qbv()
+    except Exception as e:
+        logger.error(f"Error in main: {e}")
+    finally:
+        # Make sure we clean up any remaining processes
+        cleanup_processes()
