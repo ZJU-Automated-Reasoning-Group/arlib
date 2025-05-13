@@ -69,6 +69,60 @@ QE_TEMPLATE = """
 """
 
 
+def run_z3_with_tracing(smt_script: str, description: str = "") -> subprocess.CompletedProcess:
+    """Run Z3 and log the input query and output response.
+    
+    Args:
+        smt_script: The SMT-LIB script to run
+        description: A description of what this Z3 call is doing (for logging)
+        
+    Returns:
+        The completed process with stdout and stderr
+    """
+    try:
+        # Create a temporary file for the SMT script
+        with tempfile.NamedTemporaryFile(suffix='.smt2', mode='w+', delete=False) as temp_file:
+            temp_path = temp_file.name
+            temp_file.write(smt_script)
+            
+        # Log the Z3 query
+        with open("z3_trace.log", "a") as log:
+            log.write(f"\n=== Z3 Query: {description} ===\n")
+            log.write(smt_script)
+            log.write("\n")
+            
+        # Run Z3
+        result = subprocess.run(
+            [Z3_PATH, "-smt2", temp_path],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        # Log the response
+        with open("z3_trace.log", "a") as log:
+            log.write("=== Z3 Response ===\n")
+            log.write(result.stdout)
+            if result.stderr:
+                log.write("=== Z3 Errors ===\n")
+                log.write(result.stderr)
+            log.write("="*40 + "\n")
+        
+        # Clean up temp file
+        os.unlink(temp_path)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in run_z3_with_tracing: {e}")
+        return subprocess.CompletedProcess(
+            args=[],
+            returncode=1,
+            stdout="",
+            stderr=f"Error: {str(e)}"
+        )
+
+
 def to_smtlib(expr):
     """Convert Z3 expression to SMT-LIB string format"""
     if hasattr(expr, 'sexpr'):

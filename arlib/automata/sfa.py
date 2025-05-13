@@ -254,8 +254,8 @@ class SFA:
                             for i, g in enumerate(partition):
                                 if ns in g:
                                     group_nums.append(i)
-                        sig.append(tuple(sorted(group_nums)))
-                    splits[tuple(sig)].add(state)
+                        sig.append(Tuple(sorted(group_nums)))
+                    splits[Tuple(sig)].add(state)
                 new_partition.extend(splits.values())
 
             if len(new_partition) == len(partition):

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `arlib/llm` module provides an implementation of SMTO (Satisfiability Modulo Theories and Oracles) that leverages large language models as oracle handlers. This approach enables SMT solving for open programs with components lacking formal specifications, such as third-party libraries or deep learning models.
+The `arlib/llm/smto` module provides an implementation of SMTO (Satisfiability Modulo Theories and Oracles) that leverages large language models as oracle handlers. This approach enables SMT solving for open programs with components lacking formal specifications, such as third-party libraries or deep learning models.
 
 ## Key Features
 

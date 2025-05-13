@@ -14,7 +14,7 @@ import arlib.itp.smt as smt
 import hypothesis
 import hypothesis.strategies as st
 import operator as op
-from typing import Optional
+from typing import Optional, Tuple, List
 
 smt_sorts = st.recursive(
     st.sampled_from([smt.BoolSort(), smt.IntSort(), smt.RealSort(), smt.StringSort()]),

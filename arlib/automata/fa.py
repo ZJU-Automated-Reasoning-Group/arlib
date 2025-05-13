@@ -76,7 +76,7 @@ class DFA:
             for group in partition:
                 splits = defaultdict(set)
                 for state in group:
-                    signature = tuple(
+                    signature = Tuple(
                         next(i for i, g in enumerate(partition)
                              if self.transitions.get((state, a)) in g)
                         for a in sorted(self.alphabet)

@@ -8,7 +8,7 @@ import z3
 from z3 import Solver, StringVal, String, IntVal, Int, BoolVal, Not, Or, And, Implies, ForAll, Exists, IntSort, ExprRef, \
     Const, Pattern
 from z3.z3util import get_vars
-
+c
 
 class TriggerSelector:
     def __init__(self, formula: ExprRef):
