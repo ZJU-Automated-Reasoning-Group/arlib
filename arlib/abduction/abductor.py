@@ -17,7 +17,7 @@ import z3
 
 from arlib.abduction.dillig_abduct import dillig_abduce
 from arlib.abduction.qe_abduct import qe_abduce
-from arlib.utils import is_sat, is_entail
+from arlib.utils.z3_solver_utils import is_sat, is_entail
 
 
 def check_abduct(pre_cond: z3.BoolRef, post_cond: z3.BoolRef,

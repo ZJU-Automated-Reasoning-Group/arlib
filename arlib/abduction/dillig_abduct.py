@@ -7,7 +7,8 @@ quantifier elimination.
 """
 
 import z3
-from arlib.utils import is_sat, is_entail, get_variables
+from arlib.utils.z3_solver_utils import is_sat, is_entail
+from arlib.utils.z3_expr_utils import get_variables
 from arlib.optimization.msa.mistral_msa import MSASolver
 
 

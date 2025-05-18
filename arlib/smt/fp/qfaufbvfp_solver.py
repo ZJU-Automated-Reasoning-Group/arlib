@@ -144,7 +144,61 @@ def demo_qfaufbvfp() -> SolverResult:
     y = z3.BitVec('y', 32)
     fml = z3.And(x > 0, y > 0, x + y > 0)
     res = solver.check_sat(fml)
-    return res
+    print(res)
+    # return res
+
+
+def convert_fp_to_bv(input_file: str, output_file: str) -> bool:
+    """
+    Convert QF_FP or QF_BVFP formulas to QF_BV and save to a new file.
+    
+    Args:
+        input_file (str): Path to the input SMT file with FP formulas.
+        output_file (str): Path where the converted formula will be saved.
+        
+    Returns:
+        bool: True if conversion was successful, False otherwise.
+    """
+    try:
+        # Parse the input file
+        fml_vec = z3.parse_smt2_file(input_file)
+        fml = z3.And(fml_vec)
+        
+        # Create a preprocessing tactic chain: simplify, propagate-values, then fpa2bv
+        preprocess_tactic = z3.AndThen(
+            'simplify',
+            'propagate-values',
+            'fpa2bv'
+        )
+        
+        # Apply the preprocessing tactics
+        processed_goal = preprocess_tactic(fml)
+        converted_fml = processed_goal.as_expr()
+        
+        # Check if the result is QF_BV using is-qfbv probe
+        g = z3.Goal()
+        g.add(converted_fml)
+        is_qfbv = z3.Probe('is-qfbv')
+        
+        if is_qfbv(g) == 1.0:
+            # It's QF_BV, proceed to save
+            solver = z3.Solver()
+            solver.add(converted_fml)
+            
+            # Write the converted formula to the output file
+            with open(output_file, 'w') as f:
+                f.write(solver.to_smt2())
+            
+            logger.info(f"Successfully converted to QF_BV and saved to {output_file}")
+            return True
+        else:
+            # Not QF_BV, discard
+            logger.warning(f"Conversion did not result in QF_BV formula, discarded")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error converting file: {e}")
+        return False
 
 
 if __name__ == "__main__":
