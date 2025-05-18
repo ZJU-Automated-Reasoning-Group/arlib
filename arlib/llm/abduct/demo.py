@@ -13,7 +13,7 @@ import datetime
 from arlib.llm.abduct import (
     AbductionProblem, 
     LLMAbductor, 
-    AbductionEvaluator,
+    # AbductionEvaluator,
     EnvLoader
 )
 from arlib.llm.abduct.zhipu import ZhipuLLM
@@ -86,6 +86,8 @@ def run_single_example(llm_abductor, problem):
     print(result.llm_response)
     print("=" * 80)
     print("\n" + "-" * 80 + "\n")
+    
+    return result
 
 def main():
     """Main demo function."""
@@ -105,10 +107,22 @@ def main():
     # Create example problems
     problems = create_example_problems()
     
+    # Initialize success counter
+    success_count = 0
+    
     # Run examples (first 3 only)
     for i, problem in enumerate(problems[:3]):
         print(f"\nExample {i+1}/{len(problems[:3])}")
-        run_single_example(llm_abductor, problem)
+        result = run_single_example(llm_abductor, problem)
+        if result.is_valid:
+            success_count += 1
+    
+    # Print final statistics
+    print("\nFinal Statistics:")
+    print(f"Total examples: {len(problems[:3])}")
+    print(f"Successful cases: {success_count}")
+    print(f"Success rate: {(success_count/len(problems[:3]))*100:.2f}%")
+
 
 if __name__ == "__main__":
     main()
