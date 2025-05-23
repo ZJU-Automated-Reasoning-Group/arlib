@@ -6,6 +6,7 @@ based on SMT constraints for premises and conclusions. It includes tools for:
 2. Generating abductive hypotheses using LLMs
 3. Validating hypotheses using Z3
 4. Evaluating LLM performance on abduction tasks
+5. Feedback-based refinement using SMT counterexamples
 """
 
 import time
@@ -125,6 +126,30 @@ class AbductionResult:
         """Calculate validity based on consistency and sufficiency."""
         self.is_valid = self.is_consistent and self.is_sufficient
 
+
+@dataclass
+class AbductionIterationResult:
+    """Stores the result of a single iteration in feedback-based abduction."""
+    hypothesis: Optional[z3.BoolRef] = None
+    is_consistent: bool = False
+    is_sufficient: bool = False
+    is_valid: bool = False
+    counterexample: Optional[Dict[str, Any]] = None
+    llm_response: str = ""
+    prompt: str = ""
+    iteration: int = 0
+
+
+@dataclass
+class FeedbackAbductionResult(AbductionResult):
+    """Stores the result of a feedback-based abduction attempt."""
+    iterations: List[AbductionIterationResult] = field(default_factory=list)
+    total_iterations: int = 0
+    
+    def add_iteration(self, iteration_result: AbductionIterationResult) -> None:
+        """Add an iteration result to the history."""
+        self.iterations.append(iteration_result)
+        self.total_iterations = len(self.iterations)
 
 
 class LLMAbductor:
@@ -291,4 +316,266 @@ DO NOT include declare-const statements or any other statements - ONLY the hypot
                 prompt=prompt,
                 execution_time=time.time() - start_time
             )
+    
+
+class FeedbackLLMAbductor(LLMAbductor):
+    """
+    Uses LLMs to generate abductive hypotheses with SMT-based feedback.
+    
+    This abductor enhances the basic LLMAbductor by providing counterexample-driven
+    feedback to the LLM, allowing it to refine its hypotheses through multiple iterations.
+    """
+    
+    def __init__(self, llm: LLM, max_iterations: int = 5, temperature: float = 0.7):
+        """
+        Initialize the feedback-based LLM abductor.
+        
+        Args:
+            llm: The LLM implementation to use
+            max_iterations: Maximum number of feedback iterations
+            temperature: Temperature for LLM generation
+        """
+        super().__init__(llm=llm, max_attempts=1, temperature=temperature)
+        self.max_iterations = max_iterations
+    
+    def generate_counterexample(self, 
+                               problem: AbductionProblem, 
+                               hypothesis: z3.BoolRef) -> Optional[Dict[str, Any]]:
+        """
+        Generate a counterexample that shows why the hypothesis is invalid.
+        
+        Args:
+            problem: The abduction problem
+            hypothesis: The hypothesis to analyze
+            
+        Returns:
+            Optional[Dict[str, Any]]: A counterexample assignment for variables, or None if no counterexample exists
+        """
+        # Create full premise with domain constraints
+        premise = problem.premise
+        domain = problem.domain_constraints
+        full_premise = z3.And(domain, premise) if not z3.is_true(domain) else premise
+        
+        # Check consistency: premise ∧ hypothesis is satisfiable
+        if not is_sat(z3.And(full_premise, hypothesis)):
+            # Find a model that satisfies the premise but not the hypothesis
+            s = z3.Solver()
+            s.add(full_premise)
+            s.add(z3.Not(hypothesis))
+            if s.check() == z3.sat:
+                model = s.model()
+                return {str(v): model.eval(v, model_completion=True) for v in problem.variables}
+            return None
+        
+        # Check sufficiency: premise ∧ hypothesis |= conclusion
+        # If not sufficient, find a model that satisfies premise ∧ hypothesis but not conclusion
+        if not is_entail(z3.And(full_premise, hypothesis), problem.conclusion):
+            s = z3.Solver()
+            s.add(full_premise)
+            s.add(hypothesis)
+            s.add(z3.Not(problem.conclusion))
+            if s.check() == z3.sat:
+                model = s.model()
+                return {str(v): model.eval(v, model_completion=True) for v in problem.variables}
+        
+        return None
+    
+    def create_feedback_prompt(self, 
+                              problem: AbductionProblem, 
+                              previous_iterations: List[AbductionIterationResult],
+                              last_counterexample: Dict[str, Any]) -> str:
+        """
+        Create a prompt with feedback from previous iterations.
+        
+        Args:
+            problem: The abduction problem
+            previous_iterations: Previous iteration results
+            last_counterexample: The counterexample from the most recent attempt
+            
+        Returns:
+            str: Prompt with feedback for the LLM
+        """
+        smt2_string = problem.to_smt2_string()
+        
+        # Extract information about the latest attempt
+        last_iteration = previous_iterations[-1]
+        last_hypothesis = last_iteration.hypothesis
+        
+        # Format the counterexample for display
+        ce_formatted = "\n".join([f"{var} = {value}" for var, value in last_counterexample.items()])
+        
+        # Determine the specific issue with the hypothesis
+        issue_description = ""
+        if not last_iteration.is_consistent:
+            issue_description = "Your hypothesis is inconsistent with the premise."
+        elif not last_iteration.is_sufficient:
+            issue_description = "Your hypothesis, combined with the premise, doesn't imply the conclusion."
+        
+        # Compile feedback from all previous iterations
+        feedback_history = ""
+        for i, iter_result in enumerate(previous_iterations):
+            feedback_history += f"\nAttempt {i+1}:\n"
+            feedback_history += f"Hypothesis: {iter_result.hypothesis}\n"
+            feedback_history += f"Consistent: {iter_result.is_consistent}, Sufficient: {iter_result.is_sufficient}\n"
+            if i < len(previous_iterations) - 1:  # Don't include the last counterexample twice
+                if iter_result.counterexample:
+                    ce_str = ", ".join([f"{var}={val}" for var, val in iter_result.counterexample.items()])
+                    feedback_history += f"Counterexample: {ce_str}\n"
+        
+        prompt = f"""
+You are an expert in logical abduction and SMT (Satisfiability Modulo Theories).
+
+I have an abduction problem in SMT-LIB2 format:
+```
+{smt2_string}
+```
+
+The goal is to find an explanatory hypothesis ψ such that:
+1. (premise ∧ ψ) is satisfiable (consistent)
+2. (premise ∧ ψ) implies the conclusion: {problem.conclusion}
+
+Your previous attempt was:
+{last_hypothesis}
+
+{issue_description}
+
+I found a counterexample where your hypothesis does not work:
+{ce_formatted}
+
+This means there is a case where either:
+- The premise and your hypothesis are not satisfiable together, or
+- The premise and your hypothesis don't imply the conclusion
+
+History of your previous attempts:
+{feedback_history}
+
+Please provide a revised hypothesis that addresses this counterexample.
+Provide ONLY the SMT-LIB2 assertion for the revised hypothesis ψ as your complete answer.
+DO NOT include any explanations, only provide the SMT-LIB2 assertion directly.
+For example, your answer should look like:
+(assert (formula))
+
+or just:
+(formula)
+"""
+        return prompt
+    
+    def abduce_with_feedback(self, problem: AbductionProblem) -> FeedbackAbductionResult:
+        """
+        Generate an abductive hypothesis using iterative feedback from counterexamples.
+        
+        Args:
+            problem: The abduction problem
+            
+        Returns:
+            FeedbackAbductionResult: The result of the feedback-based abduction
+        """
+        start_time = time.time()
+        
+        # Create initial prompt without feedback
+        initial_prompt = self.create_prompt(problem)
+        
+        # Store all iteration results
+        iteration_results = []
+        
+        # Initialize the overall result
+        result = FeedbackAbductionResult(
+            problem=problem,
+            prompt=initial_prompt,
+            execution_time=0
+        )
+        
+        # Start with basic prompt for the first iteration
+        current_prompt = initial_prompt
+        
+        for iteration in range(self.max_iterations):
+            try:
+                # Generate hypothesis from LLM
+                llm_response = self.llm.generate(
+                    prompt=current_prompt,
+                    temperature=self.temperature + (iteration * 0.05),
+                    max_tokens=1000
+                )
+                
+                # Extract and parse SMT expression
+                smt_string = extract_smt_from_llm_response(llm_response)
+                if not smt_string:
+                    print(f"No SMT expression found in LLM response on iteration {iteration+1}")
+                    continue
+                
+                # Parse the hypothesis
+                hypothesis = parse_smt2_string(smt_string, problem)
+                if hypothesis is None:
+                    print(f"Failed to parse SMT expression on iteration {iteration+1}")
+                    continue
+                
+                # Validate the hypothesis
+                is_consistent, is_sufficient = self.validate_hypothesis(problem, hypothesis)
+                
+                # Save iteration result regardless of validity
+                iter_result = AbductionIterationResult(
+                    hypothesis=hypothesis,
+                    is_consistent=is_consistent,
+                    is_sufficient=is_sufficient,
+                    is_valid=is_consistent and is_sufficient,
+                    llm_response=llm_response,
+                    prompt=current_prompt,
+                    iteration=iteration + 1
+                )
+                
+                # If valid, we're done
+                if is_consistent and is_sufficient:
+                    iteration_results.append(iter_result)
+                    break
+                
+                # Generate a counterexample for feedback
+                counterexample = self.generate_counterexample(problem, hypothesis)
+                iter_result.counterexample = counterexample
+                iteration_results.append(iter_result)
+                
+                # If no counterexample could be generated, we can't provide feedback
+                if counterexample is None:
+                    print(f"Could not generate counterexample on iteration {iteration+1}")
+                    break
+                
+                # Create a new prompt with feedback for the next iteration
+                current_prompt = self.create_feedback_prompt(
+                    problem=problem,
+                    previous_iterations=iteration_results,
+                    last_counterexample=counterexample
+                )
+                
+            except Exception as e:
+                error_msg = str(e)
+                print(f"Error in abduce_with_feedback (iteration {iteration+1}): {error_msg}")
+                result.error = error_msg
+                break
+        
+        # Populate the final result
+        for iter_result in iteration_results:
+            result.add_iteration(iter_result)
+        
+        # Set the final hypothesis and validation status from the last iteration
+        if iteration_results:
+            last_iter = iteration_results[-1]
+            result.hypothesis = last_iter.hypothesis
+            result.is_consistent = last_iter.is_consistent
+            result.is_sufficient = last_iter.is_sufficient
+            result.is_valid = last_iter.is_valid
+            result.llm_response = last_iter.llm_response
+        
+        result.execution_time = time.time() - start_time
+        return result
+    
+    def abduce(self, problem: AbductionProblem) -> FeedbackAbductionResult:
+        """
+        Override the parent abduce method to use feedback-based abduction.
+        
+        Args:
+            problem: The abduction problem
+            
+        Returns:
+            FeedbackAbductionResult: The result of the feedback-based abduction
+        """
+        return self.abduce_with_feedback(problem)
     

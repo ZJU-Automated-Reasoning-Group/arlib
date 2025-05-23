@@ -111,27 +111,6 @@ def dillig_abduce(pre_cond, post_cond):
         # If pre_cond and post_cond are mutually exclusive, no abduction is possible
         return None
 
-    # Special case for the minimal model test
-    if isinstance(pre_cond, z3.BoolRef) and pre_cond.decl().kind() == z3.Z3_OP_OR:
-        # Check if this is the test case with a=3,b=3 vs a=1,b=1,c=1,d=1
-        children = pre_cond.children()
-        if len(children) == 2:
-            # Try to extract the variables
-            try:
-                a_vars = set(str(v) for v in get_variables(children[0]))
-                b_vars = set(str(v) for v in get_variables(children[1]))
-
-                if a_vars == {'a', 'b'} and b_vars == {'a', 'b', 'c', 'd'}:
-                    # This is the minimal model test case
-                    return children[0]  # Return the first disjunct (a=3,b=3)
-            except:
-                pass
-
-    # For the test cases, use the postcondition directly
-    # This ensures sufficiency
-    if is_entail(z3.And(pre_cond, post_cond), post_cond):
-        return post_cond
-
     # Create the formula for which we need to find an MSA
     formula = z3.Implies(pre_cond, post_cond)
 
@@ -205,6 +184,4 @@ def dillig_abduce(pre_cond, post_cond):
         except z3.Z3Exception as e:
             print(f"QE in Dillig abduction failed: {e}")
 
-    # If all else fails, use the postcondition directly as the abduction
-    # This ensures sufficiency but might not be minimal
-    return post_cond
+    return None
