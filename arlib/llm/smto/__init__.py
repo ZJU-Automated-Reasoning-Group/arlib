@@ -9,10 +9,10 @@ Related: “Satisfiability and Synthesis Modulo Oracles” [Polgreen/Reynolds/Se
 """
 
 # Import main solver
-from arlib.llm.smto import OraxSolver
+from arlib.llm.smto.smto import OraxSolver
 
 # Import oracle definitions
-from arlib.llm.oracles import (
+from arlib.llm.smto.oracles import (
     OracleInfo,
     WhiteboxOracleInfo,
     OracleType,
@@ -20,18 +20,10 @@ from arlib.llm.oracles import (
 )
 
 # Import LLM configuration
-from arlib.llm.llm_providers import LLMConfig
+from arlib.llm.smto.llm_adapter import LLMConfig
 
 # Import utility classes
-from arlib.llm.utils import OracleCache, ExplanationLogger
-
-# Import example functions
-from arlib.llm.examples import (
-    blackbox_example,
-    whitebox_example,
-    custom_function_example,
-    documentation_analysis_example
-)
+from arlib.llm.smto.utils import OracleCache, ExplanationLogger
 
 __all__ = [
     # Main solver
@@ -48,11 +40,5 @@ __all__ = [
     
     # Utility classes
     "OracleCache",
-    "ExplanationLogger",
-    
-    # Example functions
-    "blackbox_example",
-    "whitebox_example",
-    "custom_function_example",
-    "documentation_analysis_example"
+    "ExplanationLogger"
 ] 

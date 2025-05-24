@@ -14,10 +14,10 @@ Z3 SMT solving with LLM-powered oracles in both blackbox and whitebox modes.
 import z3
 from typing import Dict, List, Optional, Any, Union
 
-from arlib.llm.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
-from arlib.llm.llm_providers import LLMInterface, LLMConfig
-from arlib.llm.whitebox import WhiteboxAnalyzer, ModelEvaluator
-from arlib.llm.utils import (
+from arlib.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
+from arlib.llm.smto.llm_adapter import LLMInterface, LLMConfig
+from arlib.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
+from arlib.llm.smto.utils import (
     OracleCache,
     ExplanationLogger,
     z3_value_to_python,

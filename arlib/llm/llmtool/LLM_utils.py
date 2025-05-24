@@ -18,6 +18,8 @@ from botocore.exceptions import BotoCoreError, ClientError
 import boto3
 from arlib.llm.llmtool.logger import Logger
 
+from zhipuai import ZhipuAI
+
 
 class LLM:
     """
@@ -270,3 +272,36 @@ class LLM:
             time.sleep(2)
 
         return ""
+    
+
+    def infer_with_glm_model(self, message):
+        """Infer using the GLM model"""
+        api_key = os.environ.get("GLM_API_KEY")
+        model_input = [
+            {"role": "system", "content": self.systemRole},
+            {"role": "user", "content": message},
+        ]
+
+        def call_api():
+            client = ZhipuAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model=self.online_model_name,
+                messages=model_input,
+                temperature=self.temperature,
+            )
+            return response.choices[0].message.content
+
+        tryCnt = 0
+        while tryCnt < 5:
+            tryCnt += 1
+            try:
+                output = self.run_with_timeout(call_api, timeout=100)
+                if output:
+                    # print("Raw response from GLM model: ", output)
+                    return output
+            except Exception as e:
+                self.logger.print_log(f"API error: {e}")
+            time.sleep(2)
+
+        return ""
+    

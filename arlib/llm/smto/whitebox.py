@@ -7,7 +7,7 @@ import z3
 from typing import Dict, Optional, Any, List
 
 from arlib.llm.smto.oracles import WhiteboxOracleInfo, OracleAnalysisMode
-from arlib.llm.smto.llm_factory import LLMInterface
+from arlib.llm.smto.llm_adapter import LLMInterface
 
 
 class WhiteboxAnalyzer:
