@@ -31,6 +31,8 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * LLM integration (``arlib/llm``)
 * Automata operations (``arlib/automata``)
 * SyGuS (Syntax-Guided Synthesis) (``arlib/sygus``)
+* PolyHorn (``arlib/quant/polyhorn``)
+* Constrained Horn Clauses (CHC) tools (``arlib/quant/chctools``)
 * ...
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
@@ -73,6 +75,8 @@ The setup script will:
    monabs
    optimization
    quantifiers
+   polyhorn
+   chc
    sampling
    smt
    symbolic_abstraction

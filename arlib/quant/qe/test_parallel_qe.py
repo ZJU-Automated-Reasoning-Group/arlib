@@ -28,6 +28,7 @@ def try_direct_qe_by_z3_binary(phi, qvars):
         if "unknown" not in result.stdout.lower() and "error" not in result.stdout.lower():
             output = result.stdout.strip()
             
+            
             # Parse Z3 goals output
             if "(goals" in output and "(goal" in output:
                 goal_match = re.search(r'\(goal\s+(.*?)\s+:precision', output, re.DOTALL)
@@ -75,7 +76,8 @@ def run_single_test(name, formula, qvars):
     start_time = time.time()
     try:
         result2 = try_direct_qe_by_z3_binary(formula, qvars)
-        time2 = time.time() - start_time
+        time2 = time.tim
+        e() - start_time
     except Exception as e:
         result2, time2 = f"ERROR: {e}", time.time() - start_time
     
