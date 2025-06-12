@@ -1,0 +1,342 @@
+1. Theorem: dlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+   Lemma: dlst(x) => lst(x)
+   SyGuS synthesis: 0.9s
+   Constraint-based synthesis: 1.42s
+   dlist-list
+
+2. Theorem: slst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+   Lemma: slst(x) => lst(x)
+   SyGuS synthesis: 1.01s
+   Constraint-based synthesis: 1.69s
+   slist-list
+
+3. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret))
+   Lemma: sdlst(x) => dlst(x)
+   SyGuS synthesis: 2.83s
+   Constraint-based synthesis: 3.06s
+   sdlist-dlist
+
+4. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret) /\ slst(ret))
+   Lemmas: sdlst(x) => dlst(x)
+           sdlst(x) => slst(x)
+   SyGuS synthesis: 3.68s
+   Constraint-based synthesis: 7.29s
+   sdlist-dlist-and-slist
+
+5. Theorem: listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))
+   Lemmas: listlen(x, l) => list(x)
+   SyGuS synthesis: 0.92s
+   Constraint-based synthesis: 1.13s
+   listlen-list
+
+6. {v1 = v2}
+   while (v1 != nil) do
+     v1 := n(v1);
+     if (v2 != c) {v2 := n(v2)}
+   endwhile
+   {v2 = nil \/ v2 = c}
+   Lemma: reach(x) => v2(x) == v1(x) \/ v2(x) == c)
+   SyGuS synthesis: 2961.88s
+   Constraint-based synthesis: 16.26s
+   reachability
+
+7. {v1 = v2}
+   while (v1 != nil) do
+     v1 := n(v1);
+     v2 := n(v2)
+   endwhile
+   {v2 = nil}
+   Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 199.06s
+   Constraint-based synthesis: 8.57s
+   reachability2
+
+8. {v1 = v2}
+   while (v1 != c) do
+     v1 := n(v1);
+     if (v2 != c) {v2 := n(v2)}
+   endwhile
+   {v2 = nil \/ v2 = c}
+   Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 626.50s
+   Constraint-based synthesis: 8.32s
+   reachability3
+
+9. {v1 = v2}
+   while (v1 != c) do
+     v1 := n(v1);
+     v2 := n(v2)
+   endwhile
+   {v2 = nil}
+   Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 298.09s
+   Constraint-based synthesis: 7.24s
+   reachability4
+
+10. {v1 = n(v2)}
+    while (v1 != nil) do
+      v1 := n(v1);
+      if (v2 != c) {v2 := n(v2)}
+    endwhile
+    {n(v2) = nil \/ v2 = c}
+    Lemma: reach(x) => n(v2(x)) == v1(x) \/ v2(x) == c)
+    SyGuS synthesis: 3898.42s
+    Constraint-based synthesis: 15.89s
+    reachability5
+
+11. {v1 = n(v2)}
+    while (v1 != nil) do
+      v1 := n(v1);
+      v2 := n(v2)
+    endwhile
+    {n(v2) = nil}
+    Lemma: reach(x) => n(v2(x)) == v1(x)
+    SyGuS synthesis: 234.85s
+    Constraint-based synthesis: 8.55s
+    reachability6
+
+12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
+    Lemma: lseg(x, y) => (list(y) == list(x))
+    SyGuS synthesis: 12.92s
+    Constraint-based synthesis: 16.85s
+    lseg-nil-list
+
+13. Theorem: slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))
+    Lemma checked: slseg(x, y) => (slist(x) == slist(y))
+    Lemma synthesized slseg(x, y) => (slist(y) => slist(x))
+    SyGuS synthesis: 9.94
+    Constraint-based synthesis: 7.99s
+    slseg-nil-slist
+
+14. Theorem: lseg(x, y) => (lst(y) /\ x != c /\ nxt(y) == z => (lseg(x, z) /\ lst(z)))
+     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+     SyGuS synthesis: 901.26s
+     Constraint-based synthesis: 11.67s
+     lseg-trans
+
+15. Theorem: lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))
+    Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+    SyGuS synthesis: 1711.89s
+    Constraint-based synthesis: 27.33s
+    lseg-trans2
+
+16. Theorem: lseg(x, y) => (key(x) != k /\ lseg(x, z) => lseg(y, z) \/ lseg(z, y))
+    Lemma: lseg(x, y) => (lseg(x, z) => lseg(y, z) \/ lseg(z, y))
+    SyGuS synthesis: 285.68s
+    Constraint-based synthesis: 9.27s
+    lseg-ext
+
+17. Theorem: bst(x) => ((x != nil /\ y \in hbst(lft(x)) /\ z \in hbst(rght(x))) => key(y) <= key(z))
+    Lemmas: bst(x) => (y \in hbst(x) => key(y) <= max(x))
+            bst(x) => (y \in hbst(x) => min(x) <= key(y))
+    SyGuS synthesis: Theorem not proved, 1 hour timeout
+    Constraint-based synthesis: 582.07s
+     - Lemma 2 instead was bst(x) => (y \in hbst(x) => min(x) <= min(y))
+    bst-left-right
+
+18. Theorem: bst(x) => ((x != nil /\ k \in keys(x) /\ k < key(x)) => k \in keys(lft(x)))
+    Lemma: bst(x) => ((x != nil /\ k \in keys(x)) => minr(x) <= k /\ minr(x) <= k)
+    SyGuS synthesis: Theorem not proved, 1 hour timeout
+    Constraint-based synthesis: 156.96s
+     - Lemma instead was: bst(x) => (k \in keys(x) => minr(x) <= k)
+    bst-left
+
+19. Theorem: bst(x) => ((x != nil /\ k \in keys(x) /\ k > key(x)) => k \in keys(rght(x)))
+    Lemma: bst(x) => ((x != nil /\ k \in keys(x)) => minr(x) <= k /\ k <= maxr(x))
+    SyGuS synthesis: Theorem not proved, 1 hour timeout
+    Constraint-based synthesis: 68.62s
+     - Lemma instead was: bst(x) => ((bst(rght(x)) => k \in keys(x)) => k <= maxr(x))
+    bst-right
+
+20. Theorem: lseg(x,y) => ((key(x) != k /\ n(y) = z) => lseg(x,z))
+    Lemma: lseg(x,y) => (n(y) = z => lseg(x,z))
+    SyGuS synthesis: 37.91,
+     - Lemma instead was: lseg(x, y) => lseg(n(x), n(y))
+    Constraint-based synthesis: 7.99s
+     - Lemma instead was: lseg(x, y) => lseg(n(x), n(y))
+    lseg-next
+
+21. Theorem: lst(x) => ((y != nil /\ lseg(x,y) /\ key(y) == k) => k \in keys(x))
+    Lemma: lseg(x,y) => ((y != nil /\ lst(x) /\ key(y) == k) => k \in keys(x))
+    SyGuS synthesis: 3.79s
+     - Lemma instead was: lseg(x, y) => (k \in keys(y) => k \in keys(x))
+    Constraint-based synthesis: 60.98s
+     - Lemma instead was: lseg(x, y) => (k \in keys(y) => k \in keys(x))
+     list-lseg-keys
+
+22. Theorem: lseg(x,y) => ((x != nil /\ y != nil /\ lst(x) /\ key(y) == k) => k \in keys(x))
+    Lemma: lseg(x,y) => ((y != nil /\ lst(x) /\ key(y) == k) => k \in keys(x))
+    SyGuS synthesis: 3.13s
+     - Lemma instead was: lseg(x, y) => (k \in keys(y) => k \in keys(x))
+    Constraint-based synthesis: 62.75s
+     - Lemma instead was: lseg(x, y) => (k \in keys(y) => k \in keys(x))
+    list-lseg-keys2
+
+23. Theorem: rlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: rlst(x) => lst(x)
+    SyGuS synthesis: 1.32s
+    Constraint-based synthesis: 1.59s
+    rlist-list
+
+24. Theorem: rlst(x) => (black(x) => red_height(x) == black_height(x))
+    Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
+                       (red(x) => red_height(x) == 1 + black_height(x)))
+    SyGuS synthesis: 96.74s
+    Constraint-based synthesis: 24.16s
+    rilst-black-height
+
+25. Theorem: rlst(x) => (red(x) => red_height(x) == 1 + black_height(x))
+    Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
+                       (red(x) => red_height(x) == 1 + black_height(x)))
+    SyGuS synthesis: 131.82s
+    Constraint-based synthesis: 27.10s
+    rlist-red-height
+
+26. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: odd_lst(x) => lst(x)
+    SyGuS synthesis: 2.55s
+    Constraint-based synthesis: 2.25s
+     - Lemma instead was: odd_lst(x) => lst(nxt(x))
+    odd-list
+
+27. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: even_lst(x) => lst(x)
+    SyGuS synthesis: 2.54s
+    Constraint-based synthesis: 5.07s
+     - Lemma instead was: even_lst(x) => (lst(nxt(x)) /\ lst(nxt(nil)))
+    even-list
+
+28. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lst(y))
+    Lemma: lst(x) => (y \in hlst(x) => lst(y))
+    SyGuS synthesis: 2.41s
+    Constraint-based synthesis: 2.59s
+    list-hlist-list
+
+29. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lseg(x,y))
+    Lemma: lst(x) => (y \in hlst(x) => lseg(x,y))
+    SyGuS synthesis: 1270.54s
+    Constraint-based synthesis: 36.83s
+    list-hlist-lseg
+
+30. Theorem: bst(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))
+    Lemma: bst(x) => tree(x)
+    SyGuS synthesis: 4.90s
+    Constraint-based synthesis: 8.49s
+    bst-tree
+
+31. Theorem: reach(x,y) => (tree(x) /\ key(x) != k => tree(y))
+    Lemma: reach(x,y) => (tree(x) => tree(y))
+    SyGuS synthesis: Timeout after 1 hr
+    Constraint-based synthesis: 561.68s
+    tree-reach
+
+32. Theorem: reach(x,y) => (dag(x) /\ key(x) != k => dag(y))
+    Lemma: reach(x,y) => (dag(x) => dag(y))
+    SyGuS synthesis: 291.63s
+    Constraint-based synthesis: 74.42s
+    dag-reach
+
+33. Theorem: tree(x) => (reach(x,y) => tree(y))
+    Lemma: reach(x,y) => (tree(x) => tree(y))
+    SyGuS synthesis: Timeout after 1 hr
+    Constraint-based synthesis: 487.81s
+    tree-reach2
+
+34. Theorem: dag(x) => (reach(x,y) => dag(y))
+    Lemma: reach(x,y) => (dag(x) => dag(y))
+    SyGuS synthesis: 198.01s
+    Constraint-based synthesis: 48.69s
+    dag-reach2
+
+35. Theorem: reach(x,y) => (x != nil /\ y != nil /\ reach(lft(x), y) /\ reach(rght(x), z)
+                           => y != z)
+    Lemma: reach(x,y) => (y != nil => y \in htree(x))
+    SyGuS synthesis: Timeout after 1 hr
+    Constraint-based synthesis: 1171.51
+    reach-left-right
+
+36. Theorem: cyclic(x) => cyclic(nxt(x))
+    Lemma: lseg(x,y) => (y != nil => lseg(x, nxt(y)))
+    SyGuS synthesis: 161.12s
+    Constraint-based synthesis: 14.39s
+    cyclic-next
+
+37. Theorem: bst(x) => ((x != nil /\ key(x) != k /\ y == leftmost(x)) => key(y) == minr(x))
+    Lemma: bst(x) => (x != nil => key(leftmost(x)) == minr(x))
+    SyGuS synthesis: Timeout after 1 hr
+    Constraint-based synthesis: 162.49s
+    bst-leftmost???
+
+38. Theorem: lst(x) => (even_lst(x) \/ odd_lst(x))
+    Lemmas: lst(x) => (Not(even_lst(nxt(x))) => even_lst(x))
+            even_lst(x) => (x != nil => odd_lst(nxt(x)))
+    SyGuS synthesis: 49.16s
+    Constraint-based synthesis: 14.84s
+    list-even-or-odd
+
+39. Theorem: lsegy(x) => (key(x) != k => lsegz_p(x))
+    Note: lseg defs are unary and primed defs use internally a nxt' def where
+          nxt'(x) := If(x = y, z, nxt(x))
+    Lemma: lsegy(x) => lsegz_p(x)
+    SyGuS synthesis: 1.67s
+    Constraint-based synthesis: 3.07s
+    lseg-next-dynamic
+
+40. Theorem: tree(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))
+    Lemma: tree(x) => dag(x)
+    SyGuS synthesis: 2.59s
+    Constraint-based synthesis: 2.93s
+    tree-dag
+
+41. Theorem: tree_p(x) => (reach_lr(x,y) => tree_p(y))
+    Lemma: reach_lr(x,y) => (tree_p(x) => tree_p(y))
+    SyGuS synthesis: 195.05s
+    Constraint-based synthesis: 19.69s
+    tree-parent-reach
+
+42. Theorem: tree_p(x) => (parent(x) == nil => tree(x))
+    Lemma: tree_p(x) => tree(x)
+    SyGuS synthesis: 1.51s
+    Constraint-based synthesis: 1.64s
+    tree-parent-tree
+
+43. Theorem: tree_p(x) => (parent(x) == nil => (reach_lr(x,y) => tree(y)))
+    Lemmas: reach_lr(x,y) => (tree_p(x) => tree_p(y))
+            tree_p(x) => tree(x)
+    SyGuS synthesis: 32.56s
+    Constraint-based synthesis: 26.68s
+    tree-parent-reach-tree
+    Note: Can use one or both of lemma from 41/42 to ease synthesis for this example
+
+44. Theorem: lseg(x,y) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: lseg(x,y) => (lst(x) == lst(y))
+    SyGuS synthesis: 37.83s
+    Constraint-based synthesis: 15.01s
+    lseg-list
+
+45. Theorem: bst(x) => ((x != nil y != nil /\ lft(y) != nil /\ y \in hbst(x) /\ k == minr(x))
+                       => k == minr(lft(y)))
+    Lemma: bst(x) => (y \in hbst(x) => bst(y))
+    SyGuS synthesis: 7.17s
+    Constraint-based synthesis: 14.33s
+    bst-minimal
+
+46. Theorem: bst(x) => ((x != nil y != nil /\ rght(y) != nil /\ y \in hbst(x) /\ k == maxr(x))
+                       => k == maxr(lft(y)))
+    Lemma: bst(x) => (y \in hbst(x) => bst(y))
+    SyGuS synthesis: 7.17s
+    Constraint-based synthesis: 14.33s
+    bst-maximal
+
+47. Theorem: maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))
+    maxheap-tree
+
+48. Theorem: maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))
+    maxheap-dag
+
+49. Theorem: maxheap(x) => (key(x) != k => (y \in htree(x) => key(y) <= key(x)))
+    maxheap-htree-key
+
+50. Theorem: maxheap(x) => (lft(x) != nil => (k \in keys(x) => k <= key(x)))
+    maxheap-keys
+

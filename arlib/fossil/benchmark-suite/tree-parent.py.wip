@@ -1,0 +1,76 @@
+import importlib_resources
+
+import z3
+from z3 import And, Or, Not, Implies, If
+from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptySet, SetAdd
+
+from naturalproofs.prover import NPSolver
+from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
+from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
+
+from lemsynth.lemsynth_engine import solveProblem
+
+# declarations
+x, y = Vars('x y', fgsort)
+nil, z = Consts('nil z', fgsort)
+k = Const('k', intsort)
+key = Function('key', fgsort, intsort)
+lft = Function('lft', fgsort, fgsort)
+rght = Function('rght', fgsort, fgsort)
+parent = Function('parent', fgsort, fgsort)
+tree_p = RecFunction('tree_p', fgsort, boolsort)
+htree_p = RecFunction('htree_p', fgsort, fgsetsort)
+AddRecDefinition(tree_p, x, If(x == nil, True,
+                               And(SetIntersect(htree_p(lft(x)), htree_p(rght(x)))
+                                   == fgsetsort.lattice_bottom,
+                                   And(And(parent(lft(x)) == x, parent(rght(x)) == x),
+                                       And(tree_p(lft(x)), tree_p(rght(x)))))))
+AddRecDefinition(htree_p, x, If(x == nil, fgsetsort.lattice_bottom,
+                              SetAdd(SetUnion(htree_p(lft(x)), htree_p(rght(x))), x)))
+
+AddAxiom((), lft(nil) == nil)
+AddAxiom((), rght(nil) == nil)
+
+# vc
+cond = And(x != y, And(key(x) != k, And(IsMember(y, htree_p(x)), z == parent(y))))
+goal = Implies(tree_p(x), Implies(cond, tree_p(z)))
+
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(make_pfp_formula(goal))
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemmas
+lemma_params = (x,y)
+lemma_body = Implies(tree_p(x),
+                     Implies(And(x != y, And(IsMember(y, htree_p(x)), z == parent(y))),
+                             tree_p(z)))
+lemmas = {(lemma_params, lemma_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma_body))
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print('lemma is invalid')
+
+# check validity with natural proof solver and hardcoded lemmas
+solution = np_solver.solve(goal, lemmas)
+if not solution.if_sat:
+    print('goal (with lemmas) is valid')
+else:
+    print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, z]
+lemma_grammar_terms = {v1, v2, z, parent(v1), parent(v2), parent(z)}
+
+name = 'tree-parent'
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)
