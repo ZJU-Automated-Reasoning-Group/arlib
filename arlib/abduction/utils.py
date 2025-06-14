@@ -5,26 +5,7 @@ Utilities for abduction
 import re
 import z3
 from typing import Tuple, List, Dict
-
-
-def get_variables(formula: z3.ExprRef) -> dict:
-    """Extract variable names and their types from a Z3 formula."""
-    var_types = {}
-    
-    def collect_vars(f):
-        if z3.is_const(f):
-            var_name = str(f)
-            if not (var_name == "True" or var_name == "False" or var_name.isdigit()):
-                try:
-                    int(var_name)  # Skip numerical constants
-                except ValueError:
-                    var_types[var_name] = f.sort()
-        for child in f.children():
-            collect_vars(child)
-    
-    collect_vars(formula)
-    return var_types
-
+# from arlib.utils.z3_expr_utils import get_variables 
 
 
 def extract_variables_from_smt2(smt2_str: str) -> Dict[str, z3.ExprRef]:
