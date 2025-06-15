@@ -171,7 +171,7 @@ except ImportError:
                 Returns:
                     str: A regex approximation
                 """
-                from regex import Regex
+                from arlib.automata.symautomata.regex import Regex
                 converter = Regex(self)
                 return converter.get_regex()
 

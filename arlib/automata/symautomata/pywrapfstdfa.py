@@ -13,7 +13,8 @@ from arlib.automata.symautomata.alphabet import createalphabet
 EPSILON = 0xffff
 #import pywrapfst as fst
 #import openfst_python as fst
-import pyfst as fst
+import pyfst as fst  # FIXME
+
 
 def TropicalWeight(param):
     """

@@ -6,7 +6,7 @@ It is an interface for pyfst.
 
 from operator import attrgetter
 #import fst
-import pywrapfst as fst
+import pywrapfst as fst  # FIXME
 #import openfst_python as fst
 from arlib.automata.symautomata.alphabet import createalphabet
 

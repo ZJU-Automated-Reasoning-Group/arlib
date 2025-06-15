@@ -1,6 +1,7 @@
 """
 This module performs all basic SFA operations.
 It is an interface for sfa automata.
+TODO: This module is not fully implemented yet. Maybe we need to use Z3's Python API for this.
 """
 # !/usr/bin/python
 import random

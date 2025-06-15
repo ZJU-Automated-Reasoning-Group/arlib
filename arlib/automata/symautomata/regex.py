@@ -7,9 +7,9 @@ import re
 from collections import OrderedDict
 from operator import attrgetter
 
-from alphabet import createalphabet
-from dfa import DFA
-from flex2fst import Flexparser
+from arlib.automata.symautomata.alphabet import createalphabet
+from arlib.automata.symautomata.dfa import DFA
+from arlib.automata.symautomata.flex2fst import Flexparser
 
 
 class Regex:
