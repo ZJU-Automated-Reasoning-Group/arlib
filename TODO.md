@@ -7,7 +7,8 @@ There are many interesting research topics. You are welcome to contribute to the
 - Parallel CDCL(T): See `arlib/smt/pcdclt`
 - SMT for finite field: See  `arlib/smt/ff`
 - LLM-driven constraint solving: See `arlib/llm`
-- Symbolic abstraction techniques: See `arlib/symabs`
+- LLM-based abduction: See `arlib/llm`
+
 
 ## Interfaces
 
@@ -30,10 +31,12 @@ There are many interesting research topics. You are welcome to contribute to the
 
 ### Projection
 
+
 - Fourier-Motzkin elimination
 - Simplex method
 - Virtual substitution techniques
 - Cylindrical algebraic decomposition
+- ...
   
 ### Advanced Profiling
 
@@ -65,8 +68,8 @@ You are welcome to contribute to the following applications:
 - `Testing`: CIT, symbolic execution, translation validation
 - `Static Bug Finding`: value-flow analysis, path-sensitive data-flow analysis
 - `Verification`: K-induction, BMC, temlate-based verification, symbolic abstraction
-- `Synthesis`: enumerative, deductive
-- `Optimization`: superoptimization, polyhedral compilation
+- `Synthesis`: enumerative, deductive, CEGIS, PBE, ...
+- `Optimization`: superoptimization, egraph, polyhedral compilation, ...
 
 ### Domain Specific
 
@@ -75,5 +78,5 @@ You are welcome to contribute to the following applications:
 - `Program Repair`: automatic bug fixing with constraint solving
 - `Security`: vulnerability detection, exploit generation, formal verification of security protocols, deobfuscation (e.g., for MBA)
 - `Planning and Scheduling`: constraint-based AI planning
-
+- `Optimization`: equality saturation, etc.
 

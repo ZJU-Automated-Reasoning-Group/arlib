@@ -33,6 +33,7 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * SyGuS (Syntax-Guided Synthesis) (``arlib/sygus``)
 * PolyHorn (``arlib/quant/polyhorn``)
 * Constrained Horn Clauses (CHC) tools (``arlib/quant/chctools``)
+* Symbolic Finite Automata (SFA) (``arlib/automata/symautomata``)
 * ...
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.

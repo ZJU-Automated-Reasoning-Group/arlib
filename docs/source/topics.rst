@@ -49,6 +49,22 @@ Bit-Vector Model Sampling
 
 Given a satisfiable formula `P`, how to generate multiple and diverse solutions `P`?
 
+Parallel CDCL(T) Solving
+-------
+
+Develop parallel algorithms for Conflict-Driven Clause Learning with theories.
+Focus on efficient work distribution and conflict clause sharing across multiple threads.
+
+Refer to `arlib/smt/pcdclt`.
+
+Symbolic Abstraction and Refinement
+-------
+
+Investigate predicate abstraction techniques and counterexample-guided abstraction refinement (CEGAR).
+Applications include program verification and model checking.
+
+Refer to `arlib/symabs`.
+
 =========
 2. SMT Solving for Specific Theories
 =========
@@ -67,11 +83,102 @@ and multiplication. Galois Fields are used in many areas of mathematics,
 computer science, and engineering, such as coding theory, cryptography, and 
 digital signal processing.
 
+Refer to `arlib/smt/ff`.
 
 SMT Solving for Exists-Forall Problems over Bit-Vectors
 --------
 
+SMT Solving for Floating-Point Arithmetic
+--------
 
+Develop efficient decision procedures for IEEE 754 floating-point constraints.
+Focus on rounding modes, special values (NaN, infinity), and precision handling.
+
+Refer to `arlib/smt/fp`.
+
+=========
+3. Learning and AI-Enhanced Reasoning
+=========
+
+LLM-Driven Constraint Solving
+--------
+
+Integrate large language models to guide SMT solver heuristics and strategy selection.
+Explore neural-symbolic approaches for automated reasoning.
+
+Refer to `arlib/llm/smto`.
+
+Automata Learning for Constraint Solving
+--------
+
+Apply active learning techniques to infer finite automata and symbolic finite automata.
+Applications in string constraint solving and program verification.
+
+Refer to `arlib/automata`.
+
+LLM-Based Abductive Reasoning
+--------
+
+Use language models to generate explanations and hypotheses for observed constraints.
+Focus on debugging and root cause analysis in constraint systems.
+
+Refer to `arlib/llm/abduct`.
+
+=========
+4. Advanced Sampling and Enumeration
+=========
+
+Uniform Sampling for Linear Integer Arithmetic
+--------
+
+Develop algorithms for generating uniformly distributed solutions over linear integer constraints.
+Applications in testing and probabilistic verification.
+
+Refer to `arlib/sampling/linear_ira`.
+
+Non-Linear Real Arithmetic Sampling
+--------
+
+Efficient sampling techniques for polynomial constraints over real numbers.
+Focus on volume computation and density estimation.
+
+Refer to `arlib/sampling/nonlinear_ira`.
+
+All-SMT and Solution Enumeration
+--------
+
+Enumerate all satisfying assignments or a diverse subset of solutions.
+Applications in combinatorial optimization and test case generation.
+
+Refer to `arlib/allsmt`.
+
+=========
+5. Quantifier Reasoning
+=========
+
+Quantifier Elimination for Mixed Theories
+--------
+
+Develop efficient QE procedures for combinations of arithmetic, bit-vectors, and arrays.
+Focus on applications in program verification and synthesis.
+
+Refer to `arlib/quant/qe`.
+
+E-Matching and Instantiation Strategies
+--------
+
+Improve quantifier instantiation in SMT solvers through better pattern matching
+and trigger selection heuristics.
+
+Refer to `arlib/quant/ematching`.
+
+Constrained Horn Clause Solving
+--------
+
+Develop scalable algorithms for solving systems of constrained Horn clauses.
+Applications in program verification and invariant synthesis.
+
+Refer to `arlib/quant/chctools`.
 
 =========
 References
