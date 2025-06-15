@@ -1,0 +1,559 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arlib.automata.symautomata.cfggenerator &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=0335fd14"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arlib.automata.symautomata.cfggenerator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arlib.automata.symautomata.cfggenerator</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This modules generates a string from a CFG&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
+
+
+
+<div class="viewcode-block" id="CNFGenerator">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfggenerator.CNFGenerator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CNFGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Use Chomsky to transform to CNF&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grammar_rules</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse input grammar rules&quot;&quot;&quot;</span>
+        <span class="n">parsed_grammar</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">grammar_rule</span> <span class="ow">in</span> <span class="n">grammar_rules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grammar_rule</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="n">rule</span> <span class="o">=</span> <span class="n">grammar_rule</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rule</span> <span class="o">=</span> <span class="n">grammar_rule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Split the rules based on : character&quot;&quot;&quot;</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">left_hand_side</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">):</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rest</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">():])</span>
+                    <span class="k">if</span> <span class="n">rest</span> <span class="o">==</span> <span class="s2">&quot;[]&quot;</span><span class="p">:</span>
+                        <span class="n">right_hand_side</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">combined_rulesets</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="s2">&quot;|&quot;</span><span class="p">)</span>
+                        <span class="n">right_hand_side</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">combined_rulesets</span><span class="p">:</span>
+                            <span class="n">l</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="n">l</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">l</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">parsed_grammar</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assing the parsed rules as the new grammar rules&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span> <span class="o">=</span> <span class="n">parsed_grammar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The grammar rules can be used to obtain the nonterminals&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">}</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The nonterminals can be used to distinguish the terminals&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot; Each rule can be a symbol ot a set of symbols</span>
+<span class="sd">                If rule is a non terminal symbol, add it to the grammar terminals</span>
+<span class="sd">                If rule is a set of symbols, add each non terminal symbol to the grammar terminals&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rule_symbol</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">rule_symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_symbol</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule_index</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_index</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a reverse map from symbols to rules for both terminals and nonterminals&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals_map</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals_map</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule_index</span><span class="p">}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals_map</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rule_index</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rule_index</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove all unitary rules&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">rule</span> <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span> <span class="k">if</span>
+                    <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span>
+                     <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">rule</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">)])</span>
+
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                    <span class="n">ui</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ui</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">ui</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="n">ui</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">:</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unitary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;A@&quot;</span> <span class="o">+</span> <span class="n">a</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">a</span><span class="p">))</span>
+                    <span class="n">symbolslist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">symbol_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">symbolslist</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">symbolslist</span><span class="p">[</span><span class="n">symbol_index</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">:</span>
+                            <span class="n">symbolslist</span><span class="p">[</span><span class="n">symbol_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_grammar_nonterminals</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">symbolslist</span><span class="p">))</span>
+        <span class="n">total_rules</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rule_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_rules</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">next_rule</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">rule_index</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CNFGenerator.next_rule">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfggenerator.CNFGenerator.next_rule">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">next_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left_hand_side</span><span class="p">,</span> <span class="n">right_hand_side</span><span class="p">,</span> <span class="n">rule_index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">right_hand_side</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_hand_side</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">rule_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="n">right_hand_side</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">nta</span> <span class="o">=</span> <span class="s2">&quot;A@&quot;</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar_rules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">left_hand_side</span><span class="p">,</span> <span class="p">(</span><span class="n">right_hand_side</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nta</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_rule</span><span class="p">(</span><span class="n">nta</span><span class="p">,</span> <span class="n">right_hand_side</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">rule_index</span><span class="p">)</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="CFGGenerator">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfggenerator.CFGGenerator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFGGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class generates a string from a CFG&quot;&quot;&quot;</span>
+    <span class="n">grammar</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">bfs_queue</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">maxstate</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optimized</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">splitstring</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxstate</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Object initialization</span>
+<span class="sd">        Args:</span>
+<span class="sd">            cfgr (CNF): grammar for the random objects</span>
+<span class="sd">            optimized (bool): mode of operation - if enabled not all</span>
+<span class="sd">                            CNF rules are included (mitigate O(n^3))</span>
+<span class="sd">            splitstring (bool): A boolean for enabling or disabling</span>
+<span class="sd">                            the splitting of symbols using a space</span>
+<span class="sd">            maxstate (int): The maxstate is used for generating in a</span>
+<span class="sd">                            dynamic way the CNF rules that were not</span>
+<span class="sd">                            included due to the optimization. As a</span>
+<span class="sd">                            result, the algorithm generates these</span>
+<span class="sd">                            rules only if required.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxstate</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span> <span class="o">=</span> <span class="n">cfgr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimized</span> <span class="o">=</span> <span class="n">optimized</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splitstring</span> <span class="o">=</span> <span class="n">splitstring</span>
+        <span class="c1"># Because of the optimization, there are some non</span>
+        <span class="c1"># existing terminals on the generated list</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clean_terminals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxstate</span> <span class="o">=</span> <span class="n">maxstate</span>
+
+<div class="viewcode-block" id="CFGGenerator.generate">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfggenerator.CFGGenerator.generate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a new random string from the start symbol</span>
+<span class="sd">        Args:</span>
+<span class="sd">            None</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The generated string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitstring</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitstring</span> <span class="ow">and</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_clean_terminals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Because of the optimization, there are some non existing terminals</span>
+<span class="sd">        on the generated list. Remove them by checking for terms in form Ax,x</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_terminals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">:</span>
+            <span class="n">x_term</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)</span>
+            <span class="n">y_term</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">y_term</span> <span class="o">&gt;</span> <span class="n">x_term</span><span class="p">:</span>
+                <span class="n">x_term</span> <span class="o">=</span> <span class="n">y_term</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">term</span><span class="p">[</span><span class="n">x_term</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;It&#39;input_string a normal terminal, not a state&quot;&quot;&quot;</span>
+                <span class="n">new_terminals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_terminals</span> <span class="o">=</span> <span class="n">new_terminals</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_self_to_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stateid</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Because of the optimization, the rule for empty states is missing</span>
+<span class="sd">        A check takes place live</span>
+<span class="sd">        Args:</span>
+<span class="sd">            stateid (int): The state identifier</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: A true or false response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_term</span> <span class="o">=</span> <span class="n">stateid</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)</span>
+        <span class="n">y_term</span> <span class="o">=</span> <span class="n">stateid</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y_term</span> <span class="o">&gt;</span> <span class="n">x_term</span><span class="p">:</span>
+            <span class="n">x_term</span> <span class="o">=</span> <span class="n">y_term</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">stateid</span><span class="p">[</span><span class="n">x_term</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">ids</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1">#    print &#39;empty&#39;</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_intemediate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">myntr</span><span class="p">,</span> <span class="n">maxstate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each state Apq which is a known terminal, this function</span>
+<span class="sd">        searches for rules Apr -&gt; Apq Aqr and Arq -&gt; Arp Apq where</span>
+<span class="sd">        Aqr is also a known terminal or Arp is also a known terminal.</span>
+<span class="sd">        It is mainly used as an optimization in order to avoid the O(n^3)</span>
+<span class="sd">        for generating all the Apq -&gt; Apr Arq rules during the PDA to CFG</span>
+<span class="sd">        procedure.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            myntr (str): The examined non terminal that was poped out</span>
+<span class="sd">                        of the queue</span>
+<span class="sd">            maxstate (int): The maxstate is used for generating in a</span>
+<span class="sd">                            dynamic way the CNF rules that were not</span>
+<span class="sd">                            included due to the optimization. As a</span>
+<span class="sd">                            result, the algorithm generates these</span>
+<span class="sd">                            rules only if required.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: Returns true if the algorithm was applied</span>
+<span class="sd">                at least one time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># print &#39;BFS Dictionary Update - Intermediate&#39;</span>
+        <span class="n">x_term</span> <span class="o">=</span> <span class="n">myntr</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)</span>
+        <span class="n">y_term</span> <span class="o">=</span> <span class="n">myntr</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y_term</span> <span class="o">&gt;</span> <span class="n">x_term</span><span class="p">:</span>
+            <span class="n">x_term</span> <span class="o">=</span> <span class="n">y_term</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">myntr</span><span class="p">[</span><span class="n">x_term</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">find</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">maxstate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">!=</span> <span class="n">i</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> \
+                        <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> \
+                        <span class="ow">and</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span>
+                        <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="n">myntr</span><span class="p">]</span> \
+                                                   <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkfinal</span><span class="p">(</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)):</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
+                    <span class="k">if</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+                    <span class="n">find</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> <span class="ow">and</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> \
+                        <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span>
+                        <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> \
+                                                   <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="n">myntr</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkfinal</span><span class="p">(</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;A&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+                    <span class="n">find</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">find</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_self_replicate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">myntr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each Rule B -&gt; c where c is a known terminal, this function</span>
+<span class="sd">        searches for B occurences in rules with the form A -&gt; B and sets</span>
+<span class="sd">        A -&gt; c.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># print &#39;BFS Dictionary Update - Self Replicate&#39;</span>
+        <span class="n">find</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nonterm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="n">nonterm</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> \
+                        <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">myntr</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="n">myntr</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkfinal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">find</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">find</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_self_nonterminals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimized</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each Rule A -&gt; BC where B and C are known terminals (B -&gt; c1 and C -&gt; c2),</span>
+<span class="sd">        this function searches replaces A to the corresponding terminals A -&gt; c1c2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># print &#39;BFS Dictionary Update - Self Non Terminals&#39;</span>
+        <span class="n">find</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="n">nt</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span>\
+                    <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">)</span> \
+                    <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                    <span class="c1"># All rules are in CNF form, so first check the A -&gt; BC rules</span>
+                    <span class="n">part_a</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">optimized</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_self_to_empty</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+                        <span class="n">part_a</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">:</span>
+                        <span class="n">part_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="n">part_b</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">optimized</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_self_to_empty</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">part_b</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">:</span>
+                        <span class="n">part_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">part_a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">part_b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">part_a</span> <span class="o">+</span> <span class="n">part_b</span>
+                        <span class="c1"># print &#39;Non Terminals Resolving</span>
+                        <span class="c1"># &#39;+self.g.Rules[i][0]+&quot;: &quot;+</span>
+                        <span class="c1"># self.Resolved[self.g.Rules[i][0]]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkfinal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+                            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">find</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">find</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_checkfinal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nonterminal</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">nonterminal</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimized</span><span class="p">,</span> <span class="n">splitstring</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates a new random object generated from the nonterminal</span>
+<span class="sd">        Args:</span>
+<span class="sd">            optimized (bool): mode of operation - if enabled not all</span>
+<span class="sd">                            CNF rules are included (mitigate O(n^3))</span>
+<span class="sd">            splitstring (bool): A boolean for enabling or disabling</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The generated string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Define Dictionary that holds resolved rules</span>
+        <span class="c1"># (only in form A -&gt; terminals sequence)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># First update Resolved dictionary by adding rules</span>
+        <span class="c1"># that contain only terminals (resolved rules)</span>
+        <span class="k">for</span> <span class="n">nt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_nonterminals_map</span><span class="p">[</span><span class="n">nt</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span>\
+                        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;@empty_set&#39;</span> \
+                            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">:</span>
+
+                        <span class="k">if</span> <span class="n">splitstring</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="c1"># print &#39;ResolvingA &#39;+self.g.Rules[i][0]+&quot;: &quot;+</span>
+                        <span class="c1"># self.g.Rules[i][1]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkfinal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+                            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;@empty_set&#39;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                        <span class="c1"># print &#39;ResolvingB &#39;+self.g.Rules[i][0]+&quot;: &quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">optimized</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_self_to_empty</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">resolved</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                        <span class="c1"># print &#39;ResolvingC &#39;+self.g.Rules[i][0]+&quot;: &quot;</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Then try to use the rules from Resolved dictionary and check</span>
+        <span class="c1"># if there is another rule that can be resolved.</span>
+        <span class="c1"># This should be done in a while loop</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="n">change</span><span class="p">:</span>
+            <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">change</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_self_nonterminals</span><span class="p">(</span><span class="n">optimized</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ret</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">change</span><span class="p">:</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="n">change</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">myntr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfs_queue</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_self_replicate</span><span class="p">(</span><span class="n">myntr</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">ret</span>
+                    <span class="k">if</span> <span class="n">optimized</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_intemediate</span><span class="p">(</span>
+                            <span class="n">myntr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxstate</span><span class="p">):</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">break</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

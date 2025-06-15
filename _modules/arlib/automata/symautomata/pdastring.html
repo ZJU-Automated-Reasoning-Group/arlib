@@ -1,0 +1,662 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arlib.automata.symautomata.pdastring &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=0335fd14"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arlib.automata.symautomata.pdastring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arlib.automata.symautomata.pdastring</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module retrieves a simple string from a PDA</span>
+<span class="sd">using the state removal method</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.pda</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDAState</span>
+
+
+<div class="viewcode-block" id="PdaString">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.pdastring.PdaString">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PdaString</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves a string from a PDA&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class Initialization&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">pass</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_rest_push</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combining Rest and Push States&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># DEBUG</span>
+        <span class="c1"># logging.debug(&#39;Combining Rest and Push&#39;)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">examinetypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">examinetypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># if nextstate_id != state.id:</span>
+                    <span class="k">if</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                        <span class="n">examines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">examine</span> <span class="ow">in</span> <span class="n">examines</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">nextstate_id</span> <span class="ow">and</span> <span class="n">examine</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="n">examine</span><span class="o">.</span><span class="n">sym</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                    <span class="c1"># if nextnextstate_id != examine.id :</span>
+
+                                    <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                        <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                            <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                            <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span> <span class="o">+</span> <span class="n">z_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+x_char +&#39; + &#39;+ z_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+x_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+z_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># empty&#39;</span>
+                                            <span class="k">else</span><span class="p">:</span>
+                                                <span class="k">pass</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># print &#39;Lets combine one with id &#39;+`state.id`+&#39;(rest)</span>
+                        <span class="c1"># and one with id &#39;+`nextstate_id`+&#39;(push)&#39;</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="c1"># del(state.trans[nextstate_id])</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_push_rest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combining Push and Rest&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># DEBUG</span>
+        <span class="c1"># logging.debug(&#39;Combining Push and Rest&#39;)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">examinetypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">examinetypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># if nextstate_id != state.id:</span>
+                    <span class="k">if</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                        <span class="n">examines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">examine</span> <span class="ow">in</span> <span class="n">examines</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">nextstate_id</span> <span class="ow">and</span> <span class="n">examine</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                                <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                    <span class="c1"># if nextnextstate_id != examine.id :</span>
+                                    <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                        <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                            <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                            <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span> <span class="o">+</span> <span class="n">z_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+x_char +&#39; + &#39;+ z_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+x_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># &#39;+z_char</span>
+                                            <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                <span class="c1"># DEBUGprint &#39;transition is now</span>
+                                                <span class="c1"># empty&#39;</span>
+                                            <span class="k">else</span><span class="p">:</span>
+                                                <span class="k">pass</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># DEBUGprint &#39;Lets combine one with id</span>
+                        <span class="c1"># &#39;+`state.id`+&#39;(push) and one with id</span>
+                        <span class="c1"># &#39;+`nextstate_id`+&#39;(rest)&#39;</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">del</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_pop_rest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combining Pop and Rest&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># DEBUG</span>
+        <span class="c1"># logging.debug(&#39;Combining Pop and Rest&#39;)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">examinetypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">examinetypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># if nextstate_id != state.id:</span>
+                    <span class="k">if</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                        <span class="n">examines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">examine</span> <span class="ow">in</span> <span class="n">examines</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">nextstate_id</span> <span class="ow">and</span> <span class="n">examine</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                    <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                    <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">2</span>
+                                    <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span>
+                                    <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                    <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                        <span class="c1"># if nextnextstate_id != examine.id:</span>
+
+                                        <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                            <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                                <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                                <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span> <span class="o">+</span> <span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char +&#39; + &#39;+ z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now empty&#39;</span>
+                                                <span class="k">else</span><span class="p">:</span>
+                                                    <span class="k">pass</span>
+                                    <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                                    <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                        <span class="c1"># if nextnextstate_id != examine.id:</span>
+
+                                        <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                            <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                            <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">2</span>
+                                            <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                            <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="n">x_char</span>
+                                            <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                            <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                                <span class="k">if</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+z_char</span>
+                                                <span class="k">elif</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now empty&#39;</span>
+                                                <span class="k">else</span><span class="p">:</span>
+                                                    <span class="k">pass</span>
+                                            <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                                            <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># DEBUGprint &#39;Lets combine one with id</span>
+                        <span class="c1"># &#39;+`state.id`+&#39;(push) and one with id</span>
+                        <span class="c1"># &#39;+`nextstate_id`+&#39;(rest)&#39;</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">del</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_rest_rest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combining Rest and Rest&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># DEBUG</span>
+        <span class="c1"># logging.debug(&#39;Combining Rest and Rest&#39;)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">examinetypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">examinetypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">secondfound</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="c1"># if nextstate_id != state.id:</span>
+                    <span class="k">if</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                        <span class="n">examines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">examine</span> <span class="ow">in</span> <span class="n">examines</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">nextstate_id</span> <span class="ow">and</span> <span class="n">examine</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                                <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">3</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="o">!=</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                                        <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                            <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                                <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                                <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span> <span class="o">+</span> <span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char +&#39; + &#39;+ z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now empty&#39;</span>
+                                                <span class="k">else</span><span class="p">:</span>
+                                                    <span class="k">pass</span>
+                                                <span class="n">secondfound</span> <span class="o">=</span> <span class="mi">1</span>
+                                <span class="k">if</span> <span class="n">secondfound</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                    <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+                                    <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+
+                    <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># DEBUGprint &#39;Lets combine one with id</span>
+                        <span class="c1"># &#39;+`state.id`+&#39;(rest) and one with id</span>
+                        <span class="c1"># &#39;+`nextstate_id`+&#39;(rest)&#39;</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">del</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_push_pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Combining Push and Pop&quot;&quot;&quot;</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">change</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># DEBUG</span>
+        <span class="c1"># logging.debug(&#39;Combining Push and Pop&#39;)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">examinetypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">examinetypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="c1"># if nextstate_id != state.id:</span>
+                    <span class="k">if</span> <span class="n">nextstate_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                        <span class="n">examines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">examine</span> <span class="ow">in</span> <span class="n">examines</span><span class="p">:</span>
+                            <span class="n">secondfound</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">nextstate_id</span> <span class="ow">and</span> <span class="n">examine</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                <span class="n">temp</span> <span class="o">=</span> <span class="n">PDAState</span><span class="p">()</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="mi">3</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">sym</span> <span class="o">=</span> <span class="mi">0</span>
+                                <span class="n">temp</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span>
+                                <span class="k">if</span> <span class="n">examine</span><span class="o">.</span><span class="n">sym</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                        <span class="c1"># if nextnextstate_id != examine.id :</span>
+                                        <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span> <span class="o">==</span> <span class="n">z_char</span><span class="p">:</span>
+                                                <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextstate_id</span><span class="p">]:</span>
+                                                    <span class="c1"># DEBUGprint state.sym+&#39; vs</span>
+                                                    <span class="c1"># &#39;+z_char</span>
+                                                    <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                        <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                            <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                                    <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                        <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                            <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                        <span class="c1"># DEBUGprint</span>
+                                                        <span class="c1"># &#39;transition is now</span>
+                                                        <span class="c1"># &#39;+x_char</span>
+                                                    <span class="k">else</span><span class="p">:</span>
+                                                        <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                            <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                        <span class="c1"># DEBUGprint</span>
+                                                        <span class="c1"># &#39;transition is now</span>
+                                                        <span class="c1"># empty&#39;</span>
+
+                                                    <span class="n">secondfound</span> <span class="o">=</span> <span class="mi">1</span>
+
+                                <span class="k">elif</span> <span class="n">state</span><span class="o">.</span><span class="n">sym</span> <span class="o">==</span> <span class="n">examine</span><span class="o">.</span><span class="n">sym</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">nextnextstate_id</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                        <span class="c1"># if nextnextstate_id != examine.id :</span>
+                                        <span class="k">for</span> <span class="n">x_char</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]:</span>
+                                            <span class="k">for</span> <span class="n">z_char</span> <span class="ow">in</span> <span class="n">examine</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                    <span class="n">nextnextstate_id</span><span class="p">]:</span>
+                                                <span class="k">if</span> <span class="n">nextnextstate_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                                <span class="k">if</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span> <span class="o">+</span> <span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char +&#39; + &#39;+ z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+x_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_char</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now &#39;+z_char</span>
+                                                <span class="k">elif</span> <span class="n">x_char</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">z_char</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                                    <span class="n">temp</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span>
+                                                        <span class="n">nextnextstate_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                                    <span class="c1"># DEBUGprint &#39;transition is</span>
+                                                    <span class="c1"># now empty&#39;</span>
+                                                <span class="k">else</span><span class="p">:</span>
+                                                    <span class="k">pass</span>
+                                                <span class="n">secondfound</span> <span class="o">=</span> <span class="mi">1</span>
+
+                                <span class="k">if</span> <span class="n">secondfound</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                    <span class="n">new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+                                    <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">found</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># DEBUGprint &#39;Lets combine one with id</span>
+                        <span class="c1"># &#39;+`state.id`+&#39;(push) and one with id</span>
+                        <span class="c1"># &#39;+`nextstate_id`+&#39;(pop)&#39;</span>
+                        <span class="n">change</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="c1"># DEBUGprint &#39;delete &#39;+`nextstate_id`+&#39; from</span>
+                        <span class="c1"># &#39;+`state.id`</span>
+                        <span class="k">del</span> <span class="n">state</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="n">nextstate_id</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">change</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accepted</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_check for string existence&quot;&quot;&quot;</span>
+        <span class="c1"># logging.debug(&#39;A check is now happening...&#39;)</span>
+        <span class="c1"># for key in self.statediag[1].trans:</span>
+        <span class="c1">#    logging.debug(&#39;transition to &#39;+`key`+&quot; with &quot;+self.statediag[1].trans[key][0])</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="mi">1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">total</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">=</span> <span class="n">total</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">total</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">accepted</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="mi">2</span> <span class="ow">in</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                        <span class="c1"># print &#39;Found&#39;</span>
+                        <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">accepted</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span> <span class="ow">in</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">:</span>
+                            <span class="c1"># print &#39;Found&#39;</span>
+                            <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="n">state</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accepted</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This is a repeated state in the state removal algorithm&quot;&quot;&quot;</span>
+        <span class="n">new5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_rest_push</span><span class="p">()</span>
+        <span class="n">new1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_push_pop</span><span class="p">()</span>
+        <span class="n">new2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_push_rest</span><span class="p">()</span>
+        <span class="n">new3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_pop_rest</span><span class="p">()</span>
+        <span class="n">new4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_rest_rest</span><span class="p">()</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">new1</span> <span class="o">+</span> <span class="n">new2</span> <span class="o">+</span> <span class="n">new3</span> <span class="o">+</span> <span class="n">new4</span> <span class="o">+</span> <span class="n">new5</span>
+        <span class="k">del</span> <span class="n">new1</span>
+        <span class="k">del</span> <span class="n">new2</span>
+        <span class="k">del</span> <span class="n">new3</span>
+        <span class="k">del</span> <span class="n">new4</span>
+        <span class="k">del</span> <span class="n">new5</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># self.printer()</span>
+            <span class="c1"># print &#39;PDA is empty&#39;</span>
+            <span class="c1"># logging.debug(&#39;PDA is empty&#39;)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span> <span class="o">+</span> <span class="n">new</span>
+        <span class="k">del</span> <span class="n">new</span>
+        <span class="c1"># print &#39;cleaning...&#39;</span>
+
+        <span class="c1"># It is cheaper to create a new array than to use the old one and</span>
+        <span class="c1"># delete a key</span>
+        <span class="n">newstates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span> <span class="o">==</span> <span class="p">{}:</span>
+                <span class="c1"># rint &#39;delete &#39;+`key.id`</span>
+                <span class="c1"># self.statediag.remove(key)</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newstates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span> <span class="o">=</span> <span class="n">newstates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+            <span class="c1"># else:</span>
+            <span class="c1">#     print `key.id`+&#39; (type: &#39;+`key.type`+&#39; and sym:&#39;+`key.sym`+&#39;)&#39;</span>
+            <span class="c1">#     print key.trans</span>
+        <span class="c1"># print &#39;checking...&#39;</span>
+        <span class="n">exists</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check</span><span class="p">(</span><span class="n">accepted</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># DEBUGself.printer()</span>
+            <span class="c1"># raw_input(&#39;next step?&#39;)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stage</span><span class="p">(</span><span class="n">accepted</span><span class="p">,</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># DEBUGself.printer()</span>
+            <span class="c1"># print &#39;Found &#39;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exists</span><span class="p">)</span>
+            <span class="c1"># return self._stage(accepted, count+1)</span>
+            <span class="k">return</span> <span class="n">exists</span>
+
+<div class="viewcode-block" id="PdaString.printer">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.pdastring.PdaString.printer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">printer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Visualizes the current state&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">trans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;****** &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+                      <span class="o">+</span> <span class="s1">&#39; on sym &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">sym</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;) ******&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">trans</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PdaString.init">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.pdastring.PdaString.init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">accepted</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialization of the indexing dictionaries&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">statediag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">quickresponse_types</span><span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="c1"># self.printer()</span>
+        <span class="c1"># raw_input(&#39;next stepA?&#39;)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stage</span><span class="p">(</span><span class="n">accepted</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

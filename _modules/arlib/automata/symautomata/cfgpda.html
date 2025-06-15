@@ -1,0 +1,221 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>arlib.automata.symautomata.cfgpda &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=0335fd14"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolant.html">Interpolant Generation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../knowledge_compilation.html">Knowledge Compilation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../predicate_abstraction.html">Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../unsat_core.html">UNSAT Core Extraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../applications.html">Applications</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">arlib.automata.symautomata.cfgpda</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for arlib.automata.symautomata.cfgpda</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module generates a PDA using a CFG as input&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.cnfpda</span><span class="w"> </span><span class="kn">import</span> <span class="n">CnfPda</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.cfggenerator</span><span class="w"> </span><span class="kn">import</span> <span class="n">CNFGenerator</span>
+
+
+<div class="viewcode-block" id="CfgPDA">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfgpda.CfgPDA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CfgPDA</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a PDA from a CFG&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize values</span>
+<span class="sd">        Args:</span>
+<span class="sd">            alphabet (list): The input alphabet</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_alphabet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grammar</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract an alphabet from the given grammar.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">alphabet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="c1"># TODO: no terminal in CNFGenerator</span>
+        <span class="k">for</span> <span class="n">terminal</span> <span class="ow">in</span> <span class="n">grammar</span><span class="o">.</span><span class="n">Terminals</span><span class="p">:</span>
+            <span class="n">alphabet</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">terminal</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read file containing CFG</span>
+<span class="sd">        Args:</span>
+<span class="sd">            fname (str): The file name</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list: The list of CFG rules</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">:</span>
+            <span class="n">re_grammar</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">input_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">re_grammar</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mpda</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">re_grammar</span><span class="p">,</span> <span class="n">splitstring</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            re_grammar (list): A list of grammar rules</span>
+<span class="sd">            splitstring (bool): A boolean for enabling or disabling</span>
+<span class="sd">                            the splitting of symbols using a space</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            PDA: The generated PDA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cnfgrammar</span> <span class="o">=</span> <span class="n">CNFGenerator</span><span class="p">(</span><span class="n">re_grammar</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_extract_alphabet</span><span class="p">(</span><span class="n">cnfgrammar</span><span class="p">)</span>
+
+        <span class="n">cnftopda</span> <span class="o">=</span> <span class="n">CnfPda</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
+        <span class="n">productions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">nonterminals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nonterminals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cnfgrammar</span><span class="o">.</span><span class="n">init_symbol</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cnfgrammar</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">cnfgrammar</span><span class="o">.</span><span class="n">init_symbol</span><span class="p">:</span>
+                <span class="n">nonterminals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cnfgrammar</span><span class="o">.</span><span class="n">grammar_nonterminals</span><span class="p">):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">productions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># print &#39;testing &#39;+key</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">cnfgrammar</span><span class="o">.</span><span class="n">grammar_rules</span><span class="p">:</span>
+                <span class="n">cnf_form</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cnf_form</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">key</span><span class="p">:</span>
+                    <span class="n">productions</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cnf_form</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">type</span><span class="p">(())):</span>
+                        <span class="c1">#            print list(p[1])</span>
+                        <span class="n">productions</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;b0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cnf_form</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">productions</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;b1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cnf_form</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1">#           print p[1]</span>
+                        <span class="n">productions</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cnf_form</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">cnftopda</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span>
+            <span class="n">nonterminals</span><span class="p">,</span> <span class="n">productions</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">cnfgrammar</span><span class="o">.</span><span class="n">grammar_terminals</span><span class="p">),</span> <span class="n">splitstring</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CfgPDA.yyparse">
+<a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.cfgpda.CfgPDA.yyparse">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">yyparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfgfile</span><span class="p">,</span> <span class="n">splitstring</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            cfgfile (str): The path for the file containing the CFG rules</span>
+<span class="sd">            splitstring (bool): A boolean for enabling or disabling</span>
+<span class="sd">                            the splitting of symbols using a space</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            PDA: The generated PDA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">re_grammar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_file</span><span class="p">(</span><span class="n">cfgfile</span><span class="p">)</span>
+        <span class="n">mma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpda</span><span class="p">(</span><span class="n">re_grammar</span><span class="p">,</span> <span class="n">splitstring</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mma</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, rainoftime.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

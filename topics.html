@@ -50,12 +50,33 @@
 <li class="toctree-l3"><a class="reference internal" href="#bit-vector-interpolation">Bit-Vector Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bit-vector-model-counting">Bit-Vector Model Counting</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bit-vector-model-sampling">Bit-Vector Model Sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallel-cdcl-t-solving">Parallel CDCL(T) Solving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#symbolic-abstraction-and-refinement">Symbolic Abstraction and Refinement</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#smt-solving-for-specific-theories">2. SMT Solving for Specific Theories</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-string-constraints">SMT Solving for String Constraints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-galois-field">SMT Solving for Galois Field</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-exists-forall-problems-over-bit-vectors">SMT Solving for Exists-Forall Problems over Bit-Vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smt-solving-for-floating-point-arithmetic">SMT Solving for Floating-Point Arithmetic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#learning-and-ai-enhanced-reasoning">3. Learning and AI-Enhanced Reasoning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#llm-driven-constraint-solving">LLM-Driven Constraint Solving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#automata-learning-for-constraint-solving">Automata Learning for Constraint Solving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#llm-based-abductive-reasoning">LLM-Based Abductive Reasoning</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-sampling-and-enumeration">4. Advanced Sampling and Enumeration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uniform-sampling-for-linear-integer-arithmetic">Uniform Sampling for Linear Integer Arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-linear-real-arithmetic-sampling">Non-Linear Real Arithmetic Sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#all-smt-and-solution-enumeration">All-SMT and Solution Enumeration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#quantifier-reasoning">5. Quantifier Reasoning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quantifier-elimination-for-mixed-theories">Quantifier Elimination for Mixed Theories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#e-matching-and-instantiation-strategies">E-Matching and Instantiation Strategies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constrained-horn-clause-solving">Constrained Horn Clause Solving</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
@@ -143,6 +164,18 @@ multi-objectives optimization problem (e.g., “Bit-vector optimization, TACAS�
 <h3>Bit-Vector Model Sampling<a class="headerlink" href="#bit-vector-model-sampling" title="Link to this heading"></a></h3>
 <p>Given a satisfiable formula <cite>P</cite>, how to generate multiple and diverse solutions <cite>P</cite>?</p>
 </section>
+<section id="parallel-cdcl-t-solving">
+<h3>Parallel CDCL(T) Solving<a class="headerlink" href="#parallel-cdcl-t-solving" title="Link to this heading"></a></h3>
+<p>Develop parallel algorithms for Conflict-Driven Clause Learning with theories.
+Focus on efficient work distribution and conflict clause sharing across multiple threads.</p>
+<p>Refer to <cite>arlib/smt/pcdclt</cite>.</p>
+</section>
+<section id="symbolic-abstraction-and-refinement">
+<h3>Symbolic Abstraction and Refinement<a class="headerlink" href="#symbolic-abstraction-and-refinement" title="Link to this heading"></a></h3>
+<p>Investigate predicate abstraction techniques and counterexample-guided abstraction refinement (CEGAR).
+Applications include program verification and model checking.</p>
+<p>Refer to <cite>arlib/symabs</cite>.</p>
+</section>
 </section>
 <section id="smt-solving-for-specific-theories">
 <h2>2. SMT Solving for Specific Theories<a class="headerlink" href="#smt-solving-for-specific-theories" title="Link to this heading"></a></h2>
@@ -157,9 +190,79 @@ consists of a finite set of elements and two operations, typically addition
 and multiplication. Galois Fields are used in many areas of mathematics,
 computer science, and engineering, such as coding theory, cryptography, and
 digital signal processing.</p>
+<p>Refer to <cite>arlib/smt/ff</cite>.</p>
 </section>
 <section id="smt-solving-for-exists-forall-problems-over-bit-vectors">
 <h3>SMT Solving for Exists-Forall Problems over Bit-Vectors<a class="headerlink" href="#smt-solving-for-exists-forall-problems-over-bit-vectors" title="Link to this heading"></a></h3>
+</section>
+<section id="smt-solving-for-floating-point-arithmetic">
+<h3>SMT Solving for Floating-Point Arithmetic<a class="headerlink" href="#smt-solving-for-floating-point-arithmetic" title="Link to this heading"></a></h3>
+<p>Develop efficient decision procedures for IEEE 754 floating-point constraints.
+Focus on rounding modes, special values (NaN, infinity), and precision handling.</p>
+<p>Refer to <cite>arlib/smt/fp</cite>.</p>
+</section>
+</section>
+<section id="learning-and-ai-enhanced-reasoning">
+<h2>3. Learning and AI-Enhanced Reasoning<a class="headerlink" href="#learning-and-ai-enhanced-reasoning" title="Link to this heading"></a></h2>
+<section id="llm-driven-constraint-solving">
+<h3>LLM-Driven Constraint Solving<a class="headerlink" href="#llm-driven-constraint-solving" title="Link to this heading"></a></h3>
+<p>Integrate large language models to guide SMT solver heuristics and strategy selection.
+Explore neural-symbolic approaches for automated reasoning.</p>
+<p>Refer to <cite>arlib/llm/smto</cite>.</p>
+</section>
+<section id="automata-learning-for-constraint-solving">
+<h3>Automata Learning for Constraint Solving<a class="headerlink" href="#automata-learning-for-constraint-solving" title="Link to this heading"></a></h3>
+<p>Apply active learning techniques to infer finite automata and symbolic finite automata.
+Applications in string constraint solving and program verification.</p>
+<p>Refer to <cite>arlib/automata</cite>.</p>
+</section>
+<section id="llm-based-abductive-reasoning">
+<h3>LLM-Based Abductive Reasoning<a class="headerlink" href="#llm-based-abductive-reasoning" title="Link to this heading"></a></h3>
+<p>Use language models to generate explanations and hypotheses for observed constraints.
+Focus on debugging and root cause analysis in constraint systems.</p>
+<p>Refer to <cite>arlib/llm/abduct</cite>.</p>
+</section>
+</section>
+<section id="advanced-sampling-and-enumeration">
+<h2>4. Advanced Sampling and Enumeration<a class="headerlink" href="#advanced-sampling-and-enumeration" title="Link to this heading"></a></h2>
+<section id="uniform-sampling-for-linear-integer-arithmetic">
+<h3>Uniform Sampling for Linear Integer Arithmetic<a class="headerlink" href="#uniform-sampling-for-linear-integer-arithmetic" title="Link to this heading"></a></h3>
+<p>Develop algorithms for generating uniformly distributed solutions over linear integer constraints.
+Applications in testing and probabilistic verification.</p>
+<p>Refer to <cite>arlib/sampling/linear_ira</cite>.</p>
+</section>
+<section id="non-linear-real-arithmetic-sampling">
+<h3>Non-Linear Real Arithmetic Sampling<a class="headerlink" href="#non-linear-real-arithmetic-sampling" title="Link to this heading"></a></h3>
+<p>Efficient sampling techniques for polynomial constraints over real numbers.
+Focus on volume computation and density estimation.</p>
+<p>Refer to <cite>arlib/sampling/nonlinear_ira</cite>.</p>
+</section>
+<section id="all-smt-and-solution-enumeration">
+<h3>All-SMT and Solution Enumeration<a class="headerlink" href="#all-smt-and-solution-enumeration" title="Link to this heading"></a></h3>
+<p>Enumerate all satisfying assignments or a diverse subset of solutions.
+Applications in combinatorial optimization and test case generation.</p>
+<p>Refer to <cite>arlib/allsmt</cite>.</p>
+</section>
+</section>
+<section id="quantifier-reasoning">
+<h2>5. Quantifier Reasoning<a class="headerlink" href="#quantifier-reasoning" title="Link to this heading"></a></h2>
+<section id="quantifier-elimination-for-mixed-theories">
+<h3>Quantifier Elimination for Mixed Theories<a class="headerlink" href="#quantifier-elimination-for-mixed-theories" title="Link to this heading"></a></h3>
+<p>Develop efficient QE procedures for combinations of arithmetic, bit-vectors, and arrays.
+Focus on applications in program verification and synthesis.</p>
+<p>Refer to <cite>arlib/quant/qe</cite>.</p>
+</section>
+<section id="e-matching-and-instantiation-strategies">
+<h3>E-Matching and Instantiation Strategies<a class="headerlink" href="#e-matching-and-instantiation-strategies" title="Link to this heading"></a></h3>
+<p>Improve quantifier instantiation in SMT solvers through better pattern matching
+and trigger selection heuristics.</p>
+<p>Refer to <cite>arlib/quant/ematching</cite>.</p>
+</section>
+<section id="constrained-horn-clause-solving">
+<h3>Constrained Horn Clause Solving<a class="headerlink" href="#constrained-horn-clause-solving" title="Link to this heading"></a></h3>
+<p>Develop scalable algorithms for solving systems of constrained Horn clauses.
+Applications in program verification and invariant synthesis.</p>
+<p>Refer to <cite>arlib/quant/chctools</cite>.</p>
 </section>
 </section>
 <section id="references">
