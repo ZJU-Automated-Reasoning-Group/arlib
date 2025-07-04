@@ -78,7 +78,7 @@ class QFUFBVSolver:
             g_to_dimacs = z3.Goal()
             g_to_dimacs.add(blasted)
             pos = CNF(from_string=g_to_dimacs.dimacs())
-            print("calling pysat")
+            # print("calling pysat")
             aux = Solver(name=QFUFBVSolver.sat_engine, bootstrap_with=pos)
             if aux.solve():
                 return SolverResult.SAT
