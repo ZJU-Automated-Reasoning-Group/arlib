@@ -12,4 +12,7 @@ Quacky supports access control policies written in the following policy language
 - Amazon Web Services (AWS) Identity and Access Management (IAM)
 - Microsoft Azure
 - Google Cloud Platform (GCP)
+
+Related work:
+- https://github.com/applyfmsec/cloudsec
 """
