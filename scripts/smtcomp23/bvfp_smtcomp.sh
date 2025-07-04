@@ -25,7 +25,7 @@ QF_BVFP)
   python3 bvfp_solver.py --logic QF_BVFP $1
   ;;
 *)
-  # just run the defaulty
+  # just run the default
   python3 bvfp_solver.py $1
   ;;
 esac
