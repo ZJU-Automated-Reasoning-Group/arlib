@@ -1,466 +1,111 @@
 """
-Attribute Based Access Control (ABAC) Demo with Formal Verification
-
-1. A basic ABAC model implementation
-2. Formal verification of ABAC policies using Z3
-3. Property specification and checking for ABAC systems
+ABAC Demo with Formal Verification (Z3)
 """
 
 from z3 import *
 import itertools
-from typing import Dict, List, Set, Tuple, Optional, Union
-
 
 class AttributeBasedAccessControl:
-    """
-    Implementation of an Attribute Based Access Control system that can be
-    formally verified using Z3.
-    """
-    
     def __init__(self):
-        # Core ABAC components
-        self.subjects = set()  # Users or entities requesting access
-        self.resources = set()  # Objects being accessed
-        self.actions = set()  # Operations that can be performed on resources
-        self.environments = set()  # Contextual information
-        
-        # Attributes for each component
-        self.subject_attributes = {}  # user_id → {attr_name: attr_value}
-        self.resource_attributes = {}  # resource_id → {attr_name: attr_value}
-        self.action_attributes = {}  # action_id → {attr_name: attr_value}
-        self.environment_attributes = {}  # env_id → {attr_name: attr_value}
-        
-        # Policies defined as conditions on attributes
+        self.subjects, self.resources, self.actions, self.environments = set(), set(), set(), set()
+        self.subject_attributes, self.resource_attributes = {}, {}
+        self.action_attributes, self.environment_attributes = {}, {}
         self.policies = []
-    
-    def add_subject(self, subject_id: str, attributes: Dict[str, str]):
-        """Add a subject with attributes to the system."""
-        self.subjects.add(subject_id)
-        self.subject_attributes[subject_id] = attributes
-    
-    def add_resource(self, resource_id: str, attributes: Dict[str, str]):
-        """Add a resource with attributes to the system."""
-        self.resources.add(resource_id)
-        self.resource_attributes[resource_id] = attributes
-    
-    def add_action(self, action_id: str, attributes: Dict[str, str]):
-        """Add an action with attributes to the system."""
-        self.actions.add(action_id)
-        self.action_attributes[action_id] = attributes
-    
-    def add_environment(self, env_id: str, attributes: Dict[str, str]):
-        """Add an environment context with attributes to the system."""
-        self.environments.add(env_id)
-        self.environment_attributes[env_id] = attributes
-    
-    def add_policy(self, policy_function):
-        """
-        Add a policy to the system.
-        The policy_function should take (subject, resource, action, environment) and return boolean.
-        """
-        self.policies.append(policy_function)
-    
-    def check_access(self, subject_id: str, resource_id: str, action_id: str, 
-                     environment_id: str) -> bool:
-        """
-        Check if a subject can perform an action on a resource in a given environment.
-        Returns True if access is granted, False otherwise.
-        """
-        if (subject_id not in self.subjects or 
-            resource_id not in self.resources or 
-            action_id not in self.actions or
-            environment_id not in self.environments):
+    def add_subject(self, sid, attrs): self.subjects.add(sid); self.subject_attributes[sid] = attrs
+    def add_resource(self, rid, attrs): self.resources.add(rid); self.resource_attributes[rid] = attrs
+    def add_action(self, aid, attrs): self.actions.add(aid); self.action_attributes[aid] = attrs
+    def add_environment(self, eid, attrs): self.environments.add(eid); self.environment_attributes[eid] = attrs
+    def add_policy(self, policy): self.policies.append(policy)
+    def check_access(self, sid, rid, aid, eid):
+        if sid not in self.subjects or rid not in self.resources or aid not in self.actions or eid not in self.environments:
             return False
-        
-        subject_attrs = self.subject_attributes[subject_id]
-        resource_attrs = self.resource_attributes[resource_id]
-        action_attrs = self.action_attributes[action_id]
-        env_attrs = self.environment_attributes[environment_id]
-        
-        # For access to be granted, all policies must be satisfied
-        for policy in self.policies:
-            if not policy(subject_attrs, resource_attrs, action_attrs, env_attrs):
-                return False
-        
-        return True
-
+        s, r, a, e = self.subject_attributes[sid], self.resource_attributes[rid], self.action_attributes[aid], self.environment_attributes[eid]
+        return all(policy(s, r, a, e) for policy in self.policies)
 
 class ABACVerifier:
-    """Formal verification of ABAC policies using Z3."""
-    
-    def __init__(self, abac_system: AttributeBasedAccessControl):
-        self.abac = abac_system
+    def __init__(self, abac):
+        self.abac = abac
         self.solver = Solver()
-        
-        # Z3 sorts for our domain
-        self.SubjectSort = DeclareSort('Subject')
-        self.ResourceSort = DeclareSort('Resource')
-        self.ActionSort = DeclareSort('Action')
-        self.EnvSort = DeclareSort('Environment')
-        
-        # Constants for each entity in our system
-        self.subject_constants = {}
-        self.resource_constants = {}
-        self.action_constants = {}
-        self.env_constants = {}
-        
-        # Attribute functions for Z3
-        self.subject_attr_funcs = {}
-        self.resource_attr_funcs = {}
-        self.action_attr_funcs = {}
-        self.env_attr_funcs = {}
-        
-        # Initialize the model
-        self._initialize_constants()
-        self._initialize_attribute_functions()
-    
-    def _initialize_constants(self):
-        """Create Z3 constants for all entities in the ABAC system."""
-        for subject_id in self.abac.subjects:
-            self.subject_constants[subject_id] = Const(f"subject_{subject_id}", self.SubjectSort)
-            
-        for resource_id in self.abac.resources:
-            self.resource_constants[resource_id] = Const(f"resource_{resource_id}", self.ResourceSort)
-            
-        for action_id in self.abac.actions:
-            self.action_constants[action_id] = Const(f"action_{action_id}", self.ActionSort)
-            
-        for env_id in self.abac.environments:
-            self.env_constants[env_id] = Const(f"env_{env_id}", self.EnvSort)
-    
-    def _initialize_attribute_functions(self):
-        """Initialize Z3 functions for attributes."""
-        # Collect all attribute names
-        subject_attrs = set()
-        for attrs in self.abac.subject_attributes.values():
-            subject_attrs.update(attrs.keys())
-            
-        resource_attrs = set()
-        for attrs in self.abac.resource_attributes.values():
-            resource_attrs.update(attrs.keys())
-            
-        action_attrs = set()
-        for attrs in self.abac.action_attributes.values():
-            action_attrs.update(attrs.keys())
-            
-        env_attrs = set()
-        for attrs in self.abac.environment_attributes.values():
-            env_attrs.update(attrs.keys())
-        
-        # Create functions for each attribute
-        for attr in subject_attrs:
-            self.subject_attr_funcs[attr] = Function(f"subject_{attr}", self.SubjectSort, StringSort())
-            
-        for attr in resource_attrs:
-            self.resource_attr_funcs[attr] = Function(f"resource_{attr}", self.ResourceSort, StringSort())
-            
-        for attr in action_attrs:
-            self.action_attr_funcs[attr] = Function(f"action_{attr}", self.ActionSort, StringSort())
-            
-        for attr in env_attrs:
-            self.env_attr_funcs[attr] = Function(f"env_{attr}", self.EnvSort, StringSort())
-    
+        self.SubjectSort, self.ResourceSort = DeclareSort('Subject'), DeclareSort('Resource')
+        self.ActionSort, self.EnvSort = DeclareSort('Action'), DeclareSort('Environment')
+        self.subject_constants = {sid: Const(f"subject_{sid}", self.SubjectSort) for sid in abac.subjects}
+        self.resource_constants = {rid: Const(f"resource_{rid}", self.ResourceSort) for rid in abac.resources}
+        self.action_constants = {aid: Const(f"action_{aid}", self.ActionSort) for aid in abac.actions}
+        self.env_constants = {eid: Const(f"env_{eid}", self.EnvSort) for eid in abac.environments}
+        self.subject_attr_funcs = {attr: Function(f"subject_{attr}", self.SubjectSort, StringSort()) for attrs in abac.subject_attributes.values() for attr in attrs}
+        self.resource_attr_funcs = {attr: Function(f"resource_{attr}", self.ResourceSort, StringSort()) for attrs in abac.resource_attributes.values() for attr in attrs}
+        self.action_attr_funcs = {attr: Function(f"action_{attr}", self.ActionSort, StringSort()) for attrs in abac.action_attributes.values() for attr in attrs}
+        self.env_attr_funcs = {attr: Function(f"env_{attr}", self.EnvSort, StringSort()) for attrs in abac.environment_attributes.values() for attr in attrs}
     def define_attribute_constraints(self):
-        """Define constraints based on attribute values in the system."""
-        constraints = []
-        
-        # Add constraints for subject attributes
-        for subject_id, attrs in self.abac.subject_attributes.items():
-            subject = self.subject_constants[subject_id]
-            for attr_name, attr_value in attrs.items():
-                if attr_name in self.subject_attr_funcs:
-                    constraints.append(
-                        self.subject_attr_funcs[attr_name](subject) == StringVal(attr_value)
-                    )
-        
-        # Add constraints for resource attributes
-        for resource_id, attrs in self.abac.resource_attributes.items():
-            resource = self.resource_constants[resource_id]
-            for attr_name, attr_value in attrs.items():
-                if attr_name in self.resource_attr_funcs:
-                    constraints.append(
-                        self.resource_attr_funcs[attr_name](resource) == StringVal(attr_value)
-                    )
-        
-        # Add constraints for action attributes
-        for action_id, attrs in self.abac.action_attributes.items():
-            action = self.action_constants[action_id]
-            for attr_name, attr_value in attrs.items():
-                if attr_name in self.action_attr_funcs:
-                    constraints.append(
-                        self.action_attr_funcs[attr_name](action) == StringVal(attr_value)
-                    )
-        
-        # Add constraints for environment attributes
-        for env_id, attrs in self.abac.environment_attributes.items():
-            env = self.env_constants[env_id]
-            for attr_name, attr_value in attrs.items():
-                if attr_name in self.env_attr_funcs:
-                    constraints.append(
-                        self.env_attr_funcs[attr_name](env) == StringVal(attr_value)
-                    )
-        
-        return constraints
-    
+        c = []
+        for sid, attrs in self.abac.subject_attributes.items():
+            s = self.subject_constants[sid]
+            for k, v in attrs.items():
+                if k in self.subject_attr_funcs: c.append(self.subject_attr_funcs[k](s) == StringVal(v))
+        for rid, attrs in self.abac.resource_attributes.items():
+            r = self.resource_constants[rid]
+            for k, v in attrs.items():
+                if k in self.resource_attr_funcs: c.append(self.resource_attr_funcs[k](r) == StringVal(v))
+        for aid, attrs in self.abac.action_attributes.items():
+            a = self.action_constants[aid]
+            for k, v in attrs.items():
+                if k in self.action_attr_funcs: c.append(self.action_attr_funcs[k](a) == StringVal(v))
+        for eid, attrs in self.abac.environment_attributes.items():
+            e = self.env_constants[eid]
+            for k, v in attrs.items():
+                if k in self.env_attr_funcs: c.append(self.env_attr_funcs[k](e) == StringVal(v))
+        return c
     def access_function(self):
-        """Create a Z3 function representing the access control decision."""
-        return Function('access', self.SubjectSort, self.ResourceSort, 
-                        self.ActionSort, self.EnvSort, BoolSort())
-    
+        return Function('access', self.SubjectSort, self.ResourceSort, self.ActionSort, self.EnvSort, BoolSort())
     def policy_to_z3(self, policy):
-        """
-        Convert a policy function to Z3 constraints.
-        This is a simplified implementation and will need customization for actual policies.
-        """
         access = self.access_function()
-        constraints = []
-        
-        # Iterate over all possible combinations of entities
-        for s_id, r_id, a_id, e_id in itertools.product(
-            self.abac.subjects, self.abac.resources, 
-            self.abac.actions, self.abac.environments):
-            
-            s = self.subject_constants[s_id]
-            r = self.resource_constants[r_id]
-            a = self.action_constants[a_id]
-            e = self.env_constants[e_id]
-            
-            # Construct policy in Z3 based on attribute values
-            s_attrs = self.abac.subject_attributes[s_id]
-            r_attrs = self.abac.resource_attributes[r_id]
-            a_attrs = self.abac.action_attributes[a_id]
-            e_attrs = self.abac.environment_attributes[e_id]
-            
-            # Check if access should be granted based on the policy
-            if policy(s_attrs, r_attrs, a_attrs, e_attrs):
-                constraints.append(access(s, r, a, e) == True)
-            else:
-                constraints.append(access(s, r, a, e) == False)
-        
-        return constraints
-    
+        c = []
+        for s_id, r_id, a_id, e_id in itertools.product(self.abac.subjects, self.abac.resources, self.abac.actions, self.abac.environments):
+            s, r, a, e = self.subject_constants[s_id], self.resource_constants[r_id], self.action_constants[a_id], self.env_constants[e_id]
+            s_attrs, r_attrs, a_attrs, e_attrs = self.abac.subject_attributes[s_id], self.abac.resource_attributes[r_id], self.abac.action_attributes[a_id], self.abac.environment_attributes[e_id]
+            c.append(access(s, r, a, e) == policy(s_attrs, r_attrs, a_attrs, e_attrs))
+        return c
     def verify_property(self, property_formula):
-        """
-        Verify if a property holds in the system.
-        
-        Args:
-            property_formula: A Z3 formula expressing a property to verify
-            
-        Returns:
-            (result, model): result is sat/unsat/unknown, model is a counterexample if sat
-        """
         self.solver.push()
-        
-        # Add attribute constraints
-        for constraint in self.define_attribute_constraints():
-            self.solver.add(constraint)
-        
-        # Add policy constraints
+        for constraint in self.define_attribute_constraints(): self.solver.add(constraint)
         for policy in self.abac.policies:
-            for constraint in self.policy_to_z3(policy):
-                self.solver.add(constraint)
-        
-        # Add the negation of the property to find a counterexample
+            for constraint in self.policy_to_z3(policy): self.solver.add(constraint)
         self.solver.add(Not(property_formula))
-        
         result = self.solver.check()
-        model = None
-        if result == sat:
-            model = self.solver.model()
-        
+        model = self.solver.model() if result == sat else None
         self.solver.pop()
         return result, model
-    
-    def verify_separation_of_duty(self, sensitive_resource, role1, role2):
-        """
-        Verify that users with role1 cannot access sensitive_resource if they also have role2.
-        This is a common separation of duty constraint.
-        """
-        access = self.access_function()
-        
-        subject = Const("subject_var", self.SubjectSort)
-        action = Const("action_var", self.ActionSort)
-        env = Const("env_var", self.EnvSort)
-        
-        property_formula = ForAll([subject, action, env], 
-            Implies(
-                And(
-                    self.subject_attr_funcs['role'](subject) == StringVal(role1),
-                    self.subject_attr_funcs['role'](subject) == StringVal(role2)
-                ),
-                Not(access(subject, self.resource_constants[sensitive_resource], 
-                          action, env))
-            )
-        )
-        
-        return self.verify_property(property_formula)
-    
-    def verify_principle_of_least_privilege(self, role, necessary_actions, all_actions):
-        """
-        Verify that users with a specific role can only perform necessary actions
-        and not other actions on resources.
-        """
-        access = self.access_function()
-        
-        subject = Const("subject_var", self.SubjectSort)
-        resource = Const("resource_var", self.ResourceSort)
-        env = Const("env_var", self.EnvSort)
-        
-        # Create constraints for each action
-        constraints = []
-        for action_id in all_actions:
-            action = self.action_constants[action_id]
-            
-            if action_id in necessary_actions:
-                # Should be able to access
-                formula = ForAll([subject, resource, env],
-                    Implies(
-                        self.subject_attr_funcs['role'](subject) == StringVal(role),
-                        access(subject, resource, action, env)
-                    )
-                )
-            else:
-                # Should NOT be able to access
-                formula = ForAll([subject, resource, env],
-                    Implies(
-                        self.subject_attr_funcs['role'](subject) == StringVal(role),
-                        Not(access(subject, resource, action, env))
-                    )
-                )
-            
-            constraints.append(formula)
-        
-        # All constraints must hold
-        property_formula = And(constraints)
-        return self.verify_property(property_formula)
-
 
 # Example usage
-def example_usage():
-    # Create ABAC system
+if __name__ == "__main__":
     abac = AttributeBasedAccessControl()
-    
-    # Add subjects (users)
-    abac.add_subject("alice", {
-        "role": "manager",
-        "department": "finance",
-        "clearance": "high"
-    })
-    
-    abac.add_subject("bob", {
-        "role": "employee",
-        "department": "engineering",
-        "clearance": "medium"
-    })
-    
-    abac.add_subject("charlie", {
-        "role": "contractor",
-        "department": "engineering",
-        "clearance": "low"
-    })
-    
-    # Add resources
-    abac.add_resource("financial_report", {
-        "type": "document",
-        "sensitivity": "high",
-        "department": "finance"
-    })
-    
-    abac.add_resource("code_repo", {
-        "type": "repository",
-        "sensitivity": "medium",
-        "department": "engineering"
-    })
-    
-    abac.add_resource("company_wiki", {
-        "type": "knowledge_base",
-        "sensitivity": "low",
-        "department": "all"
-    })
-    
-    # Add actions
+    abac.add_subject("alice", {"role": "manager", "department": "finance", "clearance": "high"})
+    abac.add_subject("bob", {"role": "employee", "department": "engineering", "clearance": "medium"})
+    abac.add_subject("charlie", {"role": "contractor", "department": "engineering", "clearance": "low"})
+    abac.add_resource("financial_report", {"type": "document", "sensitivity": "high", "department": "finance"})
+    abac.add_resource("code_repo", {"type": "repository", "sensitivity": "medium", "department": "engineering"})
+    abac.add_resource("company_wiki", {"type": "knowledge_base", "sensitivity": "low", "department": "all"})
     abac.add_action("read", {"impact": "low"})
     abac.add_action("write", {"impact": "high"})
     abac.add_action("execute", {"impact": "medium"})
-    
-    # Add environment contexts
-    abac.add_environment("office_hours", {
-        "time": "work_hours",
-        "location": "office",
-        "connection": "secure"
-    })
-    
-    abac.add_environment("remote", {
-        "time": "any",
-        "location": "remote",
-        "connection": "vpn"
-    })
-    
-    # Define policies
-    
-    # Policy 1: Subject can access resource if they are in the same department
-    def department_policy(subj_attrs, res_attrs, act_attrs, env_attrs):
-        return (res_attrs["department"] == subj_attrs["department"] or 
-                res_attrs["department"] == "all")
-    
-    # Policy 2: Subject's clearance must be at least as high as resource sensitivity
-    def clearance_policy(subj_attrs, res_attrs, act_attrs, env_attrs):
-        clearance_levels = {"low": 1, "medium": 2, "high": 3}
-        return clearance_levels[subj_attrs["clearance"]] >= clearance_levels[res_attrs["sensitivity"]]
-    
-    # Policy 3: High impact actions require high clearance
-    def impact_policy(subj_attrs, res_attrs, act_attrs, env_attrs):
-        if act_attrs["impact"] == "high":
-            return subj_attrs["clearance"] == "high"
-        return True
-    
-    # Policy 4: Remote access requires VPN connection
-    def remote_policy(subj_attrs, res_attrs, act_attrs, env_attrs):
-        if env_attrs["location"] == "remote":
-            return env_attrs["connection"] == "vpn"
-        return True
-    
-    # Add policies to the system
-    abac.add_policy(department_policy)
-    abac.add_policy(clearance_policy)
-    abac.add_policy(impact_policy)
-    abac.add_policy(remote_policy)
-    
-    # Test access
-    print("Testing access control decisions:")
-    print("-" * 40)
-    
-    # Alice (manager, finance, high) accessing financial_report
-    result = abac.check_access("alice", "financial_report", "write", "office_hours")
-    print(f"Alice writing financial report during office hours: {result}")
-    
-    # Bob (employee, engineering, medium) accessing code_repo
-    result = abac.check_access("bob", "code_repo", "read", "remote")
-    print(f"Bob reading code repo remotely: {result}")
-    
-    # Charlie (contractor, engineering, low) accessing code_repo to write
-    result = abac.check_access("charlie", "code_repo", "write", "office_hours")
-    print(f"Charlie writing to code repo during office hours: {result}")
-    
-    # Bob accessing financial_report
-    result = abac.check_access("bob", "financial_report", "read", "office_hours")
-    print(f"Bob reading financial report during office hours: {result}")
-    
-    print("\nFormal Verification Example:")
-    print("-" * 40)
-    
-    # Create a verifier
+    abac.add_environment("office_hours", {"time": "work_hours", "location": "office", "connection": "secure"})
+    abac.add_environment("remote", {"time": "any", "location": "remote", "connection": "vpn"})
+    abac.add_policy(lambda s, r, a, e: r["department"] == s["department"] or r["department"] == "all")
+    abac.add_policy(lambda s, r, a, e: {"low": 1, "medium": 2, "high": 3}[s["clearance"]] >= {"low": 1, "medium": 2, "high": 3}[r["sensitivity"]])
+    abac.add_policy(lambda s, r, a, e: s["clearance"] == "high" if a["impact"] == "high" else True)
+    abac.add_policy(lambda s, r, a, e: e["connection"] == "vpn" if e["location"] == "remote" else True)
+    print("Testing access control decisions:\n" + "-" * 40)
+    print(f"Alice writing financial report during office hours: {abac.check_access('alice', 'financial_report', 'write', 'office_hours')}")
+    print(f"Bob reading code repo remotely: {abac.check_access('bob', 'code_repo', 'read', 'remote')}")
+    print(f"Charlie writing to code repo during office hours: {abac.check_access('charlie', 'code_repo', 'write', 'office_hours')}")
+    print(f"Bob reading financial report during office hours: {abac.check_access('bob', 'financial_report', 'read', 'office_hours')}")
+    print("\nFormal Verification Example:\n" + "-" * 40)
     verifier = ABACVerifier(abac)
-    
-    # Example property: A subject with low clearance cannot access high sensitivity resources
     access = verifier.access_function()
-    
-    # Create variables of the proper sort types for the formula
     subject = Const("subject_var", verifier.SubjectSort)
     resource = Const("resource_var", verifier.ResourceSort)
     action = Const("action_var", verifier.ActionSort)
     env = Const("env_var", verifier.EnvSort)
-    
     property_formula = ForAll(
         [subject, resource, action, env],
         Implies(
@@ -471,17 +116,9 @@ def example_usage():
             Not(access(subject, resource, action, env))
         )
     )
-    
     result, model = verifier.verify_property(property_formula)
     print(f"Property verification result: {result}")
-    if result == sat:
-        print("Property violated. Counterexample found:")
-        print(model)
-    else:
-        print("Property holds. No violations possible.")
-
-
-if __name__ == "__main__":
-    example_usage()
+    print("Property violated. Counterexample found:" if result == sat else "Property holds. No violations possible.")
+    if result == sat: print(model)
 
 

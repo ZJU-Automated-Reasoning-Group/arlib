@@ -11,8 +11,7 @@ Arguments:
     binary_path: Path to the target binary
     output_dir: Optional directory to store SMT2 files
 
-
-To dump OMT queries, use the following variant of claripy
+To dump OMT queries from symbolic memory model, use the following variant of claripy
 https://github.com/notch1p/claripy
 """
 

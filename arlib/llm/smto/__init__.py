@@ -5,7 +5,7 @@ Supports two modes:
 1. Blackbox mode: Traditional SMTO where we can only observe input-output behavior
 2. Whitebox mode: Enhanced SMTO where we use LLM to analyze available component information
 
-Related: “Satisfiability and Synthesis Modulo Oracles” [Polgreen/Reynolds/Seshia VMCAI 2022]
+Related: "Satisfiability and Synthesis Modulo Oracles" [Polgreen/Reynolds/Seshia VMCAI 2022]
 """
 
 # Import main solver
@@ -19,9 +19,6 @@ from arlib.llm.smto.oracles import (
     OracleAnalysisMode
 )
 
-# Import LLM configuration
-from arlib.llm.smto.llm_adapter import LLMConfig
-
 # Import utility classes
 from arlib.llm.smto.utils import OracleCache, ExplanationLogger
 
@@ -34,9 +31,6 @@ __all__ = [
     "WhiteboxOracleInfo",
     "OracleType",
     "OracleAnalysisMode",
-    
-    # LLM configuration
-    "LLMConfig",
     
     # Utility classes
     "OracleCache",

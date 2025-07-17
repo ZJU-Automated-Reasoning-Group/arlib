@@ -7,7 +7,7 @@ import z3
 from typing import Dict, Optional, Any, List
 
 from arlib.llm.smto.oracles import WhiteboxOracleInfo, OracleAnalysisMode
-from arlib.llm.smto.llm_adapter import LLMInterface
+from arlib.llm.llmtool.LLM_utils import LLM
 
 
 class WhiteboxAnalyzer:
@@ -16,15 +16,15 @@ class WhiteboxAnalyzer:
     documentation, source code, or other available information.
     """
     
-    def __init__(self, llm_interface: LLMInterface, explanation_callback=None):
+    def __init__(self, llm: LLM, explanation_callback=None):
         """
         Initialize the whitebox analyzer.
         
         Args:
-            llm_interface: Interface to the LLM provider
+            llm: The LLM instance to use
             explanation_callback: Optional callback to log explanations
         """
-        self.llm = llm_interface
+        self.llm = llm
         self.explanation_callback = explanation_callback
     
     def analyze_oracle(self, oracle_info: WhiteboxOracleInfo) -> Optional[str]:
@@ -46,10 +46,14 @@ class WhiteboxAnalyzer:
         
         # Generate symbolic model using LLM
         try:
-            symbolic_model = self.llm.generate_text(
-                prompt=prompt,
-                system_prompt="You are an expert in software analysis and formal methods."
-            )
+            # Use LLM directly with temporary system role update
+            original_system_role = self.llm.systemRole
+            self.llm.systemRole = "You are an expert in software analysis and formal methods."
+            
+            symbolic_model, _, _ = self.llm.infer(prompt, is_measure_cost=False)
+            
+            # Restore original system role
+            self.llm.systemRole = original_system_role
             
             # Store the model in the oracle info
             oracle_info.symbolic_model = symbolic_model.strip()
@@ -124,15 +128,15 @@ class ModelEvaluator:
     Evaluator for symbolic models extracted from whitebox oracles.
     """
     
-    def __init__(self, llm_interface: LLMInterface, explanation_callback=None):
+    def __init__(self, llm: LLM, explanation_callback=None):
         """
         Initialize the model evaluator.
         
         Args:
-            llm_interface: Interface to the LLM provider
+            llm: The LLM instance to use
             explanation_callback: Optional callback to log explanations
         """
-        self.llm = llm_interface
+        self.llm = llm
         self.explanation_callback = explanation_callback
     
     def evaluate_model(self, 
@@ -167,12 +171,12 @@ class ModelEvaluator:
             if self.explanation_callback:
                 self.explanation_callback(f"Model evaluation failed: {str(e)}")
             return None
-    
+
     def _evaluate_with_z3(self, 
                           oracle_info: WhiteboxOracleInfo, 
                           inputs: Dict[str, Any]) -> Optional[Any]:
         """
-        Evaluate the symbolic model using Z3 directly.
+        Evaluate the symbolic model using Z3.
         
         Args:
             oracle_info: The whitebox oracle information
@@ -182,28 +186,40 @@ class ModelEvaluator:
             The evaluation result, or None if Z3 evaluation fails
         """
         try:
-            # Create a solver
+            # Create a Z3 solver
             solver = z3.Solver()
             
-            # Create input variables and add constraints
-            input_vars = {}
+            # Create variables for the inputs
+            z3_vars = {}
             for i, input_type in enumerate(oracle_info.input_types):
-                input_name = f"input_{i}"
+                var_name = f"arg{i}"
                 if input_type == z3.IntSort():
-                    input_vars[input_name] = z3.Int(input_name)
-                    solver.add(input_vars[input_name] == inputs[f"arg{i}"])
+                    z3_vars[var_name] = z3.Int(var_name)
                 elif input_type == z3.RealSort():
-                    input_vars[input_name] = z3.Real(input_name)
-                    solver.add(input_vars[input_name] == inputs[f"arg{i}"])
+                    z3_vars[var_name] = z3.Real(var_name)
                 elif input_type == z3.BoolSort():
-                    input_vars[input_name] = z3.Bool(input_name)
-                    solver.add(input_vars[input_name] == inputs[f"arg{i}"])
+                    z3_vars[var_name] = z3.Bool(var_name)
                 elif input_type == z3.StringSort():
-                    input_vars[input_name] = z3.String(input_name)
-                    solver.add(input_vars[input_name] == z3.StringVal(inputs[f"arg{i}"]))
+                    z3_vars[var_name] = z3.String(var_name)
                 else:
-                    # Unsupported type
+                    # Unsupported type for direct Z3 evaluation
                     return None
+            
+            # Add constraints for the input values
+            for var_name, value in inputs.items():
+                if var_name in z3_vars:
+                    if isinstance(value, bool):
+                        solver.add(z3_vars[var_name] == z3.BoolVal(value))
+                    elif isinstance(value, int):
+                        solver.add(z3_vars[var_name] == z3.IntVal(value))
+                    elif isinstance(value, float):
+                        solver.add(z3_vars[var_name] == z3.RealVal(value))
+                    elif isinstance(value, str):
+                        solver.add(z3_vars[var_name] == z3.StringVal(value))
+            
+            # Try to parse and evaluate the symbolic model
+            # This is a simplified approach - in practice, you'd need more sophisticated parsing
+            model_str = oracle_info.symbolic_model
             
             # Create output variable
             if oracle_info.output_type == z3.IntSort():
@@ -217,34 +233,11 @@ class ModelEvaluator:
             else:
                 return None
             
-            # Prepare the model
-            model_str = oracle_info.symbolic_model
-            for i in range(len(oracle_info.input_types)):
-                model_str = model_str.replace(f"arg{i}", f"input_{i}")
-            
-            # Evaluate the model
-            model_expr = eval(model_str)
-            solver.add(output_var == model_expr)
-            
-            # Check satisfiability
-            if solver.check() == z3.sat:
-                model = solver.model()
-                
-                # Extract output value
-                output_val = model[output_var]
-                
-                # Convert output value to Python type
-                if oracle_info.output_type == z3.IntSort():
-                    return output_val.as_long()
-                elif oracle_info.output_type == z3.RealSort():
-                    return float(output_val.as_fraction())
-                elif oracle_info.output_type == z3.BoolSort():
-                    return z3.is_true(output_val)
-                elif oracle_info.output_type == z3.StringSort():
-                    return output_val.as_string()
-                
+            # This is a placeholder - in practice, you'd need to parse the model_str
+            # and create appropriate Z3 constraints
+            # For now, we'll just return None to fall back to LLM evaluation
             return None
-        
+            
         except Exception as e:
             if self.explanation_callback:
                 self.explanation_callback(f"Z3 evaluation failed: {str(e)}")
@@ -273,10 +266,14 @@ Evaluate this model with these input values:
 Return only the resulting output value, with no additional text.
 """
         try:
-            result = self.llm.generate_text(
-                prompt=prompt, 
-                system_prompt="You are a precise formula evaluator."
-            )
+            # Use LLM directly with temporary system role update
+            original_system_role = self.llm.systemRole
+            self.llm.systemRole = "You are a precise formula evaluator."
+            
+            result, _, _ = self.llm.infer(prompt, is_measure_cost=False)
+            
+            # Restore original system role
+            self.llm.systemRole = original_system_role
             
             # Parse the result based on output type
             result = result.strip()

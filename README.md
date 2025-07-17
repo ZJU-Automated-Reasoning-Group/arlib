@@ -78,6 +78,8 @@ Here are some of publications related to Arlib.
 - [sympy](https://github.com/sympy/sympy)
 - [holpy](https://github.com/bzhan/holpy)
 - [iscalc](https://github.com/bzhan/iscalc)
+- [amaya](https://github.com/MichalHe/amaya)
+
 
 ## Contributors
 
@@ -89,4 +91,4 @@ Primary contributors to this project:
 - little-d1d1
 - ljcppp
 - GooduckZ
-
+- Zahrinas

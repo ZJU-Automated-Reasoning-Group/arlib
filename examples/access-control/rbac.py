@@ -1,497 +1,174 @@
 """
-Role-Based Access Control (RBAC) Demo with Formal Verification
-
-This module demonstrates:
-1. A basic RBAC model implementation
-2. Formal verification of RBAC policies using Z3
-3. Property specification and checking for RBAC systems
-
-The implementation allows for:
-- Defining users, roles, permissions, and resources
-- Creating role hierarchies
-- Specifying and verifying security properties
-- Checking for policy conflicts and violations
+Concise Role-Based Access Control (RBAC) Demo with Z3 Verification
 """
-
 from z3 import *
-import itertools
-from typing import Dict, List, Set, Tuple, Optional, Union
-
 
 class RBACModel:
-    """
-    A Role-Based Access Control model with formal verification capabilities.
-    """
-    
     def __init__(self):
-        # Core RBAC components
-        self.users = set()
-        self.roles = set()
-        self.permissions = set()
-        self.resources = set()
-        
-        # Assignments
-        self.user_role_assignments = {}  # user -> set of roles
-        self.role_permission_assignments = {}  # role -> set of permissions
-        self.permission_resource_assignments = {}  # permission -> set of resources
-        
-        # Role hierarchy (role -> set of sub-roles)
-        self.role_hierarchy = {}
-        
-        # Z3 solver for verification
+        self.users, self.roles, self.permissions, self.resources = set(), set(), set(), set()
+        self.user_role_assignments, self.role_permission_assignments = {}, {}
+        self.permission_resource_assignments, self.role_hierarchy = {}, {}
         self.solver = Solver()
-        
-        # Z3 variables
-        self.z3_users = {}
-        self.z3_roles = {}
-        self.z3_permissions = {}
-        self.z3_resources = {}
-        self.z3_user_role = {}
-        self.z3_role_perm = {}
-        self.z3_perm_resource = {}
-        self.z3_role_hierarchy = {}
-        
-    def add_user(self, user: str) -> None:
-        """Add a user to the RBAC model."""
+        self.z3_users, self.z3_roles, self.z3_permissions, self.z3_resources = {}, {}, {}, {}
+        self.z3_user_role, self.z3_role_perm, self.z3_perm_resource, self.z3_role_hierarchy = {}, {}, {}, {}
+
+    def add_user(self, user):
         self.users.add(user)
         self.user_role_assignments[user] = set()
-        
-    def add_role(self, role: str) -> None:
-        """Add a role to the RBAC model."""
+    def add_role(self, role):
         self.roles.add(role)
         self.role_permission_assignments[role] = set()
         self.role_hierarchy[role] = set()
-        
-    def add_permission(self, permission: str) -> None:
-        """Add a permission to the RBAC model."""
-        self.permissions.add(permission)
-        self.permission_resource_assignments[permission] = set()
-        
-    def add_resource(self, resource: str) -> None:
-        """Add a resource to the RBAC model."""
-        self.resources.add(resource)
-        
-    def assign_user_to_role(self, user: str, role: str) -> None:
-        """Assign a user to a role."""
-        if user not in self.users:
-            raise ValueError(f"User '{user}' does not exist")
-        if role not in self.roles:
-            raise ValueError(f"Role '{role}' does not exist")
-            
+    def add_permission(self, perm):
+        self.permissions.add(perm)
+        self.permission_resource_assignments[perm] = set()
+    def add_resource(self, res):
+        self.resources.add(res)
+    def assign_user_to_role(self, user, role):
+        if user not in self.users or role not in self.roles:
+            raise ValueError("User or role does not exist")
         self.user_role_assignments[user].add(role)
-        
-    def assign_permission_to_role(self, permission: str, role: str) -> None:
-        """Assign a permission to a role."""
-        if permission not in self.permissions:
-            raise ValueError(f"Permission '{permission}' does not exist")
+    def assign_permission_to_role(self, perm, role):
+        if perm not in self.permissions or role not in self.roles:
+            raise ValueError("Permission or role does not exist")
+        self.role_permission_assignments[role].add(perm)
+    def assign_permission_to_resource(self, perm, res):
+        if perm not in self.permissions or res not in self.resources:
+            raise ValueError("Permission or resource does not exist")
+        self.permission_resource_assignments[perm].add(res)
+    def add_role_hierarchy(self, senior, junior):
+        if senior not in self.roles or junior not in self.roles:
+            raise ValueError("Role does not exist")
+        self.role_hierarchy[senior].add(junior)
+    def get_all_permissions_for_role(self, role):
         if role not in self.roles:
-            raise ValueError(f"Role '{role}' does not exist")
-            
-        self.role_permission_assignments[role].add(permission)
-        
-    def assign_permission_to_resource(self, permission: str, resource: str) -> None:
-        """Assign a permission to a resource."""
-        if permission not in self.permissions:
-            raise ValueError(f"Permission '{permission}' does not exist")
-        if resource not in self.resources:
-            raise ValueError(f"Resource '{resource}' does not exist")
-            
-        self.permission_resource_assignments[permission].add(resource)
-        
-    def add_role_hierarchy(self, senior_role: str, junior_role: str) -> None:
-        """
-        Add a role hierarchy relationship where senior_role inherits permissions from junior_role.
-        """
-        if senior_role not in self.roles:
-            raise ValueError(f"Role '{senior_role}' does not exist")
-        if junior_role not in self.roles:
-            raise ValueError(f"Role '{junior_role}' does not exist")
-            
-        self.role_hierarchy[senior_role].add(junior_role)
-        
-    def get_all_permissions_for_role(self, role: str) -> Set[str]:
-        """
-        Get all permissions for a role, including those inherited from junior roles.
-        """
-        if role not in self.roles:
-            raise ValueError(f"Role '{role}' does not exist")
-            
-        # Direct permissions
-        permissions = set(self.role_permission_assignments[role])
-        
-        # Inherited permissions
-        for junior_role in self.role_hierarchy[role]:
-            permissions.update(self.get_all_permissions_for_role(junior_role))
-            
-        return permissions
-        
-    def get_all_roles_for_user(self, user: str) -> Set[str]:
-        """
-        Get all roles for a user, including those inherited through role hierarchy.
-        """
+            raise ValueError("Role does not exist")
+        perms = set(self.role_permission_assignments[role])
+        for jr in self.role_hierarchy[role]:
+            perms.update(self.get_all_permissions_for_role(jr))
+        return perms
+    def get_all_roles_for_user(self, user):
         if user not in self.users:
-            raise ValueError(f"User '{user}' does not exist")
-            
-        # Direct roles
+            raise ValueError("User does not exist")
         roles = set(self.user_role_assignments[user])
-        
-        # Add senior roles
         all_roles = set(roles)
-        for role in roles:
-            for senior_role in self.roles:
-                if role in self.get_all_junior_roles(senior_role):
-                    all_roles.add(senior_role)
-                    
+        for r in roles:
+            for sr in self.roles:
+                if r in self.get_all_junior_roles(sr):
+                    all_roles.add(sr)
         return all_roles
-    
-    def get_all_junior_roles(self, role: str) -> Set[str]:
-        """
-        Get all junior roles for a given role.
-        """
+    def get_all_junior_roles(self, role):
         if role not in self.roles:
-            raise ValueError(f"Role '{role}' does not exist")
-            
-        junior_roles = set(self.role_hierarchy[role])
-        for jr in list(junior_roles):
-            junior_roles.update(self.get_all_junior_roles(jr))
-            
-        return junior_roles
-        
-    def check_user_permission(self, user: str, permission: str) -> bool:
-        """
-        Check if a user has a specific permission.
-        """
-        if user not in self.users:
-            raise ValueError(f"User '{user}' does not exist")
-        if permission not in self.permissions:
-            raise ValueError(f"Permission '{permission}' does not exist")
-            
-        user_roles = self.get_all_roles_for_user(user)
-        
-        for role in user_roles:
-            role_permissions = self.get_all_permissions_for_role(role)
-            if permission in role_permissions:
-                return True
-                
-        return False
-        
-    def check_user_access_to_resource(self, user: str, resource: str) -> bool:
-        """
-        Check if a user has access to a specific resource.
-        """
-        if user not in self.users:
-            raise ValueError(f"User '{user}' does not exist")
-        if resource not in self.resources:
-            raise ValueError(f"Resource '{resource}' does not exist")
-            
-        user_roles = self.get_all_roles_for_user(user)
-        
-        for role in user_roles:
-            role_permissions = self.get_all_permissions_for_role(role)
-            for permission in role_permissions:
-                if resource in self.permission_resource_assignments[permission]:
+            raise ValueError("Role does not exist")
+        juniors = set(self.role_hierarchy[role])
+        for jr in list(juniors):
+            juniors.update(self.get_all_junior_roles(jr))
+        return juniors
+    def check_user_permission(self, user, perm):
+        if user not in self.users or perm not in self.permissions:
+            raise ValueError("User or permission does not exist")
+        return any(perm in self.get_all_permissions_for_role(r) for r in self.get_all_roles_for_user(user))
+    def check_user_access_to_resource(self, user, res):
+        if user not in self.users or res not in self.resources:
+            raise ValueError("User or resource does not exist")
+        for r in self.get_all_roles_for_user(user):
+            for p in self.get_all_permissions_for_role(r):
+                if res in self.permission_resource_assignments[p]:
                     return True
-                    
         return False
-    
-    # Formal verification methods
-    
+    # Z3 formal verification
     def initialize_z3_variables(self):
-        """
-        Initialize Z3 variables for formal verification.
-        """
-        # Create boolean variables for each entity
         for user in self.users:
             self.z3_users[user] = Bool(f"user_{user}")
-            
+            self.z3_user_role[user] = {role: Bool(f"user_{user}_has_role_{role}") for role in self.roles}
         for role in self.roles:
             self.z3_roles[role] = Bool(f"role_{role}")
-            
-        for permission in self.permissions:
-            self.z3_permissions[permission] = Bool(f"permission_{permission}")
-            
-        for resource in self.resources:
-            self.z3_resources[resource] = Bool(f"resource_{resource}")
-            
-        # Create variables for relationships
-        for user in self.users:
-            self.z3_user_role[user] = {}
-            for role in self.roles:
-                self.z3_user_role[user][role] = Bool(f"user_{user}_has_role_{role}")
-                
-        for role in self.roles:
-            self.z3_role_perm[role] = {}
-            for permission in self.permissions:
-                self.z3_role_perm[role][permission] = Bool(f"role_{role}_has_permission_{permission}")
-                
-        for permission in self.permissions:
-            self.z3_perm_resource[permission] = {}
-            for resource in self.resources:
-                self.z3_perm_resource[permission][resource] = Bool(f"permission_{permission}_on_resource_{resource}")
-                
-        for senior_role in self.roles:
-            self.z3_role_hierarchy[senior_role] = {}
-            for junior_role in self.roles:
-                self.z3_role_hierarchy[senior_role][junior_role] = Bool(f"role_{senior_role}_inherits_{junior_role}")
-    
+            self.z3_role_perm[role] = {perm: Bool(f"role_{role}_has_permission_{perm}") for perm in self.permissions}
+            self.z3_role_hierarchy[role] = {jr: Bool(f"role_{role}_inherits_{jr}") for jr in self.roles}
+        for perm in self.permissions:
+            self.z3_permissions[perm] = Bool(f"permission_{perm}")
+            self.z3_perm_resource[perm] = {res: Bool(f"permission_{perm}_on_resource_{res}") for res in self.resources}
+        for res in self.resources:
+            self.z3_resources[res] = Bool(f"resource_{res}")
     def encode_rbac_model(self):
-        """
-        Encode the RBAC model into Z3 constraints.
-        """
         self.initialize_z3_variables()
-        
-        # Reset solver
         self.solver = Solver()
-        
-        # Encode user-role assignments
+        # Assignments
         for user in self.users:
             for role in self.roles:
-                if role in self.user_role_assignments[user]:
-                    self.solver.add(self.z3_user_role[user][role])
-                else:
-                    self.solver.add(Not(self.z3_user_role[user][role]))
-                    
-        # Encode role-permission assignments
+                self.solver.add(self.z3_user_role[user][role] if role in self.user_role_assignments[user] else Not(self.z3_user_role[user][role]))
         for role in self.roles:
-            for permission in self.permissions:
-                if permission in self.role_permission_assignments[role]:
-                    self.solver.add(self.z3_role_perm[role][permission])
-                else:
-                    self.solver.add(Not(self.z3_role_perm[role][permission]))
-                    
-        # Encode permission-resource assignments
-        for permission in self.permissions:
-            for resource in self.resources:
-                if resource in self.permission_resource_assignments[permission]:
-                    self.solver.add(self.z3_perm_resource[permission][resource])
-                else:
-                    self.solver.add(Not(self.z3_perm_resource[permission][resource]))
-                    
-        # Encode role hierarchy
-        for senior_role in self.roles:
-            for junior_role in self.roles:
-                if junior_role in self.role_hierarchy[senior_role]:
-                    self.solver.add(self.z3_role_hierarchy[senior_role][junior_role])
-                else:
-                    self.solver.add(Not(self.z3_role_hierarchy[senior_role][junior_role]))
-                    
-        # Encode role hierarchy transitivity
+            for perm in self.permissions:
+                self.solver.add(self.z3_role_perm[role][perm] if perm in self.role_permission_assignments[role] else Not(self.z3_role_perm[role][perm]))
+        for perm in self.permissions:
+            for res in self.resources:
+                self.solver.add(self.z3_perm_resource[perm][res] if res in self.permission_resource_assignments[perm] else Not(self.z3_perm_resource[perm][res]))
+        for sr in self.roles:
+            for jr in self.roles:
+                self.solver.add(self.z3_role_hierarchy[sr][jr] if jr in self.role_hierarchy[sr] else Not(self.z3_role_hierarchy[sr][jr]))
+        # Hierarchy transitivity
         for r1 in self.roles:
             for r2 in self.roles:
                 for r3 in self.roles:
-                    # If r1 inherits r2 and r2 inherits r3, then r1 inherits r3
-                    self.solver.add(
-                        Implies(
-                            And(
-                                self.z3_role_hierarchy[r1][r2],
-                                self.z3_role_hierarchy[r2][r3]
-                            ),
-                            self.z3_role_hierarchy[r1][r3]
-                        )
-                    )
-                    
-        # Encode permission inheritance through role hierarchy
-        for senior_role in self.roles:
-            for junior_role in self.roles:
-                for permission in self.permissions:
-                    # If senior_role inherits junior_role and junior_role has permission,
-                    # then senior_role effectively has that permission
-                    self.solver.add(
-                        Implies(
-                            And(
-                                self.z3_role_hierarchy[senior_role][junior_role],
-                                self.z3_role_perm[junior_role][permission]
-                            ),
-                            # This is an "effective" permission, not directly assigned
-                            # We don't add it to the direct assignments
-                            True
-                        )
-                    )
-    
-    def verify_property(self, property_formula):
-        """
-        Verify a property against the RBAC model.
-        
-        Args:
-            property_formula: A Z3 formula representing the property to verify
-            
-        Returns:
-            (bool, Optional[dict]): A tuple containing:
-                - True if the property holds, False otherwise
-                - A counterexample if the property doesn't hold, None otherwise
-        """
-        # Ensure the model is encoded
-        if len(self.solver.assertions()) == 0:
+                    self.solver.add(Implies(And(self.z3_role_hierarchy[r1][r2], self.z3_role_hierarchy[r2][r3]), self.z3_role_hierarchy[r1][r3]))
+        # Permission inheritance (no-op, for extensibility)
+        # for sr in self.roles:
+        #     for jr in self.roles:
+        #         for perm in self.permissions:
+        #             self.solver.add(Implies(And(self.z3_role_hierarchy[sr][jr], self.z3_role_perm[jr][perm]), True))
+    def verify_property(self, prop):
+        if not self.solver.assertions():
             self.encode_rbac_model()
-            
-        # Check the negation of the property
         self.solver.push()
-        self.solver.add(Not(property_formula))
-        
+        self.solver.add(Not(prop))
         result = self.solver.check()
-        
         if result == sat:
-            # Property doesn't hold, get counterexample
             model = self.solver.model()
-            counterexample = self._extract_counterexample(model)
+            ce = self._extract_counterexample(model)
             self.solver.pop()
-            return False, counterexample
-        else:
-            # Property holds
-            self.solver.pop()
-            return True, None
-    
+            return False, ce
+        self.solver.pop()
+        return True, None
     def _extract_counterexample(self, model):
-        """
-        Extract a human-readable counterexample from a Z3 model.
-        """
-        counterexample = {
-            "user_roles": {},
-            "role_permissions": {},
-            "permission_resources": {},
-            "role_hierarchy": {}
-        }
-        
-        # Extract user-role assignments
+        ce = {"user_roles": {}, "role_permissions": {}, "permission_resources": {}, "role_hierarchy": {}}
         for user in self.users:
-            counterexample["user_roles"][user] = []
-            for role in self.roles:
-                if is_true(model.evaluate(self.z3_user_role[user][role])):
-                    counterexample["user_roles"][user].append(role)
-                    
-        # Extract role-permission assignments
+            ce["user_roles"][user] = [role for role in self.roles if is_true(model.evaluate(self.z3_user_role[user][role]))]
         for role in self.roles:
-            counterexample["role_permissions"][role] = []
-            for permission in self.permissions:
-                if is_true(model.evaluate(self.z3_role_perm[role][permission])):
-                    counterexample["role_permissions"][role].append(permission)
-                    
-        # Extract permission-resource assignments
-        for permission in self.permissions:
-            counterexample["permission_resources"][permission] = []
-            for resource in self.resources:
-                if is_true(model.evaluate(self.z3_perm_resource[permission][resource])):
-                    counterexample["permission_resources"][permission].append(resource)
-                    
-        # Extract role hierarchy
-        for senior_role in self.roles:
-            counterexample["role_hierarchy"][senior_role] = []
-            for junior_role in self.roles:
-                if is_true(model.evaluate(self.z3_role_hierarchy[senior_role][junior_role])):
-                    counterexample["role_hierarchy"][senior_role].append(junior_role)
-                    
-        return counterexample
-    
-    def verify_separation_of_duty(self, role1: str, role2: str):
-        """
-        Verify that no user can have both role1 and role2 (static separation of duty).
-        """
-        if role1 not in self.roles or role2 not in self.roles:
-            raise ValueError(f"Roles must exist in the model")
-            
-        # Property: No user can have both roles
-        property_formula = And([
-            Not(And(self.z3_user_role[user][role1], self.z3_user_role[user][role2]))
-            for user in self.users
-        ])
-        
-        return self.verify_property(property_formula)
-    
-    def verify_least_privilege(self, role: str, required_permissions: List[str]):
-        """
-        Verify that a role has exactly the required permissions, no more and no less.
-        """
-        if role not in self.roles:
-            raise ValueError(f"Role '{role}' does not exist")
-        for perm in required_permissions:
-            if perm not in self.permissions:
-                raise ValueError(f"Permission '{perm}' does not exist")
-                
-        # Property: Role has exactly the required permissions
-        has_required = And([
-            self.z3_role_perm[role][perm] for perm in required_permissions
-        ])
-        
-        doesnt_have_others = And([
-            Not(self.z3_role_perm[role][perm]) 
-            for perm in self.permissions if perm not in required_permissions
-        ])
-        
-        property_formula = And(has_required, doesnt_have_others)
-        
-        return self.verify_property(property_formula)
-    
-    def verify_role_containment(self, containing_role: str, contained_role: str):
-        """
-        Verify that one role contains all permissions of another role.
-        """
-        if containing_role not in self.roles or contained_role not in self.roles:
-            raise ValueError(f"Roles must exist in the model")
-            
-        # Property: For every permission that contained_role has, containing_role also has it
-        property_formula = And([
-            Implies(
-                self.z3_role_perm[contained_role][perm],
-                self.z3_role_perm[containing_role][perm]
-            )
-            for perm in self.permissions
-        ])
-        
-        return self.verify_property(property_formula)
-    
-    def verify_no_access(self, user: str, resource: str):
-        """
-        Verify that a user cannot access a specific resource.
-        """
-        if user not in self.users:
-            raise ValueError(f"User '{user}' does not exist")
-        if resource not in self.resources:
-            raise ValueError(f"Resource '{resource}' does not exist")
-            
-        # Property: User cannot access the resource through any role and permission
-        property_formula = Not(Or([
-            And(
-                self.z3_user_role[user][role],
-                self.z3_role_perm[role][perm],
-                self.z3_perm_resource[perm][resource]
-            )
-            for role in self.roles
-            for perm in self.permissions
-        ]))
-        
-        return self.verify_property(property_formula)
-    
-    def verify_resource_isolation(self, resource1: str, resource2: str):
-        """
-        Verify that no user can access both resource1 and resource2.
-        """
-        if resource1 not in self.resources or resource2 not in self.resources:
-            raise ValueError(f"Resources must exist in the model")
-            
-        # Property: No user can access both resources
-        property_formula = And([
+            ce["role_permissions"][role] = [perm for perm in self.permissions if is_true(model.evaluate(self.z3_role_perm[role][perm]))]
+        for perm in self.permissions:
+            ce["permission_resources"][perm] = [res for res in self.resources if is_true(model.evaluate(self.z3_perm_resource[perm][res]))]
+        for sr in self.roles:
+            ce["role_hierarchy"][sr] = [jr for jr in self.roles if is_true(model.evaluate(self.z3_role_hierarchy[sr][jr]))]
+        return ce
+    def verify_separation_of_duty(self, r1, r2):
+        if r1 not in self.roles or r2 not in self.roles:
+            raise ValueError("Roles must exist")
+        prop = And([Not(And(self.z3_user_role[u][r1], self.z3_user_role[u][r2])) for u in self.users])
+        return self.verify_property(prop)
+    def verify_least_privilege(self, role, req_perms):
+        if role not in self.roles or any(p not in self.permissions for p in req_perms):
+            raise ValueError("Role or permission does not exist")
+        has_req = And([self.z3_role_perm[role][p] for p in req_perms])
+        not_others = And([Not(self.z3_role_perm[role][p]) for p in self.permissions if p not in req_perms])
+        return self.verify_property(And(has_req, not_others))
+    def verify_role_containment(self, r1, r2):
+        if r1 not in self.roles or r2 not in self.roles:
+            raise ValueError("Roles must exist")
+        prop = And([Implies(self.z3_role_perm[r2][p], self.z3_role_perm[r1][p]) for p in self.permissions])
+        return self.verify_property(prop)
+    def verify_no_access(self, user, res):
+        if user not in self.users or res not in self.resources:
+            raise ValueError("User or resource does not exist")
+        prop = Not(Or([And(self.z3_user_role[user][role], self.z3_role_perm[role][perm], self.z3_perm_resource[perm][res]) for role in self.roles for perm in self.permissions]))
+        return self.verify_property(prop)
+    def verify_resource_isolation(self, r1, r2):
+        if r1 not in self.resources or r2 not in self.resources:
+            raise ValueError("Resources must exist")
+        prop = And([
             Not(And(
-                Or([
-                    And(
-                        self.z3_user_role[user][role1],
-                        self.z3_role_perm[role1][perm1],
-                        self.z3_perm_resource[perm1][resource1]
-                    )
-                    for role1 in self.roles
-                    for perm1 in self.permissions
-                ]),
-                Or([
-                    And(
-                        self.z3_user_role[user][role2],
-                        self.z3_role_perm[role2][perm2],
-                        self.z3_perm_resource[perm2][resource2]
-                    )
-                    for role2 in self.roles
-                    for perm2 in self.permissions
-                ])
-            ))
-            for user in self.users
+                Or([And(self.z3_user_role[u][role1], self.z3_role_perm[role1][p1], self.z3_perm_resource[p1][r1]) for role1 in self.roles for p1 in self.permissions]),
+                Or([And(self.z3_user_role[u][role2], self.z3_role_perm[role2][p2], self.z3_perm_resource[p2][r2]) for role2 in self.roles for p2 in self.permissions])
+            )) for u in self.users
         ])
-        
-        return self.verify_property(property_formula)
+        return self.verify_property(prop)
 

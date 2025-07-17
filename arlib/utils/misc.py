@@ -21,6 +21,8 @@ import sys
 from textwrap import fill, dedent
 from typing import Callable, Dict, List, Optional, Union
 import itertools
+import subprocess
+import threading
 
 
 def powerset(elements: List):
@@ -461,3 +463,53 @@ def translate(s, a, b=None, c=None):
         s = s.translate(str.maketrans(a, b))
         
     return s
+
+
+def run_external_tool(cmd, input_content=None, timeout=300, delete_input=True):
+    """
+    Run an external command with optional input file content and timeout.
+    Returns (success, stdout, stderr). Cleans up temp file if needed.
+    """
+    import tempfile, os
+    is_timeout = [False]
+    input_file = None
+    try:
+        if input_content is not None:
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+                input_file = f.name
+                f.write(input_content)
+            if isinstance(cmd, list):
+                cmd = cmd + [input_file]
+            else:
+                cmd = f"{cmd} {input_file}"
+        process = subprocess.Popen(
+            cmd,
+            stdin=None if input_content is None else subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        timer = None
+        if timeout > 0:
+            timer = threading.Timer(timeout, lambda: (process.terminate(), is_timeout.__setitem__(0, True)))
+            timer.start()
+        stdout, stderr = process.communicate()
+        if timer:
+            timer.cancel()
+        if input_file and delete_input:
+            try:
+                os.unlink(input_file)
+            except Exception:
+                pass
+        if is_timeout[0]:
+            return False, stdout, stderr
+        if process.returncode != 0:
+            return False, stdout, stderr
+        return True, stdout, stderr
+    except Exception as e:
+        if input_file and delete_input:
+            try:
+                os.unlink(input_file)
+            except Exception:
+                pass
+        return False, '', str(e)

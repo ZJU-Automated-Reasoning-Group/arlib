@@ -1,29 +1,4 @@
-"""Parallel Quantifier Elimination via Lazy Model Enumeration (LME-QE)
-
-An implementation of LME-QE (CAV 2013) with parallelized model enumeration and projection.
-This algorithm eliminates existential quantifiers through iterative model enumeration
-in parallel, potentially improving performance on multi-core systems.
-
-This implementation uses Z3 as an external process via IPC for better isolation and potential performance.
-
-Implementation Details:
-----------------------
-1. Communication with Z3: Uses SMT-LIB format to communicate with Z3 as an external process
-2. Model Enumeration: Extracts models in parallel and processes them to find projections
-3. Parallelization: Uses ProcessPoolExecutor for parallel model processing
-
-Example Usage:
--------------
-```python
-import z3
-from arlib.quant.qe.qe_lme_parallel import qelim_exists_lme_parallel
-
-x, y, z = z3.Reals("x y z")
-formula = z3.And(z3.Or(x > 2, x < y + 3), z3.Or(x - z > 3, z < 10))
-result = qelim_exists_lme_parallel(formula, [x, y])
-print(result)  # SMT-LIB formatted result
-```
-"""
+"""Parallel Quantifier Elimination via Lazy Model Enumeration (LME-QE)"""
 
 from typing import List, Dict, Any, Optional
 import multiprocessing as mp

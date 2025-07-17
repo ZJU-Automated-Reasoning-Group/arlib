@@ -1,72 +1,41 @@
 #!/usr/bin/env python3
-"""Unification examples using arlib's term unification capabilities"""
-
 import z3
 from arlib.itp.utils import unify, pmatch, antipattern
 from arlib.unification.core import unify as core_unify, reify
 from arlib.unification.variable import var
 
-def z3_unification():
-    print("=== Z3 Unification ===")
-    x, y = z3.Ints("x y")
-    f = z3.Function("f", z3.IntSort(), z3.IntSort())
-    
-    term1 = f(x)
-    term2 = f(z3.IntVal(5))
-    
-    subst = unify([x], term1, term2)
-    if subst:
-        print(f"Unify {term1} with {term2}: {subst}")
-    
-    term1 = f(x)
-    term2 = f(y)
-    subst = unify([x, y], term1, term2)
-    if subst:
-        print(f"Unify {term1} with {term2}: {subst}")
+def z3_unify():
+    x, y = z3.Ints("x y"); f = z3.Function("f", z3.IntSort(), z3.IntSort())
+    t1, t2 = f(x), f(z3.IntVal(5))
+    s = unify([x], t1, t2)
+    if s: print(f"Unify {t1} with {t2}: {s}")
+    t1, t2 = f(x), f(y)
+    s = unify([x, y], t1, t2)
+    if s: print(f"Unify {t1} with {t2}: {s}")
 
-def pattern_matching():
-    print("\n=== Pattern Matching ===")
-    x, y = z3.Ints("x y")
-    f = z3.Function("f", z3.IntSort(), z3.IntSort())
-    
-    pattern = f(x)
-    term = f(z3.IntVal(42))
-    
-    match = pmatch([x], pattern, term)
-    if match:
-        print(f"Match {pattern} against {term}: {match}")
+def pattern_match():
+    x, y = z3.Ints("x y"); f = z3.Function("f", z3.IntSort(), z3.IntSort())
+    pat, t = f(x), f(z3.IntVal(42))
+    m = pmatch([x], pat, t)
+    if m: print(f"Match {pat} against {t}: {m}")
 
-def anti_unification():
-    print("\n=== Anti-Unification ===")
+def anti_unify():
     try:
         a, b, c, d = z3.Ints("a b c d")
         f = z3.Function("f", z3.IntSort(), z3.IntSort(), z3.IntSort())
-        
-        term1 = f(a, b)
-        term2 = f(c, d)
-        
-        pattern_vars, pattern = antipattern([term1, term2])
-        print(f"Generalize {term1}, {term2}: {pattern}")
-        
+        t1, t2 = f(a, b), f(c, d)
+        pvars, pat = antipattern([t1, t2])
+        print(f"Generalize {t1}, {t2}: {pat}")
     except Exception as e:
-        print(f"Failed: {e}")
+        print(f"Anti-unify failed: {e}")
 
-def core_unification():
-    print("\n=== Core Unification ===")
-    x = var('x')
-    y = var('y')
-    
-    term1 = (1, x, (3, y))
-    term2 = (1, 2, (3, 4))
-    
-    subst = core_unify(term1, term2)
-    if subst:
-        print(f"Unify {term1} with {term2}: {subst}")
-        result = reify(term1, subst)
-        print(f"Result: {result}")
+def core_unify_ex():
+    x = var('x'); y = var('y')
+    t1, t2 = (1, x, (3, y)), (1, 2, (3, 4))
+    s = core_unify(t1, t2)
+    if s:
+        print(f"Unify {t1} with {t2}: {s}")
+        print(f"Result: {reify(t1, s)}")
 
 if __name__ == "__main__":
-    z3_unification()
-    pattern_matching()
-    anti_unification()
-    core_unification() 
+    z3_unify(); pattern_match(); anti_unify(); core_unify_ex() 

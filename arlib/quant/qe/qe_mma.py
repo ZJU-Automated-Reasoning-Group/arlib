@@ -9,156 +9,51 @@ import tempfile
 import time
 import logging
 from typing import List, Optional, Tuple, Union
+from arlib.utils.misc import run_external_tool
 
 logger = logging.getLogger(__name__)
 
 
 class MathematicaQE:
     """Interface to Mathematica for quantifier elimination."""
-
-    def __init__(self, math_path: Optional[str] = None, timeout: int = 300):
-        """
-        Initialize the Mathematica QE interface.
-        
-        Args:
-            math_path: Path to the Mathematica executable (math or MathKernel).
-                      If None, assumes 'math' is in PATH.
-            timeout: Timeout in seconds for Mathematica execution.
-        """
-        self.math_path = math_path if math_path else "math"
+    def __init__(self, math_path: str = "math", timeout: int = 300):
+        self.math_path = math_path
         self.timeout = timeout
 
-    def eliminate_quantifiers(self, formula: str, domain: str = "Reals") -> Tuple[bool, str]:
-        """
-        Eliminate quantifiers from the given formula using Mathematica.
-        
-        Args:
-            formula: The formula with quantifiers to eliminate
-            domain: The domain to use (Reals, Integers, etc.)
-            
-        Returns:
-            Tuple of (success, result_formula)
-        """
+    def eliminate_quantifiers(self, formula: str, domain: str = "Reals"):
+        input_content = self._make_input(formula, domain)
+        cmd = [self.math_path, "-noprompt", "-run"]
+        cmd.append(f"<<{input_content}")
+        success, stdout, stderr = run_external_tool(cmd, None, self.timeout)
+        if not success:
+            return False, stderr or stdout
+        return True, self._parse_output(stdout)
+
+    def _make_input(self, formula, domain):
+        lines = [f"formula = {formula};",
+                 f"result = Quiet[Resolve[formula, {domain}]];",
+                 "Print[\"RESULT_START\"];",
+                 "Print[result];",
+                 "Print[\"RESULT_END\"];",
+                 "Exit[];"]
+        import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.m', delete=False) as f:
-            input_file = f.name
-            self._write_mathematica_input(f, formula, domain)
+            f.write("\n".join(lines))
+            return f.name
 
-        try:
-            result = self._run_mathematica(input_file)
-            os.unlink(input_file)
-
-            if result is None:
-                return False, "Timeout or error occurred"
-
-            processed_result = self._process_output(result)
-            return True, processed_result
-
-        except Exception as e:
-            logger.error(f"Error during quantifier elimination: {e}")
-            try:
-                os.unlink(input_file)
-            except:
-                pass
-            return False, str(e)
-
-    def _write_mathematica_input(self, file, formula: str, domain: str):
-        """Write Mathematica input file with the appropriate commands."""
-        file.write(f"formula = {formula};\n")
-        file.write(f"result = Quiet[Resolve[formula, {domain}]];\n")
-        file.write("Print[\"RESULT_START\"];\n")
-        file.write("Print[result];\n")
-        file.write("Print[\"RESULT_END\"];\n")
-        file.write("Exit[];\n")
-        file.flush()
-
-    def _run_mathematica(self, input_file: str) -> Optional[str]:
-        """Run Mathematica with the given input file."""
-        is_timeout = [False]
-
-        try:
-            cmd = [self.math_path, "-noprompt", "-run", f"<<{input_file}"]
-            start_time = time.time()
-
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-
-            timer = None
-            if self.timeout > 0:
-                import threading
-                timer = threading.Timer(self.timeout, self._terminate, [process, is_timeout])
-                timer.start()
-
-            stdout, stderr = process.communicate()
-
-            if timer:
-                timer.cancel()
-
-            end_time = time.time()
-            logger.debug(f"Mathematica execution time: {end_time - start_time:.2f} seconds")
-
-            if is_timeout[0]:
-                logger.warning("Mathematica execution timed out")
-                return None
-
-            if process.returncode != 0:
-                logger.error(f"Mathematica execution failed with code {process.returncode}")
-                logger.error(f"Stderr: {stderr}")
-                return None
-
-            return stdout
-
-        except Exception as e:
-            logger.error(f"Error executing Mathematica: {e}")
-            return None
-
-    def _terminate(self, process, is_timeout: List):
-        """
-        Terminates a process and sets the timeout flag to True.
-        
-        Args:
-            process: The process to be terminated.
-            is_timeout: A list containing a single boolean item. If the process exceeds 
-                        the timeout limit, the boolean item will be set to True.
-        """
-        if process.poll() is None:
-            try:
-                process.terminate()
-                is_timeout[0] = True
-            except Exception as ex:
-                logger.error(f"Error terminating Mathematica process: {ex}")
-                try:
-                    process.kill()
-                except Exception:
-                    pass
-
-    def _process_output(self, output: str) -> str:
-        """Process the output from Mathematica to extract the result formula."""
+    def _parse_output(self, output):
         lines = output.strip().split('\n')
         result_lines = []
         capture = False
-
         for line in lines:
             if "RESULT_START" in line:
                 capture = True
                 continue
             elif "RESULT_END" in line:
-                capture = False
-                continue
+                break
             elif capture:
                 result_lines.append(line.strip())
-
-        # Join the result lines and clean up
-        result = ' '.join(result_lines)
-
-        # Convert Mathematica syntax to more standard form if needed
-        # This is a simple example, might need more sophisticated conversion
-        result = result.replace("&&", "∧").replace("||", "∨")
-
-        return result
+        return ' '.join(result_lines)
 
 
 def eliminate_quantifiers(formula: str, domain: str = "Reals",

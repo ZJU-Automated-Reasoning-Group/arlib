@@ -1,6 +1,5 @@
 """
 CLI tool for counting models of Boolean/SMT formulas
-# FIXME: by llm, to be checked and tested
 """
 import argparse
 import logging

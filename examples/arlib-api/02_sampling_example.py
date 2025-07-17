@@ -1,117 +1,58 @@
 #!/usr/bin/env python3
-"""
-Model Sampling Example - Advanced Sampling Techniques
-
-This example demonstrates arlib's model sampling capabilities across various
-logics and sampling methods. Unlike simple model enumeration, sampling provides
-sophisticated techniques for exploring the solution space efficiently.
-
-arlib provides much richer sampling functionalities compared to basic Z3 usage,
-including MCMC, region-based sampling, and hash-based sampling.
-"""
-
 import z3
-from arlib.sampling import (
-    sample_models_from_formula, 
-    Logic, 
-    SamplingOptions, 
-    SamplingMethod,
-    create_sampler
-)
+from arlib.sampling import sample_models_from_formula, Logic, SamplingOptions, SamplingMethod, create_sampler
 
-
-def boolean_sampling_example():
-    """Demonstrate sampling from Boolean formulas."""
-    print("=== Boolean Sampling ===")
-    
+def bool_sampling():
     a, b, c, d = z3.Bools('a b c d')
-    formula = z3.And(z3.Or(a, b, c), z3.Or(z3.Not(a), d), 
-                     z3.Or(z3.Not(b), z3.Not(c)), z3.Or(a, z3.Not(d)))
-    
-    for method in [SamplingMethod.ENUMERATION, SamplingMethod.HASH_BASED]:
+    f = z3.And(z3.Or(a, b, c), z3.Or(z3.Not(a), d), z3.Or(z3.Not(b), z3.Not(c)), z3.Or(a, z3.Not(d)))
+    for m in [SamplingMethod.ENUMERATION, SamplingMethod.HASH_BASED]:
         try:
-            options = SamplingOptions(method=method, num_samples=3, random_seed=42)
-            result = sample_models_from_formula(formula, Logic.QF_BOOL, options)
-            print(f"{method.value}: {len(result)} samples")
-        except Exception as e:
-            print(f"{method.value}: not available")
+            opts = SamplingOptions(method=m, num_samples=3, random_seed=42)
+            r = sample_models_from_formula(f, Logic.QF_BOOL, opts)
+            print(f"{m.value}: {len(r)} samples")
+        except: print(f"{m.value}: not available")
 
-
-def linear_arithmetic_sampling():
-    """Demonstrate sampling from linear arithmetic formulas."""
-    print("\n=== Linear Real Arithmetic ===")
-    
+def lra_sampling():
     x, y, z = z3.Reals('x y z')
-    formula = z3.And(x + y + z <= 10, x >= 0, y >= 0, z >= 0, 
-                     2*x + y <= 8, x + 3*y <= 12)
-    
-    for method in [SamplingMethod.ENUMERATION, SamplingMethod.REGION, SamplingMethod.DIKIN_WALK]:
+    f = z3.And(x + y + z <= 10, x >= 0, y >= 0, z >= 0, 2*x + y <= 8, x + 3*y <= 12)
+    for m in [SamplingMethod.ENUMERATION, SamplingMethod.REGION, SamplingMethod.DIKIN_WALK]:
         try:
-            options = SamplingOptions(method=method, num_samples=2, random_seed=42)
-            result = sample_models_from_formula(formula, Logic.QF_LRA, options)
-            print(f"{method.value}: {len(result)} samples")
-        except Exception as e:
-            print(f"{method.value}: not available")
+            opts = SamplingOptions(method=m, num_samples=2, random_seed=42)
+            r = sample_models_from_formula(f, Logic.QF_LRA, opts)
+            print(f"{m.value}: {len(r)} samples")
+        except: print(f"{m.value}: not available")
 
-
-def integer_arithmetic_sampling():
-    """Demonstrate sampling from integer arithmetic formulas."""
-    print("\n=== Linear Integer Arithmetic ===")
-    
+def lia_sampling():
     x, y = z3.Ints('x y')
-    formula = z3.And(x + 2*y <= 10, x >= 0, y >= 0, x <= 5, y <= 4, x + y >= 2)
-    
-    options = SamplingOptions(method=SamplingMethod.ENUMERATION, num_samples=5, random_seed=42)
-    result = sample_models_from_formula(formula, Logic.QF_LIA, options)
-    print(f"Generated {len(result)} samples")
+    f = z3.And(x + 2*y <= 10, x >= 0, y >= 0, x <= 5, y <= 4, x + y >= 2)
+    opts = SamplingOptions(method=SamplingMethod.ENUMERATION, num_samples=5, random_seed=42)
+    r = sample_models_from_formula(f, Logic.QF_LIA, opts)
+    print(f"LIA: {len(r)} samples")
 
-
-def mcmc_sampling_example():
-    """Demonstrate MCMC sampling for complex formulas."""
-    print("\n=== MCMC Sampling ===")
-    
+def mcmc_sampling():
     x, y, z = z3.Reals('x y z')
-    formula = z3.And(x*x + y*y <= 4, z >= x + y, z <= 3, x >= -2, y >= -2, z >= -2)
-    
+    f = z3.And(x*x + y*y <= 4, z >= x + y, z <= 3, x >= -2, y >= -2, z >= -2)
     try:
-        options = SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, 
-                                random_seed=42, burn_in=100, thin=10)
-        result = sample_models_from_formula(formula, Logic.QF_NRA, options)
-        print(f"MCMC generated {len(result)} samples")
-    except Exception as e:
-        print("MCMC sampling not available")
+        opts = SamplingOptions(method=SamplingMethod.MCMC, num_samples=3, random_seed=42, burn_in=100, thin=10)
+        r = sample_models_from_formula(f, Logic.QF_NRA, opts)
+        print(f"MCMC: {len(r)} samples")
+    except: print("MCMC not available")
 
-
-def custom_sampler_example():
-    """Demonstrate creating and using custom samplers."""
-    print("\n=== Custom Sampler ===")
-    
+def custom_sampler():
     p, q, r = z3.Bools('p q r')
-    formula = z3.And(z3.Or(p, q), z3.Or(z3.Not(p), r), z3.Or(q, z3.Not(r)))
-    
+    f = z3.And(z3.Or(p, q), z3.Or(z3.Not(p), r), z3.Or(q, z3.Not(r)))
     try:
-        sampler = create_sampler(Logic.QF_BOOL, SamplingMethod.ENUMERATION)
-        sampler.init_from_formula(formula)
-        options = SamplingOptions(method=SamplingMethod.ENUMERATION, num_samples=5, random_seed=123)
-        result = sampler.sample(options)
-        print(f"Custom sampler generated {len(result)} samples")
-    except Exception as e:
-        print("Custom sampler failed")
-
+        s = create_sampler(Logic.QF_BOOL, SamplingMethod.ENUMERATION)
+        s.init_from_formula(f)
+        opts = SamplingOptions(method=SamplingMethod.ENUMERATION, num_samples=5, random_seed=123)
+        r = s.sample(opts)
+        print(f"Custom: {len(r)} samples")
+    except: print("Custom sampler failed")
 
 def main():
-    """Run all sampling examples."""
-    print("Model Sampling Examples - arlib's Advanced Sampling")
-    print("=" * 50)
-    
-    boolean_sampling_example()
-    linear_arithmetic_sampling()
-    integer_arithmetic_sampling()
-    mcmc_sampling_example()
-    custom_sampler_example()
-    
-    print("\nSampling examples completed!")
-
+    print("Sampling Examples\n" + "="*20)
+    bool_sampling(); lra_sampling(); lia_sampling(); mcmc_sampling(); custom_sampler()
+    print("Done!")
 
 if __name__ == "__main__":
     main() 

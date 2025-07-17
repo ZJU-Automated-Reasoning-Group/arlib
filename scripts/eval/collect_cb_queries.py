@@ -1,0 +1,3 @@
+"""
+Collect queries from Clearblue
+"""

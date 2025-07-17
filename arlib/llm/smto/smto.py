@@ -12,10 +12,13 @@ Z3 SMT solving with LLM-powered oracles in both blackbox and whitebox modes.
 """
 
 import z3
+import os
+import tempfile
 from typing import Dict, List, Optional, Any, Union
 
 from arlib.llm.smto.oracles import OracleInfo, WhiteboxOracleInfo, OracleType
-from arlib.llm.smto.llm_adapter import LLMInterface, LLMConfig
+from arlib.llm.llmtool.LLM_utils import LLM
+from arlib.llm.llmtool.logger import Logger
 from arlib.llm.smto.whitebox import WhiteboxAnalyzer, ModelEvaluator
 from arlib.llm.smto.utils import (
     OracleCache,
@@ -42,7 +45,9 @@ class OraxSolver:
                  provider: str = "openai",
                  cache_dir: Optional[str] = None,
                  explanation_level: str = "basic",
-                 whitebox_analysis: bool = False):
+                 whitebox_analysis: bool = False,
+                 temperature: float = 0.1,
+                 system_role: str = "You are a experienced programmer and good at understanding programs written in mainstream programming languages."):
         """
         Initialize Orax solver
         
@@ -53,13 +58,23 @@ class OraxSolver:
             cache_dir: Directory to cache oracle results (None for no caching)
             explanation_level: Level of explanation detail ('none', 'basic', 'detailed')
             whitebox_analysis: Whether to perform whitebox analysis on components
+            temperature: Temperature for LLM generation
+            system_role: System role prompt for LLM
         """
-        # Set up LLM interface
-        llm_config = LLMConfig(api_key=api_key, model=model, provider=provider)
-        self.llm = LLMInterface(llm_config)
+        # Set up logger
+        log_file = os.path.join(tempfile.gettempdir(), "orax_solver.log")
+        self.logger = Logger(log_file)
+        
+        # Set up LLM directly
+        self.llm = LLM(
+            online_model_name=model,
+            logger=self.logger,
+            temperature=temperature,
+            system_role=system_role
+        )
         
         # Set up explanations
-        self.logger = ExplanationLogger(level=explanation_level)
+        self.explanation_logger = ExplanationLogger(level=explanation_level)
         
         # Set up Z3 solver
         self.solver = z3.Solver()
@@ -71,11 +86,11 @@ class OraxSolver:
         self.whitebox_analysis = whitebox_analysis
         if whitebox_analysis:
             self.whitebox_analyzer = WhiteboxAnalyzer(
-                llm_interface=self.llm,
+                llm=self.llm,
                 explanation_callback=self._add_explanation
             )
             self.model_evaluator = ModelEvaluator(
-                llm_interface=self.llm,
+                llm=self.llm,
                 explanation_callback=self._add_explanation
             )
         
@@ -83,33 +98,32 @@ class OraxSolver:
         self.oracles: Dict[str, OracleInfo] = {}
         self.whitebox_models: Dict[str, str] = {}  # Symbolic models for whitebox oracles
 
+    def _add_explanation(self, message: str, level: str = "basic"):
+        """Add explanation to the logger"""
+        self.explanation_logger.log(message, level)
+
+    def _add_explanation_detailed(self, data: Any, prefix: str = ""):
+        """Add detailed explanation to the logger"""
+        message = f"{prefix}{data}"
+        self.explanation_logger.log(message, "detailed")
+
+    def get_explanations(self) -> List[Dict[str, Any]]:
+        """Get all logged explanations"""
+        return self.explanation_logger.get_history()
+
     def register_oracle(self, oracle_info: OracleInfo):
-        """Register an oracle function"""
+        """Register an oracle with the solver"""
         self.oracles[oracle_info.name] = oracle_info
         
-        # Create Z3 function declaration if it doesn't exist
-        try:
-            # Check if function already exists
-            z3.Function(oracle_info.name, *oracle_info.input_types, oracle_info.output_type)
-        except z3.Z3Exception:
-            # Create new function
-            z3.FuncDecl(oracle_info.name, oracle_info.input_types, oracle_info.output_type)
-            
-        # If this is a whitebox oracle and whitebox analysis is enabled, analyze it
-        if (isinstance(oracle_info, WhiteboxOracleInfo) and 
-            self.whitebox_analysis and 
-            oracle_info.oracle_type == OracleType.WHITEBOX):
-            self._analyze_whitebox_oracle(oracle_info)
-
-    def _analyze_whitebox_oracle(self, oracle_info: WhiteboxOracleInfo) -> None:
-        """Analyze a whitebox oracle to derive a more accurate model"""
-        if self.whitebox_analysis:
+        # If whitebox analysis is enabled and this is a whitebox oracle, analyze it
+        if (self.whitebox_analysis and 
+            isinstance(oracle_info, WhiteboxOracleInfo)):
             symbolic_model = self.whitebox_analyzer.analyze_oracle(oracle_info)
             if symbolic_model:
                 self.whitebox_models[oracle_info.name] = symbolic_model
 
     def add_constraint(self, constraint: z3.BoolRef):
-        """Add constraint to the solver"""
+        """Add a constraint to the solver"""
         self.solver.add(constraint)
 
     def check(self, timeout_ms: int = 0) -> Optional[z3.ModelRef]:
@@ -155,26 +169,33 @@ class OraxSolver:
         return None
 
     def _validate_model_with_oracles(self, model: z3.ModelRef) -> bool:
-        """Validate model by checking oracle constraints"""
+        """Validate model against all registered oracles"""
         for oracle_name, oracle_info in self.oracles.items():
-            # Find all applications of this oracle in the model
-            for decl in model.decls():
-                if decl.name() == oracle_name:
-                    args = [model.eval(arg, True) for arg in decl.children()]
-                    expected = model.eval(decl(), True)
-                    
-                    # Process inputs based on oracle type
-                    inputs = {f"arg{i}": z3_value_to_python(arg) for i, arg in enumerate(args)}
-                    
-                    # Query oracle for actual result
-                    actual = self._query_oracle(oracle_info, inputs)
-                    
-                    if actual is None or not values_equal(actual, expected):
-                        self._add_explanation_detailed(
-                            f"Oracle validation failed for {oracle_name}: "
-                            f"expected {expected}, got {actual}"
-                        )
-                        return False
+            if not self._validate_oracle_calls(model, oracle_info):
+                return False
+        return True
+
+    def _validate_oracle_calls(self, model: z3.ModelRef, oracle_info: OracleInfo) -> bool:
+        """Validate all oracle calls in the model"""
+        # Find all function applications for this oracle
+        oracle_calls = self._find_oracle_calls(model, oracle_info.name)
+        
+        for call_inputs in oracle_calls:
+            # Query the oracle
+            oracle_result = self._query_oracle(oracle_info, call_inputs)
+            
+            if oracle_result is None:
+                self._add_explanation(f"Oracle {oracle_info.name} failed to produce result for {call_inputs}")
+                return False
+            
+            # Check if model's result matches oracle's result
+            model_result = self._get_model_result(model, oracle_info.name, call_inputs)
+            
+            if not values_equal(oracle_result, model_result):
+                self._add_explanation(f"Oracle mismatch for {oracle_info.name}{call_inputs}: "
+                                   f"oracle={oracle_result}, model={model_result}")
+                return False
+        
         return True
 
     def _query_oracle(self, oracle_info: OracleInfo, inputs: Dict[str, Any]) -> Optional[Any]:
@@ -227,10 +248,14 @@ class OraxSolver:
         prompt += f"\nNow, given the input: {inputs}\nWhat is the output?"
 
         try:
-            result = self.llm.generate_text(
-                prompt=prompt,
-                system_prompt="You are a precise function evaluator."
-            )
+            # Use LLM directly with temporary system role update
+            original_system_role = self.llm.systemRole
+            self.llm.systemRole = "You are a precise function evaluator."
+            
+            result, _, _ = self.llm.infer(prompt, is_measure_cost=False)
+            
+            # Restore original system role
+            self.llm.systemRole = original_system_role
             
             # Parse the result based on output type
             return self._parse_llm_response(result, oracle_info.output_type)
@@ -294,23 +319,33 @@ class OraxSolver:
         if constraints_added > 0:
             self._add_explanation(f"Added {constraints_added} oracle constraints")
 
-    def _add_explanation(self, message: str):
-        """Add basic explanation"""
-        self.logger.log(message, level="basic")
+    def _find_oracle_calls(self, model: z3.ModelRef, oracle_name: str) -> List[Dict[str, Any]]:
+        """Find all applications of an oracle function in the model."""
+        calls = []
+        for decl in model.decls():
+            if decl.name() == oracle_name:
+                # This is a function application, not a function declaration
+                # We need to get the arguments and their values from the model
+                args = [model.eval(arg, True) for arg in decl.children()]
+                calls.append({f"arg{i}": z3_value_to_python(arg) for i, arg in enumerate(args)})
+        return calls
 
-    def _add_explanation_detailed(self, message: Union[str, Dict], prefix: str = ""):
-        """Add detailed explanation"""
-        if isinstance(message, dict):
-            message = f"{prefix}{message}"
-        self.logger.log(message, level="detailed")
-
-    def get_explanations(self) -> List[Dict[str, Any]]:
-        """Get explanation history"""
-        return self.logger.get_history()
+    def _get_model_result(self, model: z3.ModelRef, oracle_name: str, inputs: Dict[str, Any]) -> Optional[Any]:
+        """Get the result of an oracle function application from the model."""
+        for decl in model.decls():
+            if decl.name() == oracle_name:
+                # Check if this declaration matches the inputs
+                args = [model.eval(arg, True) for arg in decl.children()]
+                decl_inputs = {f"arg{i}": z3_value_to_python(arg) for i, arg in enumerate(args)}
+                
+                # If inputs match, return the model's result for this function application
+                if decl_inputs == inputs:
+                    return z3_value_to_python(model.eval(decl(), True))
+        return None
 
     def clear_explanations(self):
         """Clear explanation history"""
-        self.logger.clear()
+        self.explanation_logger.clear()
 
     def get_symbolic_model(self, oracle_name: str) -> Optional[str]:
         """Get the symbolic model for a whitebox oracle"""
