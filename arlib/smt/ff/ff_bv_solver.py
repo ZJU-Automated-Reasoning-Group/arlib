@@ -4,7 +4,7 @@ from typing import Optional, Dict
 import os
 
 import z3
-from .ff_parser import ParsedFormula, FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst
+from arlib.smt.ff.ff_parser import ParsedFormula, FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, FFParser
 
 
 class FFBVSolver:

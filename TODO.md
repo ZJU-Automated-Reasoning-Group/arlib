@@ -10,12 +10,6 @@ There are many interesting research topics. You are welcome to contribute to the
 - LLM-based abduction: See `arlib/llm`
 
 
-## Interfaces
-
-- Python API
-- CLI tools
-
-
 ## Features
 
 ### Logic Programming 
@@ -30,7 +24,6 @@ There are many interesting research topics. You are welcome to contribute to the
 - Mixed-integer quadratic programming
 
 ### Projection
-
 
 - Fourier-Motzkin elimination
 - Simplex method
