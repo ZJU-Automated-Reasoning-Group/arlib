@@ -1,9 +1,10 @@
 # Arlib 
 
 Arlib is toolkit for automated reasoning. It provides a set of tools for constraint solving, logical inference, and symbolic computation.
-The overall architecture is illustrated in the following diagram:
 
-[Arlib Architecture (PDF)](docs/source/images/arlib_architecture.pdf)
+<p align="center">
+  <img src="docs/source/images/arlib.jpg" />
+</p>
 
 
 ## Local Development Environment

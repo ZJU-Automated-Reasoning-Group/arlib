@@ -34,6 +34,8 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * PolyHorn (``arlib/quant/polyhorn``)
 * Constrained Horn Clauses (CHC) tools (``arlib/quant/chctools``)
 * Symbolic Finite Automata (SFA) (``arlib/automata/symautomata``)
+* Context-Free Language (CFL) reachability (``arlib/cfl``)
+* Unification algorithms (``arlib/unification``)
 * ...
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
@@ -68,6 +70,7 @@ The setup script will:
    abduction
    backbone
    cdclt
+   cfl
    counting
    ff
    interpolant
@@ -81,7 +84,9 @@ The setup script will:
    sampling
    smt
    symbolic_abstraction
+   symbolic_finite_automata
    predicate_abstraction
+   unification
    unsat_core
    allsmt
    applications
