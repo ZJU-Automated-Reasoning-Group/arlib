@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symbolic Abstraction &mdash; Arlib Documentation</title>
+  <title>&lt;no title&gt; &mdash; Arlib Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Symbolic Finite Automata" href="symbolic_finite_automata.html" />
-    <link rel="prev" title="SMT Solving" href="smt.html" /> 
+    <link rel="next" title="UNSAT Core Extraction" href="unsat_core.html" />
+    <link rel="prev" title="Predicate Abstraction" href="predicate_abstraction.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,7 +43,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
@@ -61,19 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Symbolic Abstraction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#symbolic-abstraction-in-arlib">Symbolic Abstraction in Arlib</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ai-symabs"><code class="docutils literal notranslate"><span class="pre">ai_symabs</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#omt-symabs"><code class="docutils literal notranslate"><span class="pre">omt_symabs</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#future-directions">Future Directions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#research-areas">Research Areas</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbolic_finite_automata.html">Symbolic Finite Automata</a></li>
 <li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
@@ -95,9 +83,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Symbolic Abstraction</li>
+      <li class="breadcrumb-item active">&lt;no title&gt;</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/symbolic_abstraction.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/unification.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -105,52 +93,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="symbolic-abstraction">
-<h1>Symbolic Abstraction<a class="headerlink" href="#symbolic-abstraction" title="Link to this heading"></a></h1>
-<p>Symbolic abstraction is a technique that computes the best abstract domain element
-that overapproximates a given formula in first-order logic.</p>
-<section id="symbolic-abstraction-in-arlib">
-<h2>Symbolic Abstraction in Arlib<a class="headerlink" href="#symbolic-abstraction-in-arlib" title="Link to this heading"></a></h2>
-<p>Refer to <code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code> for the following implementations:</p>
-<section id="ai-symabs">
-<h3><code class="docutils literal notranslate"><span class="pre">ai_symabs</span></code><a class="headerlink" href="#ai-symabs" title="Link to this heading"></a></h3>
-<p>The implementation from UC Davis’s Automated Reasoning Group. For more details, see Thakur, A. V. (2014, August). Symbolic Abstraction: Algorithms and Applications (Ph.D. dissertation). Computer Sciences Department, University of Wisconsin, Madison.</p>
-</section>
-<section id="omt-symabs">
-<h3><code class="docutils literal notranslate"><span class="pre">omt_symabs</span></code><a class="headerlink" href="#omt-symabs" title="Link to this heading"></a></h3>
-<p>The implementation based on OMT solving.</p>
-</section>
-</section>
-<section id="future-directions">
-<h2>Future Directions<a class="headerlink" href="#future-directions" title="Link to this heading"></a></h2>
-<section id="research-areas">
-<h3>Research Areas<a class="headerlink" href="#research-areas" title="Link to this heading"></a></h3>
-<ol class="arabic simple">
-<li><p><strong>Theory Development</strong>:
-- New abstract domains
-- Combination methods
-- Completeness results</p></li>
-<li><p><strong>Algorithm Improvement</strong>:</p></li>
-</ol>
-</section>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Automating Abstract Interpretation, VMCAI’16</p></li>
-<li><p>Program Analysis via Efficient Symbolic Abstraction, OOPSLA’21</p></li>
-<li><p>Thakur, A. V. (2014, August). Symbolic Abstraction: Algorithms and Applications
-(Ph.D. dissertation). Computer Sciences Department, University of Wisconsin, Madison.</p></li>
-</ul>
-</section>
-</section>
-
+  
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="smt.html" class="btn btn-neutral float-left" title="SMT Solving" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="symbolic_finite_automata.html" class="btn btn-neutral float-right" title="Symbolic Finite Automata" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="predicate_abstraction.html" class="btn btn-neutral float-left" title="Predicate Abstraction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="unsat_core.html" class="btn btn-neutral float-right" title="UNSAT Core Extraction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
