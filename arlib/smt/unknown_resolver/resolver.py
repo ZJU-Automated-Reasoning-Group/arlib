@@ -1,5 +1,8 @@
 """
-Concise SAE Unknown Formula Resolver
+SAE Unknown Formula Resolver
+
+Systematic approach to resolve unknown SMT formulas using mutation-based techniques.
+Applies structural and PST mutations to determine satisfiability when solvers return "unknown".
 """
 
 import z3
@@ -11,9 +14,10 @@ from pathlib import Path
 
 
 class SAEUnknownResolver:
-    """Resolves unknown SMT formulas using systematic mutation space coverage"""
+    """Resolves unknown SMT formulas using systematic mutation space coverage."""
     
     def __init__(self, solver_binary, timeout=30, max_depth=3, max_mutations=20, verbose=False):
+        """Initialize resolver with solver binary and configuration."""
         self.solver_binary = Path(solver_binary)
         self.timeout = timeout
         self.max_depth = max_depth
@@ -28,7 +32,7 @@ class SAEUnknownResolver:
         self.stats = {'mutations_tried': 0, 'formulas_explored': 0}
     
     def resolve(self, formula):
-        """Main entry point for unknown formula resolution"""
+        """Main entry point for unknown formula resolution."""
         if self.verbose:
             print(f"Resolving: {formula}")
         
@@ -48,7 +52,7 @@ class SAEUnknownResolver:
         return self._depth_search(cnf_formula)
     
     def _to_cnf(self, formula):
-        """Convert formula to CNF using Z3's Tseitin transformation"""
+        """Convert formula to CNF using Z3's Tseitin transformation."""
         goal = z3.Goal()
         goal.add(formula)
         cnf_goal = z3.Tactic('tseitin-cnf')(goal)
@@ -63,7 +67,7 @@ class SAEUnknownResolver:
         return z3.And(all_assertions) if all_assertions else z3.BoolVal(True)
     
     def _try_single_mutations(self, formula):
-        """Try structural and PST mutations"""
+        """Try structural and PST mutations individually."""
         # Structural mutations
         result = self._try_structural(formula)
         if result != "unknown":
@@ -73,7 +77,7 @@ class SAEUnknownResolver:
         return self._try_pst(formula)
     
     def _try_structural(self, formula):
-        """Try structural mutations: remove conjuncts/disjuncts, instantiate vars"""
+        """Try structural mutations: remove conjuncts/disjuncts, instantiate vars."""
         # Remove conjuncts
         if z3.is_and(formula):
             conjuncts = formula.children()
@@ -125,7 +129,7 @@ class SAEUnknownResolver:
         return "unknown"
     
     def _try_pst(self, formula):
-        """Try PST mutations on literals"""
+        """Try PST mutations on literals."""
         for literal in self._get_literals(formula):
             if self._is_cached('pst', literal):
                 continue
@@ -149,7 +153,7 @@ class SAEUnknownResolver:
         return "unknown"
     
     def _try_combinations(self, formula):
-        """Try systematic combinations of mutations"""
+        """Try systematic combinations of mutations."""
         promising = self._get_promising_mutations(formula)
         
         for i, (type1, mut1, desc1) in enumerate(promising):
@@ -179,7 +183,7 @@ class SAEUnknownResolver:
         return "unknown"
     
     def _depth_search(self, formula):
-        """Depth-limited systematic search"""
+        """Depth-limited systematic search."""
         queue = [(formula, 0, [])]
         visited = set()
         
@@ -204,7 +208,7 @@ class SAEUnknownResolver:
         return "unknown"
     
     def _get_pst_mutations(self, literal, is_over_approx):
-        """Get PST approximations for a literal"""
+        """Get PST approximations for a literal."""
         if z3.is_not(literal):
             inner = literal.children()[0]
             inner_muts = self._get_pst_mutations(inner, not is_over_approx)
@@ -233,7 +237,7 @@ class SAEUnknownResolver:
         return mutations[:2]
     
     def _get_instantiation_values(self, var, formula):
-        """Get instantiation values for a variable"""
+        """Get instantiation values for a variable."""
         values = []
         
         if z3.is_int(var):
@@ -249,7 +253,7 @@ class SAEUnknownResolver:
         return values[:3]
     
     def _solve(self, formula):
-        """Solve formula using external solver"""
+        """Solve formula using external solver."""
         try:
             smtlib = self._to_smtlib(formula)
             with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
@@ -276,7 +280,7 @@ class SAEUnknownResolver:
             return "unknown"
     
     def _to_smtlib(self, formula):
-        """Convert Z3 formula to SMT-LIB2 format"""
+        """Convert Z3 formula to SMT-LIB2 format."""
         variables = self._get_variables(formula)
         lines = ["(set-logic ALL)"]
         lines.extend([f"(declare-fun {var} () {var.sort()})" for var in variables])
@@ -369,7 +373,7 @@ class SAEUnknownResolver:
         return mutations
     
     def get_stats(self):
-        """Get mutation statistics"""
+        """Get mutation statistics."""
         return {
             'mutations_tried': self.stats['mutations_tried'],
             'formulas_explored': self.stats['formulas_explored'],

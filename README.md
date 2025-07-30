@@ -3,7 +3,7 @@
 Arlib is toolkit for automated reasoning. It provides a set of tools for constraint solving, logical inference, and symbolic computation.
 
 <p align="center">
-  <img src="docs/source/images/arlib.jpg" />
+  <img src="docs/source/images/arlib.jpg" style="width:80%;" />
 </p>
 
 
