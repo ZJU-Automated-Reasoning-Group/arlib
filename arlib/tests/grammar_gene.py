@@ -1,5 +1,5 @@
 """
-This file will use fuzzsat.py, smtfuzz.py, and fuzzqbf.py to generate more complex formula
+This file will use satfuzz.py, smtfuzz.py, and qbfuzz.py to generate more complex formula
 
 """
 
@@ -10,8 +10,8 @@ from pathlib import Path
 from threading import Timer
 from typing import List
 
-CNF_GENERATOR = str(Path(__file__).parent) + "/fuzzsat.py"
-QBF_GENERATOR = str(Path(__file__).parent) + "/fuzzqbf.py"
+CNF_GENERATOR = str(Path(__file__).parent) + "/satfuzz.py"
+QBF_GENERATOR = str(Path(__file__).parent) + "/qbfuzz.py"
 SMT_GENERATOR = str(Path(__file__).parent) + "/smtfuzz.py"
 
 

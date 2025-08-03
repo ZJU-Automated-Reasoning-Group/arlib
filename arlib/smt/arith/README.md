@@ -1,10 +1,7 @@
 # Arithmetic
 
-## Some ideas to explore for non-linear real/integer
 
 ### Incremental Lineralization
-
-Implemented in MathSAT5.
 
 Basic idea: Abstraction/refinement to SMT(`QF_UFLLA`/`QF_UFLRA`)
 
@@ -21,16 +18,4 @@ Basic idea: Abstraction/refinement to SMT(`QF_UFLLA`/`QF_UFLRA`)
 
 Publications
 
-- Icremental Linearization for Satisfiability and Verification Modulo Nonlinear Arithmetic and Transcendental Functions.
-  Ahmed Irfan. PhD thesis
-
-### Local Search
-
-Implemented in Z3++ by Shaowei Cai's Group
-
-### Fuzzing
-
-- Convert the non-linear formula to a "program"
-- Fuzz the program to obtain a solution
-
-## Related Work
+- Icremental Linearization for Satisfiability and Verification Modulo Nonlinear Arithmetic and Transcendental Functions. Ahmed Irfan. PhD thesis

@@ -565,7 +565,7 @@ def _generate_quantsets(num_vars, num_qsets, ratio):
 
     # calculate number of existential and universal quantifier sets
     if num_qsets % 2 == 0:  # even number of quantifier sets
-        num_sets[EXISTENTIAL] = num_sets[UNIVERSAL] = num_qsets / 2
+        num_sets[EXISTENTIAL] = num_sets[UNIVERSAL] = num_qsets // 2
     else:
         if quantifiers[qindex] == EXISTENTIAL:
             num_sets[EXISTENTIAL] = math.floor(num_qsets / 2) + 1

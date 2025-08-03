@@ -1,5 +1,5 @@
 """
-Validate the unsat core returned by the minimizer.
+Validate the unsat core returned by the cvc5_minimizer.
 """
 import cvc5
 
@@ -41,7 +41,7 @@ class UNSATVerifier:
                 There is one-to-one correspondence with constraints in ``all_constraints``.
             placeholder (str): SMT2-Lib input file string placeholder, where all assertions
                 are represented by "<ASSERT>" keyword.
-        
+
         Returns:
             (bool): ``True``, if unsatisfiable, else ``False``.
         """
@@ -96,7 +96,7 @@ class MUSVerifier:
                 There is one-to-one correspondence with constraints in ``all_constraints``.
             placeholder (str): SMT2-Lib input file string placeholder, where all assertions
                 are represented by "<ASSERT>" keyword.
-        
+
         Returns:
             (bool): ``True``, if MUS, else ``False``.
         """
