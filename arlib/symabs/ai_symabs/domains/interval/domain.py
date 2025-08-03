@@ -1,5 +1,6 @@
 """Main class definition for the Intervals conjunctive domain.
 """
+from typing import Any, List
 import z3
 from ..z3_variables import Z3VariablesDomain
 from .abstract import Interval, IntervalAbstractState
@@ -9,14 +10,14 @@ class IntervalDomain(Z3VariablesDomain):
     """Represents an abstract space over the intervals of variables.
     """
 
-    def __init__(self, variables):
+    def __init__(self, variables: List[str]) -> None:
         """Constructs a new IntervalDomain, with variables named in variables.
 
         variables should be a list of variable names
         """
         Z3VariablesDomain.__init__(self, variables, z3.Int)
 
-    def gamma_hat(self, alpha):
+    def gamma_hat(self, alpha: IntervalAbstractState) -> Any:
         """Returns a formula describing the same states as alpha
         """
         conjunctions = []
@@ -32,7 +33,7 @@ class IntervalDomain(Z3VariablesDomain):
                 conjunctions.append(False)
         return z3.And(*conjunctions)
 
-    def join(self, elements):
+    def join(self, elements: List[IntervalAbstractState]) -> IntervalAbstractState:
         """Returns the join of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the smallest alpha
@@ -47,7 +48,7 @@ class IntervalDomain(Z3VariablesDomain):
                 joined.set_interval(name, union)
         return joined
 
-    def meet(self, elements):
+    def meet(self, elements: List[IntervalAbstractState]) -> IntervalAbstractState:
         """Returns the meet of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the greatest alpha
@@ -62,7 +63,7 @@ class IntervalDomain(Z3VariablesDomain):
                 met.set_interval(name, intersection)
         return met
 
-    def abstract_consequence(self, lower, upper):
+    def abstract_consequence(self, lower: IntervalAbstractState, upper: IntervalAbstractState) -> IntervalAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a
@@ -81,7 +82,7 @@ class IntervalDomain(Z3VariablesDomain):
         return lower.copy()
 
     # Converts one concrete set of variables into an abstract element
-    def beta(self, sigma):
+    def beta(self, sigma: Any) -> IntervalAbstractState:
         """Returns the least abstract state describing sigma.
 
         Sigma should be an Z3VariablesState. See Definition 3.4 in:
@@ -94,17 +95,15 @@ class IntervalDomain(Z3VariablesDomain):
                   for name in self.variables}))
 
     @property
-    def top(self):
+    def top(self) -> IntervalAbstractState:
         """Returns the least upper bound of the entire abstract space.
         """
         top_interval = Interval(float("-inf"), float("inf"))
-        return IntervalAbstractState(
-            dict({name: top_interval for name in self.variables}))
+        return IntervalAbstractState({name: top_interval for name in self.variables})
 
     @property
-    def bottom(self):
+    def bottom(self) -> IntervalAbstractState:
         """Returns the greatest lower bound of the entire abstract space.
         """
         bottom_interval = Interval(float("inf"), float("-inf"))
-        return IntervalAbstractState(
-            dict({name: bottom_interval for name in self.variables}))
+        return IntervalAbstractState({name: bottom_interval for name in self.variables})

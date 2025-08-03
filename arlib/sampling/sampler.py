@@ -1,7 +1,7 @@
 """Abstract Interfaces for Samplera"""
 
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Set
 from abc import ABC, abstractmethod
 import z3
 
@@ -28,24 +28,47 @@ class SamplingMethod(Enum):
 
 class SamplingResult:
     def __init__(self, samples: List[Dict[str, Any]],
-                 stats: Optional[Dict[str, Any]] = None):
-        self.samples = samples
-        self.stats = stats or {}
-        self.success = len(samples) > 0
+                 stats: Optional[Dict[str, Any]] = None) -> None:
+        self.samples: List[Dict[str, Any]] = samples
+        self.stats: Dict[str, Any] = stats or {}
+        self.success: bool = len(samples) > 0
+
+    def __len__(self) -> int:
+        """Return the number of samples."""
+        return len(self.samples)
+
+    def __getitem__(self, index: int) -> Dict[str, Any]:
+        """Get a specific sample by index."""
+        return self.samples[index]
+
+    def __iter__(self):
+        """Iterate over the samples."""
+        return iter(self.samples)
+
+    def __str__(self) -> str:
+        """String representation of the sampling result."""
+        if not self.success:
+            return "SamplingResult(success=False, samples=[])"
+
+        sample_str = f"{len(self.samples)} samples"
+        if len(self.samples) > 0:
+            sample_str += f", first sample: {self.samples[0]}"
+
+        return f"SamplingResult(success={self.success}, {sample_str})"
 
 
 class SamplingOptions:
     def __init__(self,
                  method: SamplingMethod = SamplingMethod.ENUMERATION,
                  num_samples: int = 1,
-                 timeout: float = None,
-                 random_seed: int = None,
-                 **kwargs):
-        self.method = method
-        self.num_samples = num_samples
-        self.timeout = timeout
-        self.random_seed = random_seed
-        self.additional_options = kwargs
+                 timeout: Optional[float] = None,
+                 random_seed: Optional[int] = None,
+                 **kwargs: Any) -> None:
+        self.method: SamplingMethod = method
+        self.num_samples: int = num_samples
+        self.timeout: Optional[float] = timeout
+        self.random_seed: Optional[int] = random_seed
+        self.additional_options: Dict[str, Any] = kwargs
 
 
 class Sampler(ABC):
@@ -57,7 +80,7 @@ class Sampler(ABC):
         pass
 
     @abstractmethod
-    def init_from_formula(self, formula: z3.ExprRef):
+    def init_from_formula(self, formula: z3.ExprRef) -> None:
         """Initialize sampler with a formula."""
         pass
 
@@ -66,6 +89,10 @@ class Sampler(ABC):
         """Generate samples according to the given options."""
         pass
 
-    def get_supported_methods(self) -> List[SamplingMethod]:
-        """Return list of supported sampling methods."""
-        pass
+    def get_supported_methods(self) -> Set[SamplingMethod]:
+        """Return set of supported sampling methods."""
+        return set()
+
+    def get_supported_logics(self) -> Set[Logic]:
+        """Return set of supported logics."""
+        return set()

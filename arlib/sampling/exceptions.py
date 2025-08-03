@@ -1,3 +1,6 @@
+from typing import Optional, Any, Tuple
+
+
 class PySamplerException(Exception):
     """Base class for all the custom exceptions of PySampler"""
     pass
@@ -68,13 +71,13 @@ class SolverStatusError(PySamplerException):
 class ConvertExpressionError(PySamplerException):
     """Exception raised if the converter cannot convert an expression."""
 
-    def __init__(self, message=None, expression=None):
-        PySamplerException.__init__(self)
-        self.message = message
-        self.expression = expression
+    def __init__(self, message: Optional[str] = None, expression: Optional[Any] = None) -> None:
+        super().__init__()
+        self.message: Optional[str] = message
+        self.expression: Optional[Any] = expression
 
-    def __str__(self):
-        return self.message
+    def __str__(self) -> str:
+        return str(self.message) if self.message else "ConvertExpressionError"
 
 
 class SolverAPINotFound(PySamplerException):
@@ -85,12 +88,12 @@ class SolverAPINotFound(PySamplerException):
 class UndefinedSymbolError(PySamplerException):
     """The given Symbol is not in the FormulaManager."""
 
-    def __init__(self, name):
-        PySamplerException.__init__(self)
-        self.name = name
+    def __init__(self, name: str) -> None:
+        super().__init__()
+        self.name: str = name
 
-    def __str__(self):
-        return "'%s' is not defined!" % self.name
+    def __str__(self) -> str:
+        return f"'{self.name}' is not defined!"
 
 
 class PySamplerModeError(PySamplerException):
@@ -111,14 +114,14 @@ class PySamplerTypeError(PySamplerException, TypeError):
 
 
 class PySamplerSyntaxError(PySamplerException, SyntaxError):
-    def __init__(self, message, pos_info=None):
-        super(PySamplerSyntaxError, self).__init__(message)
-        self.pos_info = pos_info
-        self.message = message
+    def __init__(self, message: str, pos_info: Optional[Tuple[int, int]] = None) -> None:
+        super().__init__(message)
+        self.pos_info: Optional[Tuple[int, int]] = pos_info
+        self.message: str = message
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.pos_info:
-            return "Line %d, Col %d: " % self.pos_info + self.message
+            return f"Line {self.pos_info[0]}, Col {self.pos_info[1]}: {self.message}"
         else:
             return self.message
 

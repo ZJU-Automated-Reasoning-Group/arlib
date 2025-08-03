@@ -2,12 +2,13 @@
 Solving non-linear formulas via incremental linearization
 """
 
+from typing import List, Set, Tuple, Any, Optional
 from z3 import *
 
 
-def abstract_to_linear(formula):
-    # Abstract non-linear parts to uninterpreted functions
-    abstracted_formula = formula
+def abstract_to_linear(formula: ExprRef) -> ExprRef:
+    """Abstract non-linear parts to uninterpreted functions"""
+    abstracted_formula: ExprRef = formula
     for expr in post_order_traverse(formula):
         if is_non_linear(expr):
             # Create uninterpreted function with same domain and range
@@ -20,7 +21,7 @@ def abstract_to_linear(formula):
     return abstracted_formula
 
 
-def is_non_linear(expr):
+def is_non_linear(expr: ExprRef) -> bool:
     """Check if an expression is non-linear"""
     if not is_app(expr):
         return False
@@ -34,17 +35,17 @@ def is_non_linear(expr):
     return op in [Z3_OP_UNINTERPRETED] or str(expr.decl()) in ['sin', 'cos', 'tan', 'exp', 'log']
 
 
-def is_var(expr):
+def is_var(expr: ExprRef) -> bool:
     """Check if expression is a variable"""
     return is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED
 
 
-def post_order_traverse(formula):
+def post_order_traverse(formula: ExprRef) -> List[ExprRef]:
     """Traverse formula in post-order"""
-    visited = set()
-    result = []
+    visited: Set[ExprRef] = set()
+    result: List[ExprRef] = []
 
-    def traverse(expr):
+    def traverse(expr: ExprRef) -> None:
         if expr in visited:
             return
         if is_app(expr):
@@ -57,13 +58,13 @@ def post_order_traverse(formula):
     return result
 
 
-def is_unsat(formula):
+def is_unsat(formula: ExprRef) -> bool:
     solver = Solver()
     solver.add(formula)
     return solver.check() == unsat
 
 
-def validate_model(formula, model):
+def validate_model(formula: ExprRef, model: ModelRef) -> bool:
     """Validate if a model satisfies the formula in the non-linear world"""
     # Substitute model values into the formula
     substituted = substitute_model(formula, model)
@@ -73,9 +74,9 @@ def validate_model(formula, model):
     return solver.check() == unsat
 
 
-def substitute_model(formula, model):
+def substitute_model(formula: ExprRef, model: ModelRef) -> ExprRef:
     """Substitute model values into a formula"""
-    substitutions = []
+    substitutions: List[Tuple[ExprRef, ExprRef]] = []
     for decl in model.decls():
         val = model[decl]
         if is_algebraic_value(val):
@@ -86,11 +87,11 @@ def substitute_model(formula, model):
     return substitute(formula, substitutions)
 
 
-def generate_refinement(formula, model):
+def generate_refinement(formula: ExprRef, model: ModelRef) -> List[ExprRef]:
     """Generate refinement constraints based on the current model
     TODO: also add refinement based on axioms of non-linear parts (e.g., multiplication, division, exponentiation, logarithm, trigonometry, etc.)
     """
-    refinements = []
+    refinements: List[ExprRef] = []
     for expr in post_order_traverse(formula):
         if is_non_linear(expr):
             # Get the UF that replaced this expression
@@ -115,7 +116,7 @@ def generate_refinement(formula, model):
     return And(refinements)
 
 
-def incremental_linearization(non_linear_formula):
+def incremental_linearization(non_linear_formula: ExprRef) -> Tuple[str, Optional[ModelRef]]:
     """Solve non-linear formula using incremental linearization"""
     # Initial abstraction
     linear_formula = abstract_to_linear(non_linear_formula)
@@ -124,7 +125,7 @@ def incremental_linearization(non_linear_formula):
 
     while True:
         if solver.check() == unsat:
-            return "UNSAT"
+            return "UNSAT", None
 
         model = solver.model()
         if validate_model(non_linear_formula, model):

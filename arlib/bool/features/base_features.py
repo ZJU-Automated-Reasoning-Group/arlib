@@ -2,9 +2,10 @@
 Compute SAT features following SATZilla
 """
 from arlib.bool.features import balance_features, graph_features, array_stats
+from typing import List, Dict, Any
 
 
-def write_stats(l, name, features_dict):
+def write_stats(l: List[float], name: str, features_dict: Dict[str, Any]) -> None:
     l_mean, l_coeff, l_min, l_max = array_stats.get_stats(l)
 
     features_dict[name + "_mean"] = l_mean
@@ -13,17 +14,23 @@ def write_stats(l, name, features_dict):
     features_dict[name + "_max"] = l_max
 
 
-def write_entropy_discrete(l, number_outcomes, name, features_dict):
+def write_entropy_discrete(l: List[int], number_outcomes: int, name: str, features_dict: Dict[str, Any]) -> None:
     entropy = array_stats.scipy_entropy_discrete(l, number_outcomes)
     features_dict[name + "_entropy"] = entropy
 
 
-def write_entropy_continous(l, name, features_dict):
+def write_entropy_continous(l: List[float], name: str, features_dict: Dict[str, Any]) -> None:
     entropy = array_stats.scipy_entropy_continous(l)
     features_dict[name + "_entropy"] = entropy
 
 
-def compute_base_features(clauses, c, v, num_active_vars, num_active_clauses):
+def compute_base_features(
+    clauses: List[List[int]],
+    c: int,
+    v: int,
+    num_active_vars: int,
+    num_active_clauses: int
+) -> Dict[str, float]:
     features_dict = {"c": num_active_clauses, "v": num_active_vars,
                      "clauses_vars_ratio": num_active_clauses / num_active_vars,
                      "vars_clauses_ratio": num_active_vars / num_active_clauses}
@@ -89,13 +96,13 @@ def compute_base_features(clauses, c, v, num_active_vars, num_active_clauses):
 # legacy
 
 
-def write_entropy(l, name, features_dict, c, number_of_outcomes):
+def write_entropy(l: List[int], name: str, features_dict: Dict[str, Any], c: int, number_of_outcomes: int) -> None:
     entropy = array_stats.entropy_int_array(l, number_of_outcomes + 1)
     print("saten", entropy)
     features_dict[name + "_entropy"] = entropy
 
 
-def write_entropy_float(l, name, features_dict, num, buckets=100, maxval=1):
+def write_entropy_float(l: List[float], name: str, features_dict: Dict[str, Any], num: int, buckets: int = 100, maxval: int = 1) -> None:
     # scipy has an implementation for shannon entropy (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html),
     # could be something to look into changing to
     entropy = array_stats.entropy_float_array(l, num, buckets, maxval)

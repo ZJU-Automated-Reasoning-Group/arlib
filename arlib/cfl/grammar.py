@@ -9,36 +9,38 @@ A grammar parser and converter, specifically dealing with Extended Backus-Naur F
 
 import re
 import copy
+from typing import Dict, List, Any, Union, Tuple, Optional
+
 
 class Grammar:
-    def __init__(self, filename):
-        self.new_terminal_subscript = 0
+    def __init__(self, filename: str) -> None:
+        self.new_terminal_subscript: int = 0
         # list contain all the edge that has epsilon symbol in right hand side
-        self.edge_pair_dict = {}
-        self.epsilon = []
+        self.edge_pair_dict: Dict[str, List[List[str]]] = {}
+        self.epsilon: List[str] = []
         self.search_pattern = re.compile(r'Start:([\s\S]*)Productions:([\s\S]*)')
-        self.filename = filename
+        self.filename: str = filename
         self.grammar(self.filename)
 
-    def keys(self):
-        return self.edge_pair_dict.keys()
-    
-    def items(self):
-        return self.edge_pair_dict.items()
+    def keys(self) -> List[str]:
+        return list(self.edge_pair_dict.keys())
 
-    def ebnf_file_reader(self, filename):
+    def items(self) -> List[Tuple[str, List[List[str]]]]:
+        return list(self.edge_pair_dict.items())
+
+    def ebnf_file_reader(self, filename: str) -> List[str]:
         search_pattern = self.search_pattern
         with open(filename, 'r', encoding="utf-8") as f:
             string = f.read()
         match_instance = search_pattern.search(string)
-        if match_instance == None:
+        if match_instance is None:
             raise Exception("The form of ebnf is not correct.")
         production_rules = match_instance.group(2).split(';')
         return production_rules
 
-    def ebnf_grammar_loader(self, production_rules):
+    def ebnf_grammar_loader(self, production_rules: List[str]) -> Dict[str, List[List[str]]]:
         # paser the string to dict datastructure
-        grammar = dict()
+        grammar: Dict[str, List[List[str]]] = dict()
         for rule in production_rules:
             _ = rule.split('->')
             head, LHS = _[0].strip(), _[1]
@@ -49,15 +51,15 @@ class Grammar:
                 grammar[head].append(rule)
         return grammar
 
-    def ebnf_bracket_match(self,rule, i_position):
+    def ebnf_bracket_match(self, rule: List[str], i_position: int) -> int:
         index = i_position
         while index >= 0:
             if rule[index] == "(":
                 return index
             index -= 1
-        return Exception("Ebnf form is not correct.")
+        raise Exception("Ebnf form is not correct.")
 
-    def num_generator(self):
+    def num_generator(self) -> int:
         self.new_terminal_subscript += 1
         return self.new_terminal_subscript
 
@@ -65,11 +67,11 @@ class Grammar:
     # X = $\epsilon$ | X E
     # Convert every option ? [ E ] to a fresh non-terminal X and add
     # X = $\epsilon$ | E.
-    def ebnf_sign_replace(self, grammar, sign):
+    def ebnf_sign_replace(self, grammar: Dict[str, List[List[str]]], sign: str) -> Dict[str, List[List[str]]]:
         if sign != "?" and sign != "*":
             raise Exception('Only accept ? or *')
         # select * position
-        new_rule_checker = dict()
+        new_rule_checker: Dict[str, str] = dict()
         for head in grammar:
             for rule in grammar[head]:
                 i = 0
@@ -102,7 +104,7 @@ class Grammar:
 
     # Convert every group ( E ) to a fresh non-terminal X and add
     # X = E.
-    def ebnf_group_replace(self, grammar):
+    def ebnf_group_replace(self, grammar: Dict[str, List[List[str]]]) -> Dict[str, List[List[str]]]:
         for head in grammar:
             for rule in grammar[head]:
                 for element in rule:
@@ -110,15 +112,15 @@ class Grammar:
                         rule.remove(element)
         return grammar
 
-    def check_head(self, grammar, rule):
+    def check_head(self, grammar: Dict[str, List[List[str]]], rule: List[str]) -> Union[str, bool]:
         for in_head in grammar:
             for in_rule in grammar[in_head]:
-                if rule in in_rule:
+                if rule == in_rule:
                     return in_head
-        return False   
+        return False
 
-    def ebnf_BIN(self, grammar):
-        new_grammar = dict()
+    def ebnf_BIN(self, grammar: Dict[str, List[List[str]]]) -> Dict[str, List[List[str]]]:
+        new_grammar: Dict[str, List[List[str]]] = dict()
         for head in grammar:
             for rule in grammar[head]:
                 if len(rule) >= 3:
@@ -170,9 +172,9 @@ class Grammar:
         for new_head in new_grammar:
             grammar[new_head] = new_grammar[new_head]
         return grammar
-                    
-  
-    def ebnf_bnf_normal_convertor(self, filename):
+
+
+    def ebnf_bnf_normal_convertor(self, filename: str) -> Dict[str, List[List[str]]]:
         production_rules = self.ebnf_file_reader(filename)
         grammar = self.ebnf_grammar_loader(production_rules)
         grammar = self.ebnf_sign_replace(grammar, '*')
@@ -181,10 +183,9 @@ class Grammar:
         grammar = self.ebnf_BIN(grammar)
         return grammar
 
-    def grammar(self, filename):
+    def grammar(self, filename: str) -> None:
         self.edge_pair_dict = self.ebnf_bnf_normal_convertor(filename)
         for left_variable in self.keys():
             for rule in self.edge_pair_dict[left_variable]:
                 if rule == ['ε']:
                     self.epsilon.append(left_variable)
-    

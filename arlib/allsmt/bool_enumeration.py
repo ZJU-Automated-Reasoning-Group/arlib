@@ -7,22 +7,23 @@ compare the performance of different enumeration strategies.
 """
 import itertools
 import time
-from typing import List, Callable, Tuple, Optional
+from typing import List, Callable, Tuple, Optional, Set
 from z3 import *
 
 
-def benchmark(name: str, function: Callable, solver: Solver, variables: List[BoolRef],
+def benchmark(name: str, function: Callable[[Solver, List[BoolRef], bool], int],
+             solver: Solver, variables: List[BoolRef],
               verbose: bool = True) -> Tuple[int, float]:
     """
     Benchmark a model counting function and return results.
-    
+
     Args:
         name: Name of the approach being benchmarked
         function: The counting function to benchmark
         solver: Z3 solver containing the formula
         variables: List of Boolean variables in the formula
         verbose: Whether to print results (default: True)
-        
+
     Returns:
         Tuple of (number of models, execution time in seconds)
     """
@@ -30,7 +31,7 @@ def benchmark(name: str, function: Callable, solver: Solver, variables: List[Boo
         print(f'--{name} approach--')
 
     start_time = time.perf_counter()
-    model_count = function(solver, variables)
+    model_count = function(solver, variables, verbose)
     end_time = time.perf_counter()
     execution_time = round(end_time - start_time, 2)
 
@@ -45,15 +46,15 @@ def count_models_with_solver(solver: Solver, variables: List[BoolRef],
                              show_progress: bool = False) -> int:
     """
     Count the number of solutions of a formula using solver-based enumeration.
-    
+
     This approach uses the solver to find all models by iteratively adding
     constraints that block previously found models.
-    
+
     Args:
         solver: Z3 solver containing the formula
         variables: List of Boolean variables in the formula
         show_progress: Whether to show progress during enumeration
-        
+
     Returns:
         Number of satisfying assignments (models)
     """
@@ -80,15 +81,15 @@ def count_models_by_enumeration(solver: Solver, variables: List[BoolRef],
                                 show_progress: bool = False) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
-    
+
     This is the fastest enumeration approach that uses conditional checking
     with direct assignment.
-    
+
     Args:
         solver: Z3 solver containing the formula
         variables: List of Boolean variables in the formula
         show_progress: Whether to show progress during enumeration
-        
+
     Returns:
         Number of satisfying assignments (models)
     """
@@ -110,14 +111,14 @@ def count_models_by_enumeration2(solver: Solver, variables: List[BoolRef],
                                  show_progress: bool = False) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
-    
+
     This approach creates the assignment as a separate step, which is slightly slower.
-    
+
     Args:
         solver: Z3 solver containing the formula
         variables: List of Boolean variables in the formula
         show_progress: Whether to show progress during enumeration
-        
+
     Returns:
         Number of satisfying assignments (models)
     """
@@ -142,14 +143,14 @@ def count_models_by_enumeration3(solver: Solver, variables: List[BoolRef],
                                  show_progress: bool = False) -> int:
     """
     Count the number of solutions by enumerating all possible assignments.
-    
+
     This approach uses simplification instead of conditional checking, which is the slowest.
-    
+
     Args:
         solver: Z3 solver containing the formula
         variables: List of Boolean variables in the formula
         show_progress: Whether to show progress during enumeration
-        
+
     Returns:
         Number of satisfying assignments (models)
     """
@@ -179,7 +180,7 @@ def run_benchmarks(formula_name: str, formula: BoolRef, variables: List[BoolRef]
                    max_vars: int = 20) -> None:
     """
     Run benchmarks for a given formula with different enumeration approaches.
-    
+
     Args:
         formula_name: Name of the formula for display
         formula: Z3 formula to benchmark
@@ -228,15 +229,15 @@ def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
                  method: str = 'solver', show_progress: bool = False) -> int:
     """
     Count the number of models (satisfying assignments) for a given formula.
-    
+
     This is the main function intended for external use.
-    
+
     Args:
         formula: Z3 formula to count models for
         variables: List of Boolean variables in the formula (if None, will be extracted from formula)
         method: Counting method to use ('solver', 'enum1', 'enum2', or 'enum3')
         show_progress: Whether to show progress during enumeration
-        
+
     Returns:
         Number of satisfying assignments (models)
     """
@@ -264,16 +265,16 @@ def count_models(formula: BoolRef, variables: Optional[List[BoolRef]] = None,
 def get_vars(formula: BoolRef) -> List[BoolRef]:
     """
     Extract all Boolean variables from a formula.
-    
+
     Args:
         formula: Z3 formula to extract variables from
-        
+
     Returns:
         List of Boolean variables in the formula
     """
-    vars_set = set()
+    vars_set: Set[BoolRef] = set()
 
-    def collect_vars(expr):
+    def collect_vars(expr: BoolRef) -> None:
         if is_const(expr) and expr.decl().kind() == Z3_OP_UNINTERPRETED and expr.sort() == BoolSort():
             vars_set.add(expr)
         for child in expr.children():

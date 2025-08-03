@@ -25,11 +25,11 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
-from typing import Tuple
+from typing import List, Optional, Tuple, Any, Dict, Union
+import time
 
 import z3
-from z3 import parse_smt2_file
+from z3 import parse_smt2_file, ExprRef, BitVecRef, Solver, BoolRef
 
 from arlib.counting.qfbv_counting import BVModelCounter
 from arlib.symabs.omt_symabs.bv_symbolic_abstraction import BVSymbolicAbstraction
@@ -52,7 +52,7 @@ class AbstractionResults:
     bitwise_fp_rate: float = 0.0
     bitwise_time: float = 0.0
 
-    def __add__(self, other):
+    def __add__(self, other: Optional['AbstractionResults']) -> 'AbstractionResults':
         if other is None:
             return self
         return AbstractionResults(
@@ -66,7 +66,7 @@ class AbstractionResults:
             self.bitwise_time + other.bitwise_time
         )
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Union[int, float]) -> 'AbstractionResults':
         return AbstractionResults(
             self.interval_fp_rate / other,
             self.interval_time / other,
@@ -78,7 +78,7 @@ class AbstractionResults:
             self.bitwise_time / other
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Interval FP rate: {self.interval_fp_rate:.4f}, " \
                f"Zone FP rate: {self.zone_fp_rate:.4f}, " \
                f"Octagon FP rate: {self.octagon_fp_rate:.4f}, " \
@@ -92,17 +92,17 @@ class AbstractionResults:
 class ModelCounter:
     """Handles model counting operations"""
 
-    def __init__(self, timeout_ms: int = 6000):
-        self.timeout_ms = timeout_ms
+    def __init__(self, timeout_ms: int = 6000) -> None:
+        self.timeout_ms: int = timeout_ms
 
-    def is_sat(self, expression) -> bool:
+    def is_sat(self, expression: ExprRef) -> bool:
         """Check if the expression is satisfiable"""
         solver = z3.Solver()
         solver.set("timeout", self.timeout_ms)
         solver.add(expression)
         return solver.check() == z3.sat
 
-    def count_models(self, formula) -> Tuple[int, float]:
+    def count_models(self, formula: ExprRef) -> Tuple[int, float]:
         """Count models using sharpSAT"""
         counter = BVModelCounter()
         counter.init_from_fml(formula)
@@ -112,10 +112,10 @@ class ModelCounter:
 class AbstractionAnalyzer:
     """Analyzes different abstraction domains"""
 
-    def __init__(self, formula, variables: List[z3.BitVecRef]):
-        self.formula = z3.And(formula)
-        self.variables = variables
-        self.sa = BVSymbolicAbstraction()
+    def __init__(self, formula: ExprRef, variables: List[BitVecRef]) -> None:
+        self.formula: ExprRef = z3.And(formula)
+        self.variables: List[BitVecRef] = variables
+        self.sa: BVSymbolicAbstraction = BVSymbolicAbstraction()
         self.sa.init_from_fml(formula)
         self.sa.do_simplification()
         self.formula = self.sa.formula
@@ -131,7 +131,7 @@ class AbstractionAnalyzer:
             logger.info(f"model count failed")
             exit(1)
 
-    def compute_false_positives(self, abs_formula) -> Tuple[bool, float, float]:
+    def compute_false_positives(self, abs_formula: ExprRef) -> Tuple[bool, float, float]:
         """Compute false positive rate for an abstraction"""
         solver = z3.Solver()
         solver.add(abs_formula)

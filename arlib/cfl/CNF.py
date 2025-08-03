@@ -12,20 +12,23 @@ A = a
 import sys
 import re
 import itertools
+from typing import List, Dict, Any, Union, Tuple, Optional
 
 left, right = 0, 1
 
-K, V, Productions = [],[],[]
-variablesJar = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "W", "X", "Y", "Z"]
+K: List[str] = []
+V: List[str] = []
+Productions: List[Tuple[str, List[str]]] = []
+variablesJar: List[str] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "W", "X", "Y", "Z"]
 
 
 left, right = 0, 1
 
-def union(lst1, lst2):
+def union(lst1: List[str], lst2: List[str]) -> List[str]:
     final_list = list(set().union(lst1, lst2))
     return final_list
 
-def loadModel(modelPath):
+def loadModel(modelPath: str) -> Tuple[List[str], List[str], List[Tuple[str, List[str]]]]:
 	file = open(modelPath).read()
 	K = (file.split("Variables:\n")[0].replace("Terminals:\n","").replace("\n",""))
 	V = (file.split("Variables:\n")[1].split("Productions:\n")[0].replace("Variables:\n","").replace("\n",""))
@@ -33,11 +36,11 @@ def loadModel(modelPath):
 
 	return cleanAlphabet(K), cleanAlphabet(V), cleanProduction(P)
 #Make production easy to work with
-def cleanProduction(expression):
-	result = []
+def cleanProduction(expression: str) -> List[Tuple[str, List[str]]]:
+	result: List[Tuple[str, List[str]]] = []
 	#remove spaces and explode on ";"
 	rawRulse = expression.replace('\n','').split(';')
-	
+
 	for rule in rawRulse:
 		#Explode evry rule on "->" and make a couple
 		leftSide = rule.split(' -> ')[0].replace(' ','')
@@ -46,21 +49,22 @@ def cleanProduction(expression):
 			result.append( (leftSide, term.split(' ')) )
 	return result
 
-def cleanAlphabet(expression):
+def cleanAlphabet(expression: str) -> List[str]:
 	return expression.replace('  ',' ').split(' ')
 
-def seekAndDestroy(target, productions):
-	trash, ereased = [],[]
+def seekAndDestroy(target: str, productions: List[Tuple[str, List[str]]]) -> Tuple[List[str], List[Tuple[str, List[str]]]]:
+	trash: List[str] = []
+	ereased: List[Tuple[str, List[str]]] = []
 	for production in productions:
 		if target in production[right] and len(production[right]) == 1:
 			trash.append(production[left])
 		else:
 			ereased.append(production)
-			
+
 	return trash, ereased
- 
-def setupDict(productions, variables, terms):
-	result = {}
+
+def setupDict(productions: List[Tuple[str, List[str]]], variables: List[str], terms: List[str]) -> Dict[str, str]:
+	result: Dict[str, str] = {}
 	for production in productions:
 		#
 		if production[left] in variables and production[right][0] in terms and len(production[right]) == 1:
@@ -68,8 +72,8 @@ def setupDict(productions, variables, terms):
 	return result
 
 
-def rewrite(target, production):
-	result = []
+def rewrite(target: str, production: Tuple[str, List[str]]) -> List[Tuple[str, List[str]]]:
+	result: List[Tuple[str, List[str]]] = []
 	#get positions corresponding to the occurrences of target in production right side
 	#positions = [m.start() for m in re.finditer(target, production[right])]
 	positions = [i for i,x in enumerate(production[right]) if x == target]
@@ -85,21 +89,21 @@ def rewrite(target, production):
 				result.append((production[left], tadan))
 	return result
 
-def dict2Set(dictionary):
-	result = []
+def dict2Set(dictionary: Dict[str, str]) -> List[Tuple[str, str]]:
+	result: List[Tuple[str, str]] = []
 	for key in dictionary:
 		result.append( (dictionary[key], key) )
 	return result
 
-def pprintRules(rules):
+def pprintRules(rules: List[Tuple[str, List[str]]]) -> None:
 	for rule in rules:
 		tot = ""
 		for term in rule[right]:
 			tot = tot +" "+ term
 		print(rule[left]+" -> "+tot)
 
-def prettyForm(rules):
-	dictionary = {}
+def prettyForm(rules: List[Tuple[str, List[str]]]) -> str:
+	dictionary: Dict[str, str] = {}
 	for rule in rules:
 		if rule[left] in dictionary:
 			dictionary[rule[left]] += ' | '+' '.join(rule[right])
@@ -110,12 +114,12 @@ def prettyForm(rules):
 		result += key+" -> "+dictionary[key]+"\n"
 	return result
 
-def isUnitary(rule, variables):
+def isUnitary(rule: Tuple[str, List[str]], variables: List[str]) -> bool:
 	if rule[left] in variables and rule[right][0] in variables and len(rule[right]) == 1:
 		return True
 	return False
 
-def isSimple(rule):
+def isSimple(rule: Tuple[str, List[str]]) -> bool:
 	if rule[left] in V and rule[right][0] in K and len(rule[right]) == 1:
 		return True
 	return False
@@ -126,12 +130,12 @@ for nonTerminal in V:
 		variablesJar.remove(nonTerminal)
 
 #Add S0->S rule––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––START
-def START(productions, variables):
+def START(productions: List[Tuple[str, List[str]]], variables: List[str]) -> List[Tuple[str, List[str]]]:
 	variables.append('S0')
 	return [('S0', [variables[0]])] + productions
 #Remove rules containing both terms and variables, like A->Bc, replacing by A->BZ and Z->c–––––––––––TERM
-def TERM(productions, variables):
-	newProductions = []
+def TERM(productions: List[Tuple[str, List[str]]], variables: List[str]) -> List[Tuple[str, List[str]]]:
+	newProductions: List[Tuple[str, List[str]]] = []
 	#create a dictionari for all base production, like A->a, in the form dic['a'] = 'A'
 	dictionary = setupDict(productions, variables, terms=K)
 	for production in productions:
@@ -143,23 +147,23 @@ def TERM(productions, variables):
 			for term in K:
 				for index, value in enumerate(production[right]):
 					if term == value and not term in dictionary:
-						#it's created a new production vaiable->term and added to it 
+						#it's created a new production vaiable->term and added to it
 						dictionary[term] = variablesJar.pop()
 						#Variables set it's updated adding new variable
 						V.append(dictionary[term])
 						newProductions.append( (dictionary[term], [term]) )
-						
+
 						production[right][index] = dictionary[term]
 					elif term == value:
 						production[right][index] = dictionary[term]
 			newProductions.append( (production[left], production[right]) )
-			
+
 	#merge created set and the introduced rules
 	return newProductions
 
 #Eliminate non unitry rules––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––BIN
-def BIN(productions, variables):
-	result = []
+def BIN(productions: List[Tuple[str, List[str]]], variables: List[str]) -> List[Tuple[str, List[str]]]:
+	result: List[Tuple[str, List[str]]] = []
 	for production in productions:
 		k = len(production[right])
 		#newVar = production[left]
@@ -175,16 +179,16 @@ def BIN(productions, variables):
 				var, var2 = newVar+str(i), newVar+str(i+1)
 				variables.append(var2)
 				result.append( (var, [production[right][i], var2]) )
-			result.append( (newVar+str(k-2), production[right][k-2:k]) ) 
+			result.append( (newVar+str(k-2), production[right][k-2:k]) )
 	return result
-	
+
 
 #Delete non terminal rules–––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––DEL
-def DEL(productions):
-	newSet = []
+def DEL(productions: List[Tuple[str, List[str]]]) -> List[Tuple[str, List[str]]]:
+	newSet: List[Tuple[str, List[str]]] = []
 	#seekAndDestroy throw back in:
 	#        – outlaws all left side of productions such that right side is equal to the outlaw
-	#        – productions the productions without outlaws 
+	#        – productions the productions without outlaws
 	outlaws, productions = seekAndDestroy(target='e', productions=productions)
 	#add new reformulation of old rules
 	for outlaw in outlaws:
@@ -197,11 +201,12 @@ def DEL(productions):
 				newSet = newSet + [e for e in  rewrite(outlaw, production) if e not in newSet]
 
 	#add unchanged rules and return
-	return newSet + ([productions[i] for i in range(len(productions)) 
+	return newSet + ([productions[i] for i in range(len(productions))
 							if productions[i] not in newSet])
 
-def unit_routine(rules, variables):
-	unitaries, result = [], []
+def unit_routine(rules: List[Tuple[str, List[str]]], variables: List[str]) -> List[Tuple[str, List[str]]]:
+	unitaries: List[Tuple[str, str]] = []
+	result: List[Tuple[str, List[str]]] = []
 	#controllo se una regola è unaria
 	for aRule in rules:
 		if isUnitary(aRule, variables):
@@ -213,10 +218,10 @@ def unit_routine(rules, variables):
 		for rule in rules:
 			if uni[right]==rule[left] and uni[left]!=rule[left]:
 				result.append( (uni[left],rule[right]) )
-	
+
 	return result
 
-def UNIT(productions, variables):
+def UNIT(productions: List[Tuple[str, List[str]]], variables: List[str]) -> List[Tuple[str, List[str]]]:
 	i = 0
 	result = unit_routine(productions, variables)
 	tmp = unit_routine(result, variables)
@@ -226,7 +231,7 @@ def UNIT(productions, variables):
 		i+=1
 	return result
 
-def STBDU_transformation(modelPath):
+def STBDU_transformation(modelPath: str) -> List[Tuple[str, List[str]]]:
 	K, V, Productions = loadModel( modelPath )
 	Productions = START(Productions, variables=V)
 	Productions = TERM(Productions, variables=V)
@@ -241,16 +246,17 @@ if __name__ == '__main__':
 		modelPath = str(sys.argv[1])
 	else:
 		modelPath = 'model.txt'
-	
+
 	print( prettyForm(Productions) )
 	print( len(Productions) )
 	open('out.txt', 'w').write(	prettyForm(Productions) )
 
 
 
-def read_grammar(file_name):
-    grammar = dict()
-    start_symble, Production = 'S0', grammar_new(file_name)
+def read_grammar(file_name: str) -> Tuple[str, Dict[str, List[List[str]]]]:
+    grammar: Dict[str, List[List[str]]] = dict()
+    start_symble: str = 'S0'
+    Production: List[Tuple[str, List[str]]] = grammar_new(file_name)
     print(Production)
     for rule in Production:
         LHS = rule[0]
@@ -262,8 +268,8 @@ def read_grammar(file_name):
 
 # For if RHS of the production contains the start symble
 # Initiate the new Variable S0
-def start_transform(start_symble, grammar):
-    flag = False
+def start_transform(start_symble: str, grammar: Dict[str, List[List[str]]]) -> Tuple[str, Dict[str, List[List[str]]]]:
+    flag: bool = False
     for keys in grammar:
         for rule in grammar[keys]:
             if start_symble in rule:
@@ -273,8 +279,8 @@ def start_transform(start_symble, grammar):
         start_symble = 'S'
     return start_symble, grammar
 
-def Term_transfomr(start_symble, grammar):
+def Term_transfomr(start_symble: str, grammar: Dict[str, List[List[str]]]) -> None:
     pass
 
-def grammar_new(file_name):
+def grammar_new(file_name: str) -> List[Tuple[str, List[str]]]:
     return STBDU_transformation(file_name)

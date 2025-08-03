@@ -1,12 +1,13 @@
 from math import pi, sqrt, floor, ceil, log
+from typing import List, Dict, Any, Union, Tuple, Optional
 
 
 class CFLSolver:
-    def __init__(self, mode):
-        self.mode = mode
+    def __init__(self, mode: str) -> None:
+        self.mode: str = mode
 
     # function to estimate the number of quantum iterations
-    def estimate(self, sol, cand, nnn):
+    def estimate(self, sol: int, cand: int, nnn: int) -> int:
         res = floor(sqrt(cand))
         if sol == 0:
             return res
@@ -19,20 +20,20 @@ class CFLSolver:
             it -= 1
         return floor(res * log(nnn))
 
-    def solve(self, graph, grammar):
+    def solve(self, graph: Any, grammar: Any) -> None:
         if self.mode == "Cubic":
             self.__cubic_solve(graph, grammar)
-    
+
     # DTC-based CFL-reachability
-    def __cubic_solve(self, graph, grammar):
+    def __cubic_solve(self, graph: Any, grammar: Any) -> None:
         # each edge in worklist stand by [(edge, node, node)]
         # number of classical iterations
-        whole_iteration=0
+        whole_iteration: int = 0
         # number of quantum iterations
-        gs_iteration=0
+        gs_iteration: int = 0
         print('graph size: ',len(graph.ds_structure.vertices))
         nnn = len(graph.ds_structure.vertices)
-        Worklist = graph.output_edge()
+        Worklist: List[List[Union[str, Any]]] = graph.output_edge()
         for nullable_variable in grammar.epsilon:
             for node in graph.get_vertice():
                 graph.add_edge(node, node, nullable_variable)
@@ -49,7 +50,7 @@ class CFLSolver:
                         for pair in graph.symbol_pair_l(Y):
                             # O(n) for graph.symbol_pair_l return list of node pair
                             if not graph.new_check_edge(pair[0],pair[1],X):
-                                # O(m) m stand for len(varibale, terminal) 
+                                # O(m) m stand for len(varibale, terminal)
                                 graph.add_edge(pair[0],pair[1],X)
                                 Worklist.append([X,pair[0],pair[1]])
             # codes that lead to cubic bottleneck
@@ -59,8 +60,8 @@ class CFLSolver:
                         Y = right_symbols[0]
                         Z = right_symbols[1]
                         if Z in graph.symbol_pair():
-                            num_of_sol=0
-                            iteration=0
+                            num_of_sol: int = 0
+                            iteration: int = 0
                             for pair in graph.symbol_pair_l(Z):
                                 iteration+=1
                                 j = selected_edge[2]
@@ -80,8 +81,8 @@ class CFLSolver:
                         Y = right_symbols[1]
                         Z = right_symbols[0]
                         if Z in graph.symbol_pair():
-                            num_of_sol=0
-                            iteration=0
+                            num_of_sol: int = 0
+                            iteration: int = 0
                             for pair in graph.symbol_pair_l(Z):
                                 iteration+=1
                                 j = selected_edge[2]
@@ -98,4 +99,3 @@ class CFLSolver:
         # print estimation result
         print('the number of classical iterations: ', whole_iteration)
         print('the number of quantum iterations: ', gs_iteration * 3)
-        

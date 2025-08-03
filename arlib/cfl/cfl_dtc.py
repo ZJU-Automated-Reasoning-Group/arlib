@@ -6,6 +6,7 @@ TODO: this file relies on qiskit, which is not installed in the arlib environmen
 import sys
 from copy import deepcopy
 from math import pi, sqrt, floor, ceil, log
+from typing import List, Dict, Any, Union, Tuple, Optional
 from qiskit import *
 from qiskit.quantum_info import Statevector
 from qiskit.algorithms import Grover, AmplificationProblem
@@ -15,24 +16,24 @@ import numpy as np
 
 class RandomCFLSolver:
 
-    def __init__(self):
-        self.correct = True
+    def __init__(self) -> None:
+        self.correct: bool = True
 
     # Algorithm 2 in the paper
-    def subroutine(self, n, sol):
+    def subroutine(self, n: int, sol: List[int]) -> Tuple[int, int]:
         # use the qasm_simulator to simulate Grover search
         backend = BasicAer.get_backend('qasm_simulator')
         # for each Grover search, only running one shot
         quantum_instance = QuantumInstance(backend, shots=1)
         # create oracle for Grover search
-        # Note that although qiskit provides Statevector for creating oracle, 
+        # Note that although qiskit provides Statevector for creating oracle,
         # it takes O(N) time without QRAM model on a classical simulator.
         oracle = Statevector(sol)
         problem = AmplificationProblem(oracle, is_good_state=oracle)
         # initialization
-        m = 1
-        lab = 6/5
-        total = 0
+        m: int = 1
+        lab: float = 6/5
+        total: int = 0
         # repeat until reaching sqrt{2^n}
         while 1:
             j = np.random.randint(0, m)
@@ -52,17 +53,17 @@ class RandomCFLSolver:
                     return -1, total
 
     # Algorithm 3 in the paper
-    def estimate(self, sol_list, answer_num):
+    def estimate(self, sol_list: List[int], answer_num: int) -> int:
         sol = deepcopy(sol_list)
         n = ceil(log(len(sol),2))
         # the number of targets that are not found is 'current_num'
-        current_num = answer_num
+        current_num: int = answer_num
         # this is the total number of iterations needed to find all targets
-        total = 0
+        total: int = 0
         # this is control variable of the while loop
-        iteration = 0
+        iteration: int = 0
         # targets are stored in 'return_list'
-        return_list = []
+        return_list: List[int] = []
         while iteration < 3*n:
             # xx is the index found, t is the current number of quantum iterations
             xx, t = self.subroutine(n ,sol)
@@ -90,17 +91,17 @@ class RandomCFLSolver:
             print("our result:", return_list)
         return total
 
-    def solve(self, graph, grammar):
+    def solve(self, graph: List[List[List[int]]], grammar: Dict[str, Any]) -> None:
         self.__cubic_solve(graph, grammar)
-    
+
     # DTC-based CFL-reachability
-    def __cubic_solve(self, graph, grammar):
-        total_classical = 0
-        total_quantum = 0
+    def __cubic_solve(self, graph: List[List[List[int]]], grammar: Dict[str, Any]) -> None:
+        total_classical: int = 0
+        total_quantum: int = 0
         # graph is accessed by [i, label, j]
         size = len(graph)
         grammar_size = len(graph[0])
-        Worklist = set()
+        Worklist: set = set()
         for i in range(size):
             for label in range(grammar_size):
                 for j in range(size):
@@ -121,8 +122,8 @@ class RandomCFLSolver:
                         Worklist.add((i,X,j))
             # save the solution indices in this list
             # for creating oracle of Grover search
-            answer_num = 0
-            sol = [0 for i in range(size)]
+            answer_num: int = 0
+            sol: List[int] = [0 for i in range(size)]
             total_classical += 2 * size
             if Y in grammar['double1'].keys():
                 for X, Z in grammar['double1'][Y]:
@@ -158,7 +159,7 @@ class RandomCFLSolver:
             print("We miss some targets.")
 
 
-def main(argv):
+def main(argv: List[str]) -> None:
     size = 8
     # get the input size from user input. should be 2^k
     if len(argv) > 1:
@@ -176,6 +177,6 @@ def main(argv):
 
     solver.solve(g, grammar)
 
-    
+
 if __name__ == '__main__':
     main(sys.argv)

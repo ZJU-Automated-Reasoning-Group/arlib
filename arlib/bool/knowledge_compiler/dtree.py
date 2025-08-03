@@ -1,16 +1,27 @@
 """
 Dtree
 """
+from typing import List, Optional, Dict, Set
 
 
 class Node:
-    def __init__(self, node_id=None, left_child=None, right_child=None, clause=None):
-        self.node_id = None
-        self.left_child = None
-        self.right_child = None
-        self.clauses = None
-        self.atoms = None
-        self.separators = None
+    def __init__(self, node_id: Optional[int] = None, left_child: Optional['Node'] = None,
+                 right_child: Optional['Node'] = None, clause: Optional[List[int]] = None) -> None:
+        """
+        Initialize a Dtree node.
+
+        Args:
+            node_id: Node identifier
+            left_child: Left child node
+            right_child: Right child node
+            clause: Clause (for leaf nodes)
+        """
+        self.node_id: Optional[int] = None
+        self.left_child: Optional['Node'] = None
+        self.right_child: Optional['Node'] = None
+        self.clauses: Optional[List[List[int]]] = None
+        self.atoms: Optional[List[int]] = None
+        self.separators: Optional[List[int]] = None
 
         if node_id is not None:
             self.node_id = node_id
@@ -37,10 +48,12 @@ class Node:
         # self.cache = None
         self.lit_key = 0
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
+        """Check if this is a leaf node."""
         return self.left_child is None and self.right_child is None
 
-    def is_full_binary(self):
+    def is_full_binary(self) -> bool:
+        """Check if this is a full binary tree."""
         if self.is_leaf():
             return True
         elif self.left_child is None and self.right_child is not None:
@@ -50,8 +63,14 @@ class Node:
         else:
             return self.left_child.is_full_binary() and self.right_child.is_full_binary()
 
-    def get_counter(self):
-        counter = {}
+    def get_counter(self) -> Dict[int, int]:
+        """
+        Count occurrences of literals in clauses.
+
+        Returns:
+            Dictionary mapping literals to their counts
+        """
+        counter: Dict[int, int] = {}
         for clause in self.clauses:
             for literal in clause:
                 if literal in counter:
@@ -60,9 +79,12 @@ class Node:
                     counter[literal] = 1
         return counter
 
-    def pick_most(self):
+    def pick_most(self) -> int:
         """
-        Pick a variable with the most occurences in separator
+        Pick a variable with the most occurrences in separator.
+
+        Returns:
+            Variable with most occurrences
         """
         counter = self.get_counter()
         sep_counter = {s: 0 for s in self.separators}
@@ -73,7 +95,17 @@ class Node:
         # print(sep_counter)
         return sort_counter[0]
 
-    def print_info(self, leaf, output_file=None):
+    def print_info(self, leaf: List[int], output_file: Optional[str] = None) -> List[int]:
+        """
+        Print node information.
+
+        Args:
+            leaf: List of leaf node IDs
+            output_file: Optional output file path
+
+        Returns:
+            Updated list of leaf node IDs
+        """
         out = None
         if output_file is not None:
             out = open(output_file, 'a')
@@ -103,12 +135,26 @@ class Node:
 
 
 class Dtree_Compiler:
+    def __init__(self, clausal_form: List[List[int]]) -> None:
+        """
+        Initialize Dtree compiler.
 
-    def __init__(self, clausal_form):
+        Args:
+            clausal_form: CNF formula as list of clauses
+        """
         self.node_id = 0
         self.clausal_form = clausal_form
 
-    def compose(self, list_tree):
+    def compose(self, list_tree: List[Node]) -> Node:
+        """
+        Compose nodes into a tree.
+
+        Args:
+            list_tree: List of nodes to compose
+
+        Returns:
+            Composed node
+        """
         assert len(list_tree) > 0
         if len(list_tree) == 1:
             composed_node = list_tree[0]
@@ -121,18 +167,24 @@ class Dtree_Compiler:
             self.node_id += 1
         return composed_node
 
-    def el2dt(self, ordering):
+    def el2dt(self, ordering: List[int]) -> Node:
         """
-        Construct a dtree accoding to given ordering of atoms
+        Construct a dtree according to given ordering of atoms.
+
+        Args:
+            ordering: Ordering of atoms
+
+        Returns:
+            Root node of the constructed dtree
         """
-        sigma = []
+        sigma: List[Node] = []
         for clause in self.clausal_form:
             leaf = Node(node_id=self.node_id, clause=clause)
             self.node_id += 1
             sigma.append(leaf)
 
         for lit in ordering:
-            T = []
+            T: List[Node] = []
             for node in sigma:
                 if lit in node.atoms:
                     T.append(node)

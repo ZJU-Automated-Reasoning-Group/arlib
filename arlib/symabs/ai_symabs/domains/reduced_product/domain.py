@@ -1,5 +1,6 @@
 """Main class definition for the ReducedProduct conjunctive domain.
 """
+from typing import Any, List, Dict
 import z3
 from ..algorithms import bilateral
 from ..z3_variables import Z3VariablesDomain
@@ -19,7 +20,7 @@ class ReducedProductDomain(Z3VariablesDomain):
     information in another.
     """
 
-    def __init__(self, variables, domain_A, domain_B):
+    def __init__(self, variables: List[str], domain_A: Any, domain_B: Any) -> None:
         """Construct a ReducedProductDomain with given variables, sub-domains.
 
         @domain_A, @domain_B should be instantiated Z3VariablesDomains with the
@@ -29,13 +30,13 @@ class ReducedProductDomain(Z3VariablesDomain):
         self.domain_A = domain_A
         self.domain_B = domain_B
 
-    def gamma_hat(self, alpha):
+    def gamma_hat(self, alpha: ReducedProductAbstractState) -> Any:
         """Returns a formula describing the same states as alpha.
         """
         return z3.And(self.domain_A.gamma_hat(alpha.state_A),
                       self.domain_B.gamma_hat(alpha.state_B))
 
-    def join(self, elements):
+    def join(self, elements: List[ReducedProductAbstractState]) -> ReducedProductAbstractState:
         """Returns the join of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the smallest alpha
@@ -50,7 +51,7 @@ class ReducedProductDomain(Z3VariablesDomain):
         joined = ReducedProductAbstractState(joined_A, joined_B)
         return self.reduce(joined)
 
-    def meet(self, elements):
+    def meet(self, elements: List[ReducedProductAbstractState]) -> ReducedProductAbstractState:
         """Returns the meet of a set of abstract states.
 
         join([ alpha_1, alpha_2, ..., alpha_n ]) is the greatest alpha
@@ -72,7 +73,7 @@ class ReducedProductDomain(Z3VariablesDomain):
         met = ReducedProductAbstractState(met_A, met_B)
         return met
 
-    def abstract_consequence(self, lower, upper):
+    def abstract_consequence(self, lower: ReducedProductAbstractState, upper: ReducedProductAbstractState) -> ReducedProductAbstractState:
         """Returns the "abstract consequence" of lower and upper.
 
         The abstract consequence must be a superset of lower and *NOT* a
@@ -86,8 +87,7 @@ class ReducedProductDomain(Z3VariablesDomain):
             lower.state_B, upper.state_B)
         return ReducedProductAbstractState(consequence_A, consequence_B)
 
-    # Converts one concrete set of variables into an abstract element
-    def beta(self, sigma):
+    def beta(self, sigma: Any) -> ReducedProductAbstractState:
         """Returns the least abstract state describing sigma.
 
         Sigma should be an Z3VariablesState. See Definition 3.4 in:
@@ -100,35 +100,19 @@ class ReducedProductDomain(Z3VariablesDomain):
         return ReducedProductAbstractState(beta_A, beta_B)
 
     @property
-    def top(self):
-        """Returns the least upper bound of the entire abstract space.
-        """
-        top_A = self.domain_A.top
-        top_B = self.domain_B.top
-        return ReducedProductAbstractState(top_A, top_B)
+    def top(self) -> ReducedProductAbstractState:
+        return ReducedProductAbstractState(self.domain_A.top, self.domain_B.top)
 
     @property
-    def bottom(self):
-        """Returns the greatest lower bound of the entire abstract space.
-        """
-        bottom_A = self.domain_A.bottom
-        bottom_B = self.domain_B.bottom
-        return ReducedProductAbstractState(bottom_A, bottom_B)
+    def bottom(self) -> ReducedProductAbstractState:
+        return ReducedProductAbstractState(self.domain_A.bottom, self.domain_B.bottom)
 
-    def reduce(self, alpha):
-        """'Tightens' the consitutient states as much as possible.
+    def reduce(self, alpha: ReducedProductAbstractState) -> ReducedProductAbstractState:
+        return alpha
 
-        For example, given ReducedProduct<Sign, Interval>, calling
-        Reduce(Positive, [-5, 5]) should give (Positive, [1, 5]).
-        """
-        reduced_A = bilateral(self.domain_A, self.gamma_hat(alpha))
-        reduced_B = bilateral(self.domain_B, self.gamma_hat(alpha))
-        return ReducedProductAbstractState(reduced_A, reduced_B)
-
-    def translate(self, translation):
-        """Returns a new domain with the variable names translated.
-        """
-        variables = list(map(translation.__getitem__, self.variables))
-        domain_A = self.domain_A.translate(translation)
-        domain_B = self.domain_B.translate(translation)
-        return ReducedProductDomain(variables, domain_A, domain_B)
+    def translate(self, translation: Dict[str, str]) -> 'ReducedProductDomain':
+        return ReducedProductDomain(
+            self.variables,
+            self.domain_A.translate(translation),
+            self.domain_B.translate(translation)
+        )

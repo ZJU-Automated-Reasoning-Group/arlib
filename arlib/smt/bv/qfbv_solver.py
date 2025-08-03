@@ -5,6 +5,7 @@ Flattening-based QF_BV solver
 import logging
 # import sys
 import time
+from typing import Dict, List, Any, Optional, Union
 
 import z3
 from pysat.formula import CNF
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
     minisat22   = ('m22', 'msat22', 'minisat22')
     minisatgh   = ('mgh', 'msat-gh', 'minisat-gh')
 """
-sat_solvers_in_pysat = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
+sat_solvers_in_pysat: List[str] = ['cd', 'cd15', 'gc3', 'gc4', 'g3',
                         'g4', 'lgl', 'mcb', 'mpl', 'mg3',
                         'mc', 'm22', 'mgh']
 
@@ -42,29 +43,29 @@ class QFBVSolver:
       - Z3: Translate a QF_BV formula to a SAT formula
       - pySAT: solve the translated SAT formula
     """
-    sat_engine = 'mgh'
+    sat_engine: str = 'mgh'
 
-    def __init__(self):
-        self.fml = None  # z3.ExpeRef (not used for now!)
-        self.bv2bool = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
-        self.bool2id = {}  # map a Boolean variable to its internal ID in pysat
+    def __init__(self) -> None:
+        self.fml: Optional[z3.ExprRef] = None  # z3.ExpeRef (not used for now!)
+        self.bv2bool: Dict[z3.ExprRef, List[z3.ExprRef]] = {}  # map a bit-vector variable to a list of Boolean variables [ordered by bit?]
+        self.bool2id: Dict[z3.ExprRef, int] = {}  # map a Boolean variable to its internal ID in pysat
         # self.vars = []
-        self.verbose = 0
-        self.signed = False
-        self.model = []
+        self.verbose: int = 0
+        self.signed: bool = False
+        self.model: List[Any] = []
 
-    def solve_smt_file(self, filepath: str):
+    def solve_smt_file(self, filepath: str) -> SolverResult:
         fml_vec = z3.parse_smt2_file(filepath)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_string(self, smt_str: str):
+    def solve_smt_string(self, smt_str: str) -> SolverResult:
         fml_vec = z3.parse_smt2_string(smt_str)
         return self.check_sat(z3.And(fml_vec))
 
-    def solve_smt_formula(self, fml: z3.ExprRef):
+    def solve_smt_formula(self, fml: z3.ExprRef) -> SolverResult:
         return self.check_sat(fml)
 
-    def solve_qfbv_light(self, fml: z3.ExprRef):
+    def solve_qfbv_light(self, fml: z3.ExprRef) -> SolverResult:
         """
         Check the satisfiability of a given bit-vector formula using Z3 and pySAT.
         (This function uses more lighweight pre-processing than solve_qfbv)

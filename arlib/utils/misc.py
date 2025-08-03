@@ -86,10 +86,10 @@ def strlines(s, c=64, short=False):
         raise ValueError('expecting string input')
     if '\n' in s:
         return rawlines(s)
-    
+
     q = '"' if repr(s).startswith('"') else "'"
     q = (q,) * 2
-    
+
     if '\\' in s:  # use r-string
         m = f'(\nr{q[0]}%s{q[1]}\n)'
         j = f'{q[0]}\nr{q[1]}'
@@ -98,9 +98,9 @@ def strlines(s, c=64, short=False):
         m = f'(\n{q[0]}%s{q[1]}\n)'
         j = f'{q[0]}\n{q[1]}'
         c -= 2
-    
+
     out = [s[i:i+c] for i in range(0, len(s), c)]
-    
+
     if short and len(out) == 1:
         return (m % out[0]).splitlines()[1]  # strip bounding (\n...\n)
     return m % j.join(out)
@@ -169,19 +169,19 @@ def rawlines(s):
     lines = s.split('\n')
     if len(lines) == 1:
         return repr(lines[0])
-    
+
     triple = ["'''" in s, '"""' in s]
     if any(li.endswith(' ') for li in lines) or '\\' in s or all(triple):
         rv = []
         trailing = s.endswith('\n')
         last = len(lines) - 1
-        
+
         for i, li in enumerate(lines):
             if i != last or trailing:
                 rv.append(repr(li + '\n'))
             else:
                 rv.append(repr(li))
-        
+
         return '(\n    %s\n)' % '\n    '.join(rv)
     else:
         rv = '\n    '.join(lines)
@@ -229,7 +229,7 @@ def debug_decorator(func):
 
             if not subtrees:
                 return ""
-            
+
             result = []
             for a in subtrees[:-1]:
                 result.append(indent(a))
@@ -300,18 +300,18 @@ def func_name(x, short=False):
         'Equality': 'Eq',
         'Unequality': 'Ne',
     }
-    
+
     typ = type(x)
     type_str = str(typ)
-    
+
     if type_str.startswith("<type '") or type_str.startswith("<class '"):
         typ = type_str.split("'")[1]
-    
+
     rv = getattr(getattr(x, 'func', x), '__name__', typ)
-    
+
     if '.' in rv:
         rv = rv.split('.')[-1]
-        
+
     return alias.get(rv, rv) if short else rv
 
 
@@ -332,7 +332,7 @@ def _replace(reps):
     """
     if not reps:
         return lambda x: x
-        
+
     pattern = _re.compile("|".join(_re.escape(k) for k in reps.keys()), _re.M)
     return lambda string: pattern.sub(lambda match: reps[match.group(0)], string)
 
@@ -428,40 +428,40 @@ def translate(s, a, b=None, c=None):
             return s
         # Delete characters in b
         return s.translate(str.maketrans('', '', b))
-    
+
     # Handle dictionary mapping case
     if isinstance(a, dict):
         mr = a.copy()
         c = b
-        
+
         # Extract single-character mappings
         singles = {k: v for k, v in list(mr.items()) if len(k) == 1 and len(v) == 1}
         for k in singles:
             del mr[k]
-            
+
         # Create translation tables
         if singles:
             a, b = ''.join(k for k in singles), ''.join(singles[k] for k in singles)
         else:
             a = b = ''
-    
+
     # Handle character-by-character mapping
     elif len(a) != len(b):
         raise ValueError('oldchars and newchars have different lengths')
     else:
         mr = {}  # No multi-character replacements
-    
+
     # Apply deletions if specified
     if c:
         s = s.translate(str.maketrans('', '', c))
-    
+
     # Apply multi-character replacements
     s = replace(s, mr)
-    
+
     # Apply single-character replacements
     if a:
         s = s.translate(str.maketrans(a, b))
-        
+
     return s
 
 

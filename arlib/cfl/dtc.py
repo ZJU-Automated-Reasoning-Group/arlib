@@ -6,6 +6,7 @@ TODO: this file relies on qiskit, which is not installed in the arlib environmen
 import sys
 from copy import deepcopy
 from math import pi, sqrt, floor, ceil, log
+from typing import List, Dict, Any, Union, Tuple, Optional
 from qiskit import *
 from qiskit.quantum_info import Statevector
 from qiskit.algorithms import Grover, AmplificationProblem
@@ -14,29 +15,29 @@ import numpy as np
 import time
 
 class DTC_simulation:
-    def __init__(self):
-        self.reduced_time = 0
+    def __init__(self) -> None:
+        self.reduced_time: float = 0
         # label for finding all targets
-        self.correct = True
+        self.correct: bool = True
         pass
 
     # Algorithm 2 in the paper
-    def subroutine(self, n, sol):
+    def subroutine(self, n: int, sol: List[int]) -> Tuple[int, int]:
         time1 = time.perf_counter()
         # use the qasm_simulator to simulate Grover search
         backend = BasicAer.get_backend('qasm_simulator')
         # for each Grover search, only running one shot
         quantum_instance = QuantumInstance(backend, shots=1)
         # create oracle for Grover search
-        # Note that although qiskit provides Statevector for creating oracle, 
+        # Note that although qiskit provides Statevector for creating oracle,
         # it takes O(N) time without QRAM model on a classical simulator.
         oracle = Statevector(sol)
         problem = AmplificationProblem(oracle, is_good_state=oracle)
         self.reduced_time += time.perf_counter() - time1
         # initialization
-        m = 1
-        lab = 6/5
-        total = 0
+        m: int = 1
+        lab: float = 6/5
+        total: int = 0
         # repeat until reaching sqrt{2^n}
         while 1:
             j = np.random.randint(0, m)
@@ -58,17 +59,17 @@ class DTC_simulation:
                     return -1, total
 
     # Algorithm 3 in the paper
-    def estimate(self, sol_list, answer_num):
+    def estimate(self, sol_list: List[int], answer_num: int) -> int:
         sol = deepcopy(sol_list)
         n = ceil(log(len(sol),2))
         # the number of targets that are not found is 'current_num'
-        current_num = answer_num
+        current_num: int = answer_num
         # this is the total number of iterations needed to find all targets
-        total = 0
+        total: int = 0
         # this is control variable of the while loop
-        iteration = 0
+        iteration: int = 0
         # targets are stored in 'return_list'
-        return_list = []
+        return_list: List[int] = []
         while iteration < 3*n:
             # xx is the index found, t is the current number of quantum iterations
             xx, t = self.subroutine(n ,sol)
@@ -96,18 +97,18 @@ class DTC_simulation:
             print("our result:", return_list)
         return total
 
-    def solve(self, graph):
+    def solve(self, graph: List[List[int]]) -> None:
         self.__cubic_solve(graph)
-    
+
     # DTC solver
-    def __cubic_solve(self, graph):
+    def __cubic_solve(self, graph: List[List[int]]) -> None:
         # number of classical iterations
-        total_classical = 0
+        total_classical: int = 0
         # number of quantum iterations
-        total_quantum = 0
+        total_quantum: int = 0
         start_time = time.perf_counter()
         size = len(graph)
-        Worklist = set()
+        Worklist: set = set()
         for i in range(size):
             for j in range(size):
                 if graph[i][j] == 1:
@@ -116,10 +117,10 @@ class DTC_simulation:
         while len(Worklist) > 0:
             i, j = Worklist.pop()
             time1 = time.perf_counter()
-            answer_num = 0
+            answer_num: int = 0
             # save the solution indices in this list
             # for creating oracle of Grover search
-            sol = [0 for i in range(size)]
+            sol: List[int] = [0 for i in range(size)]
             total_classical += 2 * size
             for k in range(size):
                 if graph[i][k] == 0 and graph[j][k] == 1:
@@ -152,7 +153,7 @@ class DTC_simulation:
             print("We miss some targets.")
 
 
-def main(argv):
+def main(argv: List[str]) -> None:
     size = 8
     # get the input size from user input. should be 2^k
     if len(argv) > 1:

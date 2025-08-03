@@ -6,7 +6,7 @@ It supports interval, zone, and octagon abstractions.
 import z3
 import itertools
 from timeit import default_timer as symabs_timer
-from typing import List
+from typing import List, Optional, Tuple, Any, Dict, Union
 
 from arlib.utils.z3_expr_utils import get_variables
 from arlib.utils.z3_solver_utils import is_entail
@@ -16,7 +16,8 @@ from arlib.symabs.omt_symabs.z3opt_util import box_optimize
 # import argparse
 
 
-def get_bv_size(x: z3.ExprRef):
+def get_bv_size(x: z3.ExprRef) -> int:
+    """Get the bit-vector size of an expression"""
     if z3.is_bv(x):
         return x.sort().size()
     else:
@@ -24,29 +25,29 @@ def get_bv_size(x: z3.ExprRef):
 
 
 class BVSymbolicAbstraction:
-    def __init__(self):
-        self.initialized = False
-        self.formula = z3.BoolVal(True)
-        self.vars = []
-        self.bool_vars = []
-        self.interval_abs_as_fml = z3.BoolVal(True)
-        self.zone_abs_as_fml = z3.BoolVal(True)
-        self.octagon_abs_as_fml = z3.BoolVal(True)
-        self.bitwise_abs_as_fml = z3.BoolVal(True)
+    def __init__(self) -> None:
+        self.initialized: bool = False
+        self.formula: z3.ExprRef = z3.BoolVal(True)
+        self.vars: List[z3.ExprRef] = []
+        self.bool_vars: List[z3.ExprRef] = []
+        self.interval_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
+        self.zone_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
+        self.octagon_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
+        self.bitwise_abs_as_fml: z3.ExprRef = z3.BoolVal(True)
 
-        self.single_query_timeout = 5000
-        self.multi_query_tiemout = 0
+        self.single_query_timeout: int = 5000
+        self.multi_query_tiemout: int = 0
         # self.poly_abs_as_fml = BoolVal(True)
 
-        self.compact_opt = True
+        self.compact_opt: bool = True
 
-        self.obj_no_overflow = False
-        self.obj_no_underflow = False
+        self.obj_no_overflow: bool = False
+        self.obj_no_underflow: bool = False
 
-        self.signed = False
+        self.signed: bool = False
         # set_param("verbose", 15)
 
-    def do_simplification(self):
+    def do_simplification(self) -> None:
         """
         Simplify the formula using Z3 tactics.
         If the formula is initialized, apply a sequence of tactics to simplify it.
@@ -64,7 +65,8 @@ class BVSymbolicAbstraction:
         else:
             print("error: not initialized")
 
-    def init_from_file(self, fname: str):
+    def init_from_file(self, fname: str) -> None:
+        """Initialize from an SMT2 file"""
         try:
             fvec = z3.parse_smt2_file(fname)
             self.formula = z3.And(fvec)
@@ -80,7 +82,8 @@ class BVSymbolicAbstraction:
             print("error when initialization")
             print(ex)
 
-    def init_from_fml(self, fml: z3.BoolRef):
+    def init_from_fml(self, fml: z3.BoolRef) -> None:
+        """Initialize from a Z3 formula"""
         try:
             self.formula = fml
             for var in get_variables(self.formula):
@@ -93,7 +96,7 @@ class BVSymbolicAbstraction:
             print("error when initialization")
             print(ex)
 
-    def min_once(self, exp: z3.ExprRef):
+    def min_once(self, exp: z3.ExprRef) -> Optional[z3.ExprRef]:
         """
         Minimize exp
         """

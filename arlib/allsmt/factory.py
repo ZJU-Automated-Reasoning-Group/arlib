@@ -12,7 +12,7 @@ from arlib.allsmt.base import AllSMTSolver
 class AllSMTSolverFactory:
     """
     Factory for creating AllSMT solvers.
-    
+
     This class provides methods for registering and creating instances of different
     AllSMT solver implementations.
     """
@@ -20,10 +20,10 @@ class AllSMTSolverFactory:
     _solvers: Dict[str, Type[AllSMTSolver]] = {}
 
     @classmethod
-    def register(cls, name: str, solver_class: Type[AllSMTSolver]):
+    def register(cls, name: str, solver_class: Type[AllSMTSolver]) -> None:
         """
         Register a solver class with the factory.
-        
+
         Args:
             name: The name to register the solver under
             solver_class: The solver class to register
@@ -34,14 +34,14 @@ class AllSMTSolverFactory:
     def create(cls, name: str, **kwargs) -> AllSMTSolver:
         """
         Create an instance of the specified solver.
-        
+
         Args:
             name: The name of the solver to create
             **kwargs: Additional arguments to pass to the solver constructor
-            
+
         Returns:
             An instance of the specified solver
-            
+
         Raises:
             ValueError: If the specified solver is not registered
         """
@@ -56,7 +56,7 @@ class AllSMTSolverFactory:
     def available_solvers(cls) -> list:
         """
         Get a list of available solvers.
-        
+
         Returns:
             List of available solver names
         """
@@ -89,11 +89,11 @@ except ImportError:
 def create_allsmt_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
     """
     Convenience function to create an AllSMT solver instance.
-    
+
     Args:
         name: The name of the solver to create
         **kwargs: Additional arguments to pass to the solver constructor
-        
+
     Returns:
         An instance of the specified AllSMT solver
     """
@@ -104,14 +104,14 @@ def create_allsmt_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
 def create_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
     """
     Convenience function to create an AllSMT solver instance.
-    
+
     This function is deprecated and will be removed in a future version.
     Please use create_allsmt_solver() instead.
-    
+
     Args:
         name: The name of the solver to create
         **kwargs: Additional arguments to pass to the solver constructor
-        
+
     Returns:
         An instance of the specified AllSMT solver
     """
@@ -125,7 +125,7 @@ def create_solver(name: str = "z3", **kwargs) -> AllSMTSolver:
     return create_allsmt_solver(name, **kwargs)
 
 
-def demo():
+def demo() -> None:
     """Demonstrate the usage of the AllSMT solver factory."""
     # Create a Z3 solver
     z3_solver = create_allsmt_solver("z3")

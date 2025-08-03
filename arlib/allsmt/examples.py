@@ -4,10 +4,11 @@ Examples of using the AllSMT API.
 This module provides examples of using the AllSMT API with different solvers and formulas.
 """
 
+from typing import List
 from arlib.allsmt import create_allsmt_solver
 
 
-def z3_example():
+def z3_example() -> None:
     """Example of using the Z3-based AllSMT solver."""
     print("\n=== Z3 AllSMT Example ===")
 
@@ -40,7 +41,7 @@ def z3_example():
     print(f"\nTotal models: {solver.get_model_count()}")
 
 
-def pysmt_example():
+def pysmt_example() -> None:
     """Example of using the PySMT-based AllSMT solver with Z3 expressions as input."""
     print("\n=== PySMT AllSMT Example (with Z3 input) ===")
 
@@ -76,7 +77,7 @@ def pysmt_example():
         print(f"PySMT example failed: {e}")
 
 
-def mathsat_example():
+def mathsat_example() -> None:
     """Example of using the MathSAT-based AllSMT solver."""
     print("\n=== MathSAT AllSMT Example ===")
 
@@ -112,7 +113,7 @@ def mathsat_example():
         print(f"MathSAT example failed: {e}")
 
 
-def simple_example():
+def simple_example() -> None:
     """A simple example that works with any solver."""
     print("\n=== Simple Example (Default Solver) ===")
 
@@ -137,7 +138,7 @@ def simple_example():
     print(f"\nTotal models: {solver.get_model_count()}")
 
 
-def infinite_models_example():
+def infinite_models_example() -> None:
     """Example with potentially infinite models."""
     print("\n=== Infinite Models Example ===")
 
@@ -165,7 +166,7 @@ def infinite_models_example():
     solver.print_models(verbose=True)
 
 
-def run_all_examples():
+def run_all_examples() -> None:
     """Run all examples."""
     simple_example()
     z3_example()

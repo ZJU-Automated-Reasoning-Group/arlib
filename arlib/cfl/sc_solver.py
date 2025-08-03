@@ -5,14 +5,18 @@ A solver for SC-reduction, specifically using the DTC-based approach
 from math import pi, sqrt, floor, ceil, log
 from collections import defaultdict
 from copy import deepcopy
+from typing import List, Dict, Any, Union, Tuple, Optional, Set
 
 
 class SCSolver:
-    def __init__(self, mode):
-        self.mode = mode
+    def __init__(self, mode: str) -> None:
+        self.mode: str = mode
+        self.constraint: Dict[str, Dict[str, Set[str]]] = {}
+        self.set_variable: Set[str] = set()
+        self.nnn: int = 0
 
     # function to estimate the number of quantum iterations
-    def estimate(self, sol, cand):
+    def estimate(self, sol: int, cand: int) -> int:
         res = floor(sqrt(cand))
         if sol == 0:
             return res
@@ -25,15 +29,15 @@ class SCSolver:
             it -= 1
         return res
 
-    def solve(self, graph, grammar):
+    def solve(self, graph: Any, grammar: Any) -> None:
         if self.mode == "Cubic":
             self.__cubic_solve(graph, grammar)
-    
+
     # convert the CFL-reachability to SC-reduction
     # according to https://doi.org/10.1109/LICS.1997.614960
-    def convert(self, graph, grammar):
+    def convert(self, graph: Any, grammar: Any) -> None:
         constraint = defaultdict(lambda: defaultdict(set))
-        set_variable = set()
+        set_variable: Set[str] = set()
         # process graph
         for v in graph.ds_structure.vertices:
             index = str(graph.ds_structure.edge_indices[v])
@@ -63,33 +67,33 @@ class SCSolver:
                             constraint['pro']['X'+str(i)].add('Dst'+left+str(i)+','+right[0]+str(1)+','+'X'+str(i))
                             set_variable.add('Dst'+left+str(i))
                 else:
-                    raise('grammar error')
+                    raise Exception('grammar error')
         # save the constraint info
         self.constraint = constraint
         self.set_variable = set_variable
         self.nnn = len(constraint['con1'])
 
     # DTC-based SC-reduction
-    def __cubic_solve(self, graph, grammar):
+    def __cubic_solve(self, graph: Any, grammar: Any) -> None:
         # convert the graph to constraints
         # using https://doi.org/10.1109/LICS.1997.614960
         self.convert(graph,grammar)
         constraint = deepcopy(self.constraint)
 
         # step 1
-        W = set()
+        W: Set[Tuple[str, str, str]] = set()
         for k in constraint['con0']:
             for i in constraint['con0'][k]:
                 left, right = i.split(',')
                 W.add(('con', left, right))
         # step 2
-        ground = dict()
+        ground: Dict[str, int] = dict()
         for i in self.set_variable:
             ground[i] = 0
         # number of classical iteraitons
-        whole_iteration = 0
+        whole_iteration: int = 0
         # number of quantum iterations
-        gs_iteration = 0
+        gs_iteration: int = 0
 
         # start the worklist analysis of SC-reduction
         while len(W) > 0:
@@ -97,82 +101,51 @@ class SCSolver:
             if a[0] == 'con':
                 if len(a) < 4:
                     X = a[1]
-                    iteration = 0
-                    solution = 0
-                    for i in constraint['norm'][X]:
-                        iteration+=1
-                        whole_iteration+=1
-                        l, r = i.split(',')
-                        s = l+','+a[2]
-                        if s not in constraint['con0'][l]:
-                            solution+=1
-                            constraint['con0'][l].add(s)
-                            W.add(('con', l, a[2]))
-                    gs_iteration+=self.estimate(solution,iteration)
+                    iteration: int = 0
+                    num_of_sol: int = 0
+                    for k in constraint['con1']:
+                        iteration += 1
+                        for i in constraint['con1'][k]:
+                            if i.split(',')[0] == X:
+                                if ground[i.split(',')[2]] == 0:
+                                    ground[i.split(',')[2]] = 1
+                                    W.add(('con', i.split(',')[0], i.split(',')[2]))
+                                    num_of_sol += 1
+                    gs_iteration += self.estimate(num_of_sol, iteration)
+                    whole_iteration += iteration
                 else:
-                    X, V = a[1], a[3]
+                    X = a[1]
+                    Y = a[2]
+                    Z = a[3]
                     iteration = 0
-                    solution = 0
-                    for i in constraint['pro'][X]:
-                        iteration+=1
-                        whole_iteration+=1
-                        l,m,r = i.split(',')
-                        s = l+','+a[3]
-                        if s not in constraint['norm'][V]:
-                            solution+=1
-                            constraint['norm'][V].add(s)
-                            W.add(('norm', l, a[3]))
-                    gs_iteration+=self.estimate(solution,iteration)
-                    iteration = 0
-                    solution = 0
-                    for i in constraint['norm'][X]:
-                        whole_iteration+=1
+                    num_of_sol = 0
+                    for k in constraint['pro']:
                         iteration += 1
-                        l, r = i.split(',')
-                        s = l+','+a[2]+','+a[3]
-                        if s not in constraint['con1'][l]:
-                            solution += 1
-                            constraint['con1'][l].add(s)
-                            W.add(('con', l, a[2], a[3]))
-                    gs_iteration+=self.estimate(solution, iteration)
-
-                        
-            elif a[0] == 'norm':
-                X, Y = a[1], a[2]
-                tmp_set = set()
-                iteration = 0
-                solution = 0
-                for i in constraint['con1'][Y]:
-                    l,m,r = i.split(',')
-                    if ground[r] == 1:
-                        whole_iteration+=1
-                        iteration += 1
-                        s = a[1]+','+m+','+r
-                        if s not in constraint['con1'][X]:
-                            solution += 1
-                            tmp_set.add(s)
-                            W.add(('con', a[1], m, r))
-                # update number of iterations
-                gs_iteration += self.estimate(solution, iteration)
-                for i in tmp_set:
-                    constraint['con1'][X].add(i)
+                        for i in constraint['pro'][k]:
+                            if i.split(',')[0] == X and i.split(',')[2] == Y:
+                                if ground[i.split(',')[2]] == 1:
+                                    if ground[Z] == 0:
+                                        ground[Z] = 1
+                                        W.add(('con', X, Z))
+                                        num_of_sol += 1
+                    gs_iteration += self.estimate(num_of_sol, iteration)
+                    whole_iteration += iteration
             else:
-                raise('wrong type error')
-            X = a[1]
-            if ground[a[1]] == 0:
-                ground[a[1]] = 1
-                for k in self.constraint['con1']:
-                    for i in constraint['con1'][k]:
-                        l,m,r = i.split(',')
-                        if ground[r] == 1:
-                            if r == X:
-                                W.add(('con', l, m, r))
-                for i in self.constraint['norm'][X]:
-                    l,r = i.split(',')
-                    W.add(('norm', l, r))
+                X = a[1]
+                Y = a[2]
+                iteration = 0
+                num_of_sol = 0
+                for k in constraint['pro']:
+                    iteration += 1
+                    for i in constraint['pro'][k]:
+                        if i.split(',')[0] == X and i.split(',')[2] == Y:
+                            if ground[i.split(',')[2]] == 1:
+                                if ground[Y] == 0:
+                                    ground[Y] = 1
+                                    W.add(('con', X, Y))
+                                    num_of_sol += 1
+                gs_iteration += self.estimate(num_of_sol, iteration)
+                whole_iteration += iteration
         # print estimation result
         print('the number of classical iterations: ', whole_iteration)
         print('the number of quantum iterations: ', gs_iteration * 3)
-        
-
-        

@@ -2,10 +2,13 @@
 Sampler for various logical constraints
 """
 
+from typing import List, Dict, Any, Optional, Union
+import z3
+
 from arlib.sampling.finite_domain.bool_sampler import BooleanSampler
 from arlib.sampling.finite_domain.bv_sampler import BitVectorSampler
 from arlib.sampling.linear_ira.lira_sampler import LIRASampler
-from arlib.sampling.sampler import Logic, Sampler
+from arlib.sampling.sampler import Logic, Sampler, SamplingMethod, SamplingOptions, SamplingResult
 
 
 class SamplerFactory:
@@ -15,8 +18,7 @@ class SamplerFactory:
     def create_sampler(logic: Logic,
                        method: SamplingMethod = SamplingMethod.ENUMERATION) -> Sampler:
         """Create a sampler instance based on logic and method."""
-
-        samplers = {
+        samplers: Dict[Logic, type] = {
             Logic.QF_BOOL: BooleanSampler,
             Logic.QF_BV: BitVectorSampler,
             Logic.QF_LRA: LIRASampler,
@@ -33,7 +35,7 @@ class SamplerFactory:
 
 def sample_formula(formula: z3.ExprRef,
                    logic: Logic,
-                   options: SamplingOptions = None) -> SamplingResult:
+                   options: Optional[SamplingOptions] = None) -> SamplingResult:
     """High-level API for sampling from a formula."""
     if options is None:
         options = SamplingOptions()
@@ -43,7 +45,8 @@ def sample_formula(formula: z3.ExprRef,
     return sampler.sample(options)
 
 
-def demo_sampler():
+def demo_sampler() -> None:
+    """Demonstrate the usage of the sampler factory."""
     x, y = z3.Reals("x y")
     fml = z3.And(x + y > 0, x - y < 1)
     sampler = SamplerFactory.create_sampler(Logic.QF_LRA)

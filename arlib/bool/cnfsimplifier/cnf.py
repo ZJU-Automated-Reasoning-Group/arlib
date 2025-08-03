@@ -2,6 +2,7 @@
 CNF
 """
 from .clause import Clause
+from typing import List
 
 
 class Cnf:
@@ -9,7 +10,7 @@ class Cnf:
     A special CNF class (currently for implementing CNF simplifications)
     """
 
-    def __init__(self, clause_list: list):
+    def __init__(self, clause_list: List):
         self.clause_list = clause_list
 
     def get_clauses(self):

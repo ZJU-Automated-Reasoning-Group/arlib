@@ -1,5 +1,6 @@
 """Definitions for the Z3 Variables concrete space.
 """
+from typing import Any, Dict, Union
 from ..core.concrete import ConcreteState
 
 
@@ -10,7 +11,7 @@ class Z3VariablesState(ConcreteState):
     """
 
     # pylint: disable=unused-argument
-    def __init__(self, variable_values, variable_type=None):
+    def __init__(self, variable_values: Dict[str, Union[int, float]], variable_type: Any = None) -> None:
         """Constructs a new Z3VariablesState.
 
         variable_values should be a dictionary of form { "variable_name": value
@@ -19,14 +20,14 @@ class Z3VariablesState(ConcreteState):
         variable_type is not currently used, but is provided for consistency
         with Z3VariablesState
         """
-        self.variable_values = variable_values
+        self.variable_values: Dict[str, Union[int, float]] = variable_values
 
-    def value_of(self, name):
+    def value_of(self, name: str) -> Union[int, float]:
         """Returns the integer value of a given variable.
         """
         return self.variable_values[name]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a human-readable representation of self
         """
         return ("{" +

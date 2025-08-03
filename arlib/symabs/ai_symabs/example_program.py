@@ -6,7 +6,7 @@ from frontend.program import Program
 from domains.sign import Sign, SignAbstractState, SignDomain
 
 
-def main():
+def main() -> None:
     """Construct and analyze the example program.
     """
     program = Program("""

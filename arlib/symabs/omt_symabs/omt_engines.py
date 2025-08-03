@@ -3,7 +3,7 @@ TODO: use utils.z3_plus_smtlib_solver to integrate third-party engine
 """
 
 import z3
-from typing import List
+from typing import List, Optional, Any
 from enum import Enum
 
 from arlib.utils.z3_plus_smtlib_solver import Z3SolverPlus
@@ -22,13 +22,13 @@ class OMTEngineType(Enum):
 
 
 class OMTEngine:
-    def __init__(self):
-        self.initialized = False
-        self.formula = None
-        self.compact_opt = True
-        self.engine_type = OMTEngineType.Z3OPT
+    def __init__(self) -> None:
+        self.initialized: bool = False
+        self.formula: Optional[z3.ExprRef] = None
+        self.compact_opt: bool = True
+        self.engine_type: OMTEngineType = OMTEngineType.Z3OPT
 
-    def maximize_with_linear_search(self, obj: z3.ExprRef):
+    def maximize_with_linear_search(self, obj: z3.ExprRef) -> Any:
         """
         Linear Search based OMT
         """
@@ -45,13 +45,13 @@ class OMTEngine:
             # print("current: ", maximum)
         return maximum
 
-    def maximize_with_compact_linear_search(self, objs: List[z3.ExprRef]):
+    def maximize_with_compact_linear_search(self, objs: List[z3.ExprRef]) -> List[Any]:
         """
         Linear Search for Boxed-OMT
         Essentially, this is equivalent to the algorithm from Li Yi's POPL 14
         """
         # print(objs)
-        maximum_list = []
+        maximum_list: List[Any] = []
         s = z3.Solver()
         s.add(self.formula)
         if s.check() == z3.sat:
@@ -74,7 +74,7 @@ class OMTEngine:
 
         return maximum_list
 
-    def opt_with_qsat(self, exp: z3.ExprRef, minimize: bool):
+    def opt_with_qsat(self, exp: z3.ExprRef, minimize: bool) -> Any:
         """
         Quantified Satisfaction based OMT
         TODO: currently only works when exp is a variable (need to handle a term)? how to handle unbounded objectives? (seems not work??)

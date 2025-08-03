@@ -8,46 +8,49 @@ import tempfile
 import subprocess
 import os
 from typing import List, Any, Dict, Optional
-from z3 import Solver
+from z3 import Solver, ExprRef
 
 from arlib.allsmt.base import AllSMTSolver
 
+# Type alias for MathSAT model (string representation)
+MathSATModel = str
 
-class MathSATAllSMTSolver(AllSMTSolver):
+
+class MathSATAllSMTSolver(AllSMTSolver[MathSATModel]):
     """
     MathSAT-based AllSMT solver implementation.
-    
+
     This class implements the AllSMT solver interface using MathSAT as the underlying solver.
     """
 
-    def __init__(self, mathsat_path: str = None):
+    def __init__(self, mathsat_path: Optional[str] = None) -> None:
         """
         Initialize the MathSAT-based AllSMT solver.
-        
+
         Args:
             mathsat_path: Optional path to the MathSAT executable
         """
-        self._models = []
-        self._model_count = 0
-        self._mathsat_path = mathsat_path
-        self._model_limit_reached = False
+        self._models: List[MathSATModel] = []
+        self._model_count: int = 0
+        self._mathsat_path: str = mathsat_path or "mathsat"
+        self._model_limit_reached: bool = False
 
         # If mathsat_path is not provided, try to get it from global config
-        if not self._mathsat_path:
+        if not mathsat_path:
             try:
                 from arlib.global_params import global_config
                 self._mathsat_path = global_config.get_solver_path("mathsat")
             except (ImportError, AttributeError):
                 self._mathsat_path = "mathsat"  # Default to 'mathsat' command
 
-    def _z3_to_smtlib2(self, solver, keys):
+    def _z3_to_smtlib2(self, solver: Solver, keys: List[ExprRef]) -> str:
         """
         Convert Z3 constraints to SMT-LIB2 format with proper all-SAT tracking.
-        
+
         Args:
             solver: Z3 solver with assertions
             keys: Variables to track in the models
-            
+
         Returns:
             str: SMT-LIB2 formatted string
         """
@@ -59,8 +62,8 @@ class MathSATAllSMTSolver(AllSMTSolver):
         smtlib2 += "\n"
 
         # Create Boolean labels for tracking conditions
-        bool_labels = []
-        assertion_labels = {}
+        bool_labels: List[str] = []
+        assertion_labels: Dict[str, Any] = {}
         label_counter = 0
 
         # Analyze assertions to create Boolean labels
@@ -87,15 +90,15 @@ class MathSATAllSMTSolver(AllSMTSolver):
 
         return smtlib2
 
-    def solve(self, expr, keys, model_limit: int = 100):
+    def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[MathSATModel]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
-        
+
         Args:
             expr: The Z3 expression/formula to solve
             keys: The Z3 variables to track in the models
             model_limit: Maximum number of models to generate (default: 100)
-            
+
         Returns:
             List of models satisfying the expression
         """
@@ -147,26 +150,26 @@ class MathSATAllSMTSolver(AllSMTSolver):
     def get_model_count(self) -> int:
         """
         Get the number of models found in the last solve call.
-        
+
         Returns:
             int: The number of models
         """
         return self._model_count
 
     @property
-    def models(self):
+    def models(self) -> List[MathSATModel]:
         """
         Get all models found in the last solve call.
-        
+
         Returns:
             List of models as strings (MathSAT output format)
         """
         return self._models
 
-    def print_models(self, verbose: bool = False):
+    def print_models(self, verbose: bool = False) -> None:
         """
         Print all models found in the last solve call.
-        
+
         Args:
             verbose: Whether to print detailed information about each model
         """
@@ -183,7 +186,7 @@ class MathSATAllSMTSolver(AllSMTSolver):
             print(f"Total number of models: {self._model_count}")
 
 
-def demo():
+def demo() -> None:
     """Demonstrate the usage of the MathSAT-based AllSMT solver."""
     from z3 import Ints, And
 

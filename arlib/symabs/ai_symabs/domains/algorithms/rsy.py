@@ -1,12 +1,12 @@
 """Implementation of the RSY algorithm for calculating alpha-tilde.
 Can also be used to calculate post-tilde.
 """
-
+from typing import Any
 from .timeout import TimeoutException
 
 
 # pylint: disable=invalid-name
-def RSY(domain, phi):
+def RSY(domain: Any, phi: Any) -> Any:
     """Returns alpha-tilde of phi.
     If the SMT solver never times out and the function runs to completion, it
     will return alpha-hat. Otherwise, it will return the trivial

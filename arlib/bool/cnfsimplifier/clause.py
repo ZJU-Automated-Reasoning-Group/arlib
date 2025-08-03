@@ -4,7 +4,7 @@ Clause
 import uuid
 
 from .variable import Variable
-
+from typing import List, Set, Any, Optional, Union
 
 # from typing import Set
 
@@ -15,10 +15,10 @@ def create_id():
 class Clause:
     """Representation of a Boolean clause"""
 
-    def __init__(self, variable_list: list):
+    def __init__(self, variable_list: List):
         """
         Initialize a clause with a list of variables.
-        
+
         Args:
             variable_list: list of variables or integers
         """

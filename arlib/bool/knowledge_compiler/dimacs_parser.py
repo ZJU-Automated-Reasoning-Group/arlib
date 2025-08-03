@@ -4,11 +4,24 @@ Reference: https://github.com/marcmelis/dpll-sat/blob/master/solvers/original_dp
 """
 
 import time
+from typing import List, Tuple
 
 
-def parse_cnf_string(cnf: str, verbose):
+def parse_cnf_string(cnf: str, verbose: bool) -> Tuple[List[List[int]], int]:
+    """
+    Parse CNF formula from string.
+
+    Args:
+        cnf: String containing CNF formula in DIMACS format
+        verbose: Whether to print parsing statistics
+
+    Returns:
+        Tuple of (clauses, number_of_variables)
+    """
     initial_time = time.time()
-    clauses = []
+    clauses: List[List[int]] = []
+    nvars: int = 0
+
     if verbose:
         print('=====================[ Problem Statistics ]=====================')
         print('|                                                              |')
@@ -34,9 +47,21 @@ def parse_cnf_string(cnf: str, verbose):
     return clauses, int(nvars)
 
 
-def parse(filename, verbose):
+def parse(filename: str, verbose: bool) -> Tuple[List[List[int]], int]:
+    """
+    Parse CNF formula from file.
+
+    Args:
+        filename: Path to CNF file in DIMACS format
+        verbose: Whether to print parsing statistics
+
+    Returns:
+        Tuple of (clauses, number_of_variables)
+    """
     initial_time = time.time()
-    clauses = []
+    clauses: List[List[int]] = []
+    nvars: int = 0
+
     if verbose:
         print('=====================[ Problem Statistics ]=====================')
         print('|                                                              |')

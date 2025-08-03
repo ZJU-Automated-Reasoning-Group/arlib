@@ -59,14 +59,15 @@
 from __future__ import print_function
 import getopt
 import os
+import sys
+from typing import Union, List, Tuple, Optional
 from pysat.formula import CNFPlus
 from pysat.solvers import Solver, SolverNames
-import sys
 
 
 #
 # ==============================================================================
-def enumerate_models(formula, to_enum, solver, warm=False):
+def enumerate_models(formula: CNFPlus, to_enum: Union[int, str], solver: str, warm: bool = False) -> None:
     """
         Enumeration procedure. It represents a loop iterating over satisfying
         assignment for a given formula until either all or a given number of
@@ -116,9 +117,12 @@ def enumerate_models(formula, to_enum, solver, warm=False):
 
 #
 # ==============================================================================
-def parse_options():
+def parse_options() -> Tuple[Union[int, str], str, bool, List[str]]:
     """
         Parses command-line options:
+
+        Returns:
+            Tuple containing (to_enum, solver, warm, args)
     """
 
     try:
@@ -133,9 +137,9 @@ def parse_options():
         usage()
         sys.exit(1)
 
-    to_enum_t = 1
-    solver_t = 'g3'
-    warm_t = False
+    to_enum_t: Union[int, str] = 1
+    solver_t: str = 'g3'
+    warm_t: bool = False
 
     for opt, arg in opts:
         if opt in ('-e', '--enum'):
@@ -159,7 +163,7 @@ def parse_options():
 
 #
 # ==============================================================================
-def usage():
+def usage() -> None:
     """
         Prints usage message.
     """

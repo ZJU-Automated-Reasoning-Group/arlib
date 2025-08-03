@@ -9,24 +9,24 @@ OUTPUT: a formula g such that
      That is, f |= g and or any g' that is a Boolean combination of P, we have g |= g'.
 """
 
-from typing import List
+from typing import List, Optional, Set, Dict
 
 import z3
-from z3 import BoolRef, Solver, unsat
+from z3 import BoolRef, Solver, unsat, ModelRef, ExprRef
 
 from arlib.utils.z3_expr_utils import negate
 
 
-def eval_predicates(m: z3.ModelRef, predicates: List[z3.BoolRef]):
+def eval_predicates(m: ModelRef, predicates: List[BoolRef]) -> List[ExprRef]:
     """
     The eval_preds function takes in a model m and a list of predicates preds.
     It returns the set of predicates that are true in m, or false if they are not.
 
-    :param m:z3.ModelRef: Evaluate the predicates in the list of predicates
-    :param predicates:List[z3.BoolRef]: Specify the set of predicates that we want to evaluate
+    :param m: ModelRef: Evaluate the predicates in the list of predicates
+    :param predicates: List[BoolRef]: Specify the set of predicates that we want to evaluate
     :return: A list of predicates that are true in the model m
     """
-    res = []
+    res: List[ExprRef] = []
     for p in predicates:
         if z3.is_true(m.eval(p, True)):
             res.append(p)
@@ -37,16 +37,16 @@ def eval_predicates(m: z3.ModelRef, predicates: List[z3.BoolRef]):
     return res
 
 
-def prime_implicant(ps: List[z3.ExprRef], e: z3.ExprRef):
+def prime_implicant(ps: List[ExprRef], e: ExprRef) -> List[ExprRef]:
     """TODO: this function may have flaws
     """
     s = z3.Solver()
     # we want to find a subset ps' of ps such that /\ ps => e
     s.add(z3.Not(e))
     # holds temp bool vars for unsat core
-    bs = []
+    bs: List[BoolRef] = []
     # map from temp vars to predicates
-    btop = {}
+    btop: Dict[BoolRef, ExprRef] = {}
     i = 0
     for p in ps:
         bp = z3.Bool("b" + str(i))
@@ -56,7 +56,7 @@ def prime_implicant(ps: List[z3.ExprRef], e: z3.ExprRef):
         i = i + 1
     # assert (s.check(bs) == unsat)
     # only take predicates in unsat core
-    res = [btop[x] for x in s.unsat_core()]
+    res: List[ExprRef] = [btop[x] for x in s.unsat_core()]
     return res
 
 
@@ -75,7 +75,7 @@ def check_entailment(antecedent: BoolRef, consequent: BoolRef) -> bool:
     return solver.check() == unsat
 
 
-def predicate_abstraction(fml: z3.ExprRef, predicates: List[z3.ExprRef]) -> z3.ExprRef:
+def predicate_abstraction(fml: ExprRef, predicates: List[ExprRef]) -> ExprRef:
     """Compute the strongest necessary condition of fml that is the Boolean combination of preds
 
     Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
@@ -86,7 +86,7 @@ def predicate_abstraction(fml: z3.ExprRef, predicates: List[z3.ExprRef]) -> z3.E
     """
     s = z3.Solver()
     s.add(fml)
-    res = []
+    res: List[ExprRef] = []
     while s.check() == z3.sat:
         m = s.model()
         # i.e., compute a prime/minimal implicant (using the agove prime_implicant function)

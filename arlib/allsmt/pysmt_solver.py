@@ -5,20 +5,24 @@ This module provides an implementation of the AllSMT solver using PySMT.
 It accepts Z3 expressions as input and converts them to PySMT format internally.
 """
 
-from typing import List, Any, Dict, Optional, Tuple
+from typing import List, Any, Dict, Optional, Tuple, Union
 import z3
+from z3 import ExprRef
 from pysmt.fnode import FNode
 from pysmt.oracles import get_logic
 from pysmt.shortcuts import Solver, Not, EqualsOrIff, And, Or
 
 from arlib.allsmt.base import AllSMTSolver
 
+# Type alias for PySMT model (dictionary mapping variables to values)
+PySMTModel = Dict[FNode, FNode]
+
 
 class Z3ToPySMTConverter:
     """Handles conversion between Z3 and PySMT expressions."""
 
     @staticmethod
-    def to_pysmt_vars(z3vars: List[z3.ExprRef]) -> List[FNode]:
+    def to_pysmt_vars(z3vars: List[ExprRef]) -> List[FNode]:
         """
         Convert Z3 variables to PySMT variables.
 
@@ -60,7 +64,7 @@ class Z3ToPySMTConverter:
         return result
 
     @staticmethod
-    def convert(z3_formula: z3.ExprRef) -> Tuple[List[FNode], FNode]:
+    def convert(z3_formula: ExprRef) -> Tuple[List[FNode], FNode]:
         """
         Convert Z3 formula to PySMT format.
 
@@ -82,36 +86,36 @@ class Z3ToPySMTConverter:
         return pysmt_vars, pysmt_formula
 
 
-class PySMTAllSMTSolver(AllSMTSolver):
+class PySMTAllSMTSolver(AllSMTSolver[PySMTModel]):
     """
     PySMT-based AllSMT solver implementation.
-    
+
     This class implements the AllSMT solver interface using PySMT as the underlying solver.
     It accepts Z3 expressions as input and converts them to PySMT format internally.
     """
 
-    def __init__(self, solver_name: str = None):
+    def __init__(self, solver_name: Optional[str] = None) -> None:
         """
         Initialize the PySMT-based AllSMT solver.
-        
+
         Args:
             solver_name: Optional name of the specific PySMT solver to use
         """
-        self._models = []
-        self._model_count = 0
-        self._solver_name = solver_name
-        self._pysmt_vars = []
-        self._model_limit_reached = False
+        self._models: List[PySMTModel] = []
+        self._model_count: int = 0
+        self._solver_name: Optional[str] = solver_name
+        self._pysmt_vars: List[FNode] = []
+        self._model_limit_reached: bool = False
 
-    def solve(self, expr, keys, model_limit: int = 100):
+    def solve(self, expr: ExprRef, keys: List[ExprRef], model_limit: int = 100) -> List[PySMTModel]:
         """
         Enumerate all satisfying models for the given expression over the specified keys.
-        
+
         Args:
             expr: The Z3 expression/formula to solve
             keys: The Z3 variables to track in the models (not used directly, but kept for API compatibility)
             model_limit: Maximum number of models to generate (default: 100)
-            
+
         Returns:
             List of PySMT models satisfying the expression
         """
@@ -131,7 +135,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
 
                 while solver.solve():
                     # Create a model with variable assignments
-                    model = {}
+                    model: PySMTModel = {}
                     for var in self._pysmt_vars:
                         model[var] = solver.get_value(var)
 
@@ -157,26 +161,26 @@ class PySMTAllSMTSolver(AllSMTSolver):
     def get_model_count(self) -> int:
         """
         Get the number of models found in the last solve call.
-        
+
         Returns:
             int: The number of models
         """
         return self._model_count
 
     @property
-    def models(self):
+    def models(self) -> List[PySMTModel]:
         """
         Get all models found in the last solve call.
-        
+
         Returns:
             List of PySMT models
         """
         return self._models
 
-    def print_models(self, verbose: bool = False):
+    def print_models(self, verbose: bool = False) -> None:
         """
         Print all models found in the last solve call.
-        
+
         Args:
             verbose: Whether to print detailed information about each model
         """
@@ -198,7 +202,7 @@ class PySMTAllSMTSolver(AllSMTSolver):
             print(f"Total number of models: {self._model_count}")
 
 
-def demo():
+def demo() -> None:
     """Demonstrate the usage of the PySMT-based AllSMT solver with Z3 input."""
     from z3 import Ints, Bools, And, Or, Not
 
