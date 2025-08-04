@@ -1,8 +1,7 @@
-
 # Classes for linear and semi-linear sets
 
 from arlib.smt.lia_star.lia_star_solver import getModel
-from arlib.smt.lia_star.statistics import statistics
+import arlib.smt.lia_star.statistics
 import itertools
 import time
 from z3 import *
@@ -75,7 +74,7 @@ class LS:
 
                 # Replace
                 self.a = vecSub(a, b)
-                statistics.shiftdowns += 1
+                arlib.smt.lia_star.statistics.shiftdowns += 1
                 return True
         return False
 
@@ -111,7 +110,7 @@ class LS:
 
                 # Replace
                 self.B = B_new
-                statistics.offsets += 1
+                arlib.smt.lia_star.statistics.offsets += 1
                 return True
         return False
 
@@ -173,7 +172,7 @@ class SLS:
         del self.sets[max(i,j)]
         del self.sets[min(i,j)]
         self.sets.append(new_set)
-        statistics.merges += 1
+        arlib.smt.lia_star.statistics.merges += 1
         return True
 
     # Getter for the final semilinear set once the algorithm is done
@@ -251,7 +250,7 @@ class SLS:
             S.removeDuplicates()
 
         end = time.time()
-        statistics.reduction_time += end - start
+        arlib.smt.lia_star.statistics.reduction_time += end - start
 
     # Add a new vector to the semi-linear set and return True
     # or return False if a vector cannot be added
@@ -268,7 +267,7 @@ class SLS:
         # Get model and add new linear set to sls
         new_vec = getModel(s, X)
         end = time.time()
-        statistics.augment_time += end - start
+        arlib.smt.lia_star.statistics.augment_time += end - start
         if new_vec != None:
             self.sets.append(LS(new_vec, [], self.phi))
             return True

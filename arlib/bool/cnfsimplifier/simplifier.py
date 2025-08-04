@@ -4,8 +4,12 @@
 Conjunctive Normal Form expression simplifier that preserves satisfiability
 """
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .cnf import Cnf
 
-def cnf_tautoly_elimination(cnf):
+
+def cnf_tautoly_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are tautology
     :complexity: O(c)
@@ -14,7 +18,7 @@ def cnf_tautoly_elimination(cnf):
     return cnf
 
 
-def cnf_blocked_clause_elimination(cnf):
+def cnf_blocked_clause_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are blocked
     :complexity: O( (c*l)^2 )
@@ -23,7 +27,7 @@ def cnf_blocked_clause_elimination(cnf):
     return cnf
 
 
-def cnf_subsumption_elimination(cnf):
+def cnf_subsumption_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are subsumed
     :complexity: O(  )
@@ -32,7 +36,7 @@ def cnf_subsumption_elimination(cnf):
     return cnf
 
 
-def cnf_hidden_tautoly_elimination(cnf):
+def cnf_hidden_tautoly_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are hidden tautology
     :complexity: O( (c*l)^2 )
@@ -41,7 +45,7 @@ def cnf_hidden_tautoly_elimination(cnf):
     return cnf
 
 
-def cnf_hidden_blocked_clause_elimination(cnf):
+def cnf_hidden_blocked_clause_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are hidden blocked
     :complexity: O( (c*l)^2 )
@@ -50,7 +54,7 @@ def cnf_hidden_blocked_clause_elimination(cnf):
     return cnf
 
 
-def cnf_hidden_subsumption_elimination(cnf):
+def cnf_hidden_subsumption_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are hidden subsumed
     :complexity: O( (l*c)^2 )
@@ -59,7 +63,7 @@ def cnf_hidden_subsumption_elimination(cnf):
     return cnf
 
 
-def cnf_asymmetric_tautoly_elimination(cnf):
+def cnf_asymmetric_tautoly_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are asymmetric tautology
     :complexity: O( c^2 * l^2 * 2^l )
@@ -68,7 +72,7 @@ def cnf_asymmetric_tautoly_elimination(cnf):
     return cnf
 
 
-def cnf_asymmetric_blocked_clause_elimination(cnf):
+def cnf_asymmetric_blocked_clause_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are asymmetric blocked
     :complexity: O( c^2 * l^2 * 2^l )
@@ -77,7 +81,7 @@ def cnf_asymmetric_blocked_clause_elimination(cnf):
     return cnf
 
 
-def cnf_asymmetric_subsumption_elimination(cnf):
+def cnf_asymmetric_subsumption_elimination(cnf: 'Cnf') -> 'Cnf':
     """
     Simplify CNF by removing all clauses that are asymmetric subsumed
     :complexity: O( c^2 * l^2 * 2^l )
@@ -86,7 +90,7 @@ def cnf_asymmetric_subsumption_elimination(cnf):
     return cnf
 
 
-def explicits(cnf):
+def explicits(cnf: 'Cnf') -> 'Cnf':
     """
     The explicits function takes a CNF object as an argument and returns the same CNF with
     the following transformations applied:
@@ -100,7 +104,7 @@ def explicits(cnf):
     return cnf
 
 
-def hiddens(cnf):
+def hiddens(cnf: 'Cnf') -> 'Cnf':
     """
     The hiddens function takes a CNF object as input and returns a new CNF object
     with the following transformations applied:
@@ -114,7 +118,7 @@ def hiddens(cnf):
     return cnf
 
 
-def asymmetrics(cnf):
+def asymmetrics(cnf: 'Cnf') -> 'Cnf':
     """
     :param cnf: Store the cnf formula
     :return: A cnf object
@@ -125,7 +129,7 @@ def asymmetrics(cnf):
     return cnf
 
 
-def complete(cnf):
+def complete(cnf: 'Cnf') -> 'Cnf':
     """Use at your risk"""
     cnf = cnf.asymmetric_subsumption_elimination()
 

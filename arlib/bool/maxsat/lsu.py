@@ -77,6 +77,7 @@ import os
 import re
 import sys
 from threading import Timer
+from typing import Any, List, Optional
 
 from pysat.card import ITotalizer
 from pysat.formula import CNF, WCNF, WCNFPlus
@@ -111,7 +112,14 @@ class LSU:
         :type verbose: int
     """
 
-    def __init__(self, formula, solver='g4', expect_interrupt=False, verbose=0):
+    hard: List[List[int]]
+    soft: List[List[int]]
+    wght: List[int]
+    verbose: int
+    cost: int
+    model: Optional[List[int]]
+
+    def __init__(self, formula: Any, solver='g4', expect_interrupt=False, verbose=0):
         """
             Constructor.
         """
@@ -186,7 +194,7 @@ class LSU:
             self.tot.delete()
             self.tot = None
 
-    def solve(self):
+    def solve(self) -> bool:
         """
             Computes a solution to the MaxSAT problem. The method implements
             the LSU/LSUS algorithm, i.e. it represents a loop, each iteration

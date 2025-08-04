@@ -82,6 +82,7 @@ import getopt
 import os
 import re
 import sys
+from typing import List, Optional, Any
 
 from pysat.card import CardEnc, EncType
 from pysat.formula import CNFPlus, WCNFPlus
@@ -133,7 +134,19 @@ class FM(object):
         :type verbose: int
     """
 
-    def __init__(self, formula, enc=EncType.pairwise, solver='m22', verbose=1):
+    verbose: int
+    solver: str
+    time: float
+    topv: int
+    orig_nv: int
+    hard: List[List[int]]
+    soft: List[List[int]]
+    wght: List[int]
+    cenc: Any
+    cost: int
+    atm1: Optional[Any]
+
+    def __init__(self, formula: Any, enc: Any = EncType.pairwise, solver: str = 'm22', verbose: int = 1) -> None:
         """
             Constructor.
         """
@@ -159,21 +172,21 @@ class FM(object):
         # initialize SAT oracle with hard clauses only
         self.init(with_soft=False)
 
-    def __enter__(self):
+    def __enter__(self) -> 'FM':
         """
             'with' constructor.
         """
 
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         """
             'with' destructor.
         """
 
         self.delete()
 
-    def init(self, with_soft=True):
+    def init(self, with_soft: bool = True) -> None:
         """
             The method for the SAT oracle initialization. Since the oracle is
             is used non-incrementally, it is reinitialized at every iteration

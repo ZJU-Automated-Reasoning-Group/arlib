@@ -1,7 +1,7 @@
 # Class describing an interpolant
 
-from arlib.smt.lia_star.lia_star_solver import getModel
-from arlib.smt.lia_star.statistics import statistics
+from arlib.smt.lia_star.lia_star_utils import getModel
+import arlib.smt.lia_star.statistics
 import copy
 from z3 import *
 
@@ -36,7 +36,7 @@ class Interpolant:
         # For each clause, add if it's unique
         for nc in new_clauses:
             if not any([eq(nc, c) for c in self.clauses + self.inductive_clauses]):
-                statistics.interpolants_generated += 1
+                arlib.smt.lia_star.statistics.interpolants_generated += 1
                 self.clauses.append(nc)
 
     # Check if a given clause is inductive on the given set
@@ -99,7 +99,7 @@ class Interpolant:
 
         # Check satisfiability (satisfiable inputs will sometimes fail to find an interpolant with unfoldings,
         # In this case the algorithm should terminate very shortly, so we just don't record an interpolant)
-        statistics.z3_calls += 1
+        arlib.smt.lia_star.statistics.z3_calls += 1
         for i in range(50):
             if s.check() == sat:
                 m = s.model()

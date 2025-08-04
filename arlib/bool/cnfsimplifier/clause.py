@@ -2,20 +2,23 @@
 Clause
 """
 import uuid
+from typing import List, Set, Optional, Union, Any
 
 from .variable import Variable
-from typing import List, Set, Any, Optional, Union
 
-# from typing import Set
-
-def create_id():
+def create_id() -> str:
     return str(uuid.uuid4())
 
 
 class Clause:
     """Representation of a Boolean clause"""
+    variable_list: List[Variable]  # 变量列表
+    literals_set: Set[int]        # 文字集合
+    id: str                      # 唯一标识符
+    __size: int                  # 变量列表大小
+    __tautology: bool           # 是否为重言式
 
-    def __init__(self, variable_list: List):
+    def __init__(self, variable_list: List[Union[Variable, int, float]]) -> None:
         """
         Initialize a clause with a list of variables.
 
@@ -24,45 +27,44 @@ class Clause:
         """
         # Convert integers to Variable objects if needed
         if variable_list and isinstance(variable_list[0], (int, float)):
-            variable_list = [Variable(var) for var in variable_list]
+            variable_list = [Variable(int(var)) for var in variable_list]
         elif isinstance(variable_list, set):
-            variable_list = [Variable(var) for var in variable_list]
+            variable_list = [Variable(int(var)) for var in variable_list]
 
-        self.variable_list = variable_list
+        self.variable_list = variable_list  # type: List[Variable]
         self.__size = len(self.variable_list)
         self.id = create_id()
 
-        self.literals_set = set()
+        self.literals_set = set()  # type: Set[int]
         for var in self.variable_list:
             self.literals_set.add(var.variable_value)
 
         self.__tautology = self.__setup_tautology()
 
-    def get_size(self):
+    def get_size(self) -> int:
         """
         :return: variable list size (might contain duplicated variables)
         """
         return len(self.variable_list)
 
-    def get_set_size(self):
+    def get_set_size(self) -> int:
         """
         :return: variable set size
         """
         return len(self.literals_set)
 
-    def __setup_tautology(self):
+    def __setup_tautology(self) -> bool:
         """
         Check if the clause is a tautology
         :complexity: O(n), where n is the number of literals on clause
         :return: boolean
         """
-
         for var in self.variable_list:
             if -var.variable_value in self.literals_set:
                 return True
         return False
 
-    def __update_tautology(self, variable_added):
+    def __update_tautology(self, variable_added: Variable) -> bool:
         """
         Check if the clause is a tautology
         :complexity: O(1)
@@ -70,19 +72,21 @@ class Clause:
         """
         return -variable_added.variable_value in self.literals_set
 
-    def add_literal(self, lit: Variable):
+    def add_literal(self, lit: Union[Variable, int]) -> None:
         """
         Add a new literal to the clause
         :complexity: O(n)
-        :param lit: the literal object of the Variable class
+        :param lit: the literal object of the Variable class or an integer
         :return: None
         """
+        if isinstance(lit, int):
+            lit = Variable(lit)
         self.variable_list.append(lit)
         self.size = len(self.variable_list)
         self.literals_set.add(lit.variable_value)
         self.__tautology = self.__update_tautology(lit)
 
-    def get_diff(self, other_clause):
+    def get_diff(self, other_clause: 'Clause') -> List[Variable]:
         """
         Get the difference between two literal sets, this literal set and the other literal set
         :complexity: O(n) where n is the size of the sets
@@ -91,7 +95,7 @@ class Clause:
         """
         return [Variable(var) for var in self.literals_set.difference(other_clause.literals_set)]
 
-    def get_resolvent(self, other_clause, lit):
+    def get_resolvent(self, other_clause: 'Clause', lit: Variable) -> 'Clause':
         """
         Get the resolvent of two clauses
         :complexity: O(n) where n is the size of the clauses

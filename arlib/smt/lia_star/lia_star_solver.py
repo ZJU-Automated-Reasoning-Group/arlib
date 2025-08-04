@@ -1,11 +1,11 @@
-
 #!/usr/bin/env python3
 
 import argparse
 from arlib.smt.lia_star import semilinear
 from arlib.smt.lia_star import interpolant
-from arlib.smt.lia_star import statistics
+import arlib.smt.lia_star.statistics
 from arlib.smt.lia_star import dsl
+from arlib.smt.lia_star.lia_star_utils import getModel
 import time
 from z3 import *
 
@@ -62,20 +62,6 @@ def toMacro(fmls):
     return F
 
 
-# Given a solver with constraints, check the solver and return
-# the model if it exists. If the problem is unsat, return None.
-def getModel(s, X=[]):
-
-    # Return None if unsat
-    res = s.check()
-    statistics.z3_calls += 1
-    if res != sat:
-        return None
-
-    # Otherwise return the model
-    m = s.model()
-    return [m.eval(x).as_long() for x in X]
-
 # Print a solution vector and SLS or unsat and exit
 def returnSolution(result, sls):
 
@@ -83,17 +69,17 @@ def returnSolution(result, sls):
     if instrument:
         stats = {
             'sat': 1 if result != unsat else 0,
-            'problem_size': statistics.problem_size,
+            'problem_size': arlib.smt.lia_star.statistics.problem_size,
             'sls_size': sls.size(),
-            'z3_calls': statistics.z3_calls,
-            'interpolants_generated': statistics.interpolants_generated,
-            'merges': statistics.merges,
-            'shiftdowns': statistics.shiftdowns,
-            'offsets': statistics.offsets,
-            'reduction_time': statistics.reduction_time,
-            'augment_time': statistics.augment_time,
-            'interpolation_time': statistics.interpolation_time,
-            'solution_time': statistics.solution_time
+            'z3_calls': arlib.smt.lia_star.statistics.z3_calls,
+            'interpolants_generated': arlib.smt.lia_star.statistics.interpolants_generated,
+            'merges': arlib.smt.lia_star.statistics.merges,
+            'shiftdowns': arlib.smt.lia_star.statistics.shiftdowns,
+            'offsets': arlib.smt.lia_star.statistics.offsets,
+            'reduction_time': arlib.smt.lia_star.statistics.reduction_time,
+            'augment_time': arlib.smt.lia_star.statistics.augment_time,
+            'interpolation_time': arlib.smt.lia_star.statistics.interpolation_time,
+            'solution_time': arlib.smt.lia_star.statistics.solution_time
         }
         print(stats)
 
@@ -135,7 +121,7 @@ def findSolution(A, sls):
     printV("\nLooking for a solution vector with the following constraints:\n\n{}".format(s))
     m = getModel(s, A.args)
     end = time.time()
-    statistics.solution_time += end - start
+    arlib.smt.lia_star.statistics.solution_time += end - start
     return m
 
 # Iteratively construct a semi-linear set, checking with each new vector if there is
@@ -178,9 +164,9 @@ def main():
     set_vars = [a for (a, b) in star_defs]
 
     # Record statistics
-    statistics.problem_size = len(A_assertions) + len(B_assertions)
+    arlib.smt.lia_star.statistics.problem_size = len(A_assertions) + len(B_assertions)
     if instrument:
-        print(statistics.problem_size, flush=True)
+        print(arlib.smt.lia_star.statistics.problem_size, flush=True)
 
     # Functionalize the given assertions so they can be called with arbitrary args
     A = toMacro(A_assertions)
@@ -217,10 +203,10 @@ def main():
             # Check satisfiability against inductive interpolant
             if checkUnsatWithInterpolant(inductive_clauses, A):
                 end = time.time()
-                statistics.interpolation_time += end - start
+                arlib.smt.lia_star.statistics.interpolation_time += end - start
                 returnSolution(unsat, sls)
         end = time.time()
-        statistics.interpolation_time += end - start
+        arlib.smt.lia_star.statistics.interpolation_time += end - start
 
         # At every iteration, shorten the SLS / its vectors
         sls.reduce()

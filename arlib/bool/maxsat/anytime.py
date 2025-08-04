@@ -18,9 +18,16 @@ from pysat.formula import CNF
 class AnytimeMaxSAT:
     """Anytime MaxSAT solver using bit-vector optimization"""
 
+    hard: List[List[int]]
+    soft: List[List[int]]
+    weights: List[int]
+    sat_engine_name: str
+    best_cost: int
+    best_model: Optional[List[int]]
+
     def __init__(self, hard: List[List[int]], soft: List[List[int]],
                  weights: Optional[List[int]] = None,
-                 solver_name: str = 'glucose4'):
+                 solver_name: str = 'glucose4') -> None:
         """Initialize the solver with hard and soft clauses"""
         self.hard = hard
         self.soft = soft
@@ -41,7 +48,7 @@ class AnytimeMaxSAT:
 
     def solve(self, timeout: int = 300) -> Tuple[bool, Optional[List[int]], int]:
         """Solve MaxSAT problem with binary search
-        
+
         Returns:
             (success, model, cost)
         """
