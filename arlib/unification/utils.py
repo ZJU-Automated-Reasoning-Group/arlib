@@ -1,8 +1,13 @@
 from collections.abc import Mapping, Set
 from contextlib import suppress
+from typing import Any, Dict, List, Tuple, TypeVar, Union, Hashable
+
+T = TypeVar('T')
+K = TypeVar('K', bound=Hashable)
+V = TypeVar('V')
 
 
-def transitive_get(key, d):
+def transitive_get(key: K, d: Dict[K, V]) -> V:
     """Get a value for a dict key in a transitive fashion.
 
     >>> d = {1: 2, 2: 3, 3: 4}
@@ -17,7 +22,7 @@ def transitive_get(key, d):
     return key
 
 
-def _toposort(edges):
+def _toposort(edges: Dict[T, Tuple[T, ...]]) -> List[T]:
     """Topologically sort a dictionary.
 
     Algorithm by Kahn [1] - O(nodes + vertices).
@@ -39,7 +44,7 @@ def _toposort(edges):
     incoming_edges = reverse_dict(edges)
     incoming_edges = dict((k, set(val)) for k, val in incoming_edges.items())
     S = set((v for v in edges if v not in incoming_edges))
-    L = []
+    L: List[T] = []
 
     while S:
         n = S.pop()
@@ -54,7 +59,7 @@ def _toposort(edges):
     return L
 
 
-def reverse_dict(d):
+def reverse_dict(d: Dict[T, Tuple[V, ...]]) -> Dict[V, Tuple[T, ...]]:
     """Reverses the direction of a dependency dict.
 
     >>> d = {'a': (1, 2), 'b': (2, 3), 'c':()}
@@ -67,14 +72,14 @@ def reverse_dict(d):
         as undeterministic.
 
     """
-    result = {}
+    result: Dict[V, Tuple[T, ...]] = {}
     for key in d:
         for val in d[key]:
             result[val] = result.get(val, tuple()) + (key,)
     return result
 
 
-def freeze(d):
+def freeze(d: Union[T, Mapping, Set, Tuple, List]) -> Union[T, Tuple]:
     """Freeze container to hashable a form.
 
     >>> freeze(1)

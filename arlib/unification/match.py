@@ -1,25 +1,26 @@
 from toolz import first, groupby
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from arlib.unification.core import reify, unify
 from arlib.unification.utils import _toposort, freeze
-from arlib.unification.variable import isvar
+from arlib.unification.variable import isvar, Var
 
 
 class Dispatcher(object):
-    def __init__(self, name):
-        self.name = name
-        self.funcs = dict()
-        self.ordering = []
+    def __init__(self, name: str) -> None:
+        self.name: str = name
+        self.funcs: Dict[Tuple, Callable] = dict()
+        self.ordering: List[Tuple] = []
 
-    def add(self, signature, func):
+    def add(self, signature: Tuple, func: Callable) -> None:
         self.funcs[freeze(signature)] = func
         self.ordering = ordering(self.funcs)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         func, s = self.resolve(args)
         return func(*args, **kwargs)
 
-    def resolve(self, args):
+    def resolve(self, args: Tuple) -> Tuple[Callable, Dict]:
         n = len(args)
         frozen_args = freeze(args)
         for signature in self.ordering:
@@ -33,8 +34,8 @@ class Dispatcher(object):
             f"No match found. \nKnown matches: {self.ordering} \nInput: {args}"
         )
 
-    def register(self, *signature):
-        def _(func):
+    def register(self, *signature: Any) -> Callable[[Callable], "Dispatcher"]:
+        def _(func: Callable) -> "Dispatcher":
             self.add(signature, func)
             return self
 
@@ -63,20 +64,20 @@ class VarDispatcher(Dispatcher):
 
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         func, s = self.resolve(args)
         d = dict((k.token, v) for k, v in s.items())
         return func(**d)
 
 
-global_namespace = dict()
+global_namespace: Dict[str, Dispatcher] = dict()
 
 
-def match(*signature, **kwargs):
+def match(*signature: Any, **kwargs: Any) -> Callable[[Callable], Dispatcher]:
     namespace = kwargs.get("namespace", global_namespace)
     dispatcher = kwargs.get("Dispatcher", Dispatcher)
 
-    def _(func):
+    def _(func: Callable) -> Dispatcher:
         name = func.__name__
 
         if name not in namespace:
@@ -90,7 +91,7 @@ def match(*signature, **kwargs):
     return _
 
 
-def supercedes(a, b):
+def supercedes(a: Any, b: Any) -> bool:
     """Check if ``a`` is a more specific match than ``b``."""
     if isvar(b) and not isvar(a):
         return True
@@ -104,7 +105,7 @@ def supercedes(a, b):
         return False
 
 
-def edge(a, b, tie_breaker=hash):
+def edge(a: Any, b: Any, tie_breaker: Callable = hash) -> bool:
     """Check A before B.
 
     Tie broken by tie_breaker, defaults to ``hash``
@@ -117,7 +118,7 @@ def edge(a, b, tie_breaker=hash):
     return False
 
 
-def ordering(signatures):
+def ordering(signatures: List[Tuple]) -> List[Tuple]:
     """Check a sane ordering of signatures, first to last.
 
     Topological sort of edges as given by ``edge`` and ``supercedes``

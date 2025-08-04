@@ -1,13 +1,14 @@
 import weakref
 from abc import ABCMeta
 from contextlib import contextmanager, suppress
+from typing import Any, Hashable, Iterator, List, Optional, Set, Union
 
-_global_logic_variables = set()
+_global_logic_variables: Set[Any] = set()
 _glv = _global_logic_variables
 
 
 class LVarType(ABCMeta):
-    def __instancecheck__(self, o):
+    def __instancecheck__(self, o: Any) -> bool:
         with suppress(TypeError):
             return issubclass(type(o), (Var, LVarType)) or o in _glv
 
@@ -27,10 +28,10 @@ class Var(metaclass=LVarType):
     """
 
     __slots__ = ("token", "__weakref__")
-    _refs = weakref.WeakValueDictionary()
-    _id = 1
+    _refs: weakref.WeakValueDictionary = weakref.WeakValueDictionary()
+    _id: int = 1
 
-    def __new__(cls, token=None, prefix=""):
+    def __new__(cls, token: Optional[Hashable] = None, prefix: str = "") -> "Var":
         """Construct a new logic variable.
 
         Parameters
@@ -56,34 +57,34 @@ class Var(metaclass=LVarType):
 
         return obj
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"~{self.token}"
 
     __repr__ = __str__
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Union[bool, type(NotImplemented)]:
         if type(self) == type(other):
             return self.token == other.token
         return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((type(self), self.token))
 
 
 var = Var
 
 
-def vars(n, **kwargs):
+def vars(n: int, **kwargs: Any) -> List[Var]:
     """Create n-many fresh logic variables."""
     return [var(**kwargs) for i in range(n)]
 
 
-def isvar(o):
+def isvar(o: Any) -> bool:
     return isinstance(o, Var)
 
 
 @contextmanager
-def variables(*variables):
+def variables(*variables: Any) -> Iterator[None]:
     """Create a context manager within which arbitrary objects can be logic variables.
 
     >>> with variables(1):

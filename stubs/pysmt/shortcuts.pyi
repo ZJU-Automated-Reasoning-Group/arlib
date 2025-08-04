@@ -1,0 +1,6 @@
+from typing import List
+
+from .fnode import FNode
+
+def get_free_variables(formula: FNode) -> List[FNode]: ...
+def Implies(left: FNode, right: FNode) -> FNode: ...

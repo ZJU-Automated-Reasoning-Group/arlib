@@ -1,9 +1,12 @@
 from collections.abc import Mapping
+from typing import Any, Dict, Generator, Type, TypeVar
 
 from arlib.unification.core import _reify, _unify, construction_sentinel
 
+T = TypeVar('T')
 
-def unifiable(cls):
+
+def unifiable(cls: Type[T]) -> Type[T]:
     """Register standard unify and reify operations on a class.
 
     This uses the type and __dict__ or __slots__ attributes to define the
@@ -29,7 +32,7 @@ def unifiable(cls):
     return cls
 
 
-def _reify_object(o, s):
+def _reify_object(o: Any, s: Dict) -> Generator[Any, None, Any]:
     """Reify a Python object with a substitution.
 
     >>> class Foo(object):
@@ -52,7 +55,7 @@ def _reify_object(o, s):
         return _reify_object_dict(o, s)
 
 
-def _reify_object_dict(o, s):
+def _reify_object_dict(o: Any, s: Dict) -> Generator[Any, None, Any]:
     obj = type(o).__new__(type(o))
 
     d = yield _reify(o.__dict__, s)
@@ -66,7 +69,7 @@ def _reify_object_dict(o, s):
         yield obj
 
 
-def _reify_object_slots(o, s):
+def _reify_object_slots(o: Any, s: Dict) -> Generator[Any, None, Any]:
     attrs = [getattr(o, attr) for attr in o.__slots__]
     new_attrs = yield _reify(attrs, s)
 
@@ -82,7 +85,7 @@ def _reify_object_slots(o, s):
         yield newobj
 
 
-def _unify_object(u, v, s):
+def _unify_object(u: Any, v: Any, s: Dict) -> Generator[bool, None, None]:
     """Unify two Python objects.
 
     Unifies their type and ``__dict__`` attributes

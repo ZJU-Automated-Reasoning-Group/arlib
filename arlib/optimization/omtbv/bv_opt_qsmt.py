@@ -8,17 +8,29 @@ that support quantified bit-vector formulas
 """
 
 import z3
+from typing import Union, Any
 from arlib.optimization.bin_solver import solve_with_bin_smt
 from arlib.optimization.pysmt_utils import ForAll, Exists
 from arlib.utils.z3_expr_utils import get_expr_vars
 
 
-def bv_opt_with_pysmt():
+def bv_opt_with_pysmt() -> None:
+    """PySMT-based bit-vector optimization (not implemented)."""
     raise NotImplementedError
 
 
-def bv_opt_with_qsmt(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str):
-    """ Quantified Satisfaction based OMT
+def bv_opt_with_qsmt(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_name: str) -> str:
+    """Quantified Satisfaction based OMT for bit-vectors
+
+    Args:
+        fml: Z3 formula
+        obj: Objective variable
+        minimize: Whether to minimize (True) or maximize (False)
+        solver_name: Name of the solver to use
+
+    Returns:
+        String result from the solver
+
     # FIXME: it seems that we convert all the objectives to "maximize xx".
        So, maybe we do not need this new API? But how can we know whether the original
        objective is "minimize" or "maximize"?
@@ -48,7 +60,8 @@ def bv_opt_with_qsmt(fml: z3.ExprRef, obj: z3.ExprRef, minimize: bool, solver_na
         return solve_with_bin_smt("ALL", qfml=qfml, obj_name=obj.sexpr(), solver_name=solver_name)
 
 
-def demo_qsmt():
+def demo_qsmt() -> None:
+    """Demo function for QSMT-based bit-vector optimization."""
     import time
     x, y, z = z3.BitVecs("x y z", 16)
     fml = z3.And(z3.UGT(y, 0), z3.ULT(y, 10))

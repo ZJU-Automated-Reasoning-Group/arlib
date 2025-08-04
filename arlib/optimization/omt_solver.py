@@ -3,6 +3,7 @@ Cmd line interface for solving OMT(BV) problems with different solvers.
 """
 import argparse
 import logging
+from typing import Any, Optional
 
 import z3
 
@@ -13,8 +14,14 @@ from arlib.optimization.omtbv.bv_opt_qsmt import bv_opt_with_qsmt
 from arlib.optimization.omt_parser import OMTParser
 
 
-def solve_opt_file(filename: str, engine: str, solver_name: str):
-    """Interface for solving single-objective
+def solve_opt_file(filename: str, engine: str, solver_name: str) -> None:
+    """Interface for solving single-objective optimization problems.
+
+    Args:
+        filename: Path to the OMT problem file
+        engine: Optimization engine to use
+        solver_name: Name of the solver to use
+
     Currently, the OMTParser will convert all objectives to the "maximal objecives"
     """
     logger = logging.getLogger(__name__)  # Move logger here
@@ -67,7 +74,8 @@ def solve_opt_file(filename: str, engine: str, solver_name: str):
         logger.warning("No result - invalid engine specified")
 
 
-def main():
+def main() -> None:
+    """Main function for command line interface."""
     parser = argparse.ArgumentParser(description="Solve OMT(BV) problems with different solvers.")
     parser.add_argument("filename", type=str, help="The filename of the problem to solve.")
     parser.add_argument("--engine", type=str, default="qsmt",

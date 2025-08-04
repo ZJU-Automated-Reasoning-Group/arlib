@@ -1,0 +1,16 @@
+from typing import Callable, Iterator, List, Optional, TypeVar
+
+T = TypeVar("T")
+
+from .fnode import FNode
+
+class handles:
+    def __init__(self, types: List[int]) -> None: ...
+    def __call__(
+        self, fun: Callable[[T, FNode], Iterator[FNode]]
+    ) -> Callable[[T, FNode], Iterator[FNode]]: ...
+
+class TreeWalker:
+    def __init(self) -> None: ...
+    def walk(self, formula: FNode, threshold: Optional[int] = None) -> None: ...
+    def walk_skip(self, formula: FNode) -> Iterator[FNode]: ...

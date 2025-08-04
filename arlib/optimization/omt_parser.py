@@ -2,6 +2,7 @@
 
 import z3
 from z3.z3consts import *
+from typing import List, Optional, Any
 
 
 class OMTParser:
@@ -9,22 +10,29 @@ class OMTParser:
     1. Single-objective optimization
     2. Multi-objective optimization under the boxed mode (each obj is independent)"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         For multi-objective optimization,
         """
-        self.assertions = None
-        self.objectives = []
-        self.to_max_obj = True  # convert all objectives to max
-        self.to_min_obj = False  # convert all objectives to min
-        self.debug = True
+        self.assertions: Optional[List[z3.ExprRef]] = None
+        self.objectives: List[z3.ExprRef] = []
+        self.to_max_obj: bool = True  # convert all objectives to max
+        self.to_min_obj: bool = False  # convert all objectives to min
+        self.debug: bool = True
 
-    def parse_with_pysmt(self):
+    def parse_with_pysmt(self) -> None:
+        """Parse OMT instance using PySMT (not implemented)."""
         # pysmt does not support
         raise NotImplementedError
 
-    def parse_with_z3(self, fml: str, is_file=False):
-        """FIXME: Should we convert all the objectives/goals as all "minimize goals" (as Z3 does)?
+    def parse_with_z3(self, fml: str, is_file: bool = False) -> None:
+        """Parse OMT instance using Z3.
+
+        Args:
+            fml: Formula string or file path
+            is_file: Whether fml is a file path
+
+        FIXME: Should we convert all the objectives/goals as all "minimize goals" (as Z3 does)?
             (or should we convert them to "maximize goals"?)
             However, the queries can be of the form "max x; min x; max y; min y; ...."
         """
