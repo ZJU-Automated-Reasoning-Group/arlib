@@ -2,7 +2,7 @@
 "Forall" solver for EF problems over Boolean variables
 """
 import logging
-from typing import List
+from typing import List, Optional
 
 from pysat.formula import CNF
 from pysat.solvers import Solver
@@ -13,22 +13,22 @@ logger = logging.getLogger(__name__)
 
 
 class BoolForallSolver(object):
-    def __init__(self, forall_vars, exists_vars, solver_name="m22"):
+    def __init__(self, forall_vars: List[int], exists_vars: List[int], solver_name: str = "m22") -> None:
         """Initialize forall solver with configurable SAT solver
-        
+
         Args:
             forall_vars: List of universal variables
-            exists_vars: List of existential variables  
+            exists_vars: List of existential variables
             solver_name: SAT solver to use (default: m22)
                 Supported solvers: cd, g3, g4, gh, lgl, m22, mc, mgh, mpl
         """
-        self.solver_name = solver_name
+        self.solver_name: str = solver_name
         self.solver = Solver(name=self.solver_name)  # seems not used
-        self.universal_bools = forall_vars
-        self.existential_bools = exists_vars
-        self.clauses = []
+        self.universal_bools: List[int] = forall_vars
+        self.existential_bools: List[int] = exists_vars
+        self.clauses: List[List[int]] = []
 
-    def reduce_counter_example(self, existential_model: List, existential_counter_model: List) -> List:
+    def reduce_counter_example(self, existential_model: List[int], existential_counter_model: List[int]) -> List[int]:
         """http://fmv.jku.at/papers/NiemetzPreinerBiere-FMCAD14.pdf
         Consider a Boolean formula P. The model of P (given by a SAT solver) is not necessarily minimal.
         In other words, the SAT solver may assign truth assignments to literals irrelevant to truth of P.
@@ -51,7 +51,7 @@ class BoolForallSolver(object):
         assert not aux_sol.solve(assumptions=existential_counter_model)
         return aux_sol.get_core()
 
-    def check_single_model(self, model_data) -> List[int]:
+    def check_single_model(self, model_data) -> Optional[List[int]]:
         """Helper function to check a single model in parallel"""
         existential_model, neg_clauses, reduce_model, existential_bools = model_data
         solver = Solver(self.solver_name, bootstrap_with=neg_clauses)
@@ -79,7 +79,7 @@ class BoolForallSolver(object):
         # Use number of CPU cores for parallelization
         num_processes = min(len(models), multiprocessing.cpu_count())
 
-        blocking_clauses = []
+        blocking_clauses: List[List[int]] = []
         with Pool(processes=num_processes) as pool:
             results = pool.map(self.check_single_model, model_data)
 

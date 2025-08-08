@@ -2,12 +2,13 @@
 # !/usr/bin/python
 import importlib
 import copy
+from typing import List, Optional
 from arlib.automata.symautomata.alphabet import createalphabet
 from operator import attrgetter
 import importlib.util
 
 
-def bfs(graph, start):
+def bfs(graph, start) -> Optional[str]:
     """
     Finds the shortest string using BFS
     Args:
@@ -17,8 +18,8 @@ def bfs(graph, start):
         str: The shortest string
     """
     # maintain a queue of paths
-    queue = []
-    visited = []
+    queue: List[List[List[object]]] = []
+    visited: List[int] = []
     # maintain a queue of nodes
     # push the first path into the queue
     queue.append([['', start]])
@@ -60,11 +61,11 @@ try:
         class DFA(PywrapfstDFA):
             """The DFA class implemented using openFst library"""
 
-            def __init__(self, alphabet=createalphabet()):
+            def __init__(self, alphabet: List[str] = createalphabet()):
                 self.alphabet = alphabet
                 super(DFA, self).__init__(alphabet)
 
-            def copy(self):
+            def copy(self) -> 'DFA':
                 mma = DFA(self.alphabet)
                 mma.automaton = self.automaton.copy()
                 mma.alphabet = copy.deepcopy(self.alphabet)
@@ -72,7 +73,7 @@ try:
                 mma.osyms = copy.deepcopy(self.osyms)
                 return mma
 
-            def shortest_string(self):
+            def shortest_string(self) -> Optional[str]:
                 """
                 Uses BFS in order to find the shortest string
                 Args:
@@ -89,7 +90,7 @@ try:
                 else:
                     return None
 
-            def diff(self, input_mm):
+            def diff(self, input_mm) -> 'DFA':
                 """
                 Automata Diff operation
                 """
@@ -104,7 +105,7 @@ try:
                 mmc.init_from_acceptor(mma & mmb)
                 return mmc
 
-            def to_regex(self):
+            def to_regex(self) -> str:
                 """
                 Returns a regex approximation
                 Args:
@@ -127,11 +128,11 @@ except ImportError:
 
         class DFA(FstDFA):
             """The DFA class implemented using openFst library"""
-            def __init__(self, alphabet = createalphabet()):
+            def __init__(self, alphabet: List[str] = createalphabet()):
                 self.alphabet = alphabet
                 super(DFA, self).__init__(alphabet)
 
-            def shortest_string(self):
+            def shortest_string(self) -> Optional[str]:
                 """
                 Uses BFS in order to find the shortest string
                 Args:
@@ -148,7 +149,7 @@ except ImportError:
                 else:
                     return None
 
-            def diff(self, input_mm):
+            def diff(self, input_mm) -> 'DFA':
                 """
                 Automata Diff operation
                 """
@@ -163,7 +164,7 @@ except ImportError:
                 mmc.init_from_acceptor(mma & mmb)
                 return mmc
 
-            def to_regex(self):
+            def to_regex(self) -> str:
                 """
                 Returns a regex approximation
                 Args:
@@ -183,11 +184,11 @@ except ImportError:
         class DFA(PythonDFA):
             """The DFA class implemented using python"""
 
-            def __init__(self, alphabet = createalphabet()):
+            def __init__(self, alphabet: List[str] = createalphabet()):
                 self.alphabet = alphabet
                 super(DFA, self).__init__(alphabet)
 
-            def copy(self):
+            def copy(self) -> 'DFA':
                 mma = DFA(self.alphabet)
                 mma.states = copy.deepcopy(self.states)
                 mma.alphabet = copy.deepcopy(self.alphabet)
@@ -195,7 +196,7 @@ except ImportError:
                 mma.osyms = copy.deepcopy(self.osyms)
                 return mma
 
-            def shortest_string(self):
+            def shortest_string(self) -> Optional[str]:
                 """
                 Uses BFS in order to find the shortest string
                 Args:
@@ -212,7 +213,7 @@ except ImportError:
                 else:
                     return None
 
-            def diff(self, input_mm):
+            def diff(self, input_mm) -> 'DFA':
                 """
                 Automata Diff operation
                 """
@@ -227,7 +228,7 @@ except ImportError:
                 mmc.init_from_acceptor(mma & mmb)
                 return mmc
 
-            def to_regex(self):
+            def to_regex(self) -> str:
                 """
                 Returns a regex approximation
                 Args:

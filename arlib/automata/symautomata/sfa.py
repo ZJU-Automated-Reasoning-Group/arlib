@@ -6,6 +6,7 @@ TODO: This module is not fully implemented yet. Maybe we need to use Z3's Python
 # !/usr/bin/python
 import random
 import string
+from typing import Iterable, Iterator, List, Optional
 
 from arlib.automata.symautomata.dfa import DFA
 
@@ -15,31 +16,31 @@ class Predicate:
     The predicate statement
     """
 
-    def __init__(self, initializer):
+    def __init__(self, initializer: object):
         """
         This __init__ method is not implemented
         """
         raise NotImplementedError('__init__ method not implemented')
 
-    def is_sat(self, symbol):
+    def is_sat(self, symbol: str) -> bool:
         """
         This is_sat method is not implemented
         """
         raise NotImplementedError('is_sat method not implemented')
 
-    def refactor(self, symbol, value):
+    def refactor(self, symbol: str, value: bool) -> None:
         """
         This refactor method is not implemented
         """
         raise NotImplementedError('refactor method not implemented')
 
-    def get_witness(self):
+    def get_witness(self) -> str:
         """
         This get_witness method is not implemented
         """
         raise NotImplementedError('get_witness method not implemented')
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """
         This __iter__ method is not implemented
         """
@@ -52,7 +53,7 @@ class SetPredicate(Predicate):
     current transition
     """
 
-    def __init__(self, initializer):
+    def __init__(self, initializer: Iterable[str]):
         """
         Initialization Function
         Args:
@@ -62,7 +63,7 @@ class SetPredicate(Predicate):
         """
         self.pset = set(initializer)
 
-    def is_sat(self, symbol):
+    def is_sat(self, symbol: str) -> bool:
         """
         Args:
             symbol:
@@ -71,7 +72,7 @@ class SetPredicate(Predicate):
         """
         return symbol in self.pset
 
-    def refactor(self, symbol, value):
+    def refactor(self, symbol: str, value: bool) -> None:
         """
         Args:
             symbol:
@@ -84,7 +85,7 @@ class SetPredicate(Predicate):
         else:
             self.pset.remove(symbol)
 
-    def get_witness(self):
+    def get_witness(self) -> str:
         """
         Args:
             None
@@ -93,7 +94,7 @@ class SetPredicate(Predicate):
         """
         return random.sample(self.pset, 1)[0]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """
         Args:
             None
@@ -105,19 +106,19 @@ class SetPredicate(Predicate):
 
 class SFAState:
     """The SFA state structure"""
-    def __init__(self, sid=None):
+    def __init__(self, sid: Optional[int] = None):
         """
         Args:
             sid (int): The state identifier
         Returns:
             None
         """
-        self.final = False
-        self.initial = False
-        self.state_id = sid
-        self.arcs = []
+        self.final: bool = False
+        self.initial: bool = False
+        self.state_id: Optional[int] = sid
+        self.arcs: List[SFAArc] = []  # type: ignore[name-defined]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['SFAArc']:
         """
         Args:
             None
@@ -129,7 +130,7 @@ class SFAState:
 
 class SFAArc:
     """The SFA Arc structure"""
-    def __init__(self, src_state_id, dst_state_id, guard_p, term=None):
+    def __init__(self, src_state_id: int, dst_state_id: int, guard_p: Predicate, term: Optional[object] = None):
         """
         Initialization function for Arc's guardgen structure
         Args:
@@ -140,10 +141,10 @@ class SFAArc:
         Returns:
             None
         """
-        self.src_state = src_state_id
-        self.dst_state = dst_state_id
-        self.guard = guard_p
-        self.term = None
+        self.src_state: int = src_state_id
+        self.dst_state: int = dst_state_id
+        self.guard: Predicate = guard_p
+        self.term: Optional[object] = None
 
 
 class SFA:
@@ -154,7 +155,7 @@ class SFA:
        first-order predicates over such algebra
     """
 
-    def __init__(self, alphabet=None):
+    def __init__(self, alphabet: Optional[List[str]] = None):
         """
         Initialization of the SFA oject
         Args:
@@ -162,16 +163,16 @@ class SFA:
         Returns:
             None
         """
-        self.states = []
-        self.arcs = []
-        self.alphabet = alphabet
+        self.states: List[SFAState] = []
+        self.arcs: List[SFAArc] = []
+        self.alphabet: Optional[List[str]] = alphabet
 
-    def add_state(self):
+    def add_state(self) -> None:
         """This function adds a new state"""
         sid = len(self.states)
         self.states.append(SFAState(sid))
 
-    def add_arc(self, src, dst, char):
+    def add_arc(self, src: int, dst: int, char: str) -> None:
         """
         This function adds a new arc in a SFA state
         Args:
@@ -187,7 +188,7 @@ class SFA:
             self.add_state()
         self.states[src].arcs.append(SFAArc(src, dst, char))
 
-    def random_string(self, size=1):
+    def random_string(self, size: int = 1) -> str:
         """
         This function generates a random string
         Args:
@@ -195,9 +196,9 @@ class SFA:
         Returns:
             str: A random string
         """
-        pass
+        return "".join(random.choice(self.alphabet or []) for _ in range(size))
 
-    def consume_input(self, inp):
+    def consume_input(self, inp: str) -> bool:
         """
         Return True/False if the machine accepts/reject the input.
         Args:
@@ -220,7 +221,7 @@ class SFA:
 
         return cur_state.final
 
-    def concretize(self):
+    def concretize(self) -> DFA:
         """
         Transforms the SFA into a DFA
         Args:
@@ -240,7 +241,7 @@ class SFA:
         return dfa
 
 
-    def save(self, txt_fst_filename):
+    def save(self, txt_fst_filename: str) -> None:
         """
         Save the machine in the openFST format in the file denoted by
         txt_fst_filename.
@@ -253,7 +254,7 @@ class SFA:
         return dfa.save(txt_fst_filename)
 
 
-    def load(self, txt_fst_filename):
+    def load(self, txt_fst_filename: str) -> None:
         """
         Save the transducer in the text file format of OpenFST.
         The format is specified as follows:
@@ -270,7 +271,7 @@ class SFA:
 
 
 
-def main():
+def main() -> None:
     """Main Function"""
     alphabet = list(string.lowercase)  # + ["<", ">"]
 

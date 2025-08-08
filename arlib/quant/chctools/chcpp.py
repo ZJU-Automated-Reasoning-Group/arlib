@@ -1,5 +1,6 @@
 # pretty printer
 import sys
+from typing import TextIO
 
 import z3  # type: ignore
 
@@ -7,7 +8,7 @@ from .core import CliCmd  # type: ignore
 from .horndb import load_horn_db_from_file  # type: ignore
 
 
-def pp_chc_as_rules(db, out):
+def pp_chc_as_rules(db, out: TextIO) -> None:
     if db.has_fixedpoint():
         fp = db.get_fixedpoint()
     else:
@@ -21,7 +22,7 @@ def pp_chc_as_rules(db, out):
         out.write('(query {})\n'.format(fml.sexpr()))
 
 
-def pp_chc_as_smt(db, out):
+def pp_chc_as_smt(db, out: TextIO) -> None:
     fp = z3.Fixedpoint(ctx=db.get_ctx())
     db.mk_fixedpoint(fp=fp)
     fp.set('print_fixedpoint_extensions', False)
@@ -32,7 +33,7 @@ def pp_chc_as_smt(db, out):
     out.write('(check-sat)\n')
 
 
-def pp_chc(db, out, fmt='rules'):
+def pp_chc(db, out: TextIO, fmt: str = 'rules') -> None:
     if fmt == 'rules':
         pp_chc_as_rules(db, out)
     else:
@@ -40,7 +41,7 @@ def pp_chc(db, out, fmt='rules'):
 
 
 class ChcPpCmd(CliCmd):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('chcpp', 'Pretty-printer', allow_extra=False)
 
     def mk_arg_parser(self, ap):

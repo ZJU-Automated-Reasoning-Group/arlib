@@ -1,6 +1,7 @@
 ### Model Validator
 import logging
 import sys
+from typing import Any
 
 import pysmt.solvers.z3 as pyz3
 import z3
@@ -13,7 +14,7 @@ from .solver_utils import pushed_solver
 log = logging.getLogger(__name__)
 
 
-def define_fun_to_lambda(env, cmd):
+def define_fun_to_lambda(env: Any, cmd: SmtLibCommand):
     converter = pyz3.Z3Converter(env, z3.get_ctx(None))
     name, params, ret_sort, body = cmd.args
     zparams = [converter.convert(p) for p in params]
@@ -22,7 +23,7 @@ def define_fun_to_lambda(env, cmd):
     return res
 
 
-def load_model_from_file(fname):
+def load_model_from_file(fname: str) -> FolModel:
     log.info('Loading model file {}'.format(fname))
     model = FolModel()
     with open(fname, 'r') as script:
@@ -36,12 +37,12 @@ def load_model_from_file(fname):
 
 
 class ModelValidator(object):
-    def __init__(self, db, model):
+    def __init__(self, db, model: FolModel) -> None:
         self._db = db
         self._model = model
         self._solver = z3.Solver(ctx=db.get_ctx())
 
-    def _validate_rule(self, r):
+    def _validate_rule(self, r) -> bool:
         with pushed_solver(self._solver) as s:
 
             uninterp_sz = r.uninterp_size()
@@ -69,7 +70,7 @@ class ModelValidator(object):
 
             return res == z3.unsat
 
-    def validate(self):
+    def validate(self) -> bool:
         res = True
         for r in self._db.get_rules():
             v = self._validate_rule(r)
@@ -81,7 +82,7 @@ class ModelValidator(object):
 
 
 class ChcModelCmd(CliCmd):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('chcmodel', 'Model validator', allow_extra=False)
 
     def mk_arg_parser(self, ap):

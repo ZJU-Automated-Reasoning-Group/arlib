@@ -1,5 +1,6 @@
 # basic solver
 import sys
+from typing import Dict, Tuple
 
 import z3  # type: ignore
 
@@ -7,7 +8,7 @@ from .core import CliCmd, add_bool_argument  # type : ignore
 from .horndb import load_horn_db_from_file  # type: ignore
 
 
-def parse_z3_arg(s):
+def parse_z3_arg(s: str) -> Tuple[str, object]:
     k, v = s.split("=")
     if v == "false" or v == "False":
         v = False
@@ -18,7 +19,7 @@ def parse_z3_arg(s):
     return k, v
 
 
-def parse_yaml_options(fname):
+def parse_yaml_options(fname: str):
     import yaml
 
     with open(fname) as f:
@@ -33,7 +34,7 @@ def parse_yaml_options(fname):
     return None
 
 
-def chc_solve_with_fp(db, args, opts):
+def chc_solve_with_fp(db, args, opts: Dict[str, object]):
     if args.fresh:
         ctx = z3.Context()
     else:
@@ -67,7 +68,7 @@ def chc_solve_with_fp(db, args, opts):
     return res
 
 
-def chc_solve_with_cli(fname, args, opts):
+def chc_solve_with_cli(fname: str, args, opts: Dict[str, object]) -> None:
     cmd = [args.z3]
 
     if args.verbose > 0:
@@ -99,7 +100,7 @@ def chc_solve_with_cli(fname, args, opts):
 
 
 class ChcSolveCmd(CliCmd):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("chcsolve", "ChcSolve", allow_extra=True)
 
     def mk_arg_parser(self, ap):

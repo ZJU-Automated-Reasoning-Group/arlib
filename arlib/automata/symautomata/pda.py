@@ -1,5 +1,6 @@
 """This module contains the PDA implementation"""
 # !/usr/bin/python
+from typing import Optional
 
 try:
     print('Checking for pythonpda module:', end=' ')
@@ -9,7 +10,7 @@ try:
     class PDA(PythonPDA):
         """This is the structure for a PDA"""
 
-        def shortest_string(self):
+        def shortest_string(self) -> Optional[str]:
             """
             Uses BFS in order to find the shortest string
             Args:

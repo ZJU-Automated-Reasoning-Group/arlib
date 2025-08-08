@@ -1,4 +1,7 @@
-def pushed_solver(solver):
+from typing import ContextManager
+
+
+def pushed_solver(solver) -> ContextManager:
     """
     Context Manager helper to push a solver.
 

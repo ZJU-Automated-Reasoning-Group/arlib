@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 """
     cadical103  = ('cd', 'cd103', 'cdl', 'cdl103', 'cadical103')
@@ -39,7 +39,7 @@ class SATSolver(Enum):
     MINISATGH = ('mgh', 'msat-gh', 'minisat-gh')
 
     @classmethod
-    def get_solver_names(cls):
+    def get_solver_names(cls) -> list[str]:
         """Get a list of all solver names and aliases."""
         return [alias for solver in cls for alias in solver.value]
 

@@ -1,4 +1,5 @@
 """This module creates a PDA from a CNF """
+from typing import Dict, List, Tuple
 from arlib.automata.symautomata.pda import PDA, PDAState
 
 
@@ -9,14 +10,14 @@ class ProdStruct:
     b0 = 0
     b1 = 0
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initialization class """
         pass
 
 
 class CnfPda:
     """This class creates a PDA from a CNF"""
-    def __init__(self, alphabet):
+    def __init__(self, alphabet: List[str]):
         """
         Args:
             alphabet (list): The input alphabet
@@ -24,7 +25,14 @@ class CnfPda:
         self.alphabet = alphabet
 
 
-    def _mkpda(self, nonterms, productions, productions_struct, terminals, splitstring=1):
+    def _mkpda(
+        self,
+        nonterms: List[str],
+        productions: Dict[str, Dict[int, Dict[str, str]]],
+        productions_struct: Dict[int, ProdStruct],
+        terminals: List[str],
+        splitstring: int = 1,
+    ) -> PDA:
         """
         This function generates a PDA from a CNF grammar as described in:
           -  http://www.oit.edu/faculty/sherry.yang/CST229/Lectures/7_pda.pdf
@@ -169,18 +177,19 @@ class CnfPda:
         return pda
 
     def initialize(
-            self,
-            nonterminal,
-            productions,
-            terminals,
-            splitstring=1):
+        self,
+        nonterminal: List[str],
+        productions: Dict[str, Dict[int, Dict[str, str]]],
+        terminals: List[str],
+        splitstring: int = 1,
+    ) -> PDA:
         """
 
         productions in structure form <1> A-->b , <2> a-->BC
         """
         cnt = 0
         i = 0
-        productions_struct = {}
+        productions_struct: Dict[int, ProdStruct] = {}
         while i < len(nonterminal):
             j = 0
             while j < len(productions[nonterminal[i]]):

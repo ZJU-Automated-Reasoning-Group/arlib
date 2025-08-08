@@ -1,9 +1,10 @@
 import argparse
 import os
 import os.path
+from typing import Any, List, Optional
 
 
-def str2bool(v):
+def str2bool(v: "bool | str") -> bool:
     if isinstance(v, bool):
         return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -14,8 +15,14 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def add_bool_argument(parser, name, default=False,
-                      help=None, dest=None, **kwargs):
+def add_bool_argument(
+    parser: argparse.ArgumentParser,
+    name: str,
+    default: bool = False,
+    help: Optional[str] = None,
+    dest: Optional[str] = None,
+    **kwargs: Any,
+) -> None:
     """
     Add boolean option that can be turned on and off
     """
@@ -32,24 +39,24 @@ def add_bool_argument(parser, name, default=False,
     parser.set_defaults(dest_name=default)
 
 
-def add_help_arg(ap):
+def add_help_arg(ap: argparse.ArgumentParser) -> None:
     ap.add_argument('-h', '--help', action='help',
                     help='Print this message and exit')
 
 
-def add_in_args(ap):
+def add_in_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ap.add_argument('in_files', metavar='FILE', help='Input file', nargs='+')
     return ap
 
 
-def add_in_out_args(ap):
+def add_in_out_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
     add_in_args(ap)
     ap.add_argument('-o', dest='out_file',
                     metavar='FILE', help='Output file name', default=None)
     return ap
 
 
-def add_tmp_dir_args(ap):
+def add_tmp_dir_args(ap: argparse.ArgumentParser) -> argparse.ArgumentParser:
     ap.add_argument('--save-temps', '--keep-temps',
                     dest="save_temps",
                     help="Do not delete temporary files",
@@ -60,25 +67,30 @@ def add_tmp_dir_args(ap):
 
 
 class CliCmd(object):
-    def __init__(self, name='', help='', allow_extra=False):
-        self.name = name
-        self.help = help
-        self.allow_extra = allow_extra
+    def __init__(self, name: str = '', help: str = '', allow_extra: bool = False) -> None:
+        self.name: str = name
+        self.help: str = help
+        self.allow_extra: bool = allow_extra
 
-    def mk_arg_parser(self, argp):
+    def mk_arg_parser(self, argp: argparse.ArgumentParser) -> argparse.ArgumentParser:
         add_help_arg(argp)
         return argp
 
-    def run(self, args=None, extra=[]):
+    def run(self, args: Optional[argparse.Namespace] = None, extra: List[str] = []) -> int:
         return 0
 
-    def name_out_file(self, in_files, args=None, work_dir=None):
+    def name_out_file(
+        self,
+        in_files: List[str],
+        args: Optional[argparse.Namespace] = None,
+        work_dir: Optional[str] = None,
+    ) -> str:
         out_file = 'out'
         if work_dir is not None:
             out_file = os.path.join(work_dir, out_file)
         return out_file
 
-    def main(self, argv):
+    def main(self, argv: List[str]) -> int:
         import argparse
         ap = argparse.ArgumentParser(prog=self.name,
                                      description=self.help,

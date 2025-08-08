@@ -1,8 +1,9 @@
 import os.path
+from typing import List, Optional
 """This module configures that alphabet."""
 
 
-def _load_alphabet(filename):
+def _load_alphabet(filename: str) -> List[str]:
     """
     Load a file containing the characters of the alphabet.
     Every unique character contained in this file will be used as a symbol
@@ -11,7 +12,7 @@ def _load_alphabet(filename):
     with open(filename, 'r') as f:
         return list(set(f.read()))
 
-def createalphabet(alphabetinput=None):
+def createalphabet(alphabetinput: Optional[str] = None) -> List[str]:
     """
     Creates a sample alphabet containing printable ASCII characters
     """
@@ -26,7 +27,7 @@ def createalphabet(alphabetinput=None):
             for i in range(a, b):
                 alpha.append(str(unichr(i)))
         return alpha
-    alpha = []
+    alpha: List[str] = []
     for i in range(32, 127):
         alpha.append(str(unichr(i)))
     return alpha

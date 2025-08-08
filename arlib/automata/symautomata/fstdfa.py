@@ -5,6 +5,7 @@ It is an interface for pyfst.
 # /usr/bin/python
 
 from operator import attrgetter
+from typing import List
 #import fst
 import pywrapfst as fst  # FIXME
 #import openfst_python as fst
@@ -29,7 +30,7 @@ class FstDFA(fst.StdAcceptor):
     The underline library is pyfst, the python bindings of openFST library.
     """
 
-    def __init__(self, alphabet = createalphabet()):
+    def __init__(self, alphabet: List[str] = createalphabet()):
         """
         Args:
             alphabet (list): pyfst input symbol list
@@ -44,7 +45,7 @@ class FstDFA(fst.StdAcceptor):
             self.isyms.__setitem__(char, num)
             num = num + 1
 
-    def fixminimized(self, alphabet):
+    def fixminimized(self, alphabet: List[str]) -> None:
         """
         After pyfst minimization,
         all unused arcs are removed,
@@ -71,7 +72,7 @@ class FstDFA(fst.StdAcceptor):
         for char in alphabet:
             self.add_arc(endstate, endstate, char)
 
-    def _addsink(self, alphabet):
+    def _addsink(self, alphabet: List[str]) -> None:
         """
         Adds a sink state
         Args:
@@ -95,7 +96,7 @@ class FstDFA(fst.StdAcceptor):
         for char in alphabet:
             self.add_arc(endstate, endstate, char)
 
-    def _path_to_str(self, path):
+    def _path_to_str(self, path) -> str:
         """
         Convert a path to the string representing the path
         Args:
@@ -111,7 +112,7 @@ class FstDFA(fst.StdAcceptor):
                 inp += i
         return inp
 
-    def init_from_acceptor(self, acceptor):
+    def init_from_acceptor(self, acceptor) -> None:
         """
         Adds a sink state
         Args:
@@ -133,7 +134,7 @@ class FstDFA(fst.StdAcceptor):
             if state.initial:
                 self[state.stateid].initial = True
 
-    def consume_input(self, inp):
+    def consume_input(self, inp: str) -> bool:
         """
         Return True/False if the machine accepts/reject the input.
         Args:
@@ -158,13 +159,13 @@ class FstDFA(fst.StdAcceptor):
                 return False
         return cur_state.final != TropicalWeight(float('inf'))
 
-    def empty(self):
+    def empty(self) -> bool:
         """""
         Return True if the DFA accepts the empty language.
         """
         return len(list(self.states)) == 0
 
-    def random_strings(self, string_length=1):
+    def random_strings(self, string_length: int = 1) -> List[str]:
         """
         Generate string_length random strings that belong to the automaton.
         Args:
@@ -177,7 +178,7 @@ class FstDFA(fst.StdAcceptor):
             str_list.append(self._path_to_str(path))
         return str_list
 
-    def complement(self, alphabet):
+    def complement(self, alphabet: List[str]) -> None:
         """
         Generate the complement of a DFA automaton
         Args:
@@ -193,7 +194,7 @@ class FstDFA(fst.StdAcceptor):
             else:
                 state.final = True
 
-    def save(self, txt_fst_filename):
+    def save(self, txt_fst_filename: str) -> None:
         """
         Save the machine in the openFST format in the file denoted by
         txt_fst_filename.
@@ -218,7 +219,7 @@ class FstDFA(fst.StdAcceptor):
                 txt_fst.write('{}\n'.format(state.stateid))
         txt_fst.close()
 
-    def load(self, txt_fst_filename):
+    def load(self, txt_fst_filename: str) -> None:
         """
         Save the transducer in the text file format of OpenFST.
         The format is specified as follows:
@@ -239,4 +240,3 @@ class FstDFA(fst.StdAcceptor):
                 else:
                     self.add_arc(int(splitted_line[0]), int(
                         splitted_line[1]), splitted_line[2].decode('hex'))
-

@@ -1,6 +1,7 @@
 import collections
 import functools
 import sys
+from typing import List, Tuple
 
 import pysmt.operators as op
 import pysmt.typing as types
@@ -12,7 +13,7 @@ Rule = collections.namedtuple('Rule', ['formula', 'is_query'])
 
 
 class ChcRulesSmtLibParser(SmtLibZ3Parser):
-    def __init__(self, env=None, interactive=False):
+    def __init__(self, env=None, interactive: bool = False):
         super().__init__(env, interactive)
 
         # Add new commands
@@ -97,9 +98,9 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):
         self.consume_closing(tokens, current)
         return Rule(expr, True)
 
-    def get_chc(self, script):
-        rules = []
-        queries = []
+    def get_chc(self, script) -> Tuple[List, List]:
+        rules: List = []
+        queries: List = []
         init = self.env.formula_manager.TRUE()
         trans = self.env.formula_manager.TRUE()
 
@@ -114,7 +115,7 @@ class ChcRulesSmtLibParser(SmtLibZ3Parser):
         return rules, queries
 
 
-def main():
+def main() -> int:
     with open(sys.argv[1], 'r') as script:
         parser = ChcRulesSmtLibParser()
         try:

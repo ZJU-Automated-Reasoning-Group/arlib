@@ -19,14 +19,15 @@ def check_sat_assuming(clauses: List[List[int]], assumptions: List[int]) -> Tupl
         A tuple containing the satisfiability result (True or False) and either the model or the unsatisfiable core.
     """
     with Solver(name="m22", bootstrap_with=clauses) as solver:
-        ans = solver.solve(assumptions=assumptions)
+        ans: bool = solver.solve(assumptions=assumptions)
         if ans:
             return ans, solver.get_model()
         return ans, solver.get_core()
 
 
-def parallel_check_assumptions(clauses: List[List[int]], assumptions_lists: List[List[int]], num_workers: int) -> List[
-    List[int]]:
+def parallel_check_assumptions(
+    clauses: List[List[int]], assumptions_lists: List[List[int]], num_workers: int
+) -> List[List[int]]:
     """Solve clauses under a set of assumptions (deal with each one in parallel).
 
     Args:

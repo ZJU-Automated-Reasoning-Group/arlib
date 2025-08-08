@@ -2,7 +2,7 @@
 Solving exists-forall problem over Boolean formulas, sequentially
 """
 import logging
-from typing import List
+from typing import List, Optional
 
 from arlib.quant.efbool.efbool_utils import EFBoolResult
 from arlib.quant.efbool.efbool_exists_solver import BoolExistsSolver
@@ -11,7 +11,7 @@ from arlib.quant.efbool.efbool_forall_solver import BoolForAllSolver
 logger = logging.getLogger(__name__)
 
 
-def solve_ef_bool(x: List[int], y: List[int], phi: List[List[int]], maxloops=None):
+def solve_ef_bool(x: List[int], y: List[int], phi: List[List[int]], maxloops: Optional[int] = None) -> EFBoolResult:
     """ Solving exists-forall problem over Boolean formulas
     :param x: the set of existential quantified variables
     :param y: the set of universal quantified variables

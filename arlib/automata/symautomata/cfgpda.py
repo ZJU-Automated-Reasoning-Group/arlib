@@ -1,4 +1,5 @@
 """This module generates a PDA using a CFG as input"""
+from typing import List, Optional
 from arlib.automata.symautomata.cnfpda import CnfPda
 from arlib.automata.symautomata.cfggenerator import CNFGenerator
 
@@ -6,7 +7,7 @@ from arlib.automata.symautomata.cfggenerator import CNFGenerator
 class CfgPDA():
     """Create a PDA from a CFG"""
 
-    def __init__(self, alphabet=None):
+    def __init__(self, alphabet: Optional[List[str]] = None):
         """
         Initialize values
         Args:
@@ -14,9 +15,9 @@ class CfgPDA():
         Returns:
             None
         """
-        self.alphabet = alphabet
+        self.alphabet: Optional[List[str]] = alphabet
 
-    def _extract_alphabet(self, grammar):
+    def _extract_alphabet(self, grammar: CNFGenerator) -> None:
         """
         Extract an alphabet from the given grammar.
         """
@@ -26,7 +27,7 @@ class CfgPDA():
             alphabet |= set([x for x in terminal])
         self.alphabet = list(alphabet)
 
-    def _read_file(self, fname):
+    def _read_file(self, fname: str) -> List[str]:
         """
         Read file containing CFG
         Args:
@@ -38,7 +39,7 @@ class CfgPDA():
             re_grammar = [x.strip('\n') for x in input_file.readlines()]
         return re_grammar
 
-    def _mpda(self, re_grammar, splitstring=0):
+    def _mpda(self, re_grammar: List[str], splitstring: int = 0):
         """
         Args:
             re_grammar (list): A list of grammar rules
@@ -79,7 +80,7 @@ class CfgPDA():
             nonterminals, productions, list(
                 cnfgrammar.grammar_terminals), splitstring)
 
-    def yyparse(self, cfgfile, splitstring=0):
+    def yyparse(self, cfgfile: str, splitstring: int = 0):
         """
         Args:
             cfgfile (str): The path for the file containing the CFG rules
