@@ -8,14 +8,16 @@ from arlib.llm.abduct.llm_abduct import (
     AbductionProblem,
     AbductionResult,
     LLMAbductor,
-    get_variables,
-    parse_smt2_string,
-    extract_smt_from_llm_response
 )
+from arlib.llm.abduct.utils import (
+    parse_smt2_string,
+    extract_smt_from_llm_response,
+)
+from arlib.utils.z3_expr_utils import get_variables
 
 from arlib.llm.abduct.evaluator import AbductionEvaluator
 
-from arlib.llm.abduct.base import LLM, EnvLoader
+from arlib.llm.abduct.base import LLM, EnvLoader, LLMViaTool
 
 
 __all__ = [
@@ -26,7 +28,8 @@ __all__ = [
     "AbductionEvaluator",
     "LLM",
     "EnvLoader",
-    
+    "LLMViaTool",
+
     # Utility functions
     "get_variables",
     "parse_smt2_string",

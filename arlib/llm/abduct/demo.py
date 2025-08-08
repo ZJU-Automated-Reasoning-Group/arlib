@@ -11,17 +11,17 @@ import os
 import z3
 import datetime
 from arlib.llm.abduct import (
-    AbductionProblem, 
-    LLMAbductor, 
+    AbductionProblem,
+    LLMAbductor,
     # AbductionEvaluator,
-    EnvLoader
+    EnvLoader,
 )
-from arlib.llm.abduct.zhipu import ZhipuLLM
+from arlib.llm.abduct.base import LLMViaTool
 
 def create_example_problems():
     """Create a set of example abduction problems."""
     problems = []
-    
+
     # Problem 0: Very simple arithmetic (x > 3)
     x = z3.Int('x')
     premise = x > 0
@@ -31,7 +31,7 @@ def create_example_problems():
         conclusion=conclusion,
         description="Very simple arithmetic inequality"
     ))
-    
+
     # Problem 1: Linear arithmetic
     x, y = z3.Ints('x y')
     premise = z3.And(x > 0, y > 0)
@@ -41,7 +41,7 @@ def create_example_problems():
         conclusion=conclusion,
         description="Simple linear arithmetic problem"
     ))
-    
+
     # Problem 2: Boolean logic
     a, b, c = z3.Bools('a b c')
     premise = z3.And(a == z3.Not(b), c == z3.Or(a, b))
@@ -51,7 +51,7 @@ def create_example_problems():
         conclusion=conclusion,
         description="Boolean logic problem"
     ))
-    
+
     return problems
 
 def run_single_example(llm_abductor, problem):
@@ -60,12 +60,12 @@ def run_single_example(llm_abductor, problem):
     print(f"Premise: {problem.premise}")
     print(f"Conclusion: {problem.conclusion}")
     print(f"Variables: {', '.join([str(var) for var in problem.variables])}")
-    
+
     # Run abduction
     start_time = datetime.datetime.now()
     result = llm_abductor.abduce(problem)
     end_time = datetime.datetime.now()
-    
+
     # Print results
     print("\nResults:")
     print(f"Execution time: {end_time - start_time}")
@@ -73,20 +73,20 @@ def run_single_example(llm_abductor, problem):
     print(f"Is consistent: {result.is_consistent}")
     print(f"Is sufficient: {result.is_sufficient}")
     print(f"Is valid: {result.is_valid}")
-    
+
     if not result.is_valid:
         print("Reason for invalidity:")
         if not result.is_consistent:
             print("- The hypothesis is inconsistent with the premise")
         if not result.is_sufficient:
             print("- The hypothesis is not sufficient to entail the conclusion")
-    
+
     print("\nLLM Response (raw):")
     print("=" * 80)
     print(result.llm_response)
     print("=" * 80)
     print("\n" + "-" * 80 + "\n")
-    
+
     return result
 
 def main():
@@ -98,25 +98,25 @@ def main():
         print("Please set it with: export ZHIPU_API_KEY=your_api_key")
         print("Or create a .env file in the project root with: ZHIPU_API_KEY=your_api_key")
         return
-    
-    # Create LLM and abductor
-    print("Initializing ZhipuAI LLM...")
-    llm = ZhipuLLM(model_name="glm-4-flash")  # Can also use other models like glm-4
+
+    # Create LLM and abductor via llmtool
+    print("Initializing LLM via llmtool...")
+    llm = LLMViaTool(model_name="glm-4-flash")  # Can also use other models like glm-4
     llm_abductor = LLMAbductor(llm, max_attempts=1, temperature=0.9)  # Higher temperature for more creative responses
-    
+
     # Create example problems
     problems = create_example_problems()
-    
+
     # Initialize success counter
     success_count = 0
-    
+
     # Run examples (first 3 only)
     for i, problem in enumerate(problems[:3]):
         print(f"\nExample {i+1}/{len(problems[:3])}")
         result = run_single_example(llm_abductor, problem)
         if result.is_valid:
             success_count += 1
-    
+
     # Print final statistics
     print("\nFinal Statistics:")
     print(f"Total examples: {len(problems[:3])}")

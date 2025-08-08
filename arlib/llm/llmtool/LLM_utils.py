@@ -1,11 +1,21 @@
 # Imports
-from openai import *
 from pathlib import Path
 from typing import Tuple
-import google.generativeai as genai
+# Optional provider SDKs (guarded)
+try:
+    from openai import OpenAI
+except Exception:  # pragma: no cover
+    OpenAI = None
+try:
+    import google.generativeai as genai
+except Exception:  # pragma: no cover
+    genai = None
 # import signal
 # import sys
-import tiktoken
+try:
+    import tiktoken
+except Exception:  # pragma: no cover
+    tiktoken = None
 import time
 import os
 import concurrent.futures
@@ -13,12 +23,20 @@ from functools import partial
 # import threading
 
 import json
-from botocore.config import Config
-from botocore.exceptions import BotoCoreError, ClientError
-import boto3
+try:
+    from botocore.config import Config
+    from botocore.exceptions import BotoCoreError, ClientError
+    import boto3
+except Exception:  # pragma: no cover
+    Config = None
+    BotoCoreError = ClientError = None
+    boto3 = None
 from arlib.llm.llmtool.logger import Logger
 
-from zhipuai import ZhipuAI
+try:
+    from zhipuai import ZhipuAI
+except Exception:  # pragma: no cover
+    ZhipuAI = None
 
 
 class LLM:
@@ -38,9 +56,16 @@ class LLM:
         system_role="You are a experienced programmer and good at understanding programs written in mainstream programming languages.",
     ) -> None:
         self.online_model_name = online_model_name
-        self.encoding = tiktoken.encoding_for_model(
-            "gpt-3.5-turbo-0125"
-        )  # We only use gpt-3.5 to measure token cost
+        if tiktoken is not None:
+            self.encoding = tiktoken.encoding_for_model(
+                "gpt-3.5-turbo-0125"
+            )  # We only use gpt-3.5 to measure token cost
+        else:
+            class _DummyEncoding:
+                def encode(self, s: str):
+                    # bytes length as a rough proxy
+                    return s.encode("utf-8")
+            self.encoding = _DummyEncoding()
         self.temperature = temperature
         self.systemRole = system_role
         self.logger = logger
@@ -57,6 +82,9 @@ class LLM:
             output = self.infer_with_openai_model(message)
         elif "o3-mini" in self.online_model_name:
             output = self.infer_with_o3_mini_model(message)
+        elif "glm" in self.online_model_name or "zhipu" in self.online_model_name:
+            # Zhipu/GLM models (e.g., glm-4, glm-4-flash)
+            output = self.infer_with_glm_model(message)
         elif "claude" in self.online_model_name:
             output = self.infer_with_claude(message)
         elif "deepseek" in self.online_model_name:
@@ -90,6 +118,9 @@ class LLM:
 
     def infer_with_gemini(self, message: str) -> str:
         """Infer using the Gemini model from Google Generative AI"""
+        if genai is None:
+            self.logger.print_log("Gemini SDK not installed")
+            return ""
         gemini_model = genai.GenerativeModel("gemini-pro")
 
         def call_api():
@@ -126,7 +157,10 @@ class LLM:
 
     def infer_with_openai_model(self, message):
         """Infer using the OpenAI model"""
-        api_key = os.environ.get("OPENAI_API_KEY").split(":")[0]
+        if OpenAI is None:
+            self.logger.print_log("OpenAI SDK not installed")
+            return ""
+        api_key = os.environ.get("OPENAI_API_KEY", "").split(":")[0]
         model_input = [
             {"role": "system", "content": self.systemRole},
             {"role": "user", "content": message},
@@ -156,7 +190,10 @@ class LLM:
 
     def infer_with_o3_mini_model(self, message):
         """Infer using the o3-mini model"""
-        api_key = os.environ.get("OPENAI_API_KEY").split(":")[0]
+        if OpenAI is None:
+            self.logger.print_log("OpenAI SDK not installed")
+            return ""
+        api_key = os.environ.get("OPENAI_API_KEY", "").split(":")[0]
         model_input = [
             {"role": "system", "content": self.systemRole},
             {"role": "user", "content": message},
@@ -219,6 +256,9 @@ class LLM:
 
     def infer_with_claude(self, message):
         """Infer using the Claude model via AWS Bedrock"""
+        if boto3 is None or Config is None:
+            self.logger.print_log("boto3/botocore not installed for Claude via Bedrock")
+            return ""
         if "3.5" in self.online_model_name:
             model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
         if "3.7" in self.online_model_name:
@@ -272,11 +312,14 @@ class LLM:
             time.sleep(2)
 
         return ""
-    
+
 
     def infer_with_glm_model(self, message):
         """Infer using the GLM model"""
-        api_key = os.environ.get("GLM_API_KEY")
+        if ZhipuAI is None:
+            self.logger.print_log("ZhipuAI SDK not installed")
+            return ""
+        api_key = os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY")
         model_input = [
             {"role": "system", "content": self.systemRole},
             {"role": "user", "content": message},
@@ -304,4 +347,3 @@ class LLM:
             time.sleep(2)
 
         return ""
-    

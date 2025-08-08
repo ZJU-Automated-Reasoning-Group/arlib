@@ -1,7 +1,7 @@
 LLM-based Abduction with SMT Validation
 =====================================
 
-This module provides a framework for evaluating Large Language Models (LLMs) on abductive inference tasks with SMT constraints validation, using ZhipuAI as the LLM provider and Z3 for validation.
+This module provides a framework for evaluating Large Language Models (LLMs) on abductive inference tasks with SMT constraints validation. It reuses the centralized `arlib.llm.llmtool` for querying LLMs (OpenAI, Claude, DeepSeek, Gemini, GLM) and Z3 for validation.
 
 Overview
 --------
@@ -34,16 +34,18 @@ Install the required dependencies:
 
 .. code-block:: bash
 
-    pip install z3-solver numpy python-dotenv zhipuai
+    pip install z3-solver numpy python-dotenv openai anthropic boto3 google-generativeai zhipuai
 
 Setup
 -----
 
-Configuration is managed via environment variables. Create a ``.env`` file in your project directory:
+Configuration is managed via environment variables. Create a ``.env`` file in your project directory (set the keys you need):
 
 .. code-block:: text
 
-    ZHIPU_API_KEY=your_zhipu_api_key
+    OPENAI_API_KEY=sk-...:org
+    DEEPSEEK_API_KEY2=...
+    ZHIPU_API_KEY=...
 
 Usage
 -----
@@ -51,7 +53,7 @@ Usage
 Run Demo
 ~~~~~~~~
 
-The easiest way to get started is to run the demo script, which uses ZhipuAI to solve example abduction problems:
+The easiest way to get started is to run the demo script, which uses `llmtool` routing (e.g., GLM) to solve example abduction problems:
 
 .. code-block:: bash
 
@@ -63,7 +65,7 @@ API Usage Example
 .. code-block:: python
 
     from arlib.llm.abduct import AbductionProblem, LLMAbductor
-    from arlib.llm.abduct.zhipu import ZhipuLLM
+    from arlib.llm.abduct.base import LLMViaTool
     import z3
 
     # Create a problem
@@ -78,7 +80,7 @@ API Usage Example
     )
 
     # Initialize LLM and abductor
-    llm = ZhipuLLM(model_name="glm-4-flash")
+    llm = LLMViaTool(model_name="glm-4-flash")  # or gpt-4o, claude-3.5-sonnet, deepseek-chat, gemini-1.5, etc.
     abductor = LLMAbductor(llm=llm)
 
     # Generate abduction
@@ -110,9 +112,13 @@ You can evaluate the LLM on a list of problems and save the results:
 LLM Support
 ----------
 
-Currently supported LLM provider:
+Currently supported providers via `llmtool`:
 
-- **Zhipu AI**: Chinese LLM provider with models like GLM-4. Only ZhipuAI is supported out of the box.
+- **OpenAI** (gpt-4*, o3-mini)
+- **Anthropic Claude** (via Bedrock)
+- **DeepSeek**
+- **Google Gemini**
+- **Zhipu/GLM**
 
 Extending the Framework
 ---------------------
@@ -120,7 +126,7 @@ Extending the Framework
 Adding New LLM Providers
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To add a new provider, subclass the ``LLM`` base class in ``base.py``:
+To customize, you can subclass the ``LLM`` base class in ``base.py`` or extend `llmtool` routing:
 
 .. code-block:: python
 
@@ -130,11 +136,11 @@ To add a new provider, subclass the ``LLM`` base class in ``base.py``:
         def __init__(self, model_name, **kwargs):
             # Initialize your LLM client
             pass
-            
+
         def generate(self, prompt, temperature=0.7, max_tokens=None, stop=None, **kwargs):
             # Implement generation logic
             pass
-            
+
         def get_embedding(self, text, **kwargs):
             # Implement embedding logic
             pass
@@ -145,4 +151,4 @@ Notes
 - Only ZhipuAI is supported in the current implementation.
 - Example problems and usage are provided in ``demo.py``.
 - There are **no built-in benchmark generation functions** in this module.
-- For custom benchmarks, define your own list of ``AbductionProblem`` instances. 
+- For custom benchmarks, define your own list of ``AbductionProblem`` instances.
