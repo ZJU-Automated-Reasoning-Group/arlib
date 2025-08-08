@@ -63,11 +63,11 @@ def write_dimacs_to_file(header: List[str], clauses: List[str], output_file: str
 def call_approxmc(clauses, timeout=300):
     """
     Run the ApproxMC solver on a given DIMACS CNF file and return the number of solutions.
-    
+
     Args:
         clauses: List of clauses to count
         timeout: Maximum time in seconds to run the solver (default: 300 seconds)
-        
+
     Returns:
         int: Number of solutions, or -1 if timeout or error occurs
     """
@@ -78,11 +78,11 @@ def call_approxmc(clauses, timeout=300):
             if 0 in clause_list:
                 clause_list.remove(0)
             counter.add_clause(clause_list)
-            
+
         # 设置超时
         timer = Timer(timeout, lambda: counter.interrupt())
         timer.start()
-        
+
         try:
             c = counter.count()
             print("approxmc result: ", c)
@@ -92,7 +92,7 @@ def call_approxmc(clauses, timeout=300):
             return -1
         finally:
             timer.cancel()
-            
+
     except Exception as ex:
         print("Error in approxmc setup:", ex)
         return -1
@@ -119,7 +119,7 @@ def call_sharp_sat(cnf_filename: str):
     try:
         find_sol_line = False
         for line in iter(p.stdout.readline, b''):
-            if not line: 
+            if not line:
                 break
             decode_line = line.decode('UTF-8')
             if find_sol_line:
@@ -134,7 +134,7 @@ def call_sharp_sat(cnf_filename: str):
     finally:
         timer.cancel()
         p.stdout.close()
-        
+
         # Make sure the process is terminated
         if p.poll() is None:
             p.terminate()
@@ -143,14 +143,14 @@ def call_sharp_sat(cnf_filename: str):
             except subprocess.TimeoutExpired:
                 p.kill()  # Kill if termination doesn't complete
                 p.wait()
-        
+
         # Clean up the temp file
         if os.path.isfile(cnf_filename):
             os.remove(cnf_filename)
-            
-    if is_timeout[0]: 
+
+    if is_timeout[0]:
         logging.debug("sharpSAT timeout")
-        
+
     return solutions
 
 
@@ -254,7 +254,7 @@ def count_dimacs_solutions_parallel(header: List[str], clauses: List[str]) -> in
         # Ensure the pool is properly closed
         pool.close()
         pool.join()
-        
+
         # Remove any temporary files that might be left
         for file_path in cnf_tasks:
             if os.path.isfile(file_path):

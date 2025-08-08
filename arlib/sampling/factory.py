@@ -13,7 +13,7 @@ from .base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResul
 class SamplerFactory:
     """
     Factory for creating samplers.
-    
+
     This class provides methods for registering and creating instances of different
     sampler implementations.
     """
@@ -24,7 +24,7 @@ class SamplerFactory:
     def register(cls, logic: Logic, sampler_class: Type[Sampler]):
         """
         Register a sampler class with the factory.
-        
+
         Args:
             logic: The logic to register the sampler for
             sampler_class: The sampler class to register
@@ -38,15 +38,15 @@ class SamplerFactory:
     def create(cls, logic: Logic, method: Optional[SamplingMethod] = None, **kwargs) -> Sampler:
         """
         Create an instance of a sampler for the specified logic and method.
-        
+
         Args:
             logic: The logic to create a sampler for
             method: Optional sampling method to use
             **kwargs: Additional arguments to pass to the sampler constructor
-            
+
         Returns:
             An instance of a sampler for the specified logic
-            
+
         Raises:
             ValueError: If no sampler is available for the specified logic or method
         """
@@ -70,7 +70,7 @@ class SamplerFactory:
     def available_logics(cls) -> Set[Logic]:
         """
         Get a set of available logics.
-        
+
         Returns:
             Set of available logics
         """
@@ -80,10 +80,10 @@ class SamplerFactory:
     def available_methods(cls, logic: Logic) -> Set[SamplingMethod]:
         """
         Get a set of available methods for the specified logic.
-        
+
         Args:
             logic: The logic to get available methods for
-            
+
         Returns:
             Set of available methods
         """
@@ -122,16 +122,33 @@ try:
 except ImportError:
     pass
 
+# Register general-purpose MCMC sampler where applicable
+try:
+    from .general_sampler.mcmc_sampler import MCMCSampler
+
+    for _logic in [
+        Logic.QF_LRA,
+        Logic.QF_LIA,
+        Logic.QF_NRA,
+        Logic.QF_NIA,
+        Logic.QF_LIRA,
+        Logic.QF_BOOL,
+        Logic.QF_ALL,
+    ]:
+        SamplerFactory.register(_logic, MCMCSampler)
+except ImportError:
+    pass
+
 
 def create_sampler(logic: Logic, method: Optional[SamplingMethod] = None, **kwargs) -> Sampler:
     """
     Convenience function to create a sampler instance.
-    
+
     Args:
         logic: The logic to create a sampler for
         method: Optional sampling method to use
         **kwargs: Additional arguments to pass to the sampler constructor
-        
+
     Returns:
         An instance of a sampler for the specified logic
     """
@@ -143,12 +160,12 @@ def sample_models_from_formula(formula: z3.ExprRef,
                                options: Optional[SamplingOptions] = None) -> SamplingResult:
     """
     High-level API for sampling models (solutions) from a formula.
-    
+
     Args:
         formula: The Z3 formula to sample models from
         logic: The logic of the formula
         options: Optional sampling options
-        
+
     Returns:
         A SamplingResult containing the generated models
     """
@@ -166,15 +183,15 @@ def sample_formula(formula: z3.ExprRef,
                    options: Optional[SamplingOptions] = None) -> SamplingResult:
     """
     High-level API for sampling models from a formula.
-    
+
     This function is deprecated and will be removed in a future version.
     Please use sample_models_from_formula() instead.
-    
+
     Args:
         formula: The Z3 formula to sample models from
         logic: The logic of the formula
         options: Optional sampling options
-        
+
     Returns:
         A SamplingResult containing the generated models
     """

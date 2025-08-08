@@ -2,7 +2,7 @@
 For formulas with different types of variables
 """
 
-from arlib.sampling.sampler import Sampler
+from arlib.sampling.base import Sampler
 
 
 # from exceptions import *
