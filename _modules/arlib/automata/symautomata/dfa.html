@@ -95,6 +95,7 @@
 <span class="c1"># !/usr/bin/python</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">arlib.automata.symautomata.alphabet</span><span class="w"> </span><span class="kn">import</span> <span class="n">createalphabet</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrgetter</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
@@ -102,7 +103,7 @@
 
 <div class="viewcode-block" id="bfs">
 <a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.dfa.bfs">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">bfs</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bfs</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Finds the shortest string using BFS</span>
 <span class="sd">    Args:</span>
@@ -112,8 +113,8 @@
 <span class="sd">        str: The shortest string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># maintain a queue of paths</span>
-    <span class="n">queue</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">visited</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">queue</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">visited</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># maintain a queue of nodes</span>
     <span class="c1"># push the first path into the queue</span>
     <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">]])</span>
@@ -156,11 +157,11 @@
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">PywrapfstDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using openFst library&quot;&quot;&quot;</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
                 <span class="n">mma</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
                 <span class="n">mma</span><span class="o">.</span><span class="n">automaton</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">automaton</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
                 <span class="n">mma</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
@@ -168,7 +169,7 @@
                 <span class="n">mma</span><span class="o">.</span><span class="n">osyms</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">osyms</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">mma</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Uses BFS in order to find the shortest string</span>
 <span class="sd">                Args:</span>
@@ -185,7 +186,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">None</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Automata Diff operation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
@@ -200,7 +201,7 @@
                 <span class="n">mmc</span><span class="o">.</span><span class="n">init_from_acceptor</span><span class="p">(</span><span class="n">mma</span> <span class="o">&amp;</span> <span class="n">mmb</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">mmc</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Returns a regex approximation</span>
 <span class="sd">                Args:</span>
@@ -223,11 +224,11 @@
 
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">FstDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using openFst library&quot;&quot;&quot;</span>
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Uses BFS in order to find the shortest string</span>
 <span class="sd">                Args:</span>
@@ -244,7 +245,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">None</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Automata Diff operation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
@@ -259,7 +260,7 @@
                 <span class="n">mmc</span><span class="o">.</span><span class="n">init_from_acceptor</span><span class="p">(</span><span class="n">mma</span> <span class="o">&amp;</span> <span class="n">mmb</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">mmc</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Returns a regex approximation</span>
 <span class="sd">                Args:</span>
@@ -279,11 +280,11 @@
         <span class="k">class</span><span class="w"> </span><span class="nc">DFA</span><span class="p">(</span><span class="n">PythonDFA</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;The DFA class implemented using python&quot;&quot;&quot;</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alphabet</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">createalphabet</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">alphabet</span>
                 <span class="nb">super</span><span class="p">(</span><span class="n">DFA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">alphabet</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
                 <span class="n">mma</span> <span class="o">=</span> <span class="n">DFA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
                 <span class="n">mma</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)</span>
                 <span class="n">mma</span><span class="o">.</span><span class="n">alphabet</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabet</span><span class="p">)</span>
@@ -291,7 +292,7 @@
                 <span class="n">mma</span><span class="o">.</span><span class="n">osyms</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">osyms</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">mma</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">shortest_string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Uses BFS in order to find the shortest string</span>
 <span class="sd">                Args:</span>
@@ -308,7 +309,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">None</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_mm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DFA&#39;</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Automata Diff operation</span>
 <span class="sd">                &quot;&quot;&quot;</span>
@@ -323,7 +324,7 @@
                 <span class="n">mmc</span><span class="o">.</span><span class="n">init_from_acceptor</span><span class="p">(</span><span class="n">mma</span> <span class="o">&amp;</span> <span class="n">mmb</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">mmc</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">to_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                Returns a regex approximation</span>
 <span class="sd">                Args:</span>

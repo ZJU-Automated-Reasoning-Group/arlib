@@ -92,10 +92,11 @@
              
   <h1>Source code for arlib.automata.symautomata.alphabet</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="sd">&quot;&quot;&quot;This module configures that alphabet.&quot;&quot;&quot;</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_load_alphabet</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_alphabet</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load a file containing the characters of the alphabet.</span>
 <span class="sd">    Every unique character contained in this file will be used as a symbol</span>
@@ -106,7 +107,7 @@
 
 <div class="viewcode-block" id="createalphabet">
 <a class="viewcode-back" href="../../../../symbolic_finite_automata.html#arlib.automata.symautomata.alphabet.createalphabet">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">createalphabet</span><span class="p">(</span><span class="n">alphabetinput</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">createalphabet</span><span class="p">(</span><span class="n">alphabetinput</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a sample alphabet containing printable ASCII characters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -121,7 +122,7 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
                 <span class="n">alpha</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">unichr</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">alpha</span>
-    <span class="n">alpha</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">127</span><span class="p">):</span>
         <span class="n">alpha</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">unichr</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">alpha</span></div>
