@@ -1,14 +1,7 @@
-# coding: utf-8
-""" Formula manager for the CDCL(T) SMT engine
+"""Formula manager for the CDCL(T) SMT engine.
 
-This module provides classes for preprocessing SMT formulas and managing Boolean and theory components:
-- SMTPreprocessor4Process: Converts SMT formulas to CNF and builds Boolean abstractions
-- BooleanFormulaManager: Tracks mappings between Boolean variables and theory atoms
-- TheoryFormulaManager: Maintains theory-specific information
-
+Provides preprocessing and Boolean/theory managers for inter-process communication.
 """
-
-# import itertools
 from typing import List
 
 import z3
@@ -17,27 +10,11 @@ from arlib.smt.pcdclt.cdclt_config import InitAbstractionStrategy
 from arlib.smt.pcdclt.cdclt_config import m_init_abstraction
 from arlib.utils import SolverResult
 
-
-# logger = logging.getLogger(__name__)
-
-
 def extract_literals_square(clauses: List) -> List[List]:
-    """
-    After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
-    the object clauses is of the following form
-        [Or(...), Or(...), Or(...), ...]
-    but not the usual "CNF" form (which is our initial goal)
-        [[...], [...], [...]]
-    Thus, this function aims to build such a CNF
-    """
-    # FIXME: the naive strategy is not good...
+    """Convert Z3 Or-expr list into CNF-like list-of-lists."""
     result = []
     for clause in clauses:
         if z3.is_or(clause):
-            # tmp_cls = []
-            # for lit in cls.children():
-            #    tmp_cls.append(lit)
-            # res.append(tmp_cls)
             result.append(list(clause.children()))
         else:
             result.append([clause])
@@ -45,11 +22,7 @@ def extract_literals_square(clauses: List) -> List[List]:
 
 
 class BooleanFormulaManager(object):
-    """
-    Track the correlations between Boolean variables and theory atoms
-    NOTE: Currently, the manager does not maintain any z3-specific objects (e.g., context, expr),
-          because it is used for inter-process communication
-    """
+    """Tracks mappings between Boolean vars and theory atoms (no Z3 objects)."""
 
     def __init__(self):
         self.smt2_signature = []  # s-expression of the signature
@@ -62,11 +35,7 @@ class BooleanFormulaManager(object):
 
 
 class TheoryFormulaManager(object):
-    """
-    Maintain theory information
-    NOTE: Currently, the manager does not maintain any z3-specific objects (e.g., context, expr),
-          because it is used for inter-process communication
-    """
+    """Holds theory-side data (no Z3 objects)."""
 
     def __init__(self):
         self.smt2_signature = []  # variables
@@ -74,26 +43,7 @@ class TheoryFormulaManager(object):
 
 
 class SMTPreprocessor4Process(object):
-    """
-    This is the preprocessing phase of the CDCL(T)-based SMT solving engine.
-    The key goal is to perform basic simplifications and convert the simplified formula
-    to CNF (from which we can build the Boolean abstraction of the original SMT formula)
-
-    NOTE: This class is used for inter-process communication, and it will produce two objects,
-        namely a BooleanFormulaManager and a TheoryFormulaManager
-
-    NOTE:
-        Consider the function SMTPreprocessor4Process.from_smt2_string,
-        After calling  clauses = z3.Then('simplify', 'tseitin-cnf')(fml)
-        the object clauses is of the following form
-            [Or(...), Or(...), Or(...), ...]
-        but not the usual "CNF" form (which is our initial goal)
-            [[...], [...], [...]]
-
-        If using m_init_abstraction = InitAbstractionStrategy.CLAUSE,
-        the  "Boolean abstraction" actually maps each clause to a Boolean variable,
-          but not each atom!!!
-    """
+    """Preprocess, simplify, and build Boolean abstraction and theory skeleton."""
 
     def __init__(self):
         self.index = 1
@@ -123,11 +73,7 @@ class SMTPreprocessor4Process(object):
         return [self.abstract_clause(atom2bool, clause) for clause in clauses]
 
     def build_numeric_clauses(self, bool_manager):
-        """Currently, self.bool_clauses are Z3 exprs
-        But in some cases, we need to obtain numeric clauses (e.g., pass it to PySAT)
-        """
-        # assert m_init_abstraction == InitAbstractionStrategy.ATOM
-        # print(self.bool_clauses)
+        """Convert Boolean Z3 clauses to numeric clauses for SAT solving."""
         for cls in self.bool_clauses:
             if z3.is_or(cls):
                 tmp_cls = []
@@ -138,7 +84,6 @@ class SMTPreprocessor4Process(object):
                         tmp_cls.append(bool_manager.vars2num[str(lit)])
                 bool_manager.numeric_clauses.append(tmp_cls)
             else:
-                # unary clause (which means there is only one literal in the current clause)
                 tmp_cls = []
                 if z3.is_not(cls):
                     tmp_cls.append(-bool_manager.vars2num[str(cls.children()[0])])
@@ -146,15 +91,10 @@ class SMTPreprocessor4Process(object):
                     tmp_cls.append(bool_manager.vars2num[str(cls)])
                 bool_manager.numeric_clauses.append(tmp_cls)
 
-        # print(bool_manager.numeric_clauses)
-
     def from_smt2_string(self, smt2string: str):
-        # fml = z3.And(z3.parse_smt2_file(filename))
         fml = z3.And(z3.parse_smt2_string(smt2string))
-        # clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
         clauses = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')(fml)
         after_simp = clauses.as_expr()
-        # print(after_simp)
         if z3.is_false(after_simp):
             self.status = SolverResult.UNSAT
         elif z3.is_true(after_simp):
@@ -169,11 +109,10 @@ class SMTPreprocessor4Process(object):
         if m_init_abstraction == InitAbstractionStrategy.ATOM:
             clauses = extract_literals_square(clauses[0])
 
-        # the name abs is not good
         g_atom2bool = {}
         self.bool_clauses = self.abstract_clauses(g_atom2bool, clauses)
 
-        sol = z3.Solver()  # a container for collecting variable signatures
+        sol = z3.Solver()  # collect variable signatures
         sol.add(after_simp)
         sol.add(self.bool_clauses)
 
@@ -185,7 +124,6 @@ class SMTPreprocessor4Process(object):
                 bool_manager.smt2_signature.append(line)
             th_manager.smt2_signature.append(line)
 
-        # initialize some mappings
         bool_var_id = 1
         for atom in g_atom2bool:
             bool_var = str(g_atom2bool[atom])
@@ -194,12 +132,10 @@ class SMTPreprocessor4Process(object):
             bool_manager.bool_vars_name.append(bool_var)
             bool_var_id += 1
 
-        # initialize some cnt
         bool_manager.smt2_init_cnt = z3.And(self.bool_clauses).sexpr()
         theory_init_fml = z3.And([p == g_atom2bool[p] for p in g_atom2bool])
         th_manager.smt2_init_cnt = theory_init_fml.sexpr()
 
-        # NOTE: only useful when using special Boolean engines
         self.build_numeric_clauses(bool_manager)
 
         return bool_manager, th_manager

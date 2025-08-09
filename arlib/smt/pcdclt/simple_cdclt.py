@@ -6,7 +6,6 @@ It may serve as a reference implementation of the main enigne.
 """
 import logging
 import re
-import sys
 from typing import List
 
 from arlib.smt.pcdclt import BooleanFormulaManager, SMTPreprocessor4Process
@@ -99,19 +98,12 @@ def simple_cdclt(smt2string: str):
                     # E.g., (p@1 (not p@2) (not p@9))
                     core = theory_solver.get_unsat_core()[1:-1]
                     blocking_clauses_core = "(assert (not (and {} )))\n".format(core)
-                    # the following line uses the naive "blocking formula"
-                    # blocking_clauses_assumptions = "(assert (not (and " + " ".join(assumptions) + ")))\n"
-                    # print(blocking_clauses_assumptions)
                     # FIXME: the following line restricts the type of the bool_solver
                     bool_solver.add(blocking_clauses_core)
                 else:
-                    # print("SAT (theory solver success)!")
                     return SolverResult.SAT
             else:
-                # print("UNSAT (boolean solver success)!")
                 return SolverResult.UNSAT
         except Exception as ex:
-            print(ex)
-            print(smt2string)
-            # print("\n".join(theory_solver.assertions))
-            sys.exit(0)
+            logger.exception("Error during simple_cdclt solving")
+            return SolverResult.UNKNOWN

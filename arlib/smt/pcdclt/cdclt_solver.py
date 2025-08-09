@@ -1,7 +1,4 @@
-"""
-Interface for CDCL(T)-based Solver
-"""
-# import itertools
+"""Interface for CDCL(T)-based Solver"""
 from abc import ABC, abstractmethod
 from arlib.smt.pcdclt.parallel_cdclt_process import parallel_cdclt_process
 from arlib.smt.pcdclt.simple_cdclt import boolean_abstraction
@@ -40,17 +37,11 @@ class CDCLTSolver(ABC):
 
 
 class SequentialCDCLTSolver(CDCLTSolver):
-    """Sequential solver"""
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.smt2_file = None
-
-    def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:
-        pass
-
-    def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:
-        pass
+    """Sequential solver (placeholder)."""
+    def solve_smt2_string(self, smt2string: str, logic: str) -> SolverResult:  # pragma: no cover - not implemented
+        raise NotImplementedError
+    def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:  # pragma: no cover - not implemented
+        raise NotImplementedError
 
 
 def dump_bool_skeleton(numeric_clauses, output_file: str):
@@ -100,6 +91,6 @@ class ParallelCDCLTSolver(CDCLTSolver):
 
     def solve_smt2_file(self, filename: str, logic: str) -> SolverResult:
         self.smt2_file = filename
-        smt2_file = open(filename, "r")
-        smt2string = smt2_file.read()
+        with open(filename, "r") as smt2_file:
+            smt2string = smt2_file.read()
         return self.solve_smt2_string(smt2string, logic)

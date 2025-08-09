@@ -1,35 +1,28 @@
-# coding: utf-8
 """
 Process-based Parallel CDCL(T)-style SMT Solving
 """
 
 import logging
-import multiprocessing
-from multiprocessing import cpu_count, Queue, Process
-from multiprocessing import Manager
+from multiprocessing import cpu_count, Queue, Process, Manager
 from ctypes import c_char_p
-from typing import List, Optional, Tuple, Set
+from typing import List
 import os
-import time
 from datetime import datetime
 
 from arlib.smt.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
 from arlib.smt.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, SExprParser
-from arlib.smt.pcdclt.exceptions import TheorySolverSuccess, PySMTSolverError
-from arlib.utils.exceptions import SMTLIBSolverError
 from arlib.config import SMT_SOLVERS_PATH
 from arlib.smt.pcdclt.cdclt_config import (
     LOG_SMT_QUERIES, SMT_LOG_DIR, NUM_SAMPLES,
-    SIMPLIFY as M_SIMPLIFY_BLOCKING_CLAUSES
+    SIMPLIFY as M_SIMPLIFY_BLOCKING_CLAUSES,
+    MAX_T_CHECKING_PROCESSES,
 )
 
 logger = logging.getLogger(__name__)
 
-"""
 # Some options to be configured (assuming use Z3 for now)
-"""
 DEFAULT_SAMPLE_SIZE = NUM_SAMPLES
 
 # End of options
@@ -37,7 +30,7 @@ DEFAULT_SAMPLE_SIZE = NUM_SAMPLES
 def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solver):
     """
     Long-running theory worker process that handles multiple theory checks.
-    
+
     :param worker_id: ID of this worker
     :param init_theory_fml: The initial theory formula (constant throughout solving)
     :param task_queue: Queue to receive new tasks (assumptions to check)
@@ -45,7 +38,7 @@ def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solv
     :param bin_solver: Path to binary solver executable
     """
     logger.debug(f"Theory worker {worker_id} started with solver: {bin_solver}")
-    
+
     # Set up logging directory for this worker if enabled
     log_dir = None
     if LOG_SMT_QUERIES:
@@ -54,20 +47,20 @@ def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solv
         log_dir = os.path.join(SMT_LOG_DIR, f"run_{timestamp}")
         os.makedirs(log_dir, exist_ok=True)
         logger.debug(f"Theory worker {worker_id} will log queries to {log_dir}")
-    
+
     # Initialize the theory solver once
     theory_solver = SMTLibTheorySolver(bin_solver, worker_id=worker_id, log_dir=log_dir)
     theory_solver.add(init_theory_fml.value)
-    
+
     while True:
         # Get next task from queue
         task_id, assumptions = task_queue.get()
-        
+
         # Special signal to terminate
         if task_id == -1:
             logger.debug(f"Theory worker {worker_id} shutting down")
             break
-            
+
         try:
             # Check the current assumptions
             logger.debug(f"Worker {worker_id} checking assumptions with {len(assumptions)} literals")
@@ -86,7 +79,7 @@ def theory_worker(worker_id, init_theory_fml, task_queue, result_queue, bin_solv
 def theory_solve_with_workers(all_assumptions: List[str], task_queue, result_queue, num_workers):
     """
     Submit theory solving tasks to worker processes and collect results.
-    
+
     :param all_assumptions: List of sets of assumptions to check
     :param task_queue: Queue to send tasks to workers
     :param result_queue: Queue to receive results from workers
@@ -94,27 +87,27 @@ def theory_solve_with_workers(all_assumptions: List[str], task_queue, result_que
     :return: List of unsat cores from theory solvers
     """
     logger.debug(f"Submitting {len(all_assumptions)} theory check tasks to {num_workers} workers")
-    
+
     # Submit all tasks to the queue
     for i, assumptions in enumerate(all_assumptions):
         task_queue.put((i, assumptions))
-    
+
     # Collect all results
     raw_unsat_cores = []
     for _ in range(len(all_assumptions)):
         task_id, result = result_queue.get()
-        
-        if result.startswith("ERROR:"):
+
+        if isinstance(result, str) and result.startswith("ERROR:"):
             logger.error(f"Theory solving error: {result}")
             continue
-            
+
         if result == "":  # empty core indicates SAT
             # If any model is theory-consistent, we're done
             logger.debug("Found a theory-consistent model (SAT)")
             return []
-            
+
         raw_unsat_cores.append(result)
-    
+
     logger.debug(f"All models theory-inconsistent, collected {len(raw_unsat_cores)} unsat cores")
     return raw_unsat_cores
 
@@ -128,7 +121,6 @@ def parse_raw_unsat_core(core: str, bool_manager: BooleanFormulaManager) -> List
     :return: The blocking clauses built from the unsat core
     """
     parsed_core = SExprParser.parse_sexpr_string(core)
-    print(parsed_core)
     assert len(parsed_core) >= 1
     # Let the parsed_core be ['p@4', 'p@7', ['not', 'p@6']]
     blocking_clauses_core = []  # map the core to a numerical clause
@@ -179,13 +171,13 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=DE
         logger.debug("Solved by the preprocessor")
         return preprocessor.status
 
-    # Use number of CPUs as worker count
-    num_workers = cpu_count()
-    
+    # Determine worker count (0 means use number of CPUs)
+    num_workers = cpu_count() if MAX_T_CHECKING_PROCESSES == 0 else min(MAX_T_CHECKING_PROCESSES, cpu_count())
+
     # Initialize task and result queues
     task_queue = Queue()
     result_queue = Queue()
-    
+
     # Initialize boolean solver
     bool_solver = PySATSolver()
     bool_solver.add_clauses(bool_manager.numeric_clauses)
@@ -207,37 +199,37 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=DE
         m_smt_solver_bin = f"{m_smt_solver_bin} -in"
     else:
         m_smt_solver_bin = f"{m_smt_solver_bin} {z3_config['args']}"
-    
+
     # Create SMT query log directory if needed
     if LOG_SMT_QUERIES and not os.path.exists(SMT_LOG_DIR):
         os.makedirs(SMT_LOG_DIR, exist_ok=True)
         logger.debug(f"Created SMT query log directory: {SMT_LOG_DIR}")
-    
+
     # Start worker processes
     workers = []
     for i in range(num_workers):
-        p = Process(target=theory_worker, 
+        p = Process(target=theory_worker,
                    args=(i, init_theory_fml_str_shared, task_queue, result_queue, m_smt_solver_bin))
         p.daemon = True
         p.start()
         workers.append(p)
-    
+
     logger.debug(f"Started {num_workers} theory worker processes")
 
     sample_number = num_samples_per_round
     result = SolverResult.UNKNOWN
-    
+
     try:
         while True:
             is_sat = bool_solver.check_sat()
             if not is_sat:
                 result = SolverResult.UNSAT
                 break
-                
+
             logger.debug("Boolean abstraction is satisfiable")
             bool_models = bool_solver.sample_models(to_enum=sample_number)
             logger.debug(f"Finish sampling {len(bool_models)} Boolean models; Start checking T-consistency!")
-            
+
             # If there are no more Boolean models, formula is UNSAT
             if len(bool_models) == 0:
                 result = SolverResult.UNSAT
@@ -272,11 +264,11 @@ def parallel_cdclt_process(smt2string: str, logic: str, num_samples_per_round=DE
         # Signal all workers to terminate
         for _ in range(num_workers):
             task_queue.put((-1, None))  # -1 is the signal to terminate
-        
+
         # Wait for workers to terminate (with timeout)
         for p in workers:
             p.join(timeout=1.0)
-            
+
         # Force terminate any remaining workers
         for p in workers:
             if p.is_alive():
