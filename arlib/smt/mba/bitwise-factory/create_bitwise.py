@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 import inspect
 import io
 import os
 import re
 import sys
 import traceback
+from typing import List, Optional, Sequence
 
 
 from arlib.smt.mba.utils.dnf import Dnf
@@ -13,28 +16,30 @@ from arlib.smt.mba.utils.bitwise import Bitwise
 
 
 # Class for creating bitwise expressions for a given number of variables.
-class BitwiseFactory():
-    def __init__(self, vnumber, variables=None, noTable=False):
+class BitwiseFactory:
+    """Factory to build minimal bitwise expressions for a truth vector."""
+
+    def __init__(self, vnumber: int, variables: Optional[Sequence[str]] = None, noTable: bool = False) -> None:
         assert (variables == None or len(variables) >= vnumber)
 
-        self.__vnumber = vnumber
-        self.__variables = variables
-        self.__usesDefaultVars = variables == None
-        self.__table = None
-        self.__noTable = noTable
+        self.__vnumber: int = vnumber
+        self.__variables: Sequence[str] | None = variables
+        self.__usesDefaultVars: bool = variables == None
+        self.__table: Optional[Sequence[str]] = None
+        self.__noTable: bool = noTable
 
         if self.__usesDefaultVars:
             self.__variables = [self.__get_alt_vname(i) for i in range(vnumber)]
 
     # Get the alternative name of the variable with given index used if no
     # variable names are specified.
-    def __get_alt_vname(self, i):
+    def __get_alt_vname(self, i: int) -> str:
         return "X[" + str(i) + "]"
 
     # Initializes the lookup table containing 2^2^t base expressions for the
     # used number t of variables. Requires that the number of variables is not
     # larger than 3.
-    def __init_table(self):
+    def __init_table(self) -> None:
         if self.__vnumber == 1:
             self.__init_table_1var()
         elif self.__vnumber == 2:
@@ -45,14 +50,14 @@ class BitwiseFactory():
             assert (False)
 
     # Initializes the lookup table for 1 variable.
-    def __init_table_1var(self):
+    def __init_table_1var(self) -> None:
         self.__table = [
             "0",  # [0 0]
             "X[0]"  # [0 1]
         ]
 
     # Initializes the lookup table for 2 variables.
-    def __init_table_2vars(self):
+    def __init_table_2vars(self) -> None:
         self.__table = [
             "0",  # [0 0 0 0]
             "(X[0]&~X[1])",  # [0 1 0 0]
@@ -65,7 +70,7 @@ class BitwiseFactory():
         ]
 
     # Initializes the lookup table for 3 variables.
-    def __init_table_3vars(self):
+    def __init_table_3vars(self) -> None:
         truthfile = os.path.join(utilsdir, "bitwise_list_" + str(self.__vnumber) + "vars.txt")
         bitwiseExprList = []
 
@@ -78,7 +83,7 @@ class BitwiseFactory():
         self.__table = bitwiseExprList
 
     # Create a bitwise expression with given truth value vector.
-    def __create_bitwise(self, vector):
+    def __create_bitwise(self, vector: Sequence[int]) -> str:
         d = Dnf(self.__vnumber, vector)
         b = d.to_bitwise()
         b.refine()
@@ -92,7 +97,7 @@ class BitwiseFactory():
     # the corresponding expression after subtracting the given offset. That
     # is, returns a vector which has zeros exactly in the positions where the
     # given vector contains the given offset.
-    def __get_bitwise_vector(self, vector, offset):
+    def __get_bitwise_vector(self, vector: Sequence[int], offset: int) -> List[int]:
         return [(0 if v == offset else 1) for v in vector]
 
     # For the given vector of truth values, returns the index of the
@@ -100,7 +105,7 @@ class BitwiseFactory():
     # offset. That is, returns the index of the truth table entry for a truth
     # value vector which has zeros exactly in the positions where the given
     # vector contains the given offset.
-    def __get_bitwise_index_for_vector(self, vector, offset):
+    def __get_bitwise_index_for_vector(self, vector: Sequence[int], offset: int) -> int:
         index = 0
         add = 1
         for i in range(len(vector) - 1):
@@ -112,7 +117,7 @@ class BitwiseFactory():
     # For the given vector of truth values, returns the corresponding bitwise
     # expression from the lookup table after subtracting the given offset, if
     # given. Initializes the table if not yet initialized.
-    def __get_bitwise_from_table(self, vector, offset):
+    def __get_bitwise_from_table(self, vector: Sequence[int], offset: int) -> str:
         if self.__table == None: self.__init_table()
 
         index = self.__get_bitwise_index_for_vector(vector, offset)
@@ -128,13 +133,13 @@ class BitwiseFactory():
     # For the given vector of truth values, creates the corresponding bitwise
     # expression after subtracting the given offset. Uses the Quine-McCluskey
     # algorithm and some addiitonal refinement.
-    def __create_bitwise_with_offset(self, vector, offset):
+    def __create_bitwise_with_offset(self, vector: Sequence[int], offset: int) -> str:
         vector = self.__get_bitwise_vector(vector, offset)
         return self.__create_bitwise(vector)
 
     # For the given vector of truth values, returns the corresponding bitwise
     # expression after subtracting the given offset, if given.
-    def __create_bitwise_unnegated(self, vector, offset=0):
+    def __create_bitwise_unnegated(self, vector: Sequence[int], offset: int = 0) -> str:
         if not self.__noTable and self.__vnumber <= 3:
             return self.__get_bitwise_from_table(vector, offset)
         return self.__create_bitwise_with_offset(vector, offset)
@@ -144,7 +149,7 @@ class BitwiseFactory():
     # the truth table entry for a truth value vector which has zeros exactly in
     # the positions where the given vector contains the given offset. If
     # negated is True, the bitwise expression is negated.
-    def create_bitwise(self, vector, negated=False, offset=0):
+    def create_bitwise(self, vector: Sequence[int], negated: bool = False, offset: int = 0) -> str:
         # If the vector's first entry is nonzero after subtracting the offset,
         # negate the truth values and negate the bitwise thereafter.
         if not self.__noTable and self.__vnumber <= 3 and vector[0] != offset:
@@ -162,7 +167,8 @@ class BitwiseFactory():
 # given truth value vector If an offset is given, the truth value vector is
 # derived via subtracting the offset from the given vector. If no variables are
 # passed, the variables haven names "X[i]".
-def create_bitwise(vnumber, vec, offset=0, variables=None, noTable=False):
+def create_bitwise(vnumber: int, vec: Sequence[int], offset: int = 0,
+                   variables: Optional[Sequence[str]] = None, noTable: bool = False) -> str:
     factory = BitwiseFactory(vnumber, variables, noTable)
     return factory.create_bitwise(vec, False, offset)
 

@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 from enum import Enum, IntEnum
 import inspect
 import io
@@ -7,6 +9,7 @@ import os
 import re
 import sys
 import traceback
+from typing import List, Optional, Sequence
 
 try:
     import z3
@@ -32,20 +35,20 @@ class Metric(IntEnum):
     _COUNT = 4
 
     # Function for comparing metric types.
-    def __lt__(self, other):
+    def __lt__(self, other: "Metric") -> bool:  # type: ignore[override]
         if self.__class__ is other.__class__:
             return self.value < other.value
         return NotImplemented
 
     # Function for comparing metric types.
-    def __le__(self, other):
+    def __le__(self, other: "Metric") -> bool:  # type: ignore[override]
         if self.__class__ is other.__class__:
             return self.value <= other.value
         return NotImplemented
 
 
 # Returns True iff the given expression constitutes a linear MBA for sure.
-def check_linear(expr, bitCount):
+def check_linear(expr: str, bitCount: int) -> bool:
     tree = parse(expr, bitCount, False, False, False)
     tree.refine()
     tree.mark_linear()
@@ -54,13 +57,13 @@ def check_linear(expr, bitCount):
 
 # Returns the number of terms in the given expression under the assumption
 # that it is linear.
-def count_terms(expr):
+def count_terms(expr: str) -> int:
     return expr.count('+') + expr.count('-') + int(expr[0] != '-')
 
 
 # Returns a complexity penalty for the bitwise operations in the given node's
 # expression.
-def compute_bitwise_complexity(root):
+def compute_bitwise_complexity(root: Node) -> int:
     # TODO: More sophisticated complexity?
     return root.count_nodes([NodeType.VARIABLE, NodeType.NEGATION])
 
@@ -68,9 +71,16 @@ def compute_bitwise_complexity(root):
 # The main simplification class which stores relevant parameters such as the
 # number of variables, the modulus of the modular field as well as the vector
 # of results of the target expression for combinations of truth values.
-class Simplifier():
+class Simplifier:
+    """Simplify linear mixed Boolean-arithmetic expressions.
+
+    Builds truth tables for all variable assignments, synthesizes bitwise
+    sub-expressions, and composes a simpler linear combination according to a
+    chosen metric.
+    """
     # Initialize internals.
-    def __init(self, bitCount, expr, modRed, refine, verifBitCount, metric):
+    def __init(self, bitCount: int, expr: str, modRed: bool, refine: bool,
+               verifBitCount: Optional[int], metric: Metric) -> None:
         self.__origExpr = expr
         self.__groupsizes = [1]
         self.__bitCount = bitCount
@@ -95,26 +105,26 @@ class Simplifier():
             self.__init_result_vector()
 
     # Constructor which initiates the initialization.
-    def __init__(self, bitCount, expr, modRed=False, refine=True,
-                 verifBitCount=None, metric=Metric.ALTERNATION):
+    def __init__(self, bitCount: int, expr: str, modRed: bool = False, refine: bool = True,
+                 verifBitCount: Optional[int] = None, metric: Metric = Metric.ALTERNATION):
         self.__init(bitCount, expr, modRed, refine, verifBitCount, metric)
 
     # Get the internal name of the variable with given index.
-    def __get_tmp_vname(self, i):
+    def __get_tmp_vname(self, i: int) -> str:
         return "X[" + str(i) + "]"
 
     # Reduces the given number modulo modulus.
-    def __mod_red(self, n):
+    def __mod_red(self, n: int) -> int:
         return n % self.__modulus
 
     # Returns the number of terms in the given expression.
-    def get_term_count(self, expr):
+    def get_term_count(self, expr: str) -> int:
         return expr.count('+') + expr.count('-') - int(expr[0] == '-') + 1
 
     # Returns a constant equivalent to the given one and ready for use in the
     # output expression. If modRed is True, the return value lies between 0 and
     # the modulus; otherwise the returned value is a close as possible to 0.
-    def __prepare_constant(self, n):
+    def __prepare_constant(self, n: int) -> int:
         n = self.__mod_red(n)
         if self.__modRed: return n
         if n > self.__modulus // 2: return n - self.__modulus
@@ -122,7 +132,7 @@ class Simplifier():
 
     # Find all variables included in the stored original expression, store them
     # in a list and enumerate the tree's variable nodes accordingly.
-    def __collect_and_enumerate_variables(self):
+    def __collect_and_enumerate_variables(self) -> None:
         self.__variables = []
         # Get a list of unique variables.
         self.__tree.collect_and_enumerate_variables(self.__variables)
@@ -131,14 +141,14 @@ class Simplifier():
 
     # Initialize the group sizes of the various variables, i.e., their numbers
     # of subsequent occurences in the truth table.
-    def __init_groupsizes(self):
+    def __init_groupsizes(self) -> None:
         for i in range(1, self.__vnumber):
             self.__groupsizes.append(2 * self.__groupsizes[-1])
 
     # Initialize the vector storing results of expression evaluation for all
     # truth value combinations, i.e., [e(0,0,...), e(1,0,...), e(0,1,...),
     # e(1,1,...)].
-    def __init_result_vector(self):
+    def __init_result_vector(self) -> None:
         def f(X):
             return self.__tree.eval(X)
 
@@ -153,18 +163,18 @@ class Simplifier():
 
     # Returns a complexity penalty for the given expression, depending on the
     # occuring bitwise operations.
-    def __compute_bitwise_complexity(self, expr):
+    def __compute_bitwise_complexity(self, expr: str) -> int:
         node = parse(expr, self.__bitCount, self.__modRed, False, False)
         return compute_bitwise_complexity(node)
 
     # Returns the MBA alternation of the given linear MBA.
-    def __compute_alternation_linear(self, expr):
+    def __compute_alternation_linear(self, expr: str) -> int:
         node = parse(expr, self.__bitCount, self.__modRed, False, False)
         return node.compute_alternation_linear()
 
     # Returns the metric of given type for the given linear MBA with the term
     # count optionally given.
-    def __compute_metric(self, e, metric, t=None):
+    def __compute_metric(self, e: str, metric: Metric, t: Optional[int] = None) -> int:
         if metric == Metric.ALTERNATION: return self.__compute_alternation_linear(e)
         if metric == Metric.TERMS: return t if t != None else count_terms(e)
         if metric == Metric.STRING: return len(e)
@@ -176,7 +186,7 @@ class Simplifier():
     # its computed complexity values. The term count is optionally given. If a
     # constant is given, this constant has to be added tot he expression and
     # the given term count has to be incremented by one accordingly.
-    def __check_solution_complexity(self, e, t=None, constant=None):
+    def __check_solution_complexity(self, e: str, t: Optional[int] = None, constant: Optional[int] = None) -> None:
         assert ((self.__res == None) == (self.__compl == None))
 
         if constant != None:
@@ -191,7 +201,7 @@ class Simplifier():
                 self.__compl[int(Metric.TERMS) - int(self.__metric)] = t
             return
 
-        compl = [None for i in range(int(self.__metric), int(Metric._COUNT))]
+        compl: List[Optional[int]] = [None for i in range(int(self.__metric), int(Metric._COUNT))]
         for m in range(int(Metric._COUNT) - int(self.__metric)):
             metric = Metric(int(self.__metric) + m)
 
@@ -213,7 +223,7 @@ class Simplifier():
 
     # Returns the term count of the current optimal known solution. Requires
     # that a solution is known and its term count is already stored.
-    def __get_term_count_of_current_solution(self):
+    def __get_term_count_of_current_solution(self) -> int:
         m = int(Metric.TERMS) - int(self.__metric)
         assert (m >= 0)
 
@@ -225,31 +235,31 @@ class Simplifier():
     # expression after subtracting the given offset. That is, returns the truth
     # table entry for a truth value vector which has zeros exactly in the
     # positions where the given vector contains the given offset.
-    def __get_bitwise_expression(self, offset=0):
+    def __get_bitwise_expression(self, offset: int = 0) -> str:
         return self.__bitwiseFactory.create_bitwise(self.__resultVector, offset)
 
     # For the given vector of truth values, returns the corresponding bitwise
     # expression after subtracting the given offset.
-    def __get_bitwise_for_vector(self, vector, offset=0):
+    def __get_bitwise_for_vector(self, vector: Sequence[int], offset: int = 0) -> str:
         return self.__bitwiseFactory.create_bitwise(vector, False, offset)
 
     # For the given vector of truth values, returns the negation of the
     # corresponding bitwise expression.
-    def __get_negated_bitwise_for_vector(self, vector):
+    def __get_negated_bitwise_for_vector(self, vector: Sequence[int]) -> str:
         return self.__bitwiseFactory.create_bitwise(vector, True)
 
     # Returns true iff a is the sum of s1 and s2 in the modular field.
-    def __is_sum_modulo(self, s1, s2, a):
+    def __is_sum_modulo(self, s1: int, s2: int, a: int) -> bool:
         return s1 + s2 == a or s1 + s2 == a + self.__modulus
 
     # Returns true iff a is double b in the modular field.
-    def __is_double_modulo(self, a, b):
+    def __is_double_modulo(self, a: int, b: int) -> bool:
         return 2 * b == a or 2 * b == a + self.__modulus
 
     # Returns the given bitwise expressions times the given coefficients.
     # Appends a '+' if the final coefficient will be positive and first is
     # False.
-    def __term(self, bitwise, coeff, first):
+    def __term(self, bitwise: str, coeff: int, first: bool) -> str:
         coeff = self.__prepare_constant(coeff)
         term = ""
 
@@ -264,7 +274,7 @@ class Simplifier():
 
     # Returns the linear combination of the given bitwise expressions with
     # given coefficients.
-    def __compose(self, bitwises, coeffs):
+    def __compose(self, bitwises: Sequence[str], coeffs: Sequence[int]) -> str:
         assert (len(bitwises) > 0)
         assert (len(bitwises) == len(coeffs))
 
@@ -278,7 +288,7 @@ class Simplifier():
     # Returns a simple bitwise expression corresponding to the positions where
     # the vector of results for truth value combinations has a value of r1 or
     # rAlt to the given expression.
-    def __term_refinement(self, r1, first, rAlt=None):
+    def __term_refinement(self, r1: int, first: bool, rAlt: Optional[int] = None) -> str:
         t = []
         for r2 in self.__resultVector:
             t.append(int(r2 == r1 or (rAlt is not None and r2 == rAlt)))
@@ -288,7 +298,7 @@ class Simplifier():
 
     # Build an expression by summing up bitwise expressions, each corresponding
     # to a value in the lookup table and multiplied by this value thereafter.
-    def __expression_for_each_unique_value(self, resultSet):
+    def __expression_for_each_unique_value(self, resultSet: Sequence[int]) -> str:
         expr = ""
         first = True
         for r in resultSet:
@@ -305,7 +315,7 @@ class Simplifier():
     # For the given set of results of the input expression for combinations of
     # truth values, try to find a single negated expression representing the
     # result vector.
-    def __try_find_negated_single_expression(self, resultSet):
+    def __try_find_negated_single_expression(self, resultSet: set[int]) -> None:
         # We can only find a negated expression if we have 2 distinct values.
         assert (len(resultSet) == 2)
 
@@ -336,7 +346,7 @@ class Simplifier():
     # possibly, after subtraction of a constant, try to express one of them as
     # sum of others in order to find a combination of fewer simple bitwise
     # expressions.
-    def __try_eliminate_unique_value(self, uniqueValues, constant=None):
+    def __try_eliminate_unique_value(self, uniqueValues: Sequence[int], constant: Optional[int] = None) -> None:
         l = len(uniqueValues)
         # NOTE: Would be possible also for higher l, implementation is generic.
         if l > 4: return ""
@@ -384,7 +394,7 @@ class Simplifier():
             return
 
     # Subtract the result vector's first entry from the others and return it.
-    def __reduce_by_constant(self):
+    def __reduce_by_constant(self) -> int:
         constant = self.__resultVector[0]
         if constant != 0:
             for i in range(len(self.__resultVector)):
@@ -396,7 +406,7 @@ class Simplifier():
     # For the stored list of results of the input expression for combinations
     # of truth values, try to find two unnegated expressions representing the
     # result vector.
-    def __find_two_expressions_by_two_values(self):
+    def __find_two_expressions_by_two_values(self) -> None:
         assert (self.__resultVector[0] == 0)
         resultSet = set(self.__resultVector)
         assert (len(resultSet) == 3)
@@ -421,7 +431,7 @@ class Simplifier():
         BOTH = 3
 
     # Returns a vector of decitions for each entry in the result vector.
-    def __get_decision_vector(self, coeff1, coeff2, vec):
+    def __get_decision_vector(self, coeff1: int, coeff2: int, vec: Optional[Sequence[int]]):
         if vec == None: vec = self.__resultVector
 
         d = []
@@ -481,7 +491,7 @@ class Simplifier():
     # coefficients and given result vector for the given case. The second
     # bitwise expression is negated iff secNegated is True. In that case the
     # negated coefficient is already subtracted from the vector.
-    def __determine_comb_of_two_for_case(self, coeff1, coeff2, case, secNegated):
+    def __determine_comb_of_two_for_case(self, coeff1: int, coeff2: int, case, secNegated: bool) -> None:
         l = [int(c == [self.Decision.FIRST] or c == [self.Decision.BOTH]) for c in case]
         first = self.__get_bitwise_for_vector(l)
 
@@ -495,7 +505,7 @@ class Simplifier():
     # coefficients and given result vector. The second bitwise expression is
     # negated iff secNegated is True. In that case the negated coefficient is
     # already subtracted from the vector.
-    def __determine_comb_of_two(self, coeff1, coeff2, vec=None, secNegated=False):
+    def __determine_comb_of_two(self, coeff1: int, coeff2: int, vec: Optional[Sequence[int]] = None, secNegated: bool = False) -> None:
         d = self.__get_decision_vector(coeff1, coeff2, vec)
         cases = [d]
 
@@ -513,7 +523,7 @@ class Simplifier():
     # For the stored list of results of the input expression for combinations
     # of truth values, try to find a negated and an unnegated expression
     # representing the result vector.
-    def __try_find_negated_and_unnegated_expression(self):
+    def __try_find_negated_and_unnegated_expression(self) -> None:
         # TODO: We can still try to find a solution with 2 terms if we already
         # have one with one term, and then compare complexities.
         if len(set(self.__resultVector)) not in [3, 4]: return
@@ -555,7 +565,7 @@ class Simplifier():
     # For the stored list of results of the input expression for combinations
     # of truth values, try to find two negated expressions representing the
     # result vector.
-    def __try_find_two_negated_expressions(self):
+    def __try_find_two_negated_expressions(self) -> None:
         # TODO: We can still try to find a solution with 2 terms if we already
         # have one with one term, and then compare complexities.
         if len(set(self.__resultVector)) not in [3, 4]: return
@@ -597,7 +607,7 @@ class Simplifier():
         self.__check_solution_complexity(e, 2)
 
     # Add a given constant to the given expression.
-    def __add_constant(self, expr, constant):
+    def __add_constant(self, expr: str, constant: int) -> str:
         if constant == 0: return expr
 
         if self.__is_bitwise_with_binop(expr): expr = '(' + expr + ')'
@@ -610,7 +620,7 @@ class Simplifier():
 
     # Try to find a multiple of a single bitwise expression corresponding to
     # the stored result vector and the corresponding given set of its values.
-    def __try_refine_single_term(self, resultSet):
+    def __try_refine_single_term(self, resultSet: set[int]) -> None:
         l = len(resultSet)
         assert (l > 1)
 
@@ -633,7 +643,7 @@ class Simplifier():
     # Try to find a linear combination of two bitwise expressions corresponding
     # to the stored result vector and the corresponding given set of its
     # values, given that the result vector's first entry is 0.
-    def __try_refine_two_terms_first_zero(self, resultSet):
+    def __try_refine_two_terms_first_zero(self, resultSet: set[int]) -> None:
         assert (self.__resultVector[0] == 0)
         l = len(resultSet)
 
@@ -655,7 +665,7 @@ class Simplifier():
     # Try to find a linear combination of two bitwise expressions corresponding
     # to the stored result vector and the corresponding given set of its
     # values, given that the result vector's first entry is not 0.
-    def __try_refine_two_terms_first_nonzero(self, resultSet):
+    def __try_refine_two_terms_first_nonzero(self, resultSet: set[int]) -> None:
         assert (self.__resultVector[0] != 0)
         l = len(resultSet)
 
@@ -683,7 +693,7 @@ class Simplifier():
 
     # Try to find a linear combination of two bitwise expressions corresponding
     # to the stored result vector and the corresponding given set of its values.
-    def __try_refine_two_terms(self, resultSet):
+    def __try_refine_two_terms(self, resultSet: set[int]) -> None:
         if self.__resultVector[0] == 0:
             self.__try_refine_two_terms_first_zero(resultSet)
         else:
@@ -691,7 +701,7 @@ class Simplifier():
 
     # Returns True iff the term count metric is used and therer is already a
     # solution with at most the given term count known.
-    def __check_term_count(self, value):
+    def __check_term_count(self, value: int) -> bool:
         if self.__lincombTerms <= value: return True
         if self.__metric != Metric.TERMS: return False
         return self.__get_term_count_of_current_solution() <= value
@@ -700,7 +710,7 @@ class Simplifier():
     # decreased by finding suitable combinations of simple expressions in a
     # lookup table. Currently only tries to simplify to at most 3 terms.
     # NOTE: Could be extended to more terms for 3 variables.
-    def __try_refine(self):
+    def __try_refine(self) -> None:
         assert (self.__lincombTerms != None)
 
         # Rebuild the result vector since it has been modified during
@@ -747,7 +757,7 @@ class Simplifier():
 
     # Returns a trivial expression constituted by only one constant which is
     # the only element of the given set.
-    def __simplify_one_value(self, resultSet):
+    def __simplify_one_value(self, resultSet: set[int]) -> None:
         coefficient = resultSet.pop()
         e = str(self.__prepare_constant(coefficient))
         # This is of course the optimal solution, but still use the existing
@@ -756,7 +766,7 @@ class Simplifier():
 
     # Returns all sublists of the list [0,...,vnumber-1] ordered by their
     # sizes, whereas each sublist is sorted in increasing order.
-    def __get_variable_combinations(self):
+    def __get_variable_combinations(self) -> List[List[int]]:
         comb = [[v] for v in range(self.__vnumber)]
         new = self.__vnumber
 
@@ -775,7 +785,7 @@ class Simplifier():
     # Returns the conjunction of all variables included in the given list to the
     # given expression if the given coefficient is nonzero and multiply it with
     # that coefficient.
-    def __conjunction(self, coeff, variables, first):
+    def __conjunction(self, coeff: int, variables: Sequence[int], first: bool) -> str:
         assert (len(variables) > 0)
         if coeff == 0: return ""
 
@@ -793,7 +803,7 @@ class Simplifier():
 
     # Returns true iff the given variables hold in the result vector's entry
     # with given index.
-    def __are_variables_true(self, n, variables):
+    def __are_variables_true(self, n: int, variables: Sequence[int]) -> bool:
         prev = 0
         for v in variables:
             n >>= (v - prev)
@@ -804,7 +814,7 @@ class Simplifier():
 
     # Subtract the given coefficient from all elements of the result vector
     # which correspond to the same conjunction.
-    def __subtract_coefficient(self, coeff, firstStart, variables):
+    def __subtract_coefficient(self, coeff: int, firstStart: int, variables: Sequence[int]) -> None:
         groupsize1 = self.__groupsizes[variables[0]]
         period1 = 2 * groupsize1
         for start in range(firstStart, len(self.__resultVector), period1):
@@ -816,7 +826,7 @@ class Simplifier():
     # For the given vector of results for the combinations of truth values for
     # variables, and for the used number t of variables, determine a linear
     # combination of the 2^t base bitwise expressions.
-    def __simplify_generic(self):
+    def __simplify_generic(self) -> None:
         l = len(self.__resultVector)
         expr = ""
         term_count = 0
@@ -860,7 +870,7 @@ class Simplifier():
     # uses effectively. If it is not more than 3, run the simplification
     # procedure again for that variable count since we might be able to
     # simplify the expression using truth tables.
-    def __try_simplify_fewer_variables(self):
+    def __try_simplify_fewer_variables(self) -> bool:
         assert (self.__res != None)
 
         # Collect the variables in the result.
@@ -888,7 +898,7 @@ class Simplifier():
         return True
 
     # Split the given expression into terms, '+' and '-'.
-    def __split_into_terms(self, expr):
+    def __split_into_terms(self, expr: str):
         l = re.split("([\+-])", expr)
         # The first element is empty if the expression starts with a '-'.
         if len(l[0]) == 0: l = l[1:]
@@ -1084,7 +1094,7 @@ class Simplifier():
 
     # Returns true iff the given string represents a bitwise expression with at
     # least one binary operand.
-    def __is_bitwise_with_binop(self, expr):
+    def __is_bitwise_with_binop(self, expr: str) -> bool:
         # The expression must have at least one binary bitwise operator, but no
         # '+', '-' or '*'.
         return not bool(re.search("([\+*-])", expr)) and bool(re.search("([&|^])", expr))
@@ -1160,7 +1170,7 @@ class Simplifier():
     # into subexpressions with at most 3 variables each such that the list of
     # occurring variables is partitioned thereby, simplify these subexpressions
     # and compose the results.
-    def __try_split(self):
+    def __try_split(self) -> None:
         expr = self.__res
         assert (expr != None)
 
@@ -1174,7 +1184,7 @@ class Simplifier():
 
     # Verify that the original expression and the simplified one are equivalent
     # using Z3.
-    def __verify_using_z3(self):
+    def __verify_using_z3(self) -> bool:
         orig = self.__tree.to_string()
         assert (self.__res)
         simpl = self.__res
@@ -1202,11 +1212,11 @@ class Simplifier():
         return str(result) == "unsat"
 
     # Returns the number of variables occuring in the given expression.
-    def get_variable_count(self, expr):
+    def get_variable_count(self, expr: str) -> int:
         return self.__vnumber
 
     # Simplify the expression with used number of variables.
-    def __simplify(self, useZ3, alreadySplit=False):
+    def __simplify(self, useZ3: bool, alreadySplit: bool = False) -> str:
         if not self.valid:
             sys.exit("Error: Simplifier not correctly initialized!")
 
@@ -1258,13 +1268,13 @@ class Simplifier():
         return self.__res
 
     # Returns True iff the original expression is linear.
-    def __is_input_linear(self):
+    def __is_input_linear(self) -> bool:
         self.__tree.refine()
         self.__tree.mark_linear()
         return self.__tree.is_linear()
 
     # Verify the given solution via evaluation.
-    def __check_verify(self, simpl):
+    def __check_verify(self, simpl: str) -> bool:
         if self.__verifBitCount == None: return True
         if self.__is_input_linear():
             print("*** ... input is considered linear")
@@ -1276,7 +1286,7 @@ class Simplifier():
         return simplTree.check_verify(self.__tree, self.__verifBitCount)
 
     # Simplify the expression with used number of variables.
-    def simplify(self, useZ3):
+    def simplify(self, useZ3: bool) -> str:
         self.__res = None
         self.__compl = None
 
@@ -1287,8 +1297,8 @@ class Simplifier():
 # Simplify the given expression with given number of variables. For that,
 # evaluate it for all possible combinations of truth values for the variables
 # and run the simplification procedure based on the resulting vector.
-def simplify_linear_mba(expr, bitCount, useZ3, checkLinear=False, modRed=False,
-                        refine=True, verifBitCount=None, metric=Metric.ALTERNATION):
+def simplify_linear_mba(expr: str, bitCount: int, useZ3: bool, checkLinear: bool = False, modRed: bool = False,
+                        refine: bool = True, verifBitCount: Optional[int] = None, metric: Metric = Metric.ALTERNATION) -> str:
     if checkLinear and not check_linear(expr, bitCount):
         sys.exit("Error: Input expression may be no linear MBA: " + expr)
 

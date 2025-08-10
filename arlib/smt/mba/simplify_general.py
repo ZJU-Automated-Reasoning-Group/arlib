@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 import inspect
 import io
 import os
@@ -7,6 +9,7 @@ import re
 import sys
 import traceback
 import multiprocessing
+from typing import List, Optional, Sequence
 import numpy as np
 
 try:
@@ -24,7 +27,7 @@ from simplify import simplify_linear_mba, compute_bitwise_complexity
 
 # Verify that the original expression and the simplified one are equivalent
 # using Z3.
-def verify_using_z3(orig, simpl, bitCount, timeout=None):
+def verify_using_z3(orig: str, simpl: str, bitCount: int, timeout: Optional[int] = None) -> bool:
     if simpl == orig: return True
 
     if "**" in orig or "**" in simpl:
@@ -69,29 +72,34 @@ def verify_using_z3(orig, simpl, bitCount, timeout=None):
 
 # The main simplification class which stores relevant parameters such as the
 # number of bits.
-class GeneralSimplifier():
-    def __init__(self, bitCount, modRed=False, verifBitCount=None):
-        self.__bitCount = bitCount
-        self.__modulus = 2 ** bitCount
-        self.__modRed = modRed
-        self.__verifBitCount = verifBitCount
-        self.__vnumber = 0
-        self.__variables = []
-        self.__MAX_IT = 100
-        self.__VNAME_PREFIX = "Y["
-        self.__VNAME_SUFFIX = "]"
+class GeneralSimplifier:
+    """Simplify general (possibly nonlinear) MBA expressions.
+
+    Applies structural refactoring, partitioning, and targeted synthesis of
+    linear parts; optionally verifies with Z3 or evaluation.
+    """
+    def __init__(self, bitCount: int, modRed: bool = False, verifBitCount: Optional[int] = None) -> None:
+        self.__bitCount: int = bitCount
+        self.__modulus: int = 2 ** bitCount
+        self.__modRed: bool = modRed
+        self.__verifBitCount: Optional[int] = verifBitCount
+        self.__vnumber: int = 0
+        self.__variables: List[str] = []
+        self.__MAX_IT: int = 100
+        self.__VNAME_PREFIX: str = "Y["
+        self.__VNAME_SUFFIX: str = "]"
 
     # Get the internal name of the variable with given index.
-    def __get_vname(self, i):
+    def __get_vname(self, i: int) -> str:
         return self.__VNAME_PREFIX + str(i) + self.__VNAME_SUFFIX
 
     # Reduces the given number modulo modulus.
-    def __mod_red(self, n):
+    def __mod_red(self, n: int) -> int:
         return mod_red(n, self.__modulus)
 
     # Find all variables occuring in the given tree, store them in a list and
     # enumerate the tree's variable nodes accordingly.
-    def __collect_and_enumerate_variables(self, tree):
+    def __collect_and_enumerate_variables(self, tree) -> None:
         self.__variables = []
         # Get a list of unique variables.
         tree.collect_and_enumerate_variables(self.__variables)
@@ -99,7 +107,7 @@ class GeneralSimplifier():
 
     # Get the vector storing results of expression evaluation for all truth
     # value combinations, i.e., [e(0,0,...), e(1,0,...), e(0,1,...), e(1,1,...)].
-    def __get_result_vector(self, node):
+    def __get_result_vector(self, node) -> List[int]:
         def f(X):
             return node.eval(X)
 
@@ -116,7 +124,7 @@ class GeneralSimplifier():
 
     # Get the group sizes of the various variables, i.e., their numbers of
     # subsequent occurences in the truth table.
-    def __get_groupsizes(self):
+    def __get_groupsizes(self) -> List[int]:
         groupsizes = [1]
         for i in range(1, self.__vnumber):
             groupsizes.append(2 * groupsizes[-1])
@@ -125,7 +133,7 @@ class GeneralSimplifier():
 
     # Returns all sublists of the list [0,...,vnumber-1] ordered by their
     # sizes, whereas each sublist is sorted in increasing order.
-    def __get_variable_combinations(self):
+    def __get_variable_combinations(self) -> List[List[int]]:
         comb = [[v] for v in range(self.__vnumber)]
         new = self.__vnumber
 
@@ -143,7 +151,7 @@ class GeneralSimplifier():
 
     # Get the idx-th base expressions of the space of expressions with vnumber
     # variables.
-    def __get_basis_expression(self, idx):
+    def __get_basis_expression(self, idx: int) -> str:
         if idx == 0: return "1"
 
         res = ""
@@ -157,7 +165,7 @@ class GeneralSimplifier():
 
     # Returns true iff the given variables hold in the result vector's entry
     # with given index.
-    def __are_variables_true(self, n, variables):
+    def __are_variables_true(self, n: int, variables: Sequence[int]) -> bool:
         prev = 0
         for v in variables:
             n >>= (v - prev)
@@ -168,7 +176,7 @@ class GeneralSimplifier():
 
     # Subtract the given coefficient from all elements of the result vector
     # which correspond to the same conjunction.
-    def __subtract_coefficient(self, resultVector, coeff, firstStart, variables, groupsize):
+    def __subtract_coefficient(self, resultVector: List[int], coeff: int, firstStart: int, variables: Sequence[int], groupsize: int) -> None:
         period = 2 * groupsize
         for start in range(firstStart, len(resultVector), period):
             for i in range(start, start + groupsize):
@@ -178,7 +186,7 @@ class GeneralSimplifier():
 
     # For the given node, get the coefficients of its linear combination of the
     # base expressions.
-    def __get_linear_combination(self, node):
+    def __get_linear_combination(self, node) -> List[int]:
         resultVector = self.__get_result_vector(node)
         l = len(resultVector)
 
@@ -263,13 +271,13 @@ class GeneralSimplifier():
         return res
 
     # Find all variables occuring in the given node.
-    def __get_occurring_variable_indices(self, node):
+    def __get_occurring_variable_indices(self, node) -> List[int]:
         variables = []
         node.collect_variable_indices(variables)
         return variables
 
     # Try to simplify the given sum node if it has product nodes as children.
-    def __try_simplify_sum_nonlinear_part(self, node):
+    def __try_simplify_sum_nonlinear_part(self, node) -> bool:
         indices = self.__get_indices_of_simple_nonlinear_products_in_sum(node)
         if len(indices) == 0 or len(indices) == 1: return False
 
@@ -324,7 +332,7 @@ class GeneralSimplifier():
 
     # Returns true iff the given node can be part of a sum that can be
     # simplified.
-    def __is_candidate_for_simplification_in_sum(self, node):
+    def __is_candidate_for_simplification_in_sum(self, node) -> bool:
         if node.type != NodeType.PRODUCT and node.type != NodeType.POWER: return False
         if node.state != NodeState.NONLINEAR: return False
 
@@ -347,7 +355,7 @@ class GeneralSimplifier():
 
     # For the given sum node, get the indices of all its children which are
     # product nodes with a suitably small amount of children.
-    def __get_indices_of_simple_nonlinear_products_in_sum(self, node):
+    def __get_indices_of_simple_nonlinear_products_in_sum(self, node) -> List[int]:
         assert (node.type == NodeType.SUM)
 
         if node.linearEnd >= len(node.children) - 1: return []
@@ -361,7 +369,7 @@ class GeneralSimplifier():
 
     # Simplify the linear part of a nonlinear subexpression corresponding to
     # the given node.
-    def __simplify_nonlinear_subexpression_linear_part(self, node):
+    def __simplify_nonlinear_subexpression_linear_part(self, node) -> bool:
         subexpr = node.part_to_string(node.linearEnd)
         simpl = simplify_linear_mba(subexpr, self.__bitCount, False, False, self.__modRed)
 
@@ -393,7 +401,7 @@ class GeneralSimplifier():
 
     # Try to rearrange the given node by expanding products and powers,
     # collecting terms and factorizing.
-    def __refactor(self, node):
+    def __refactor(self, node) -> bool:
         orig = str(node)
 
         node.expand(True)
@@ -405,7 +413,7 @@ class GeneralSimplifier():
 
     # One step of simplification of the nonlinear subexpression corresponding
     # to the given node.
-    def __simplify_nonlinear_subexpression_step(self, node, parent, noRefactor, noSubst):
+    def __simplify_nonlinear_subexpression_step(self, node, parent, noRefactor: bool, noSubst: bool) -> bool:
         assert (not node.is_linear())
         changed = False
 
@@ -428,7 +436,7 @@ class GeneralSimplifier():
         return changed
 
     # Simplify the nonlinear subexpression corresponding to the given node.
-    def __simplify_nonlinear_subexpression(self, node, parent, noRefactor=False, noSubst=False):
+    def __simplify_nonlinear_subexpression(self, node, parent, noRefactor: bool = False, noSubst: bool = False) -> bool:
         prev = {str(node)}
         changed = False
 
@@ -465,7 +473,7 @@ class GeneralSimplifier():
         return changed
 
     # Simplify the linear subexpression corresponding to the given node.
-    def __simplify_linear_subexpression(self, node):
+    def __simplify_linear_subexpression(self, node) -> bool:
         subexpr = node.to_string()
         simpl = simplify_linear_mba(subexpr, self.__bitCount, False, False, self.__modRed)
         changed = simpl != subexpr
@@ -490,7 +498,7 @@ class GeneralSimplifier():
 
     # Try to simplify the expression further by substituting subexpressions
     # equal to the given node by a variable.
-    def __get_simpl_via_substitution_of_nodes(self, node, nodes, onlyFullMatch):
+    def __get_simpl_via_substitution_of_nodes(self, node, nodes, onlyFullMatch: bool):
         r = node.get_copy()
 
         # Avoid using a temporary variable that is already used in the node.
@@ -522,7 +530,7 @@ class GeneralSimplifier():
 
     # Returns true iff the first given linear expression is not more complex
     # than the second one.
-    def __is_second_more_or_equally_complex(self, first, second):
+    def __is_second_more_or_equally_complex(self, first, second) -> bool:
         c1 = first.compute_alternation()
         c2 = second.compute_alternation()
 
@@ -531,7 +539,7 @@ class GeneralSimplifier():
 
     # Try to simplify the expression further by substituting subexpressions
     # equal to the given node by a variable.
-    def __simplify_via_substitution_of_nodes(self, node, nodes, onlyFullMatch):
+    def __simplify_via_substitution_of_nodes(self, node, nodes, onlyFullMatch: bool) -> bool:
         r = self.__get_simpl_via_substitution_of_nodes(node, nodes, onlyFullMatch)
 
         # We keep the original node.
@@ -553,7 +561,7 @@ class GeneralSimplifier():
     # Try to simplify the expression further by substituting suitable
     # subexpressions from the given list according to the given index by
     # variables.
-    def __simplify_via_substitution_for_index(self, node, nodes, index):
+    def __simplify_via_substitution_for_index(self, node, nodes, index: int) -> bool:
         n = index
         sel = []
         for j in range(len(nodes)):
@@ -568,7 +576,7 @@ class GeneralSimplifier():
 
     # Try to simplify the expression further by substituting suitable
     # subexpressions by variables.
-    def __simplify_via_substitution(self, node):
+    def __simplify_via_substitution(self, node) -> bool:
         nodes = self.__collect_nodes_for_substitution(node)
         if len(nodes) == 0: return False
 
@@ -585,7 +593,7 @@ class GeneralSimplifier():
         return changed
 
     # Simplify the subexpression corresponding to the given node.
-    def __simplify_subexpression(self, node, parent, noRefactor=False, noSubst=False):
+    def __simplify_subexpression(self, node, parent, noRefactor: bool = False, noSubst: bool = False) -> bool:
         if node.is_linear():
             ch = self.__simplify_linear_subexpression(node)
             return ch
@@ -616,12 +624,12 @@ class GeneralSimplifier():
 
     # Verify that the original expression and the simplified one are equivalent
     # using Z3.
-    def __verify_using_z3(self, orig, simpl):
+    def __verify_using_z3(self, orig: str, simpl: str) -> bool:
         # Use 1 min as a timeout.
         return verify_using_z3(orig, simpl, self.__bitCount, 60000)
 
     # Returns the number of variables occuring in the given expression.
-    def get_variable_count(self, expr):
+    def get_variable_count(self, expr: str) -> int:
         root = parse(expr, self.__bitCount, True, False, False)
         if root == None:
             sys.exit("Error at parsing in get_variable_count()!")
@@ -630,7 +638,7 @@ class GeneralSimplifier():
         return self.__vnumber
 
     # Verify the given solution via evaluation.
-    def __check_verify(self, orig, simplTree):
+    def __check_verify(self, orig: str, simplTree) -> bool:
         if self.__verifBitCount == None: return True
 
         origTree = parse(orig, self.__bitCount, self.__modRed, False, False)
@@ -638,7 +646,7 @@ class GeneralSimplifier():
 
     # Simplify the given MBA.
     # Note: only one underscore, for MacOS support, see https://github.com/DenuvoSoftwareSolutions/GAMBA/issues/1
-    def _simplify(self, expr, returnDict):
+    def _simplify(self, expr: str, returnDict):
         root = parse(expr, self.__bitCount, self.__modRed, True, True)
         if root == None: sys.exit("Error: Could not parse expression!")
 
@@ -648,7 +656,7 @@ class GeneralSimplifier():
         returnDict[0] = root
 
     # Simplify the given MBA and check the result if required.
-    def simplify(self, expr, useZ3=False):
+    def simplify(self, expr: str, useZ3: bool = False) -> str:
         manager = multiprocessing.Manager()
         returnDict = manager.dict()
         p = multiprocessing.Process(target=self._simplify, args=(expr, returnDict))
@@ -680,7 +688,7 @@ class GeneralSimplifier():
 
 
 # Simplify the given expression with given number of variables.
-def simplify_mba(expr, bitCount, useZ3=False, modRed=False, verifBitCount=None):
+def simplify_mba(expr: str, bitCount: int, useZ3: bool = False, modRed: bool = False, verifBitCount: Optional[int] = None) -> str:
     simplifier = GeneralSimplifier(bitCount, modRed, verifBitCount)
     simpl = simplifier.simplify(expr, useZ3)
     return simpl

@@ -27,6 +27,7 @@ Arlib is a toolkit for playing with various automated reasoning tasks.  Some of 
 * QBF solving
 * Finite Field Solving (``arlib/smt/ff``)
 * Formula rewritings/simplifications
+* Probabilistic reasoning (WMC/WMI stubs) (``arlib/prob``)
 * Interactive theorem proving (``arlib/itp``)
 * LLM integration (``arlib/llm``)
 * Automata operations (``arlib/automata``)
@@ -86,6 +87,7 @@ The setup script will:
    symbolic_abstraction
    symbolic_finite_automata
    predicate_abstraction
+   prob
    unification
    unsat_core
    allsmt
