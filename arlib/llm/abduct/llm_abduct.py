@@ -1,20 +1,11 @@
-"""LLM for abduction
-
-This module provides functionality for using LLMs to generate abductive hypotheses
-based on SMT constraints for premises and conclusions. It includes tools for:
-1. Formatting SMT constraints for LLM prompting
-2. Generating abductive hypotheses using LLMs
-3. Validating hypotheses using Z3
-4. Evaluating LLM performance on abduction tasks
-5. Feedback-based refinement using SMT counterexamples
-"""
+"""LLM-based abduction utilities (prompting + SMT validation)."""
 
 import time
 import z3
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 
-from arlib.llm.abduct.base import LLM, LLMViaTool
+from arlib.llm.llmtool.LLM_utils import LLM
 #from arlib.abduction.abductor import check_abduct
 from arlib.utils.z3_solver_utils import is_sat, is_entail
 from arlib.llm.abduct.utils import extract_smt_from_llm_response, parse_smt2_string
@@ -23,7 +14,7 @@ from arlib.utils.z3_expr_utils import get_variables
 
 @dataclass
 class AbductionProblem:
-    """Represents an abduction problem with SMT constraints."""
+    """Abduction problem with SMT constraints."""
     premise: z3.BoolRef
     conclusion: z3.BoolRef
     description: str = ""
@@ -41,7 +32,7 @@ class AbductionProblem:
             self.domain_constraints = z3.BoolVal(True)
 
     def to_smt2_string(self) -> str:
-        """Convert the abduction problem to SMT-LIB2 format."""
+        """Render to SMT-LIB2 format."""
         smt2 = []
 
         # Declare variables
@@ -76,7 +67,7 @@ class AbductionProblem:
         return "\n".join(smt2)
 
     def to_natural_language(self) -> str:
-        """Generate a natural language description of the abduction problem."""
+        """Natural language description of the problem."""
         nl_desc = []
         nl_desc.append("Abduction Problem:")
 
@@ -111,7 +102,7 @@ class AbductionProblem:
 
 @dataclass
 class AbductionResult:
-    """Stores the result of an abduction attempt."""
+    """Result of an abduction attempt."""
     problem: AbductionProblem
     hypothesis: Optional[z3.BoolRef] = None
     is_consistent: bool = False
@@ -129,7 +120,7 @@ class AbductionResult:
 
 @dataclass
 class AbductionIterationResult:
-    """Stores the result of a single iteration in feedback-based abduction."""
+    """Result of a single feedback iteration."""
     hypothesis: Optional[z3.BoolRef] = None
     is_consistent: bool = False
     is_sufficient: bool = False
@@ -142,7 +133,7 @@ class AbductionIterationResult:
 
 @dataclass
 class FeedbackAbductionResult(AbductionResult):
-    """Stores the result of a feedback-based abduction attempt."""
+    """Result of feedback-based abduction."""
     iterations: List[AbductionIterationResult] = field(default_factory=list)
     total_iterations: int = 0
 
@@ -153,31 +144,26 @@ class FeedbackAbductionResult(AbductionResult):
 
 
 class LLMAbductor:
-    """Uses LLMs to generate abductive hypotheses for given SMT constraints."""
+    """Generates abductive hypotheses and validates them with Z3."""
 
-    def __init__(self, llm: LLM, max_attempts: int = 3, temperature: float = 0.7):
-        """
-        Initialize the LLM abductor.
-
-        Args:
-            llm: The LLM implementation to use
-            max_attempts: Maximum number of attempts to generate valid hypothesis
-            temperature: Temperature for LLM generation
-        """
+    def __init__(
+        self,
+        llm: LLM,
+        max_attempts: int = 3,
+        temperature: float = 0.7,
+    ):
+        """Initialize with shared `llmtool` LLM and options."""
         self.llm = llm
         self.max_attempts = max_attempts
         self.temperature = temperature
 
+    def _invoke_llm(self, prompt: str) -> str:
+        # Use the centralized LLM implementation directly
+        response, _, _ = self.llm.infer(prompt, True)
+        return response or ""
+
     def create_prompt(self, problem: AbductionProblem) -> str:
-        """
-        Create a prompt for the LLM based on the abduction problem.
-
-        Args:
-            problem: The abduction problem
-
-        Returns:
-            str: The prompt for the LLM
-        """
+        """Build an instruction-only prompt for generating ψ."""
         smt2_string = problem.to_smt2_string()
 
         # Create a more direct prompt that asks for just the SMT expression
@@ -209,18 +195,9 @@ DO NOT include declare-const statements or any other statements - ONLY the hypot
         return prompt
 
     def validate_hypothesis(self,
-                          problem: AbductionProblem,
-                          hypothesis: z3.BoolRef) -> Tuple[bool, bool]:
-        """
-        Validate if a hypothesis is consistent with the premise and sufficient to imply the conclusion.
-
-        Args:
-            problem: The abduction problem
-            hypothesis: The generated hypothesis
-
-        Returns:
-            Tuple[bool, bool]: (is_consistent, is_sufficient)
-        """
+                            problem: AbductionProblem,
+                            hypothesis: z3.BoolRef) -> Tuple[bool, bool]:
+        """Return (consistent, sufficient) for a hypothesis ψ."""
         # Skip validation for simple True hypotheses
         if z3.is_true(hypothesis):
             return True, False
@@ -243,27 +220,14 @@ DO NOT include declare-const statements or any other statements - ONLY the hypot
         return is_consistent, is_sufficient
 
     def abduce(self, problem: AbductionProblem) -> AbductionResult:
-        """
-        Generate an abductive hypothesis for the given problem.
-
-        Args:
-            problem: The abduction problem
-
-        Returns:
-            AbductionResult: The result of the abduction attempt
-        """
+        """Generate an abductive hypothesis."""
         start_time = time.time()
         prompt = self.create_prompt(problem)
         llm_response = ""
 
         for attempt in range(self.max_attempts):
             try:
-                # Generate hypothesis from LLM
-                llm_response = self.llm.generate(
-                    prompt=prompt,
-                    temperature=self.temperature + (attempt * 0.1),
-                    max_tokens=1000
-                )
+                llm_response = self._invoke_llm(prompt)
 
                 # Extract and parse SMT expression
                 smt_string = extract_smt_from_llm_response(llm_response)
@@ -271,13 +235,11 @@ DO NOT include declare-const statements or any other statements - ONLY the hypot
                     print(f"No SMT expression found in LLM response on attempt {attempt+1}")
                     continue
 
-                # Pass the problem for context in parsing
                 hypothesis = parse_smt2_string(smt_string, problem)
                 if hypothesis is None:
                     print(f"Failed to parse SMT expression on attempt {attempt+1}")
                     continue
 
-                # Validate the hypothesis
                 is_consistent, is_sufficient = self.validate_hypothesis(problem, hypothesis)
 
                 result = AbductionResult(
@@ -290,7 +252,6 @@ DO NOT include declare-const statements or any other statements - ONLY the hypot
                     execution_time=time.time() - start_time
                 )
 
-                # Return immediately if valid
                 if is_consistent and is_sufficient:
                     return result
 
@@ -326,15 +287,13 @@ class FeedbackLLMAbductor(LLMAbductor):
     feedback to the LLM, allowing it to refine its hypotheses through multiple iterations.
     """
 
-    def __init__(self, llm: LLM, max_iterations: int = 5, temperature: float = 0.7):
-        """
-        Initialize the feedback-based LLM abductor.
-
-        Args:
-            llm: The LLM implementation to use
-            max_iterations: Maximum number of feedback iterations
-            temperature: Temperature for LLM generation
-        """
+    def __init__(
+        self,
+        llm: LLM,
+        max_iterations: int = 5,
+        temperature: float = 0.7,
+    ):
+        """Initialize feedback-based abduction."""
         super().__init__(llm=llm, max_attempts=1, temperature=temperature)
         self.max_iterations = max_iterations
 
@@ -381,20 +340,10 @@ class FeedbackLLMAbductor(LLMAbductor):
         return None
 
     def create_feedback_prompt(self,
-                              problem: AbductionProblem,
-                              previous_iterations: List[AbductionIterationResult],
-                              last_counterexample: Dict[str, Any]) -> str:
-        """
-        Create a prompt with feedback from previous iterations.
-
-        Args:
-            problem: The abduction problem
-            previous_iterations: Previous iteration results
-            last_counterexample: The counterexample from the most recent attempt
-
-        Returns:
-            str: Prompt with feedback for the LLM
-        """
+                               problem: AbductionProblem,
+                               previous_iterations: List[AbductionIterationResult],
+                               last_counterexample: Dict[str, Any]) -> str:
+        """Build a feedback-augmented prompt."""
         smt2_string = problem.to_smt2_string()
 
         # Extract information about the latest attempt
@@ -461,15 +410,7 @@ or just:
         return prompt
 
     def abduce_with_feedback(self, problem: AbductionProblem) -> FeedbackAbductionResult:
-        """
-        Generate an abductive hypothesis using iterative feedback from counterexamples.
-
-        Args:
-            problem: The abduction problem
-
-        Returns:
-            FeedbackAbductionResult: The result of the feedback-based abduction
-        """
+        """Iterative abduction with feedback from counterexamples."""
         start_time = time.time()
 
         # Create initial prompt without feedback
@@ -490,12 +431,7 @@ or just:
 
         for iteration in range(self.max_iterations):
             try:
-                # Generate hypothesis from LLM
-                llm_response = self.llm.generate(
-                    prompt=current_prompt,
-                    temperature=self.temperature + (iteration * 0.05),
-                    max_tokens=1000
-                )
+                llm_response = self._invoke_llm(current_prompt)
 
                 # Extract and parse SMT expression
                 smt_string = extract_smt_from_llm_response(llm_response)

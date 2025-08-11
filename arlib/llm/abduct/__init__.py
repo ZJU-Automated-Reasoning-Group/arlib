@@ -15,9 +15,7 @@ from arlib.llm.abduct.utils import (
 )
 from arlib.utils.z3_expr_utils import get_variables
 
-from arlib.llm.abduct.evaluator import AbductionEvaluator
-
-from arlib.llm.abduct.base import LLM, EnvLoader, LLMViaTool
+"""Public API for LLM-based abduction."""
 
 
 __all__ = [
@@ -25,10 +23,6 @@ __all__ = [
     "AbductionProblem",
     "AbductionResult",
     "LLMAbductor",
-    "AbductionEvaluator",
-    "LLM",
-    "EnvLoader",
-    "LLMViaTool",
 
     # Utility functions
     "get_variables",
