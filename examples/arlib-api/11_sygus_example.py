@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import z3
-from arlib.sygus.sygus_pbe import StringSyGuSPBE
+from arlib.synthesis.sygus_pbe import StringSyGuSPBE
 from arlib.utils.z3_plus_smtlib_solver import Z3SolverPlus
 
 def string_syn():
@@ -38,4 +38,4 @@ def bv_syn():
         print(f"BV failed: {e}")
 
 if __name__ == "__main__":
-    string_syn(); func_syn(); bv_syn() 
+    string_syn(); func_syn(); bv_syn()

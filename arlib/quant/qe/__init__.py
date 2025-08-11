@@ -22,10 +22,6 @@ from . import qe_expansion
 from . import qe_lme
 from . import qe_lme_parallel
 
-# Import the individual external QE modules for backward compatibility
-from . import qe_qepcad
-from . import qe_mma
-from . import qe_redlog
 
 # Convenience imports
 __all__ = [

@@ -3,8 +3,7 @@ Tests for the String SyGuS PBE solver
 """
 
 import unittest
-from arlib.sygus.sygus_pbe import StringSyGuSPBE
-
+from arlib.synthesis.sygus_pbe import StringSyGuSPBE
 
 class TestStringSyGuSPBE(unittest.TestCase):
     """Test cases for StringSyGuSPBE"""
@@ -61,4 +60,4 @@ class TestStringSyGuSPBE(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()
