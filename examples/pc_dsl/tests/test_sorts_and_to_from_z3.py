@@ -1,6 +1,6 @@
 import z3
 
-from arlib.pc_dsl.easy_z3 import Solver, BV, Array, BVVal, to_z3, from_z3
+from pc_dsl.easy_z3 import Solver, BV, Array, BVVal, to_z3, from_z3
 
 
 class SortsCase(Solver):

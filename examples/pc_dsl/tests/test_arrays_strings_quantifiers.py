@@ -1,7 +1,7 @@
 import pytest
 z3 = pytest.importorskip("z3")
 
-from arlib.pc_dsl.easy_z3 import Solver, Concat, Length, Store, ForAll
+from pc_dsl.easy_z3 import Solver, Concat, Length, Store, ForAll
 
 
 class ArraysStrings(Solver):

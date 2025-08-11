@@ -1,4 +1,4 @@
-# Arlib 
+# Arlib
 
 Arlib is toolkit for automated reasoning. It provides a set of tools for constraint solving, logical inference, and symbolic computation.
 
@@ -15,7 +15,7 @@ bash setup_local_env.sh
 ~~~~
 
 
-The script will 
+The script will
 - Create a Python virtual environment if it doesn't exist
 - Activate the virtual environment and install dependencies from requirements.txt
 - Download required solver binaries (CVC5, MathSAT, z3)
@@ -39,7 +39,7 @@ TBD (The repository is not yet released to PyPI.)
 
 ## Contributing
 
-Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute. 
+Contributions are welcome. Please refer to the repository for detailed instructions on how to contribute.
 
 ~~~~
 arlib/
@@ -73,6 +73,9 @@ Here are some of publications related to Arlib.
 - ICSE 2023: Verifying Data Constraint Equivalence in FinTech Systems. Chengpeng Wang, Gang Fan, Peisen Yao, Fuxiong Pan, and Charles Zhang.
 - OOPSLA 2021: Program Analysis via Efficient Symbolic Abstraction. Peisen Yao, Qingkai Shi, Heqing Huang, and Charles Zhang.
 
+## Awards
+
+- [z3-owl] ranked 3rd in the single-query tracks of [QF_ABV](https://smt-comp.github.io/2025/results/qf_abv-single-query/), [QF_AUFBV](https://smt-comp.github.io/2025/results/qf_aufbv-single-query/), and [QF_BVFP](https://smt-comp.github.io/2025/results/qf_bvfp-single-query/) at SMT-COMP 2025.
 
 ## Related Work
 
@@ -90,7 +93,7 @@ Here are some of publications related to Arlib.
 Primary contributors to this project:
 - rainoftime / cutelimination
 - JasonJ2021
-- ZelinMa557 
+- ZelinMa557
 - Harrywwq
 - little-d1d1
 - ljcppp

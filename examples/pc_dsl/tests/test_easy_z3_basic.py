@@ -1,6 +1,6 @@
 import z3
 
-from arlib.pc_dsl.easy_z3 import Solver, get_constraints
+from pc_dsl.easy_z3 import Solver, get_constraints
 
 
 class Basic(Solver):
