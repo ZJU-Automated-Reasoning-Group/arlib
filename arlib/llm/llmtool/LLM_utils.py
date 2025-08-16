@@ -1,75 +1,49 @@
-# Imports
-from pathlib import Path
+import json
+import os
+import time
+import concurrent.futures
 from typing import Tuple
-# Optional provider SDKs (guarded)
+from arlib.llm.llmtool.logger import Logger
+
+# Optional SDKs
 try:
     from openai import OpenAI
-except Exception:  # pragma: no cover
+except ImportError:
     OpenAI = None
 try:
     import google.generativeai as genai
-except Exception:  # pragma: no cover
+except ImportError:
     genai = None
-# import signal
-# import sys
 try:
     import tiktoken
-except Exception:  # pragma: no cover
+except ImportError:
     tiktoken = None
-import time
-import os
-import concurrent.futures
-from functools import partial
-# import threading
-
-import json
 try:
     from botocore.config import Config
-    from botocore.exceptions import BotoCoreError, ClientError
     import boto3
-except Exception:  # pragma: no cover
-    Config = None
-    BotoCoreError = ClientError = None
-    boto3 = None
-from arlib.llm.llmtool.logger import Logger
-
+except ImportError:
+    Config = boto3 = None
 try:
     from zhipuai import ZhipuAI
-except Exception:  # pragma: no cover
+except ImportError:
     ZhipuAI = None
 
 
 class LLM:
-    """
-    An online inference model using different LLMs:
-    - Gemini
-    - OpenAI: GPT-3.5, GPT-4, o3-mini
-    - DeepSeek: V3, R1
-    - Claude: 3.5 and 3.7
-    """
+    """Multi-provider LLM inference: Gemini, OpenAI, DeepSeek, Claude, GLM"""
 
-    def __init__(
-        self,
-        online_model_name: str,
-        logger: Logger,
-        temperature: float = 0.0,
-        system_role="You are a experienced programmer and good at understanding programs written in mainstream programming languages.",
-    ) -> None:
+    def __init__(self, online_model_name: str, logger: Logger, temperature: float = 0.0,
+                 system_role="You are an experienced programmer.") -> None:
         self.online_model_name = online_model_name
-        if tiktoken is not None:
-            self.encoding = tiktoken.encoding_for_model(
-                "gpt-3.5-turbo-0125"
-            )  # We only use gpt-3.5 to measure token cost
-        else:
-            class _DummyEncoding:
-                def encode(self, s: str):
-                    # bytes length as a rough proxy
-                    return s.encode("utf-8")
-            self.encoding = _DummyEncoding()
         self.temperature = temperature
         self.systemRole = system_role
         self.logger = logger
-        return
+
+        # Token encoding for cost measurement
+        if tiktoken:
+            self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
+        else:
+            self.encoding = type('_DummyEncoding', (), {'encode': lambda _, s: s.encode("utf-8")})()
 
     def infer(
         self, message: str, is_measure_cost: bool = False
@@ -103,247 +77,124 @@ class LLM:
         )
         return output, input_token_cost, output_token_cost
 
-    def run_with_timeout(self, func, timeout):
-        """Run a function with timeout that works in multiple threads"""
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(func)
+    def _retry_api_call(self, call_func, timeout=100, max_retries=5):
+        """Common retry logic for all API calls"""
+        for attempt in range(max_retries):
             try:
-                return future.result(timeout=timeout)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(call_func)
+                    result = future.result(timeout=timeout)
+                    if result:
+                        return result
             except concurrent.futures.TimeoutError:
-                ("Operation timed out")
-                return ""
+                self.logger.print_log("Operation timed out")
             except Exception as e:
-                self.logger.print_log(f"Operation failed: {e}")
-                return ""
+                self.logger.print_log(f"API error: {e}")
+            time.sleep(2)
+        return ""
 
     def infer_with_gemini(self, message: str) -> str:
-        """Infer using the Gemini model from Google Generative AI"""
-        if genai is None:
+        """Infer using Gemini model"""
+        if not genai:
             self.logger.print_log("Gemini SDK not installed")
             return ""
-        gemini_model = genai.GenerativeModel("gemini-pro")
 
+        model = genai.GenerativeModel("gemini-pro")
         def call_api():
-            message_with_role = self.systemRole + "\n" + message
-            safety_settings = [
-                {
-                    "category": "HARM_CATEGORY_DANGEROUS",
-                    "threshold": "BLOCK_NONE",
-                },
-                # ...existing safety settings...
-            ]
-            response = gemini_model.generate_content(
-                message_with_role,
-                safety_settings=safety_settings,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=self.temperature
-                ),
-            )
-            return response.text
+            return model.generate_content(
+                f"{self.systemRole}\n{message}",
+                safety_settings=[{"category": "HARM_CATEGORY_DANGEROUS", "threshold": "BLOCK_NONE"}],
+                generation_config=genai.types.GenerationConfig(temperature=self.temperature)
+            ).text
 
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=50)
-                if output:
-                    self.logger.print_log("Inference succeeded...")
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {e}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api, timeout=50)
 
     def infer_with_openai_model(self, message):
-        """Infer using the OpenAI model"""
-        if OpenAI is None:
+        """Infer using OpenAI model"""
+        if not OpenAI:
             self.logger.print_log("OpenAI SDK not installed")
             return ""
-        api_key = os.environ.get("OPENAI_API_KEY", "").split(":")[0]
-        model_input = [
-            {"role": "system", "content": self.systemRole},
-            {"role": "user", "content": message},
-        ]
 
         def call_api():
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").split(":")[0])
+            return client.chat.completions.create(
                 model=self.online_model_name,
-                messages=model_input,
-                temperature=self.temperature,
-            )
-            return response.choices[0].message.content
+                messages=[{"role": "system", "content": self.systemRole},
+                         {"role": "user", "content": message}],
+                temperature=self.temperature
+            ).choices[0].message.content
 
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=100)
-                if output:
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {e}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api)
 
     def infer_with_o3_mini_model(self, message):
-        """Infer using the o3-mini model"""
-        if OpenAI is None:
+        """Infer using o3-mini model"""
+        if not OpenAI:
             self.logger.print_log("OpenAI SDK not installed")
             return ""
-        api_key = os.environ.get("OPENAI_API_KEY", "").split(":")[0]
-        model_input = [
-            {"role": "system", "content": self.systemRole},
-            {"role": "user", "content": message},
-        ]
 
         def call_api():
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model=self.online_model_name, messages=model_input
-            )
-            return response.choices[0].message.content
+            client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").split(":")[0])
+            return client.chat.completions.create(
+                model=self.online_model_name,
+                messages=[{"role": "system", "content": self.systemRole},
+                         {"role": "user", "content": message}]
+            ).choices[0].message.content
 
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=100)
-                if output:
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {e}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api)
 
     def infer_with_deepseek_model(self, message):
-        """
-        Infer using the DeepSeek model
-        """
-        api_key = os.environ.get("DEEPSEEK_API_KEY2")
-        model_input = [
-            {
-                "role": "system",
-                "content": self.systemRole,
-            },
-            {"role": "user", "content": message},
-        ]
-
+        """Infer using DeepSeek model"""
         def call_api():
-            client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-            response = client.chat.completions.create(
+            client = OpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY2"),
+                          base_url="https://api.deepseek.com")
+            return client.chat.completions.create(
                 model=self.online_model_name,
-                messages=model_input,
-                temperature=self.temperature,
-            )
-            return response.choices[0].message.content
+                messages=[{"role": "system", "content": self.systemRole},
+                         {"role": "user", "content": message}],
+                temperature=self.temperature
+            ).choices[0].message.content
 
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=300)
-                if output:
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {e}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api, timeout=300)
 
     def infer_with_claude(self, message):
-        """Infer using the Claude model via AWS Bedrock"""
-        if boto3 is None or Config is None:
-            self.logger.print_log("boto3/botocore not installed for Claude via Bedrock")
+        """Infer using Claude model via AWS Bedrock"""
+        if not boto3 or not Config:
+            self.logger.print_log("boto3/botocore not installed for Claude")
             return ""
-        if "3.5" in self.online_model_name:
-            model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-        if "3.7" in self.online_model_name:
-            model_id = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
 
-        model_input = [
-            {
-                "role": "assistant",
-                "content": self.systemRole,
-            },
-            {"role": "user", "content": message},
-        ]
+        model_id = ("anthropic.claude-3-5-sonnet-20241022-v2:0" if "3.5" in self.online_model_name
+                   else "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
 
-        body = json.dumps(
-            {
-                "messages": model_input,
+        def call_api():
+            client = boto3.client("bedrock-runtime", region_name="us-west-2",
+                                config=Config(read_timeout=100))
+            body = json.dumps({
+                "messages": [{"role": "assistant", "content": self.systemRole},
+                           {"role": "user", "content": message}],
                 "max_tokens": 4000,
                 "anthropic_version": "bedrock-2023-05-31",
                 "temperature": self.temperature,
-                "top_k": 50,
-            }
-        )
+                "top_k": 50
+            })
+            response = client.invoke_model(modelId=model_id, contentType="application/json", body=body)
+            return json.loads(response["body"].read().decode("utf-8"))["content"][0]["text"]
 
-        def call_api():
-            client = boto3.client(
-                "bedrock-runtime",
-                region_name="us-west-2",
-                config=Config(read_timeout=100),
-            )
-
-            response = (
-                client.invoke_model(
-                    modelId=model_id, contentType="application/json", body=body
-                )["body"]
-                .read()
-                .decode("utf-8")
-            )
-
-            response = json.loads(response)
-            return response["content"][0]["text"]
-
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=100)
-                if output:
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {str(e)}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api)
 
 
     def infer_with_glm_model(self, message):
-        """Infer using the GLM model"""
-        if ZhipuAI is None:
+        """Infer using GLM model"""
+        if not ZhipuAI:
             self.logger.print_log("ZhipuAI SDK not installed")
             return ""
-        api_key = os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY")
-        model_input = [
-            {"role": "system", "content": self.systemRole},
-            {"role": "user", "content": message},
-        ]
 
         def call_api():
-            client = ZhipuAI(api_key=api_key)
-            response = client.chat.completions.create(
+            client = ZhipuAI(api_key=os.environ.get("GLM_API_KEY") or os.environ.get("ZHIPU_API_KEY"))
+            return client.chat.completions.create(
                 model=self.online_model_name,
-                messages=model_input,
-                temperature=self.temperature,
-            )
-            return response.choices[0].message.content
+                messages=[{"role": "system", "content": self.systemRole},
+                         {"role": "user", "content": message}],
+                temperature=self.temperature
+            ).choices[0].message.content
 
-        tryCnt = 0
-        while tryCnt < 5:
-            tryCnt += 1
-            try:
-                output = self.run_with_timeout(call_api, timeout=100)
-                if output:
-                    # print("Raw response from GLM model: ", output)
-                    return output
-            except Exception as e:
-                self.logger.print_log(f"API error: {e}")
-            time.sleep(2)
-
-        return ""
+        return self._retry_api_call(call_api)

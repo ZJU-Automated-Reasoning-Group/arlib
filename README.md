@@ -73,7 +73,7 @@ Here are some of publications related to Arlib.
 - ICSE 2023: Verifying Data Constraint Equivalence in FinTech Systems. Chengpeng Wang, Gang Fan, Peisen Yao, Fuxiong Pan, and Charles Zhang.
 - OOPSLA 2021: Program Analysis via Efficient Symbolic Abstraction. Peisen Yao, Qingkai Shi, Heqing Huang, and Charles Zhang.
 
-## Awards
+## Honors & Awards
 
 - [z3-owl] ranked 3rd in the single-query tracks of [QF_ABV](https://smt-comp.github.io/2025/results/qf_abv-single-query/), [QF_AUFBV](https://smt-comp.github.io/2025/results/qf_aufbv-single-query/), and [QF_BVFP](https://smt-comp.github.io/2025/results/qf_bvfp-single-query/) at SMT-COMP 2025.
 

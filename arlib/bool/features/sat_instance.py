@@ -147,7 +147,7 @@ def get_base_features(cnf_path):
 
 def demo_features():
     from pathlib import Path
-    from arlib.config import BENCHMARKS_PATH
+    from arlib.global_params import BENCHMARKS_PATH
     cnf_path = BENCHMARKS_PATH / "dimacs" / "parity_5.cnf"
     get_base_features(cnf_path)
 

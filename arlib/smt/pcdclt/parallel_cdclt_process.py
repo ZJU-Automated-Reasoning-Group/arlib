@@ -13,7 +13,7 @@ from arlib.smt.pcdclt import SMTPreprocessor4Process, BooleanFormulaManager
 from arlib.bool import PySATSolver, simplify_numeric_clauses
 from arlib.smt.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, SExprParser
-from arlib.config import SMT_SOLVERS_PATH
+from arlib.global_params import SMT_SOLVERS_PATH
 from arlib.smt.pcdclt.cdclt_config import (
     LOG_SMT_QUERIES, SMT_LOG_DIR, NUM_SAMPLES,
     SIMPLIFY as M_SIMPLIFY_BLOCKING_CLAUSES,

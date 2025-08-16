@@ -9,7 +9,7 @@ import re
 from typing import List
 
 from arlib.smt.pcdclt import BooleanFormulaManager, SMTPreprocessor4Process
-from arlib.config import SMT_SOLVERS_PATH
+from arlib.global_params import SMT_SOLVERS_PATH
 from arlib.smt.pcdclt.theory import SMTLibTheorySolver
 from arlib.utils import SolverResult, RE_GET_EXPR_VALUE_ALL
 from arlib.utils.smtlib_solver import SMTLIBSolver
