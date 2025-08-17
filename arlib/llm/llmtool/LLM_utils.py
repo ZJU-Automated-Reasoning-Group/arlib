@@ -4,29 +4,26 @@ import time
 import concurrent.futures
 from typing import Tuple
 from arlib.llm.llmtool.logger import Logger
+import importlib
+from typing import Optional, Any
+from openai import OpenAI
+from zhipuai import ZhipuAI
+import tiktoken
 
-# Optional SDKs
-try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None
-try:
-    import google.generativeai as genai
-except ImportError:
-    genai = None
-try:
-    import tiktoken
-except ImportError:
-    tiktoken = None
-try:
-    from botocore.config import Config
-    import boto3
-except ImportError:
-    Config = boto3 = None
-try:
-    from zhipuai import ZhipuAI
-except ImportError:
-    ZhipuAI = None
+
+def _optional_import(module_name: str, from_name: str = None) -> Optional[Any]:
+    """Safely import optional dependencies"""
+    try:
+        if from_name:
+            module = importlib.import_module(module_name)
+            return getattr(module, from_name)
+        return importlib.import_module(module_name)
+    except ImportError:
+        return None
+
+# Import optional dependencies (FIXME: should we do this? Just installing the dependencies should be easy...)
+genai = _optional_import("google.generativeai")
+anthropic = _optional_import("anthropic", "Anthropic")
 
 
 class LLM:
@@ -35,15 +32,13 @@ class LLM:
     def __init__(self, online_model_name: str, logger: Logger, temperature: float = 0.0,
                  system_role="You are an experienced programmer.") -> None:
         self.online_model_name = online_model_name
+        self.encoding = tiktoken.encoding_for_model(
+            "gpt-3.5-turbo-0125"
+        )  # We only use gpt-3.5 to measure token cost
         self.temperature = temperature
         self.systemRole = system_role
         self.logger = logger
 
-        # Token encoding for cost measurement
-        if tiktoken:
-            self.encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0125")
-        else:
-            self.encoding = type('_DummyEncoding', (), {'encode': lambda _, s: s.encode("utf-8")})()
 
     def infer(
         self, message: str, is_measure_cost: bool = False
@@ -157,27 +152,36 @@ class LLM:
         return self._retry_api_call(call_api, timeout=300)
 
     def infer_with_claude(self, message):
-        """Infer using Claude model via AWS Bedrock"""
-        if not boto3 or not Config:
-            self.logger.print_log("boto3/botocore not installed for Claude")
+        """Infer using Claude model via direct Anthropic API"""
+        if not anthropic:
+            self.logger.print_log("Anthropic SDK not installed")
             return ""
 
-        model_id = ("anthropic.claude-3-5-sonnet-20241022-v2:0" if "3.5" in self.online_model_name
-                   else "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
+        # Map model names to Anthropic API model identifiers
+        model_mapping = {
+            "claude-3.5": "claude-3-5-sonnet-20241022",
+            "claude-3-5": "claude-3-5-sonnet-20241022",
+            "claude-3": "claude-3-sonnet-20240229",
+            "claude": "claude-3-5-sonnet-20241022"  # default to latest
+        }
+
+        # Find matching model or use default
+        model_id = "claude-3-5-sonnet-20241022"  # default
+        for key, value in model_mapping.items():
+            if key in self.online_model_name.lower():
+                model_id = value
+                break
 
         def call_api():
-            client = boto3.client("bedrock-runtime", region_name="us-west-2",
-                                config=Config(read_timeout=100))
-            body = json.dumps({
-                "messages": [{"role": "assistant", "content": self.systemRole},
-                           {"role": "user", "content": message}],
-                "max_tokens": 4000,
-                "anthropic_version": "bedrock-2023-05-31",
-                "temperature": self.temperature,
-                "top_k": 50
-            })
-            response = client.invoke_model(modelId=model_id, contentType="application/json", body=body)
-            return json.loads(response["body"].read().decode("utf-8"))["content"][0]["text"]
+            client = anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            response = client.messages.create(
+                model=model_id,
+                max_tokens=4000,
+                temperature=self.temperature,
+                system=self.systemRole,
+                messages=[{"role": "user", "content": message}]
+            )
+            return response.content[0].text
 
         return self._retry_api_call(call_api)
 
@@ -198,3 +202,8 @@ class LLM:
             ).choices[0].message.content
 
         return self._retry_api_call(call_api)
+
+
+if __name__ == "__main__":
+    llm = LLM(online_model_name="glm-4-plus", logger=Logger("tmp.txt"))
+    print(llm.infer("Hello, how are you?"))

@@ -9,7 +9,7 @@ from arlib.llm.interpolant.llm_interpolant import LLMInterpolantGenerator
 
 def main():
     # Example over LIA
-    A = ["(declare-fun x () Int)", "(declare-fun y () Int)", "(assert (> x 5))", "(assert (= y (+ x 1)))"]
+    A = ["(declare-fun x () Int)", "(declare-fun y () Int)", "(assert (> x 6))", "(assert (= y (+ x 1)))"]
     B = ["(declare-fun y () Int)", "(assert (<= y 4))"]
 
     gen = LLMInterpolantGenerator()

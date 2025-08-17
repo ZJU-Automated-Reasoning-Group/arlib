@@ -31,82 +31,44 @@ SMTText = str
 Z3Expr = z3.ExprRef
 
 
-def _ensure_list(x: Union[Sequence, Z3Expr, SMTText]) -> List:
-    if isinstance(x, (list, tuple)):
-        return list(x)
-    return [x]
-
-
 def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
-    ctx = z3.Context()
-    solver = z3.Solver(ctx=ctx)
-    try:
-        z3.parse_smt2_string(smt2_text, ctx=ctx)
-    except z3.Z3Exception:
-        # try to wrap if only a formula is given
+    solver = z3.Solver()
+    for attempt in [smt2_text, f"(assert {smt2_text})\n"]:
         try:
-            wrapped = f"(set-logic ALL)\n(assert {smt2_text})\n"
-            z3.parse_smt2_string(wrapped, ctx=ctx)
-        except z3.Z3Exception as e:
-            raise e
-    asts = []
-    # Re-parse to collect assertions by reading into a temporary solver
-    solver.add(z3.parse_smt2_string("(set-logic ALL)\n" + smt2_text, ctx=ctx))
-    for a in solver.assertions():
-        asts.append(a)
-    return asts
+            parsed = z3.parse_smt2_string(f"(set-logic ALL)\n{attempt}")
+            for expr in parsed:
+                solver.add(expr)
+            return list(solver.assertions())
+        except z3.Z3Exception:
+            continue
+    raise z3.Z3Exception("Failed to parse SMT2 text")
 
 
-def _to_asserts(formulas: Sequence[Union[SMTText, Z3Expr]]) -> List[Z3Expr]:
-    out: List[Z3Expr] = []
-    for f in formulas:
-        if isinstance(f, z3.ExprRef):
-            out.append(f)
-        else:
-            out.extend(_parse_smt2_asserts(f))
-    return out
+def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr]) -> List[Z3Expr]:
+    if not isinstance(formulas, (list, tuple)):
+        formulas = [formulas]
+
+    z3_exprs = [f for f in formulas if isinstance(f, z3.ExprRef)]
+    smt2_texts = [f for f in formulas if not isinstance(f, z3.ExprRef)]
+
+    return z3_exprs + (_parse_smt2_asserts("\n".join(smt2_texts)) if smt2_texts else [])
 
 
 def _common_symbols(asA: List[Z3Expr], asB: List[Z3Expr]) -> List[str]:
-    def symset(forms: List[Z3Expr]) -> set[str]:
-        acc: set[str] = set()
-        for e in forms:
-            for sub in get_vars(e):
-                acc.add(sub.decl().name())
-        return acc
-
-    return sorted(list(symset(asA) & symset(asB)))
+    get_names = lambda forms: {v.decl().name() for e in forms for v in get_vars(e)}
+    return sorted(get_names(asA) & get_names(asB))
 
 
 def _mk_prompt(A: List[Z3Expr], B: List[Z3Expr]) -> str:
     A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
     B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = _common_symbols(A, B)
-    guidelines = (
-        "Return ONLY the interpolant as one SMT-LIB v2 S-expression. "
-        "Do not include comments or explanations. "
-        "Use only the shared symbols: " + ", ".join(commons)
-    )
-    return f"""
-You are generating a Craig interpolant between two SMT-LIB sets A and B.
+    commons = ", ".join(_common_symbols(A, B))
+    return f"""Generate a Craig interpolant I between sets A and B.
+Requirements: A⟹I valid, I∧B unsat, use only shared symbols: {commons}
+Return ONLY the S-expression, no explanations.
 
-Requirements:
-- The interpolant I must use only symbols common to A and B.
-- A implies I must be valid. I and B together must be unsatisfiable.
-- Keep it simple and quantifier-free if possible.
-
-Provide only the single S-expression for I, no extra text.
-
-Set A:
-(set-logic ALL)
-{A_text}
-
-Set B:
-(set-logic ALL)
-{B_text}
-
-{guidelines}
-""".strip()
+A: (set-logic ALL)\n{A_text}
+B: (set-logic ALL)\n{B_text}"""
 
 
 @dataclass
@@ -117,29 +79,16 @@ class InterpolantResult:
     raw_text: str
 
 
-class _PromptInput(LLMToolInput):
-    def __init__(self, prompt: str) -> None:
-        self.prompt = prompt
-
-    def __hash__(self) -> int:
-        return hash(self.prompt)
-
-
-class _PromptOutput(LLMToolOutput):
-    def __init__(self, text: str) -> None:
-        self.text = text
-
-
 class _PromptTool(LLMTool):
-    def _get_prompt(self, input: _PromptInput) -> str:
-        return input.prompt
+    def _get_prompt(self, input: str) -> str:
+        return input
 
-    def _parse_response(self, response: str, input: _PromptInput | None = None) -> _PromptOutput:
-        return _PromptOutput(response)
+    def _parse_response(self, response: str, input: str | None = None) -> str:
+        return response
 
 
 class LLMInterpolantGenerator:
-    def __init__(self, model_name: str = os.environ.get("ARLIB_LLM_MODEL", "gpt-4o-mini"), temperature: float = 0.2) -> None:
+    def __init__(self, model_name: str = os.environ.get("ARLIB_LLM_MODEL", "glm-4-flash"), temperature: float = 0.2) -> None:
         log_dir = os.environ.get("ARLIB_LOG_DIR", ".arlib_logs")
         os.makedirs(log_dir, exist_ok=True)
         logger = Logger(os.path.join(log_dir, "interpolant_llm.log"))
@@ -157,41 +106,37 @@ class LLMInterpolantGenerator:
         B: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
         max_attempts: int = 3,
     ) -> InterpolantResult:
-        A_list = _to_asserts(_ensure_list(A))
-        B_list = _to_asserts(_ensure_list(B))
+        A_list, B_list = _to_asserts(A), _to_asserts(B)
         prompt = _mk_prompt(A_list, B_list)
 
         last_text = ""
         for _ in range(max_attempts):
-            out = self.tool.invoke(_PromptInput(prompt))
-            text = out.text if out else ""
+            text = self.tool.invoke(prompt) or ""
             last_text = text or last_text
             if not text:
                 continue
             try:
                 I = self._parse_interpolant(text)
+                v1, v2 = self._verify(A_list, B_list, I)
+                if v1 and v2:
+                    return InterpolantResult(I, v1, v2, text)
             except Exception:
                 continue
-            v1, v2 = self._verify(A_list, B_list, I)
-            if v1 and v2:
-                return InterpolantResult(I, v1, v2, text)
 
         return InterpolantResult(None, False, False, last_text)
 
     @staticmethod
     def _parse_interpolant(text: str) -> Z3Expr:
-        ctx = z3.Context()
-        # Accept either a bare formula or wrapped assert
-        try:
-            exprs = z3.parse_smt2_string(f"(set-logic ALL)\n(assert {text})\n", ctx=ctx)
-        except z3.Z3Exception:
-            exprs = z3.parse_smt2_string(text, ctx=ctx)
-        tmp = z3.Solver(ctx=ctx)
-        tmp.add(exprs)
-        asserts = tmp.assertions()
-        if not asserts:
-            raise ValueError("No formula parsed from LLM output")
-        return asserts[0]
+        for attempt in [f"(assert {text})\n", text]:
+            try:
+                exprs = z3.parse_smt2_string(f"(set-logic ALL)\n{attempt}")
+                tmp = z3.Solver()
+                tmp.add(exprs)
+                if tmp.assertions():
+                    return tmp.assertions()[0]
+            except z3.Z3Exception:
+                continue
+        raise ValueError("No valid formula parsed from LLM output")
 
     @staticmethod
     def _verify(A: List[Z3Expr], B: List[Z3Expr], I: Z3Expr) -> Tuple[bool, bool]:
