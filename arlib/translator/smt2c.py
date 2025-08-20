@@ -11,7 +11,7 @@ TEMPLATE = """
 int mod (int a, int b)
 {{
    if(b < 0) //you can check for b == 0 separately and do what you want
-     return mod(a, -b);   
+     return mod(a, -b);
    int ret = a % b;
    if(ret < 0)
      ret+=b;
@@ -31,7 +31,7 @@ TEMPLATE_SAT = """
 int mod (int a, int b)
 {{
    if(b < 0) //you can check for b == 0 separately and do what you want
-     return mod(a, -b);   
+     return mod(a, -b);
    int ret = a % b;
    if(ret < 0)
      ret+=b;
@@ -48,73 +48,81 @@ return 0;
 ## TODO:
 #  support more operations (especially unsigned)
 #  support other mode (other than counting)
-#    e.g., satisfiabiity checking; optimization      
-def is_literal(e):
-    return is_const(e) and e.decl().kind() == Z3_OP_UNINTERPRETED
+#    e.g., satisfiabiity checking; optimization
+# Operation kind mappings for concise type checking
+OP_KINDS = {
+    Z3_OP_UNINTERPRETED: 'literal',
+    Z3_OP_BNUM: 'bvconst',
+    Z3_OP_ITE: 'ite',
+    Z3_OP_IFF: 'iff',
+    Z3_OP_SGEQ: 'sge',
+    Z3_OP_SGT: 'sgt',
+    Z3_OP_SLEQ: 'sle',
+    Z3_OP_SLT: 'slt',
+    Z3_OP_BADD: 'badd',
+    Z3_OP_BSUB: 'bsub',
+    Z3_OP_BMUL: 'bmul',
+    Z3_OP_BSDIV: 'bsdiv',
+    Z3_OP_BSMOD: 'bsmod',
+    Z3_OP_BAND: 'band',
+    Z3_OP_BOR: 'bor',
+    Z3_OP_BLSHR: 'blshift_r',
+    Z3_OP_BSHL: 'bshift_l'
+}
 
+def is_op_kind(e, op_kind):
+    return e.decl().kind() == op_kind
+
+def is_literal(e):
+    return is_const(e) and is_op_kind(e, Z3_OP_UNINTERPRETED)
 
 def is_bvconst(e):
-    return is_const(e) and e.decl().kind() == Z3_OP_BNUM
-
+    return is_const(e) and is_op_kind(e, Z3_OP_BNUM)
 
 def is_ite(e):
-    return e.decl().kind() == Z3_OP_ITE
-
+    return is_op_kind(e, Z3_OP_ITE)
 
 def is_iff(e):
-    return e.decl().kind() == Z3_OP_IFF
+    return is_op_kind(e, Z3_OP_IFF)
 
+def is_sge(e):
+    return is_op_kind(e, Z3_OP_SGEQ)
 
-def is_sge(c):
-    return c.decl().kind() == Z3_OP_SGEQ
+def is_sgt(e):
+    return is_op_kind(e, Z3_OP_SGT)
 
+def is_sle(e):
+    return is_op_kind(e, Z3_OP_SLEQ)
 
-def is_sgt(c):
-    return c.decl().kind() == Z3_OP_SGT
+def is_slt(e):
+    return is_op_kind(e, Z3_OP_SLT)
 
+def is_badd(e):
+    return is_op_kind(e, Z3_OP_BADD)
 
-def is_sle(c):
-    return c.decl().kind() == Z3_OP_SLEQ
+def is_bsub(e):
+    return is_op_kind(e, Z3_OP_BSUB)
 
+def is_bmul(e):
+    return is_op_kind(e, Z3_OP_BMUL)
 
-def is_slt(c):
-    return c.decl().kind() == Z3_OP_SLT
+def is_bsdiv(e):
+    return is_op_kind(e, Z3_OP_BSDIV)
 
+def is_bsmod(e):
+    return is_op_kind(e, Z3_OP_BSMOD)
 
-def is_badd(c):
-    return c.decl().kind() == Z3_OP_BADD
+def is_band(e):
+    return is_op_kind(e, Z3_OP_BAND)
 
+def is_bor(e):
+    return is_op_kind(e, Z3_OP_BOR)
 
-def is_bsub(c):
-    return c.decl().kind() == Z3_OP_BSUB
+def is_blshift_r(e):
+    return is_op_kind(e, Z3_OP_BLSHR)
 
-
-def is_bmul(c):
-    return c.decl().kind() == Z3_OP_BMUL
-
-
-def is_bsdiv(c):
-    return c.decl().kind() == Z3_OP_BSDIV
-
-
-def is_bsmod(c):
-    return c.decl().kind() == Z3_OP_BSMOD
-
-
-def is_band(c):
-    return c.decl().kind() == Z3_OP_BAND
-
-
-def is_bor(c):
-    return c.decl().kind() == Z3_OP_BOR
-
-
-def is_blshift_r(c):
-    return c.decl().kind() == Z3_OP_BLSHR
-
-
-def is_bshift_l(c):
-    return c.decl().kind() == Z3_OP_BSHL
+def is_bshift_l(e):
+    return is_op_kind(e, Z3_OP_BSHL)
 
 
 def find_var_bounds(clauses):
@@ -152,7 +160,8 @@ def find_var_bounds(clauses):
     return input_vars, to_process
 
 
-def compile_to_c_sat(formula):
+def compile_to_c(formula, mode='counting'):
+    """Compile formula to C code. Mode can be 'counting' or 'sat'."""
     # don't go deep now, just find out the bounds
     input_vars, to_process = find_var_bounds(formula.children())
     loop = []
@@ -165,8 +174,6 @@ def compile_to_c_sat(formula):
 
     filters = []
     n_ops = 0
-    #    print(formula, file=sys.stderr)
-    #    print(formula.children(), file=sys.stderr)
     for clause in formula.children():
         for boolean_expr in c_visitor(clause):
             line = "    if (!({})) {{\n     continue;\n    }} \n".format(boolean_expr)
@@ -177,45 +184,48 @@ def compile_to_c_sat(formula):
     full_loop = []
     full_loop.extend(loop)
     full_loop.extend(filters)
-    full_loop.append("  printf(\"Find model!\\n\");")
-    full_loop.append("  return 0;")  # break or return??
+
+    if mode == 'sat':
+        full_loop.append("  printf(\"Find model!\\n\");")
+        full_loop.append("  return 0;")
+        template = TEMPLATE_SAT
+    else:  # counting mode
+        full_loop.append("SOLUTION_COUNT++;")
+        template = TEMPLATE
+
     full_loop.extend(["}"] * len(loop))
-
     count_code = "\n".join(full_loop)
-    return TEMPLATE_SAT.format(count=count_code), domain_size, n_ops
+    return template.format(count=count_code), domain_size, n_ops
 
 
-def compile_to_c(formula):
-    # don't go deep now, just find out the bounds
-    input_vars, to_process = find_var_bounds(formula.children())
-    loop = []
-    domain_size = 1
-    for var, bounds in input_vars.items():
-        assert var.size() == 32
-        line = "  for (int {name} = {lo}; {name} <= {hi}; {name}++) {{"
-        loop.append(line.format(name=var.sexpr(), lo=bounds[0], hi=bounds[1]))
-        domain_size *= bounds[1] - bounds[0]
+# Binary operation mappings: op_kind -> (operator, special_formatting)
+BINARY_OPS = {
+    Z3_OP_SGEQ: (">=", None),
+    Z3_OP_SGT: (">", None),
+    Z3_OP_SLEQ: ("<=", None),
+    Z3_OP_SLT: ("<", None),
+    Z3_OP_BADD: ("+", None),
+    Z3_OP_BSUB: ("-", None),
+    Z3_OP_BMUL: ("*", None),
+    Z3_OP_BSDIV: ("/", None),
+    Z3_OP_BSMOD: (",", "mod({})"),
+    Z3_OP_BAND: ("&", None),
+    Z3_OP_BOR: ("|", None),
+    Z3_OP_BLSHR: (">>", "(unsigned int){}"),
+    Z3_OP_BSHL: ("<<", None)
+}
 
-    filters = []
-    n_ops = 0
-    #    print(formula, file=sys.stderr)
-    #    print(formula.children(), file=sys.stderr)
-    for clause in formula.children():
-        for boolean_expr in c_visitor(clause):
-            line = "    if (!({})) {{\n     continue;\n    }} \n".format(boolean_expr)
-            filters.append(line)
-            for oprt in ['+', '-', '*', '/', '%', ' & ', ' | ', ' ^ ', ' ~ ', '>>', '<<']:
-                n_ops += line.count(oprt)
+def handle_binary_op(e, operator, format_str=None):
+    """Generic handler for binary operations"""
+    clauses = []
+    for ch in e.children():
+        for expr in c_visitor(ch):
+            clauses.append(expr)
 
-    full_loop = []
-    full_loop.extend(loop)
-    full_loop.extend(filters)
-    full_loop.append("SOLUTION_COUNT++;")
-    full_loop.extend(["}"] * len(loop))
-
-    count_code = "\n".join(full_loop)
-    return TEMPLATE.format(count=count_code), domain_size, n_ops
-
+    if format_str:
+        return format_str.format(",".join(clauses))
+    else:
+        return "(" + f" {operator} ".join(clauses) + ")"
 
 def c_visitor(e):
     if is_literal(e):
@@ -231,117 +241,30 @@ def c_visitor(e):
             yield "!(" + expr + ")"
         return
     elif is_or(e):
-        or_clauses = []
+        clauses = []
         for ch in e.children():
             for expr in c_visitor(ch):
-                or_clauses.append(expr)
-        yield "(" + " || ".join(or_clauses) + ")"
+                clauses.append(expr)
+        yield "(" + " || ".join(clauses) + ")"
         return
     elif is_and(e):
-        or_clauses = []
+        clauses = []
         for ch in e.children():
             for expr in c_visitor(ch):
-                or_clauses.append(expr)
-        yield "(" + " && ".join(or_clauses) + ")"
+                clauses.append(expr)
+        yield "(" + " && ".join(clauses) + ")"
     elif is_eq(e) or is_iff(e):
-        eq_clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                eq_clauses.append(expr)
-        yield "(" + " == ".join(eq_clauses) + ")"
-        return
-    elif is_sge(e):
         clauses = []
         for ch in e.children():
             for expr in c_visitor(ch):
                 clauses.append(expr)
-        yield "(" + " >= ".join(clauses) + ")"
+        yield "(" + " == ".join(clauses) + ")"
         return
-    elif is_sgt(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " > ".join(clauses) + ")"
+    # Handle binary operations generically
+    elif e.decl().kind() in BINARY_OPS:
+        operator, format_str = BINARY_OPS[e.decl().kind()]
+        yield handle_binary_op(e, operator, format_str)
         return
-    elif is_sle(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " <= ".join(clauses) + ")"
-        return
-    elif is_slt(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " < ".join(clauses) + ")"
-        return
-    elif is_badd(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " + ".join(clauses) + ")"
-        return
-    elif is_bsub(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " - ".join(clauses) + ")"
-        return
-    elif is_bmul(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " * ".join(clauses) + ")"
-        return
-    elif is_bsdiv(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " / ".join(clauses) + ")"
-        return
-    elif is_bsmod(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(mod(" + ",".join(clauses) + "))"
-        return
-    elif is_bor(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " | ".join(clauses) + ")"
-        return
-    elif is_band(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " & ".join(clauses) + ")"
-        return
-    elif is_blshift_r(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "((unsigned int)" + " >> ".join(clauses) + ")"
-        return
-    elif is_bshift_l(e):
-        clauses = []
-        for ch in e.children():
-            for expr in c_visitor(ch):
-                clauses.append(expr)
-        yield "(" + " << ".join(clauses) + ")"
-        return
-
     else:
         raise Exception("Unhandled type: " + e.sexpr(), e.decl())
 
@@ -359,16 +282,10 @@ def main():
 
     print("//Reading formula...", file=sys.stderr)
     formula = And(parse_smt2_file(inputfile))
-    # print(formula)
     print("//Generating C source...", file=sys.stderr)
-    if mode == "counting":
-        code, domain, nopts = compile_to_c(formula)
-        print("{},{},{}".format(inputfile, domain, nopts), file=sys.stderr)
-        print(code)
-    elif mode == "sat":
-        code, domain, nopts = compile_to_c_sat(formula)
-        print("{},{},{}".format(inputfile, domain, nopts), file=sys.stderr)
-        print(code)
+    code, domain, nopts = compile_to_c(formula, mode)
+    print(f"{inputfile},{domain},{nopts}", file=sys.stderr)
+    print(code)
 
 
 if __name__ == '__main__':

@@ -27,20 +27,8 @@ def _from_python_int(v: int, width: int) -> z3.BitVecNumRef:
 
 
 def _assume_and_check(s: z3.Solver, assumptions: List[z3.ExprRef]) -> z3.CheckSatResult:
-    # Use push/pop for portability; Z3 Python assumptions are only on check
-    s.push()
-    s.add(*assumptions)
-    res = s.check()
-    s.pop()
+    s.push(); s.add(*assumptions); res = s.check(); s.pop()
     return res
-
-
-def _cmp_ule(x: z3.ExprRef, y: z3.ExprRef, signed: bool) -> z3.BoolRef:
-    return z3.ULE(x, y) if not signed else x <= y
-
-
-def _cmp_ult(x: z3.ExprRef, y: z3.ExprRef, signed: bool) -> z3.BoolRef:
-    return z3.ULT(x, y) if not signed else x < y
 
 
 def minimum(fml: z3.BoolRef, x: z3.BitVecRef, signed: bool = False) -> int:

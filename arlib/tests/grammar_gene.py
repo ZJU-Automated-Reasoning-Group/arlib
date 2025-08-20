@@ -1,6 +1,5 @@
 """
-This file will use satfuzz.py, smtfuzz.py, and qbfuzz.py to generate more complex formula
-
+Generate complex formulas using satfuzz.py, smtfuzz.py, and qbfuzz.py
 """
 
 import logging
@@ -16,101 +15,59 @@ SMT_GENERATOR = str(Path(__file__).parent) + "/smtfuzz.py"
 
 
 def terminate(process, is_timeout: List):
-    """
-    Terminates a process and sets the timeout flag to True.
-    Parameters:
-    -----------
-    process : subprocess.Popen
-        The process to be terminated.
-    is_timeout : List
-        A list containing a single boolean item.
-        If the process exceeds the timeout limit, the boolean item will be
-        set to True.
-
-    Returns:
-    --------
-    None
-    """
+    """Terminate process and set timeout flag"""
     if process.poll() is None:
         try:
             process.terminate()
             is_timeout[0] = True
         except Exception as ex:
-            print("error for interrupting")
-            print(ex)
+            print(f"Termination error: {ex}")
+
+
+def run_subprocess(cmd: List[str], timeout: int = 15) -> str:
+    """Run subprocess with timeout and return decoded output"""
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    is_timeout = [False]
+    timer = Timer(timeout, terminate, args=[p, is_timeout])
+    timer.start()
+    out = p.stdout.readlines()
+    out = ' '.join([element.decode('UTF-8') for element in out])
+    p.stdout.close()
+    timer.cancel()
+    if p.poll() is None:
+        p.terminate()
+    return out if not is_timeout[0] else ""
 
 
 def gen_cnf_numeric_clauses() -> List[List[int]]:
-    """
-    Generate a CNF formula in the form of numeric clauses
-    FIXME: fuzzsat generates a 0 at the end of each line
-      but pysat does not like 0
-    """
-    print(CNF_GENERATOR)
+    """Generate CNF formula as numeric clauses. Note: fuzzsat adds 0s that pysat doesn't like"""
     cmd = ['python3', CNF_GENERATOR,
-           '-i', str(random.randint(1, 10)),
-           '-I', str(random.randint(11, 50)),
-           '-p', str(random.randint(2, 10)),
-           '-P', str(random.randint(11, 30)),
-           '-l', str(random.randint(2, 10)),
-           '-L', str(random.randint(11, 30))]
+           '-i', str(random.randint(1, 10)), '-I', str(random.randint(11, 50)),
+           '-p', str(random.randint(2, 10)), '-P', str(random.randint(11, 30)),
+           '-l', str(random.randint(2, 10)), '-L', str(random.randint(11, 30))]
 
-    logging.debug("Enter constraint generation")
-    logging.debug(cmd)
-    # Create a subprocess and assign it to p_gene
-    p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    # Set is_timeout_gene to False
-    is_timeout_gene = [False]
-    # Create a timer that will terminate the process after 15 seconds
-    timer_gene = Timer(15, terminate, args=[p_gene, is_timeout_gene])
-    timer_gene.start()
-    # Read the output of the process
-    out_gene = p_gene.stdout.readlines()
-    # Decode the output from bytes to string
-    out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
-    # Close the output stream
-    p_gene.stdout.close()
-    # Cancel the timer
-    timer_gene.cancel()
-    # If the process did not time out, try to parse the output
-    if not is_timeout_gene[0]:
-        result = []
-        try:
-            # Split the output by line
-            for line in out_gene.split("\n"):
-                data = line.split(" ")
-                # If the first element is empty and there are more than one elements, append the integers to the result
-                if data[0] == '' and len(data) > 1:
-                    result.append([int(dd) for dd in data[1:-1]])
-            # If the process is still running, terminate it
-            if p_gene.poll() is None:
-                p_gene.terminate()
-            return result
-        except Exception as ex:
-            print(ex)
-    # If the process is still running, terminate it
-    if p_gene.poll() is None:
-        p_gene.terminate()
-    # Return an empty list
-    return []
+    logging.debug(f"Generating CNF with: {cmd}")
+    out = run_subprocess(cmd)
+    if not out:
+        return []
+
+    result = []
+    try:
+        for line in out.split("\n"):
+            data = line.split(" ")
+            if data[0] == '' and len(data) > 1:
+                result.append([int(x) for x in data[1:-1]])
+        return result
+    except Exception as ex:
+        print(ex)
+        return []
 
 
 def gene_smt2string(logic="QF_BV", incremental=False) -> str:
-    """
-    Generate an SMT-LIB2 string
-    :param logic:
-    :param incremental:
-    :return: a string
-    """
+    """Generate SMT-LIB2 string"""
     cnfratio = random.randint(2, 10)
     cntsize = random.randint(5, 20)
-    # strategy = random.choice(strategies)
-    if incremental:
-        strategy = random.choice(['cnf', 'ncnf', 'bool'])
-    else:
-        strategy = 'noinc'
-
-    # 'CNFexp'
+    strategy = random.choice(['cnf', 'ncnf', 'bool']) if incremental else 'noinc'
 
     cmd = ['python3', SMT_GENERATOR,
            '--strategy', strategy,
@@ -118,30 +75,15 @@ def gene_smt2string(logic="QF_BV", incremental=False) -> str:
            '--cntsize', str(cntsize),
            '--logic', logic]
 
-    p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    is_timeout_gene = [False]
-    timer_gene = Timer(6, terminate, args=[p_gene, is_timeout_gene])
-    timer_gene.start()
-    out_gene = p_gene.stdout.readlines()
-    out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
-    p_gene.stdout.close()  # close?
-    timer_gene.cancel()
-    if p_gene.poll() is None:
-        p_gene.terminate()  # need this?
-    if is_timeout_gene[0]:
-        return False
-    return out_gene
+    out = run_subprocess(cmd, timeout=6)
+    return out if out else ""
 
 
 def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
+    """Generate SMT formula from grammar as string"""
     cnfratio = random.randint(2, 10)
     cntsize = random.randint(5, 20)
-
-    # strategy = random.choice(strategies)
-    if incremental:
-        strategy = random.choice(['CNFexp', 'cnf', 'ncnf', 'bool'])
-    else:
-        strategy = 'noinc'
+    strategy = random.choice(['CNFexp', 'cnf', 'ncnf', 'bool']) if incremental else 'noinc'
 
     cmd = ['python3', SMT_GENERATOR,
            '--strategy', strategy,
@@ -149,19 +91,8 @@ def generate_from_grammar_as_str(logic="QF_BV", incremental=False):
            '--cntsize', str(cntsize),
            '--logic', logic]
 
-    p_gene = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    is_timeout_gene = [False]
-    timer_gene = Timer(15, terminate, args=[p_gene, is_timeout_gene])
-    timer_gene.start()
-    out_gene = p_gene.stdout.readlines()
-    out_gene = ' '.join([str(element.decode('UTF-8')) for element in out_gene])
-    p_gene.stdout.close()  # close?
-    timer_gene.cancel()
-    if p_gene.poll() is None:
-        p_gene.terminate()  # need this?
-    if is_timeout_gene[0]:
-        return False
-    return out_gene
+    out = run_subprocess(cmd)
+    return out if out else ""
 
 
 if __name__ == '__main__':
