@@ -6,26 +6,15 @@ Plotting utilities for evaluation results.
 - Violin plot
 - Heat map
 """
-import math
-import os
-import random
-from typing import List, Tuple, Optional, Union, Sequence, Dict, Any
+import math, os, random
+from typing import *
 
-import matplotlib.pyplot as plt
-import matplotlib.gridspec
+import matplotlib.pyplot as plt, matplotlib.gridspec
 import numpy as np
 from matplotlib import rcParams
 
 # Global plotting configuration
-PLOT_CONFIG = {
-    'font_family': 'serif',
-    'font_serif': ['Times New Roman'],
-    'use_tex': False,
-    'dpi': 300,
-    'figure_format': 'png',
-    'default_figsize': (9, 4),
-    'user_fontsize': 12
-}
+PLOT_CONFIG = {'font_family': 'serif', 'font_serif': ['Times New Roman'], 'use_tex': False, 'dpi': 300, 'figure_format': 'png', 'default_figsize': (9, 4), 'user_fontsize': 12}
 
 # Color schemes
 COLORS = {
@@ -48,12 +37,12 @@ def find_csv(path: str) -> List[str]:
 
 class BasePlot:
     """Base class for all plotting functionality."""
-    
+
     def __init__(self):
         setup_plot_style()
         self.use_log_scale: bool = False
         self.upper_bound: float = 1.0
-    
+
     def save_plot(self, fig: plt.Figure, output_dir: str, filename: str) -> None:
         """Save plot to file with standard parameters."""
         if not os.path.exists(output_dir):
@@ -74,19 +63,19 @@ class ScatterPlot(BasePlot):
         self.tool_a_name = name_a
         self.tool_b_name = name_b
 
-    def plot(self, data: Union[Tuple[List, List], Tuple[Tuple[List, List], Tuple[List, List]]], 
+    def plot(self, data: Union[Tuple[List, List], Tuple[Tuple[List, List], Tuple[List, List]]],
             output_dir: str = "", filename: str = "scatter", save: bool = False,
             multi_group: bool = False) -> None:
         """Create scatter plot with optional multi-group support."""
         fig, ax = plt.subplots()
-        
+
         if multi_group:
             self._plot_multi_groups(ax, data)
         else:
             self._plot_single_group(ax, data)
-            
+
         self._setup_axes(ax)
-        
+
         if save:
             self.save_plot(fig, output_dir, filename)
         else:
@@ -120,14 +109,14 @@ class CactusPlot(BasePlot):
         super().__init__()
         self.upper_bound = 9
 
-    def plot(self, data: List[List[float]], output_dir: str = "", 
+    def plot(self, data: List[List[float]], output_dir: str = "",
             filename: str = "cactus", save: bool = False) -> None:
         """Create cactus plot from multiple data series."""
         fig, ax = plt.subplots()
         processed_data = self._process_data(data)
         self._plot_series(ax, processed_data)
         self._setup_axes(ax)
-        
+
         if save:
             self.save_plot(fig, output_dir, filename)
         else:
@@ -142,7 +131,7 @@ class CactusPlot(BasePlot):
         for i, series in enumerate(data):
             color = random.choice(COLORS['standard'])
             marker = random.choice(COLORS['markers'])
-            ax.plot(series, color=color, marker=marker, 
+            ax.plot(series, color=color, marker=marker,
                    label=f"{i}-th tool", markevery=3)
 
     def _setup_axes(self, ax: plt.Axes) -> None:
@@ -154,15 +143,15 @@ class CactusPlot(BasePlot):
 class BoxPlot(BasePlot):
     """Box plot implementation with support for single and multi-group data."""
 
-    def plot(self, data: Union[List[List[float]], List[List[List[float]]]], 
-            output_dir: str = "", filename: str = "box", 
+    def plot(self, data: Union[List[List[float]], List[List[List[float]]]],
+            output_dir: str = "", filename: str = "box",
             save: bool = False, multi_group: bool = False) -> None:
         """Create box plot with optional multi-group support."""
         if multi_group:
             self._plot_multi_groups(data)
         else:
             self._plot_single_group(data)
-        
+
         if save:
             self.save_plot(plt.gcf(), output_dir, filename)
         else:
@@ -171,17 +160,17 @@ class BoxPlot(BasePlot):
     def _plot_single_group(self, data: List[List[float]]) -> None:
         fig, ax = plt.subplots(figsize=PLOT_CONFIG['default_figsize'])
         bplot = ax.boxplot(data, vert=True, patch_artist=True)
-        
+
         colors = random.sample(COLORS['pastel'], len(data))
         for patch, color in zip(bplot['boxes'], colors):
             patch.set_facecolor(color)
-        
+
         self._setup_single_axes(ax, len(data))
 
     def _plot_multi_groups(self, data: List[List[List[float]]]) -> None:
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), 
+        fig, axes = plt.subplots(nrows=1, ncols=len(data),
                                 figsize=PLOT_CONFIG['default_figsize'])
-        
+
         colors = random.sample(COLORS['pastel'], len(data[0]))
         for ax, group in zip(axes, data):
             bplot = ax.boxplot(group, vert=True, patch_artist=True)
@@ -198,34 +187,34 @@ class BoxPlot(BasePlot):
 class ViolinPlot(BasePlot):
     """Violin plot implementation with support for single and multi-group data."""
 
-    def plot(self, data: Union[List[List[float]], List[List[List[float]]]], 
-            output_dir: str = "", filename: str = "violin", save: bool = False, 
+    def plot(self, data: Union[List[List[float]], List[List[List[float]]]],
+            output_dir: str = "", filename: str = "violin", save: bool = False,
             multi_group: bool = False) -> None:
         """Create violin plot with optional multi-group support."""
         if multi_group:
             self._plot_multi_groups(data)
         else:
             self._plot_single_group(data)
-        
+
         if save:
-            self.save_plot(plt.gcf(), output_dir, filename) 
+            self.save_plot(plt.gcf(), output_dir, filename)
         else:
             plt.show()
 
     def _plot_single_group(self, data: List[List[float]]) -> None:
         fig, ax = plt.subplots(figsize=PLOT_CONFIG['default_figsize'])
         parts = ax.violinplot(data, showmeans=True, showmedians=True)
-        
+
         colors = random.sample(COLORS['pastel'], len(data))
         for patch, color in zip(parts['bodies'], colors):
             patch.set_facecolor(color)
-        
+
         self._setup_single_axes(ax, len(data))
 
     def _plot_multi_groups(self, data: List[List[List[float]]]) -> None:
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), 
+        fig, axes = plt.subplots(nrows=1, ncols=len(data),
                                 figsize=PLOT_CONFIG['default_figsize'])
-        
+
         colors = random.sample(COLORS['pastel'], len(data[0]))
         for ax, group in zip(axes, data):
             parts = ax.violinplot(group, showmeans=True, showmedians=True)
@@ -242,15 +231,15 @@ class ViolinPlot(BasePlot):
 class HeatMap(BasePlot):
     """Heat map implementation with support for single and multi-group data."""
 
-    def plot(self, data: Union[List[List[float]], List[List[List[float]]]], 
-            output_dir: str = "", filename: str = "heatmap", save: bool = False, 
+    def plot(self, data: Union[List[List[float]], List[List[List[float]]]],
+            output_dir: str = "", filename: str = "heatmap", save: bool = False,
             multi_group: bool = False) -> None:
         """Create heat map with optional multi-group support."""
         if multi_group:
             self._plot_multi_groups(data)
         else:
             self._plot_single_group(data)
-            
+
         if save:
             self.save_plot(plt.gcf(), output_dir, filename)
         else:
@@ -262,7 +251,7 @@ def generate_scatter_data() -> Tuple[List[float], List[float]]:
     """Generate sample data for scatter plot."""
     return ([0.4, 0.6, 0.33, 0.2], [0.3, 0.7, 0.6, 0.33])
 
-def generate_multi_group_data() -> Tuple[Tuple[List[float], List[float]], 
+def generate_multi_group_data() -> Tuple[Tuple[List[float], List[float]],
                                        Tuple[List[float], List[float]]]:
     """Generate sample data for multi-group scatter plot."""
     sat_data = ([2, 3, 4, 8], [1, 5, 6, 6])
@@ -333,4 +322,3 @@ if __name__ == "__main__":
     # test_cactus_plot()
     # test_box_plot()
     # test_box_plot_multi_groups()
-    

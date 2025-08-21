@@ -118,9 +118,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'arlib-smt-server=arlib.cli.smt_server:main',
-            'arlib-fmldoc=arlib.cli.fmldoc:main',
-            'arlib-chcpp=arlib.tools.chctools.chcpp:main',
+            'arlib-smt-server=arlib.cli.smt_server:main'
         ],
     },
 
