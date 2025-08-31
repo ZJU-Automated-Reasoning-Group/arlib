@@ -6,9 +6,8 @@ from arlib.symabs.rangeset_sat.algorithms import minimum, maximum, range_abstrac
 
 
 def demo_unsigned():
-    x = z3.BitVec('x', 4)
+    x = z3.BitVec('x', 8)
     fml = z3.Or(
-        x == 1,
         x == 2,
         x == 3,
         x == 5,
