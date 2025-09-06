@@ -34,14 +34,18 @@ class SMT2NLConverter:
             # Core
             '=': 'equals', '!=': 'not equals', 'distinct': 'are distinct',
             'ite': 'if-then-else',
+
             # Arithmetic
             '>': '>', '>=': '≥', '<': '<', '<=': '≤',
             '+': '+', '-': '-', '*': '×', '/': '÷', 'mod': 'mod', 'div': 'div',
             'abs': 'abs', 'to_real': 'real', 'to_int': 'int', 'is_int': 'is_int',
+
             # Boolean
             'and': '∧', 'or': '∨', 'not': '¬', '=>': '⟹', 'iff': '⟺', 'xor': '⊕',
+
             # Arrays
             'select': '[]', 'store': 'store',
+
             # Bit-vectors
             'bvnot': '~', 'bvand': '&', 'bvor': '|', 'bvxor': '^',
             'bvadd': '+', 'bvsub': '-', 'bvmul': '×', 'bvudiv': '÷', 'bvurem': '%',
@@ -49,6 +53,7 @@ class SMT2NLConverter:
             'bvult': '<', 'bvule': '≤', 'bvugt': '>', 'bvuge': '≥',
             'bvslt': '<ₛ', 'bvsle': '≤ₛ', 'bvsgt': '>ₛ', 'bvsge': '≥ₛ',
             'concat': '∘', 'extract': 'extract',
+
             # Strings
             'str.len': 'length', 'str.++': 'concat', 'str.at': 'charAt',
             'str.substr': 'substring', 'str.contains': 'contains', 'str.prefixof': 'prefixOf',
@@ -56,6 +61,7 @@ class SMT2NLConverter:
             'str.to_re': 'toRegex', 'str.in_re': 'matches', 're.++': 'reConcat',
             're.*': 'star', 're.+': 'plus', 're.opt': 'optional', 're.union': 'union',
             're.inter': 'intersect', 're.comp': 'complement',
+
             # Sets
             'union': '∪', 'intersection': '∩', 'setminus': '\\', 'subset': '⊆',
             'member': '∈', 'singleton': '{·}', 'insert': 'insert',

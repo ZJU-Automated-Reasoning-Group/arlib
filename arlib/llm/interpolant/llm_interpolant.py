@@ -152,3 +152,17 @@ class LLMInterpolantGenerator:
         s2.add(B)
         v2 = s2.check() == z3.unsat
         return v1, v2
+
+
+def main():
+    A = ["(declare-fun x () Int)", "(declare-fun y () Int)", "(assert (> x 6))", "(assert (= y (+ x 1)))"]
+    B = ["(declare-fun y () Int)", "(assert (<= y 4))"]
+
+    gen = LLMInterpolantGenerator()
+    res = gen.generate(A, B)
+    print("Interpolant:", res.raw_text)
+    print("A => I:", res.valid_A_implies_I, "; I & B unsat:", res.unsat_I_and_B)
+
+
+if __name__ == "__main__":
+    main()
