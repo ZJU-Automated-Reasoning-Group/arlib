@@ -1,4 +1,4 @@
-import egglog.bindings as eggbnd
+import egglog.bindings as eggbnd  # requires egglog
 import arlib.itp as itp
 import arlib.itp.smt as smt
 import arlib.itp.solvers as solvers

@@ -1,13 +1,75 @@
+"""
+Context-Free Language (CFL) Reachability Solver
+
+This module implements a solver for CFL-reachability problems using Dynamic
+Transitive Closure (DTC) algorithms with quantum computing optimizations.
+The solver can analyze whether certain paths exist in a graph that satisfy
+a given context-free grammar.
+
+The implementation includes:
+- DTC-based CFL-reachability algorithm
+- Quantum iteration estimation using Grover's search
+- Worklist-based analysis for efficient computation
+- Support for various grammar production rules
+
+Author: arlib team
+Adapted from: "Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search"
+"""
+
 from math import pi, sqrt, floor, ceil, log
 from typing import List, Dict, Any, Union, Tuple, Optional
 
 
 class CFLSolver:
+    """
+    A solver for Context-Free Language (CFL) reachability problems.
+
+    This class implements the DTC-based CFL-reachability algorithm with quantum
+    computing optimizations. It can determine whether certain paths exist in a
+    graph that satisfy a given context-free grammar.
+
+    Attributes:
+        mode (str): The solving mode, currently supports "Cubic" for cubic-time algorithm.
+
+    Example:
+        >>> solver = CFLSolver("Cubic")
+        >>> solver.solve(graph, grammar)
+    """
+
     def __init__(self, mode: str) -> None:
+        """
+        Initialize the CFL solver with the specified mode.
+
+        Args:
+            mode (str): The solving mode. Currently only "Cubic" is supported,
+                       which uses a cubic-time DTC-based algorithm.
+
+        Raises:
+            ValueError: If mode is not supported.
+        """
         self.mode: str = mode
 
-    # function to estimate the number of quantum iterations
     def estimate(self, sol: int, cand: int, nnn: int) -> int:
+        """
+        Estimate the number of quantum iterations needed for Grover's search.
+
+        This method estimates the number of quantum iterations required to find
+        all solutions using Grover's search algorithm. The estimation is based
+        on the theoretical analysis from the paper referenced in the comments.
+
+        Args:
+            sol (int): Number of solutions (targets) to find.
+            cand (int): Number of candidates in the search space.
+            nnn (int): Total number of vertices in the graph (used for scaling).
+
+        Returns:
+            int: Estimated number of quantum iterations needed.
+
+        Note:
+            The estimation is based on the theoretical result that one target
+            is returned after at most 0.9√(N/M) queries, where N is the search
+            space size and M is the number of targets.
+        """
         res = floor(sqrt(cand))
         if sol == 0:
             return res
@@ -21,11 +83,43 @@ class CFLSolver:
         return floor(res * log(nnn))
 
     def solve(self, graph: Any, grammar: Any) -> None:
+        """
+        Solve the CFL-reachability problem for the given graph and grammar.
+
+        This method is the main entry point for solving CFL-reachability problems.
+        It delegates to the appropriate solving algorithm based on the mode.
+
+        Args:
+            graph: The input graph containing vertices and edges with labels.
+            grammar: The context-free grammar defining the reachability rules.
+
+        Raises:
+            NotImplementedError: If the specified mode is not implemented.
+        """
         if self.mode == "Cubic":
             self.__cubic_solve(graph, grammar)
 
-    # DTC-based CFL-reachability
     def __cubic_solve(self, graph: Any, grammar: Any) -> None:
+        """
+        Solve CFL-reachability using the cubic-time DTC-based algorithm.
+
+        This method implements the Dynamic Transitive Closure (DTC) algorithm
+        for CFL-reachability. It uses a worklist-based approach to iteratively
+        compute reachability relations and estimates quantum iterations for
+        potential speedup using Grover's search.
+
+        The algorithm processes grammar productions of the form:
+        - X → Y (unary productions)
+        - X → YZ (binary productions)
+
+        Args:
+            graph: The input graph with labeled edges.
+            grammar: The context-free grammar with production rules.
+
+        Note:
+            This method prints the number of classical and quantum iterations
+            to stdout for performance analysis.
+        """
         # each edge in worklist stand by [(edge, node, node)]
         # number of classical iterations
         whole_iteration: int = 0

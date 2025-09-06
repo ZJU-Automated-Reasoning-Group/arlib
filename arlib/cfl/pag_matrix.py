@@ -1,5 +1,23 @@
 """
-A PAG matrix representation of a graph, specifically for the CFL-reachability problem
+PAG Matrix-based Graph Representation for CFL-Reachability Analysis
+
+This module implements a Program Assignment Graph (PAG) matrix representation
+specifically designed for CFL-reachability analysis. PAG matrices are used
+in program analysis to represent relationships between program points and
+variables, making them particularly suitable for context-sensitive analysis.
+
+The PAG_Matrix class extends the basic matrix representation with specialized
+handling for program analysis constructs, including different edge types
+and color-coded relationships that are common in program analysis graphs.
+
+Key Features:
+- Specialized PAG edge type handling (red, black, blue, green)
+- Automatic edge direction handling for program analysis
+- Color-to-symbol mapping for CFL analysis
+- Support for both forward and backward edges
+- Optimized for program analysis workflows
+
+Author: arlib team
 """
 
 import re
@@ -7,10 +25,53 @@ from typing import Dict, List, Any, Union, Tuple, Optional
 
 
 class Vertex:
+    """
+    A simple vertex representation for PAG graph nodes.
+
+    This class represents a single vertex in the PAG graph with a unique name.
+    It's used as a lightweight wrapper around vertex names for type safety
+    and potential future extensions in program analysis contexts.
+
+    Attributes:
+        name (str): The unique identifier/name of the vertex.
+    """
+
     def __init__(self, n: str) -> None:
+        """
+        Initialize a vertex with the given name.
+
+        Args:
+            n (str): The name/identifier for this vertex.
+        """
         self.name: str = n
 
 class PAG_Matrix:
+    """
+    A Program Assignment Graph (PAG) matrix representation for CFL-reachability analysis.
+
+    This class implements a specialized matrix-based graph representation designed
+    for program analysis applications. It extends the basic matrix representation
+    with specialized handling for PAG-specific edge types and relationships.
+
+    PAG matrices are commonly used in program analysis to represent relationships
+    between program points, variables, and operations. This implementation
+    provides optimized handling for the specific edge types and patterns
+    found in program analysis graphs.
+
+    Attributes:
+        source_file (str): Path to the input PAG graph file.
+        vertices (Dict[str, Vertex]): Mapping from vertex names to Vertex objects.
+        edges (List[List[List[str]]]): 2D matrix where edges[i][j] contains list of labels.
+        edge_indices (Dict[str, int]): Mapping from vertex names to matrix indices.
+        symbol_pair (Dict[str, List[Tuple[str, str]]]): Mapping from labels to vertex pairs.
+
+    Example:
+        >>> pag = PAG_Matrix("program_graph.dot")
+        >>> pag.add_vertex("var1")
+        >>> pag.add_edge("var1", "var2", "assign")
+        >>> has_edge = pag.check_edge("var1", "var2", "assign")
+    """
+
     def __init__(self, source_file: str) -> None:
         self.source_file: str = source_file
         self.vertices: Dict[str, Vertex] = {}

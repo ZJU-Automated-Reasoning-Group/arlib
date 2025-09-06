@@ -1,5 +1,5 @@
 """
-This module provides a proof assistant for the Z3 theorem prover.
+This module provides a interactive proof assistant for the Z3 theorem prover (NOTE: not "itp" does not mean "interpolant":)).
 
 It includes the following features:
 - Proofs

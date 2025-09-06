@@ -86,7 +86,7 @@ Here are some of publications related to Arlib.
 - [holpy](https://github.com/bzhan/holpy)
 - [iscalc](https://github.com/bzhan/iscalc)
 - [amaya](https://github.com/MichalHe/amaya)
-
+- [mypyvy](https://github.com/wilcoxjay/mypyvy)
 
 ## Contributors
 

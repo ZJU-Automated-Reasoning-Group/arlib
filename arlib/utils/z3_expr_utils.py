@@ -27,7 +27,7 @@ Some APIs/functions for playing with Z3 exper
 """
 Utility functions for working with Z3 expressions, formulas, and solvers.
 
-This module provides helper functions for analyzing Z3 expressions, manipulating 
+This module provides helper functions for analyzing Z3 expressions, manipulating
 formulas, and extracting information from Z3 objects.
 
 Functions:
@@ -66,7 +66,7 @@ Classes:
 - FormulaInfo: Analyze and extract information from Z3 formulas
 """
 
-from typing import List, Set, Union, Tuple
+from typing import List, Set, Union, Tuple, Iterator
 import z3
 from z3.z3util import get_vars
 
@@ -208,6 +208,38 @@ def skolemize(exp: z3.ExprRef) -> z3.ExprRef:
     tactic = z3.Tactic('snf')
     res = tactic(goal)
     return res.as_expr()
+
+
+def z3_quantifier_alternations(e: z3.ExprRef) -> Iterator[Tuple[z3.SortRef, z3.SortRef]]:
+    """
+    Analyze quantifier alternations in a Z3 expression by examining Skolem functions.
+
+    This function identifies quantifier alternations by:
+    1. Skolemizing the input expression (removing existential quantifiers)
+    2. Finding all function symbols introduced during skolemization
+    3. For each Skolem function, yielding (domain_sort, range_sort) pairs for each argument
+
+    The Skolem functions represent existential quantifiers that depend on universal quantifiers,
+    indicating quantifier alternations in the original formula.
+
+    Args:
+        e: A Z3 expression to analyze for quantifier alternations
+
+    Yields:
+        Tuple[z3.SortRef, z3.SortRef]: Pairs of (domain_sort, range_sort) for each
+        argument position of each Skolem function found in the skolemized expression.
+        Each pair represents a quantifier alternation where the domain sort corresponds
+        to the universal quantifier and the range sort corresponds to the existential quantifier.
+
+    Example:
+        For formula ∀x. ∃y. P(x, y), skolemization introduces a function f(x) where
+        f has domain sort matching x and range sort matching y, indicating a
+        ∀∃ alternation.
+    """
+    skolemized = skolemize(e)
+    for fsym in get_function_symbols(skolemized):
+        for i in range(0, fsym.arity()):
+            yield (fsym.domain(i), fsym.range())
 
 
 def big_and(exp_list: List[z3.ExprRef]):
@@ -475,10 +507,10 @@ class FormulaInfo:
 
     def has_theory(self, theory_name):
         """Check if formula contains a specific theory.
-        
+
         Args:
             theory_name (str): Name of the theory to check for ('array', 'fp', 'string', etc.)
-            
+
         Returns:
             bool: True if the formula contains the specified theory
         """
@@ -504,12 +536,12 @@ class FormulaInfo:
 
     def get_logic(self):
         """Determine the SMT-LIB2 logic for the formula.
-        
-        This method identifies the appropriate SMT-LIB2 logic based on the formula's 
-        characteristics by analyzing theories present (arithmetic, bit-vectors, arrays, 
+
+        This method identifies the appropriate SMT-LIB2 logic based on the formula's
+        characteristics by analyzing theories present (arithmetic, bit-vectors, arrays,
         strings, floating-point) and the presence of quantifiers.
-        
-        The method uses Z3 probes to detect formula properties and builds the logic 
+
+        The method uses Z3 probes to detect formula properties and builds the logic
         string according to SMT-LIB2 naming conventions:
         - QF_* for quantifier-free formulas
         - *LIA/*LRA for linear integer/real arithmetic
@@ -519,16 +551,16 @@ class FormulaInfo:
         - *S for strings
         - *FP for floating-point
         - *UF for uninterpreted functions
-        
+
         Returns:
             str: The SMT-LIB2 logic string that best describes the formula
-            
+
         Examples:
             >>> x, y = z3.Ints('x y')
-            >>> f = z3.And(x > 0, y < 10) 
+            >>> f = z3.And(x > 0, y < 10)
             >>> FormulaInfo(f).get_logic()
             'QF_LIA'
-            
+
             >>> a = z3.Array('a', z3.IntSort(), z3.IntSort())
             >>> g = a[x] == y
             >>> FormulaInfo(g).get_logic()
@@ -639,10 +671,10 @@ class FormulaInfo:
 
 def get_z3_logic(fml: z3.ExprRef) -> str:
     """Determine the SMT-LIB2 logic fragment that best describes a Z3 expression.
-    
+
     This function is a convenient wrapper around FormulaInfo.get_logic() that takes a Z3
     expression and returns the appropriate SMT-LIB2 logic name.
-    
+
     The logic name follows SMT-LIB2 conventions:
     - Prefix QF_ for quantifier-free formulas
     - Suffix letters for theories:
@@ -653,13 +685,13 @@ def get_z3_logic(fml: z3.ExprRef) -> str:
       - S: Strings
       - FP: Floating-point
       - UF: Uninterpreted functions
-    
+
     Args:
         fml (z3.ExprRef): A Z3 expression
-        
+
     Returns:
         str: SMT-LIB2 logic name that best describes the expression
-        
+
     Examples:
         >>> import z3
         >>> x, y = z3.Ints('x y')
@@ -679,7 +711,7 @@ def get_z3_logic(fml: z3.ExprRef) -> str:
 
 
 def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:
-    """ 
+    """
     Let m be a model of a formula phi, preds be a set of predicates
     """
     res = []
@@ -711,45 +743,45 @@ if __name__ == "__main__":
         >>> bv1, bv2 = z3.BitVecs('bv1 bv2', 8)
         >>> s1, s2 = z3.Strings('s1 s2')
         >>> fp1, fp2 = z3.FPs('fp1 fp2', z3.FPSort(8, 24))
-        
+
         # Test integer arithmetic
         >>> get_z3_logic(z3.And(x > 0, y < 10))
         'QF_LIA'
-        
+
         # Test real arithmetic
         >>> get_z3_logic(z3.And(a > 0.0, b < 10.0))
         'QF_LRA'
-        
+
         # Test mixed arithmetic
         >>> get_z3_logic(z3.And(x > 0, a < 10.0))
         'QF_LIRA'
-        
+
         # Test bit-vectors
         >>> get_z3_logic(bv1 + bv2 == 0)
         'QF_BV'
-        
+
         # Test arrays
         >>> arr = z3.Array('arr', z3.IntSort(), z3.IntSort())
         >>> get_z3_logic(arr[x] == y)
         'QF_ALIA'
-        
+
         # Test bit-vector arrays
         >>> bv_arr = z3.Array('bv_arr', z3.BitVecSort(8), z3.BitVecSort(8))
         >>> get_z3_logic(bv_arr[bv1] == bv2)
         'QF_ABV'
-        
+
         # Test strings
         >>> get_z3_logic(s1 == s2)
         'QF_S'
-        
+
         # Test floating point
         >>> get_z3_logic(fp1 > fp2)
         'QF_FP'
-        
+
         # Test quantifiers
         >>> get_z3_logic(z3.ForAll([x], x > 0))
         'LIA'
-        
+
         # Test combination of theories
         >>> get_z3_logic(z3.And(arr[x] == y, s1 == s2))
         'QF_ALIAS'

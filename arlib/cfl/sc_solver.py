@@ -1,5 +1,24 @@
 """
-A solver for SC-reduction, specifically using the DTC-based approach
+Set Constraint (SC) Reduction Solver for CFL-Reachability Analysis
+
+This module implements a solver for Set Constraint (SC) reduction problems
+using Dynamic Transitive Closure (DTC) algorithms with quantum computing
+optimizations. SC-reduction is an alternative approach to CFL-reachability
+that converts the problem into a set constraint satisfaction problem.
+
+The SC-reduction approach is particularly useful for certain types of
+program analysis problems and can provide different performance characteristics
+compared to direct CFL-reachability algorithms.
+
+Key Features:
+- DTC-based SC-reduction algorithm
+- Quantum iteration estimation using Grover's search
+- Conversion from CFL-reachability to set constraints
+- Worklist-based analysis for efficient computation
+- Support for complex constraint structures
+
+Author: arlib team
+Adapted from: "Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search"
 """
 
 from math import pi, sqrt, floor, ceil, log
@@ -9,6 +28,29 @@ from typing import List, Dict, Any, Union, Tuple, Optional, Set
 
 
 class SCSolver:
+    """
+    A solver for Set Constraint (SC) reduction problems in CFL-reachability analysis.
+
+    This class implements the DTC-based SC-reduction algorithm with quantum
+    computing optimizations. It converts CFL-reachability problems into set
+    constraint satisfaction problems and solves them using worklist-based
+    analysis with quantum iteration estimation.
+
+    The SC-reduction approach is particularly useful for program analysis
+    applications where the constraint structure can be exploited for
+    more efficient computation.
+
+    Attributes:
+        mode (str): The solving mode, currently supports "Cubic" for cubic-time algorithm.
+        constraint (Dict[str, Dict[str, Set[str]]]): The set constraint structure.
+        set_variable (Set[str]): Set of variables in the constraint system.
+        nnn (int): Number of constraint variables.
+
+    Example:
+        >>> solver = SCSolver("Cubic")
+        >>> solver.solve(graph, grammar)
+    """
+
     def __init__(self, mode: str) -> None:
         self.mode: str = mode
         self.constraint: Dict[str, Dict[str, Set[str]]] = {}

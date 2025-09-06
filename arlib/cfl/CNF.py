@@ -1,11 +1,23 @@
 """
-G in this form:
-start symble: first line
-production rules: other line
+Context-Free Grammar Normalization and Conversion
 
-example:
-A
-A = a
+This module provides comprehensive functionality for normalizing context-free
+grammars to various standard forms, including Chomsky Normal Form (CNF).
+It implements the standard grammar transformation pipeline: START, TERM, BIN, DEL, UNIT.
+
+The module handles grammar conversion from various input formats and applies
+a series of transformations to bring grammars into normalized forms suitable
+for efficient parsing and analysis algorithms.
+
+Key Features:
+- START: Add new start symbol if needed
+- TERM: Separate terminals and non-terminals
+- BIN: Convert to binary normal form (at most 2 symbols on RHS)
+- DEL: Remove epsilon productions
+- UNIT: Remove unit productions
+- Support for various input formats
+
+Author: arlib team
 """
 # -*- coding: utf-8 -*-
 #IT's assumed that starting variable is the first typed

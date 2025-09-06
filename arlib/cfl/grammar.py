@@ -1,10 +1,24 @@
 """
-A grammar parser and converter, specifically dealing with Extended Backus-Naur Form (EBNF) to Binary Normal Form (BNF) conversion
+Context-Free Grammar Parser and Converter
 
+This module provides comprehensive functionality for parsing and converting
+Extended Backus-Naur Form (EBNF) grammars to Binary Normal Form (BNF).
+It is specifically designed for use in CFL-reachability analysis.
+
+Key Features:
 - Converts EBNF to BNF by introducing new non-terminals
-- Handles special cases like epsilon (ε) productions
-- Converts long productions into binary form (at most two symbols on the right-hand side)
-- Maintains a dictionary of production rules in edge_pair_dict
+- Handles special constructs: Kleene star (*), optional (?), grouping ()
+- Converts long productions into binary form (at most two symbols on RHS)
+- Identifies epsilon (ε) productions for nullable variables
+- Maintains production rules in a structured dictionary format
+
+The conversion process follows standard grammar normalization techniques:
+1. Handle repetition operators (* and ?)
+2. Remove grouping parentheses
+3. Convert to binary normal form
+4. Extract epsilon productions
+
+Author: arlib team
 """
 
 import re
@@ -13,6 +27,27 @@ from typing import Dict, List, Any, Union, Tuple, Optional
 
 
 class Grammar:
+    """
+    A context-free grammar parser and converter for CFL-reachability analysis.
+
+    This class handles the parsing and normalization of context-free grammars
+    from EBNF format to BNF format. It supports various grammar constructs
+    and ensures the resulting grammar is suitable for CFL-reachability algorithms.
+
+    Attributes:
+        new_terminal_subscript (int): Counter for generating new non-terminal names.
+        edge_pair_dict (Dict[str, List[List[str]]]): Dictionary mapping non-terminals
+                                                   to their production rules.
+        epsilon (List[str]): List of non-terminals that can derive epsilon.
+        search_pattern (re.Pattern): Compiled regex for parsing grammar files.
+        filename (str): Path to the input grammar file.
+
+    Example:
+        >>> grammar = Grammar("example_grammar.txt")
+        >>> print(grammar.keys())  # List of non-terminals
+        >>> print(grammar.epsilon)  # List of nullable variables
+    """
+
     def __init__(self, filename: str) -> None:
         self.new_terminal_subscript: int = 0
         # list contain all the edge that has epsilon symbol in right hand side
@@ -23,9 +58,22 @@ class Grammar:
         self.grammar(self.filename)
 
     def keys(self) -> List[str]:
+        """
+        Get all non-terminal symbols in the grammar.
+
+        Returns:
+            List[str]: List of non-terminal symbols (left-hand sides of productions).
+        """
         return list(self.edge_pair_dict.keys())
 
     def items(self) -> List[Tuple[str, List[List[str]]]]:
+        """
+        Get all production rules as (non-terminal, productions) pairs.
+
+        Returns:
+            List[Tuple[str, List[List[str]]]]: List of tuples where each tuple
+                                             contains (non_terminal, list_of_productions).
+        """
         return list(self.edge_pair_dict.items())
 
     def ebnf_file_reader(self, filename: str) -> List[str]:
