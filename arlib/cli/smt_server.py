@@ -12,6 +12,7 @@ There are several benefits:
 import logging
 import os
 import sys
+import time
 import argparse
 from dataclasses import dataclass
 from typing import Dict, Any, List, Set, Optional, Callable, Union
@@ -530,8 +531,10 @@ class SmtServer:
 
         while self.running:
             try:
+                # Read one command at a time instead of blocking in a loop
                 with open(self.input_pipe, 'r') as f:
-                    for line in f:
+                    line = f.readline()
+                    if line:
                         command = line.strip()
                         if command:
                             logging.debug(f"Received command: {command}")
@@ -540,10 +543,14 @@ class SmtServer:
                             self.write_response(response)
                         if not self.running:
                             break
+                    else:
+                        # No input available, sleep briefly and continue
+                        time.sleep(0.01)
             except IOError as e:
                 logging.error(f"IO Error: {e}")
                 if not self.running:
                     break
+                time.sleep(0.1)
                 continue
             except Exception as e:
                 logging.error(f"Unexpected error: {e}")

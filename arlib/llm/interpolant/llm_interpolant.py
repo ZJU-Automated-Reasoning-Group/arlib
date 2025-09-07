@@ -11,9 +11,8 @@ Workflow:
    - I ∧ B is unsat
    If both hold, accept; otherwise, report failure.
 
-Notes:
-- This is a PoC: minimal guards, no complex few-shoting.
-- The LLM backend is reused from arlib.llm.abduct.base.LLMViaTool.
+
+TODO: currently, we use s-expr for easy commutnicaiton, but it might be more easier for LLM to return other formats, e.g., Z3's Python APIs, natural languages, etc.
 """
 
 from dataclasses import dataclass
@@ -25,6 +24,7 @@ from z3.z3util import get_vars
 
 from arlib.llm.llmtool.LLM_tool import LLMTool, LLMToolInput, LLMToolOutput
 from arlib.llm.llmtool.logger import Logger
+from arlib.llm.interpolant.prompts import mk_interpolant_prompt, mk_interpolant_prompt_with_type
 
 
 SMTText = str
@@ -33,6 +33,7 @@ Z3Expr = z3.ExprRef
 
 def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
     solver = z3.Solver()
+    """Parse SMT2 text into Z3 expressions."""
     for attempt in [smt2_text, f"(assert {smt2_text})\n"]:
         try:
             parsed = z3.parse_smt2_string(f"(set-logic ALL)\n{attempt}")
@@ -45,6 +46,7 @@ def _parse_smt2_asserts(smt2_text: SMTText) -> List[Z3Expr]:
 
 
 def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr]) -> List[Z3Expr]:
+    """Convert formulas to Z3 expressions."""
     if not isinstance(formulas, (list, tuple)):
         formulas = [formulas]
 
@@ -52,23 +54,6 @@ def _to_asserts(formulas: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Exp
     smt2_texts = [f for f in formulas if not isinstance(f, z3.ExprRef)]
 
     return z3_exprs + (_parse_smt2_asserts("\n".join(smt2_texts)) if smt2_texts else [])
-
-
-def _common_symbols(asA: List[Z3Expr], asB: List[Z3Expr]) -> List[str]:
-    get_names = lambda forms: {v.decl().name() for e in forms for v in get_vars(e)}
-    return sorted(get_names(asA) & get_names(asB))
-
-
-def _mk_prompt(A: List[Z3Expr], B: List[Z3Expr]) -> str:
-    A_text = "\n".join(f"(assert {e.sexpr()})" for e in A)
-    B_text = "\n".join(f"(assert {e.sexpr()})" for e in B)
-    commons = ", ".join(_common_symbols(A, B))
-    return f"""Generate a Craig interpolant I between sets A and B.
-Requirements: A⟹I valid, I∧B unsat, use only shared symbols: {commons}
-Return ONLY the S-expression, no explanations.
-
-A: (set-logic ALL)\n{A_text}
-B: (set-logic ALL)\n{B_text}"""
 
 
 @dataclass
@@ -79,35 +64,31 @@ class InterpolantResult:
     raw_text: str
 
 
-class _PromptTool(LLMTool):
-    def _get_prompt(self, input: str) -> str:
-        return input
-
-    def _parse_response(self, response: str, input: str | None = None) -> str:
-        return response
-
-
 class LLMInterpolantGenerator:
-    def __init__(self, model_name: str = os.environ.get("ARLIB_LLM_MODEL", "glm-4-flash"), temperature: float = 0.2) -> None:
+    def __init__(self, model_name: str = os.environ.get("ARLIB_LLM_MODEL", "glm-4-flash"),
+                 temperature: float = 0.2, prompt_type: str = "basic") -> None:
         log_dir = os.environ.get("ARLIB_LOG_DIR", ".arlib_logs")
         os.makedirs(log_dir, exist_ok=True)
         logger = Logger(os.path.join(log_dir, "interpolant_llm.log"))
-        self.tool = _PromptTool(
+        self.tool = LLMTool(
             model_name=model_name,
             temperature=temperature,
             language="en",
             max_query_num=3,
             logger=logger,
         )
+        self.prompt_type = prompt_type
 
     def generate(
         self,
         A: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
         B: Union[Sequence[Union[SMTText, Z3Expr]], SMTText, Z3Expr],
         max_attempts: int = 3,
+        prompt_type: Optional[str] = None,
     ) -> InterpolantResult:
         A_list, B_list = _to_asserts(A), _to_asserts(B)
-        prompt = _mk_prompt(A_list, B_list)
+        prompt_type = prompt_type or self.prompt_type
+        prompt = mk_interpolant_prompt_with_type(A_list, B_list, prompt_type)
 
         last_text = ""
         for _ in range(max_attempts):
@@ -158,10 +139,15 @@ def main():
     A = ["(declare-fun x () Int)", "(declare-fun y () Int)", "(assert (> x 6))", "(assert (= y (+ x 1)))"]
     B = ["(declare-fun y () Int)", "(assert (<= y 4))"]
 
-    gen = LLMInterpolantGenerator()
-    res = gen.generate(A, B)
-    print("Interpolant:", res.raw_text)
-    print("A => I:", res.valid_A_implies_I, "; I & B unsat:", res.unsat_I_and_B)
+    # Test different prompt types
+    prompt_types = ["basic", "cot", "fewshot", "structured"]
+
+    for prompt_type in prompt_types:
+        print(f"\n=== Testing {prompt_type.upper()} prompt ===")
+        gen = LLMInterpolantGenerator(prompt_type=prompt_type)
+        res = gen.generate(A, B)
+        print("Interpolant:", res.raw_text)
+        print("A => I:", res.valid_A_implies_I, "; I & B unsat:", res.unsat_I_and_B)
 
 
 if __name__ == "__main__":

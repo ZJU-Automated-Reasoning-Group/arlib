@@ -15,7 +15,9 @@ TODO: to be tested
 """
 
 import argparse
+import os
 import sys
+from pathlib import Path
 from typing import Optional, Sequence
 from arlib.translator import (
     cnf2lp, cnf2smt, dimacs2smt, qbf2smt,
@@ -57,7 +59,6 @@ def detect_format(filename: str) -> str:
         '.dl': 'datalog'
     }
 
-    from pathlib import Path
     ext = Path(filename).suffix.lower()
     return ext_map.get(ext)
 
@@ -160,8 +161,6 @@ def handle_analyze(args):
 
 def handle_batch(args):
     """Handle batch processing"""
-    from pathlib import Path
-    import os
 
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
@@ -186,8 +185,17 @@ def handle_batch(args):
                     continue
 
                 # Construct output path
-                out_ext = next(ext for ext, fmt in detect_format.__defaults__[0].items()
-                               if fmt == out_format)
+                ext_map = {
+                    'dimacs': '.cnf',
+                    'qdimacs': '.qdimacs',
+                    'tplp': '.tplp',
+                    'fzn': '.fzn',
+                    'smtlib2': '.smt2',
+                    'sygus': '.sy',
+                    'lp': '.lp',
+                    'datalog': '.dl'
+                }
+                out_ext = ext_map.get(out_format, '.txt')
                 output_file = output_dir / (input_file.stem + out_ext)
 
                 # Translate
@@ -211,6 +219,42 @@ def handle_batch(args):
 
     print(f"Batch processing complete: {success} succeeded, {failed} failed")
     return 0 if failed == 0 else 1
+
+
+def create_parser():
+    """Create command line argument parser"""
+    parser = argparse.ArgumentParser(description="Logic constraint format translator")
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
+    parser.add_argument('-d', '--debug', action='store_true', help='Debug output')
+
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # Translate
+    t = subparsers.add_parser('translate', help='Translate between formats')
+    t.add_argument('-i', '--input-file', required=True, help='Input file')
+    t.add_argument('-o', '--output-file', required=True, help='Output file')
+    t.add_argument('--input-format', help='Input format')
+    t.add_argument('--output-format', help='Output format')
+    t.add_argument('--auto-detect', action='store_true', help='Auto-detect formats')
+
+    # Validate
+    v = subparsers.add_parser('validate', help='Validate file format')
+    v.add_argument('-i', '--input-file', required=True, help='Input file')
+    v.add_argument('-f', '--format', help='File format')
+
+    # Analyze
+    a = subparsers.add_parser('analyze', help='Analyze properties')
+    a.add_argument('-i', '--input-file', required=True, help='Input file')
+    a.add_argument('-f', '--format', help='File format')
+
+    # Batch
+    b = subparsers.add_parser('batch', help='Batch process')
+    b.add_argument('-i', '--input-dir', required=True, help='Input directory')
+    b.add_argument('-o', '--output-dir', required=True, help='Output directory')
+    b.add_argument('--input-format', help='Input format')
+    b.add_argument('--output-format', help='Output format')
+
+    return parser
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
