@@ -43,13 +43,17 @@ def main():
     print(f"Verifying: {mechs[mech]}")
     if mech == "laplace":
         for eps in [0.1, 0.5, 1.0]:
-            print_result(*verify_dp(mech, eps), mech, eps, 0, verify_dp(mech, eps)[3])
+            is_dp, model, vars, t = verify_dp(mech, eps)
+            print_result(is_dp, model, vars, mech, eps, 0, t)
     elif mech == "gaussian":
         for eps, delta in [(1.0, 0.01), (0.5, 0.05), (0.1, 0.1)]:
-            print_result(*verify_dp(mech, eps, delta), mech, eps, delta, verify_dp(mech, eps, delta)[3])
+            is_dp, model, vars, t = verify_dp(mech, eps, delta)
+            print_result(is_dp, model, vars, mech, eps, delta, t)
     elif mech == "randomized_response":
         for eps in map(math.log, [3, 9, 19]):
-            print_result(*verify_dp(mech, eps), mech, eps, 0, verify_dp(mech, eps)[3])
+            is_dp, model, vars, t = verify_dp(mech, eps)
+            print_result(is_dp, model, vars, mech, eps, 0, t)
+
 
 if __name__ == "__main__":
     main()
