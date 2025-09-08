@@ -8,9 +8,3 @@ Subpackages of interest include:
 - congruence: congruence-closure based abstraction
 - rangeset_sat: SAT-based range and set abstraction over bit-vectors
 """
-
-from . import rangeset_sat  # re-export namespace for convenience
-
-__all__ = [
-    "rangeset_sat",
-]

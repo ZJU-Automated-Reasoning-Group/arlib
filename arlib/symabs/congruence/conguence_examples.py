@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import z3
 
-from arlib.symabs.congruence.closure import congruent_closure
+from arlib.symabs.congruence.congruence_abstraction import congruent_closure
 
 
 def parity_example(width: int = 4) -> None:

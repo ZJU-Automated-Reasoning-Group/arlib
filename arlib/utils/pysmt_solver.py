@@ -175,7 +175,7 @@ class PySMTSolver(z3.Solver):
             return result
 
 
-def test():
+if __name__ == "__main__":
     x, y, z = z3.Ints("x y z")
     fml = z3.And(x > 10, y < 19, z == 3.0)
     sol = PySMTSolver()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import z3
 
-from arlib.symabs.rangeset_sat.algorithms import minimum, maximum, range_abstraction, set_abstraction
+from arlib.symabs.rangeset.range_set_abstraction import minimum, maximum, range_abstraction, set_abstraction
 
 
 def demo_unsigned():

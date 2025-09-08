@@ -1,4 +1,4 @@
-# Model Counting Meets Abstract Interpretation (MCA)I
+# Model Counting Meets Abstract Interpretation (MCAI)
 
 ## DONE
 

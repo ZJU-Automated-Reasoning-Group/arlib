@@ -4,7 +4,7 @@ from typing import List, Sequence, Tuple
 
 import z3
 
-from .system import CongruenceSystem
+from .congruence_system import CongruenceSystem
 
 
 def _bools_to_ints(bs: Sequence[z3.BoolRef]) -> List[z3.IntNumRef | z3.ArithRef]:

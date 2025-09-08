@@ -15,7 +15,7 @@ All APIs return Python integers under the chosen signedness, and also provide
 bit-width-preserving Z3 bit-vector constants when needed internally.
 """
 
-from .algorithms import (
+from .range_set_abstraction import (
     minimum,
     maximum,
     range_abstraction,
