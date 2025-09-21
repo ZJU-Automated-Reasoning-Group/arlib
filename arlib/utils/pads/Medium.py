@@ -230,7 +230,7 @@ def RoutingTable(M):
     recognize that the input is not a medium, we raise MediumError.
     """
     G = StateTransitionGraph(M)
-    current = initialState = iter(M).__next__()
+    current = initialState = next(iter(M))
 
     # find list of tokens that lead to the initial state
     activeTokens = set()

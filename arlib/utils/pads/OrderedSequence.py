@@ -15,7 +15,7 @@ class SimpleOrderedSequence(Sequence):
     for each item, with the order of tags the same as the sequence order.
     When two tags collide, we renumber the whole sequence; this behavior
     can be changed by overriding the rebalance method.  Renumbers happen
-    infrequently (roughly one in every log(sys.maxint) insertions)
+    infrequently (roughly one in every log(sys.maxsize) insertions)
     but take time proportional to the number of items, so it is preferable
     to use this data structure only for sequences of very few items.
     """
@@ -47,7 +47,7 @@ class SimpleOrderedSequence(Sequence):
         y = self.key(y)
         next = self._next[y]
         if next == self._first:
-            nexttag = sys.maxint
+            nexttag = sys.maxsize
         else:
             nexttag = self._tag[next]
         xtag = self._tag[x]
@@ -68,7 +68,7 @@ class SimpleOrderedSequence(Sequence):
     def rebalance(self,x):
         """Clean up after x and its successor's tags collide."""
         base = 0
-        increment = sys.maxint//len(self)
+        increment = sys.maxsize//len(self)
         for y in self:
             self._tag[y] = base
             base += increment

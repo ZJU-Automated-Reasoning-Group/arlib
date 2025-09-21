@@ -29,7 +29,7 @@ class RangeMin:
         Uses an LCA structure on a Cartesian tree for the input."""
         self._data = list(X)
         if len(X) > 1:
-            big = map(max, self._ansv(False), self._ansv(True))
+            big = list(map(max, self._ansv(False), self._ansv(True)))
             parents = dict([(i,big[i][1]) for i in range(len(X)) if big[i]])
             self._lca = LCA(parents)
 
@@ -146,7 +146,7 @@ class LogarithmicRangeMin:
         """Compute min(X[i:i+2**j]) for each possible i,j."""
         self._minima = m = [list(X)]
         for j in range(_log2(len(X))):
-            m.append(map(min, m[-1], m[-1][1<<j:]))
+            m.append(list(map(min, m[-1], m[-1][1<<j:])))
 
     def __getslice__(self,x,y):
         """Find range minimum by representing range as the union

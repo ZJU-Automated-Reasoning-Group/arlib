@@ -99,7 +99,7 @@ class PartialOrderTest(unittest.TestCase):
             cube[min(i,i^b)].append(max(i,i^b))
 
     def testHypercubeAcyclic(self):
-        self.assert_(isAcyclic(self.cube))
+        self.assertTrue(isAcyclic(self.cube))
 
     def testHypercubeClosure(self):
         TC = TransitiveClosure(self.cube)

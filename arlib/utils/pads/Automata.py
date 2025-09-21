@@ -84,7 +84,7 @@ class RegularLanguage:
             raise LanguageError("Unable to intersect nonregular language")
         return Language(self.recognizer.symmetricDifference(other.recognizer))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Is this the empty language?"""
         for x in self.recognizer.states():
             if x.isfinal():

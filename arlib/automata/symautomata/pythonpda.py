@@ -118,7 +118,7 @@ class PythonPDA(object):
             stack.append(self.s[state].sym)
             if len(self.s[state].trans) > 0:
                 print(state, self.s[state].trans)
-                state = self.s[state].trans.keys()[0]
+                state = list(self.s[state].trans.keys())[0]
                 if self.parse(
                         mystr,
                         stack=stack,

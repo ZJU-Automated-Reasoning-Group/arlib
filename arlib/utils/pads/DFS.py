@@ -34,7 +34,7 @@ def search(G,initial_vertex = whole_graph):
             while stack:
                 parent,children = stack[-1]
                 try:
-                    child = children.__next__()
+                    child = next(children)
                     if child in visited:
                         yield parent,child,nontree
                     else:

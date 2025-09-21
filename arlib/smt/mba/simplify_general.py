@@ -678,7 +678,7 @@ class GeneralSimplifier:
 
         if len(returnDict.values()) == 0: sys.exit("No simplification result!")
 
-        root = returnDict.values()[0]
+        root = list(returnDict.values())[0]
         simpl = root.to_string()
 
         if useZ3 and not self.__verify_using_z3(expr, simpl):
