@@ -11,8 +11,12 @@ from typing import List, Any
 from functools import reduce
 from z3 import *
 
+
 logger = logging.getLogger(__name__)
 
+import sys
+# print(sys.getrecursionlimit())
+sys.setrecursionlimit(200000)  # Adjust the value accordingly
 
 class MonAbsSMTLIBParser:
 
@@ -20,7 +24,7 @@ class MonAbsSMTLIBParser:
         self.solver = Solver()
         self.variables = {}
         self.functions = {}  # Store declared functions
-        self.let_bindings = {}  # Store let bindings
+        self.let_bindings = {} # Store let bindings
         # Stack of constraints for each scope level
         # First list (index 0) contains global constraints
         self.constraints_stack: List[List[Any]] = [[]]
@@ -36,6 +40,13 @@ class MonAbsSMTLIBParser:
         # "only_parse" mode: do not execute the check-sat commands; just record the cnts
         # if we need to record the oracle, we shoud ignore the option.
         self.only_parse = kwargs.get('only_parse', False)
+        
+        # extract precond: z3.ExprRef, cnt_list: List[z3.ExprRef]
+        self.flag: Bool = False
+        self.cnt: z3.ExprRef = z3.BoolVal(True)
+        self.precond: z3.ExprRef = z3.BoolVal(True)
+        self.cnt_list: List[z3.ExprRef] = []
+        
 
     def flatten_sort(self, sort_expr):
         """Flatten sort expression appropriately"""
@@ -161,14 +172,22 @@ class MonAbsSMTLIBParser:
                 range_sort = self.get_sort(command[3])
                 self.functions[name] = Function(name, *domain_sorts, range_sort)
 
+        # elif cmd == 'declare-sort':
+            # TODO
+            
         elif cmd == 'assert':
             expr = self.build_expression(command[1])
             self.solver.add(expr)
             # Store both the original constraint and the built z3 expression
             self.add_constraint(command[1], expr)
+            if self.flag == False:
+                self.precond = z3.And(self.precond, expr)
+            elif self.flag == True:
+                self.cnt = z3.And(self.cnt, expr)          
 
         elif cmd == 'push':
             self.solver.push()
+            self.flag = True
             # Create new scope for constraints
             self.constraints_stack.append([])
 
@@ -176,6 +195,9 @@ class MonAbsSMTLIBParser:
             if len(self.constraints_stack) <= 1:
                 raise ValueError("Cannot pop global scope")
             self.solver.pop()
+            self.flag = False
+            self.cnt_list.append(self.cnt)
+            self.cnt = z3.BoolVal(True)
             # Remove constraints from the current scope
             popped_constraints = self.constraints_stack.pop()
             logger.debug(f"Popped constraints from scope {len(self.constraints_stack)}:")
@@ -187,10 +209,10 @@ class MonAbsSMTLIBParser:
 
         elif cmd == 'check-sat':
             # if we set a "only parse mode", do not actually check-sat
-            print("---------------------------------------------------")
-            print(self.solver)
             if self.only_parse:
                 return
+            print("---------------------------------------------------")
+            print(self.solver)
             result = self.solver.check()
             print(f"check-sat result: {result}")
             print("Current scope constraints:")
@@ -237,15 +259,15 @@ class MonAbsSMTLIBParser:
             return self.parse_constant(expr)
 
         op = expr[0]
-
+        
         if isinstance(op, list):
             flatten_expr = expr[0]
             flatten_expr.append(expr[1])
             return self.build_special_operator(flatten_expr)
-
+        
         if op == 'let':
             return self.build_let_expression(expr)
-
+        
         args = [self.build_expression(arg) for arg in expr[1:]]
 
         # Theory-specific operations
@@ -276,12 +298,17 @@ class MonAbsSMTLIBParser:
             # Bit-vector constant
             value = int(expr[1][2:])  # Extract the value after 'bv'
             width = int(expr[2])  # Extract the bit-width
-            return BitVecVal(value, width)
+            return BitVecVal(value, width) 
         elif expr[1] == 'sign_extend':
             # Sign extension
             extension_bits = int(expr[2])
             value = self.build_expression(expr[3])
             return SignExt(extension_bits, value)
+        elif expr[1] == 'zero_extend':
+            # Zero extension
+            extension_bits = int(expr[2])  
+            value = self.build_expression(expr[3]) 
+            return ZeroExt(extension_bits, value) 
         elif expr[1] == 'extract':
             # Bit extraction
             high = int(expr[2])
@@ -290,7 +317,7 @@ class MonAbsSMTLIBParser:
             return Extract(high, low, value)
         else:
             raise ValueError(f"Unknown special operator: {expr[1]}")
-
+    
     def build_let_expression(self, expr):
         bindings = expr[1]
         body = expr[2]
@@ -300,9 +327,9 @@ class MonAbsSMTLIBParser:
             var_name = binding[0]
             var_expr = self.build_expression(binding[1])
             self.let_bindings[var_name] = var_expr
-
+        
         return self.build_expression(body)
-
+        
     def build_standard_expression(self, op, args):
         """Build expression for standard operations"""
         if op == '+':
@@ -312,6 +339,8 @@ class MonAbsSMTLIBParser:
         elif op == '*':
             return reduce(lambda x, y: x * y, args)
         elif op == '/':
+            return args[0] / args[1]
+        elif op == 'div':
             return args[0] / args[1]
         elif op == '>':
             return args[0] > args[1]
@@ -323,8 +352,12 @@ class MonAbsSMTLIBParser:
             return args[0] <= args[1]
         elif op == '=':
             return args[0] == args[1]
+        elif op == 'mod':
+            return args[0] % args[1]
         elif op == 'distinct':
             return Distinct(*args)
+        elif op == 'concat':
+            return Concat(*args)
         elif op == 'and':
             return And(*args)
         elif op == 'or':
@@ -451,45 +484,17 @@ class MonAbsSMTLIBParser:
         with open(filename, 'r', encoding='utf-8') as file:
             content = file.read()
         self.parse_string(content)
+        
+    def extract_scope_constraints(self):        
+        print("precond:\n->", self.precond)
+        print("cnt_list:")
+        for cnt in self.cnt_list:
+            print("->", cnt)
+        
+        return self.precond, self.cnt_list
 
-
-# Example usage
-smt_content_bv = """
-(set-logic QF_BV)
-(declare-const state (_ BitVec 8))
-(declare-const input (_ BitVec 8))
-(declare-const output (_ BitVec 8))
-
-;; Initial state constraints
-(assert (= state #x00))
-(assert (bvult input #x10))
-
-;; First transition
-(push 1)
-(assert (= output (bvadd state input)))
-(assert (= state output))
-(check-sat)
-
-;; Second transition, new constraints
-(push 1)
-(assert (bvuge input #x08))
-(assert (= output (bvmul state #x02)))
-(check-sat)
-(pop 1)
-
-;;  Third transition
-； what if we declare new variables here?
-(assert (bvult input #x08))
-(assert (= output (bvudiv state #x02)))
-(check-sat)
-(pop 1)
-"""
-
-
-def main():
-    parser = MonAbsSMTLIBParser(only_parse=True, logic='QF_BV')
-    parser.parse_string(smt_content_bv)
-
-
-if __name__ == "__main__":
-    main()
+    def get_precond(self):
+        return self.precond
+    
+    def get_cnt_list(self):
+        return self.cnt_list
