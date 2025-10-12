@@ -58,8 +58,7 @@ def disjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef]) -> List[i
     return res
 
 
-def compact_check_misc_incremental(solver: z3.Solver, precond: z3.ExprRef, cnt_list: List[z3.ExprRef],
-                                   res_label: List[int]):
+def compact_check_misc_incremental(solver: z3.Solver, precond: z3.ExprRef, cnt_list: List[z3.ExprRef], res_label: List[int]):
     f = z3.BoolVal(False)
 
     conditions = []

@@ -1,3 +1,3 @@
 """
-Model counting
+Model Counting
 """

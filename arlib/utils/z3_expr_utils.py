@@ -150,7 +150,7 @@ def get_atoms(expr: z3.BoolRef) -> Set[z3.BoolRef]:
 
     # convert to NNF and then look for preds
     exp = z3.Tactic('nnf')(expr).as_expr()
-    # exp = z3.Then('simplify', 'nnf')(expr).as_expr()
+    # exp = z3.Then('simplify', 'nnf')(expr).as_expr() # shoud we do this?
     get_preds_(exp)
     return a_set
 
