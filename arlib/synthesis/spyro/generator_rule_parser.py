@@ -1,4 +1,4 @@
-import arlib.ply.yacc as yacc
+import arlib.utils.ply.yacc as yacc
 import arlib.synthesis.spyro.lexer as lexer
 
 tokens = lexer.tokens

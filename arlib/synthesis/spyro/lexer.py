@@ -1,4 +1,4 @@
-import arlib.ply.lex as lex
+import arlib.utils.ply.lex as lex
 
 tokens = (
     'SPLITTER', 'ID', 'INT',

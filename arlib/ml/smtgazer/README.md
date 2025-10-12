@@ -1,7 +1,14 @@
-# SMTgazer
-Welcome to the homepage of SMTgazer!
+# SMTgazer: Machine Learning-Based SMT Solver Portfolio System
 
-SMTgazer is an effective algorithm scheduling based method for SMT solving. This repository includes the implementation of SMTgazer and the experimental results.
+SMTgazer is an effective algorithm scheduling method for SMT solving that uses machine learning to automatically select optimal combinations of SMT solvers for different problem categories and instances.
+
+## Overview
+
+SMTgazer works by:
+1. **Feature Extraction**: Extracting statistical features from SMT problems using MachSMT
+2. **Clustering**: Grouping similar problems using X-means clustering
+3. **Portfolio Optimization**: Using SMAC3 to find optimal solver combinations per cluster
+4. **Classification**: Assigning new problems to clusters and applying learned portfolios
 
 ## Datasets
 
