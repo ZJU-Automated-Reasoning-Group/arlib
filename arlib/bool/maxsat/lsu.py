@@ -148,7 +148,7 @@ class LSU:
                              incr=True, use_timer=True)
 
         for i, cl in enumerate(formula.soft):
-            # TODO: if clause is unit, use its literal as selector
+
             # (ITotalizer must be extended to support PB constraints first)
             self.topv += 1
             selv = self.topv

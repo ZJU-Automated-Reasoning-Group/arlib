@@ -10,7 +10,7 @@ components are:
 ### ai_symabs: Abstract Interpretation-based Symbolic Abstraction
 
 - Implements classic abstract interpretation domains (intervals, signs, octagons)
-- Based on the bilateral algorithm from Tharkur's PhD thesis
+- Based on the algorithms from Tharkur's PhD thesis
 - Supports reduced product of abstract domains
 
 ### mcai: Model Counting-based Abstract Interpretation
@@ -30,7 +30,10 @@ components are:
 
 - Based on the CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
 
-## Usage Examples
+### congruence
 
-TBD
+Automatic Abstraction for Congruences (King & Søndergaard, VMCAI'10
 
+### rangeset
+
+Range and Set Abstraction using SAT (after Barrett & King).

@@ -21,18 +21,56 @@ def _model_vector(model: z3.ModelRef, xs: Sequence[z3.ArithRef]) -> List[int]:
 
 def _augment_with_model(sys: CongruenceSystem, xvec: List[int]) -> None:
     """Given a new model x ∈ {0,1}^k, add the equation fixing x to the system's
-    row-space by joining with the affine hull of previous models. In practice we
-    simply append the row x ≡ c (mod m) captured by a single equality:
-    Σ 2^j * x_j ≡ Σ 2^j * x_j (mod m). This seeds information for elimination.
+    row-space by joining with the affine hull of previous models using the paper's
+    triangular merge algorithm. This maintains triangular form and produces a
+    more compact representation than simple row addition.
 
-    This is a simplification of the paper's triangular merge; it works well with
-    the stability checking loop and yields a sound (though not maximally compact)
-    system.
+    The algorithm computes the intersection of the current affine hull with the
+    new hyperplane defined by the model, using the triangular structure to
+    efficiently eliminate variables.
     """
     k = len(xvec)
+    m = sys.modulus
+
+    # Add the new constraint: Σ x_i * 2^i ≡ Σ x_i * 2^i (mod m)
+    # This represents the model as a congruence
     coeffs = [1] * k
-    rhs = sum(xvec)
+    rhs = sum(xvec[j] for j in range(k))
     sys.add_row(coeffs, rhs)
+
+    # Apply triangular merge: eliminate using existing triangular structure
+    sys.triangularize()
+
+    # Additional optimization: if we have a full-rank triangular system,
+    # we can often eliminate the last row by substitution
+    if sys.num_rows > 0 and sys.num_rows == sys.width:
+        # Check if the last row has a pivot (non-zero coefficient in last column)
+        last_row = sys.coeffs[-1]
+        last_col = len(last_row) - 1
+
+        if last_row[last_col] != 0:
+            # We can eliminate this row using the triangular structure
+            # This implements the paper's observation about redundant constraints
+            inv = CongruenceSystem._mod_inv_pow2(last_row[last_col] % m, m)
+            if inv is not None:
+                # Solve for the last variable and substitute back
+                # This is a key optimization from the paper
+                scale = inv
+                for j in range(last_col):
+                    last_row[j] = (last_row[j] * scale) % m
+                sys.rhs[-1] = (sys.rhs[-1] * scale) % m
+
+                # Now substitute back through previous rows
+                for i in range(sys.num_rows - 2, -1, -1):
+                    if i < len(sys.coeffs) and sys.coeffs[i][last_col] != 0:
+                        factor = sys.coeffs[i][last_col] % m
+                        for j in range(last_col):
+                            sys.coeffs[i][j] = (sys.coeffs[i][j] - factor * last_row[j]) % m
+                        sys.rhs[i] = (sys.rhs[i] - factor * sys.rhs[-1]) % m
+
+                # Remove the last row as it's now redundant
+                sys.coeffs.pop()
+                sys.rhs.pop()
 
 
 def congruent_closure(

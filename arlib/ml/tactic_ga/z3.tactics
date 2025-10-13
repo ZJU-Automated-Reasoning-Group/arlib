@@ -54,5 +54,314 @@
     "name": "smt.01",
     "type": "smt",
     "params": []
+  },
+  {
+    "name": "ackermannize-bv.01",
+    "type": "ackermannize_bv",
+    "params": []
+  },
+  {
+    "name": "add-bounds.01",
+    "type": "add-bounds",
+    "params": [
+      {
+        "key": "add_bound_lower",
+        "value": -2
+      },
+      {
+        "key": "add_bound_upper",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "name": "aig.01",
+    "type": "aig",
+    "params": []
+  },
+  {
+    "name": "bit-blast.01",
+    "type": "bit-blast",
+    "params": [
+      {
+        "key": "blast_full",
+        "value": false
+      }
+    ]
+  },
+  {
+    "name": "blast-term-ite.01",
+    "type": "blast-term-ite",
+    "params": []
+  },
+  {
+    "name": "bv-slice.01",
+    "type": "bv-slice",
+    "params": []
+  },
+  {
+    "name": "bv1-blast.01",
+    "type": "bv1-blast",
+    "params": []
+  },
+  {
+    "name": "bv_bound_chk.01",
+    "type": "bv_bound_chk",
+    "params": []
+  },
+  {
+    "name": "bvarray2uf.01",
+    "type": "bvarray2uf",
+    "params": []
+  },
+  {
+    "name": "card2bv.01",
+    "type": "card2bv",
+    "params": [
+      {
+        "key": "cardinality.encoding",
+        "value": "grouped"
+      }
+    ]
+  },
+  {
+    "name": "cofactor-term-ite.01",
+    "type": "cofactor-term-ite",
+    "params": []
+  },
+  {
+    "name": "ctx-simplify.01",
+    "type": "ctx-simplify",
+    "params": []
+  },
+  {
+    "name": "ctx-solver-simplify.01",
+    "type": "ctx-solver-simplify",
+    "params": []
+  },
+  {
+    "name": "degree-shift.01",
+    "type": "degree-shift",
+    "params": []
+  },
+  {
+    "name": "demodulator.01",
+    "type": "demodulator",
+    "params": []
+  },
+  {
+    "name": "der.01",
+    "type": "der",
+    "params": []
+  },
+  {
+    "name": "diff-neq.01",
+    "type": "diff-neq",
+    "params": []
+  },
+  {
+    "name": "distribute-forall.01",
+    "type": "distribute-forall",
+    "params": []
+  },
+  {
+    "name": "dom-simplify.01",
+    "type": "dom-simplify",
+    "params": []
+  },
+  {
+    "name": "dt2bv.01",
+    "type": "dt2bv",
+    "params": []
+  },
+  {
+    "name": "elim-predicates.01",
+    "type": "elim-predicates",
+    "params": []
+  },
+  {
+    "name": "elim-small-bv.01",
+    "type": "elim-small-bv",
+    "params": []
+  },
+  {
+    "name": "elim-term-ite.01",
+    "type": "elim-term-ite",
+    "params": []
+  },
+  {
+    "name": "eq2bv.01",
+    "type": "eq2bv",
+    "params": []
+  },
+  {
+    "name": "euf-completion.01",
+    "type": "euf-completion",
+    "params": []
+  },
+  {
+    "name": "factor.01",
+    "type": "factor",
+    "params": []
+  },
+  {
+    "name": "fix-dl-var.01",
+    "type": "fix-dl-var",
+    "params": []
+  },
+  {
+    "name": "fm.01",
+    "type": "fm",
+    "params": []
+  },
+  {
+    "name": "fpa2bv.01",
+    "type": "fpa2bv",
+    "params": []
+  },
+  {
+    "name": "horn.01",
+    "type": "horn",
+    "params": []
+  },
+  {
+    "name": "horn-simplify.01",
+    "type": "horn-simplify",
+    "params": []
+  },
+  {
+    "name": "injectivity.01",
+    "type": "injectivity",
+    "params": []
+  },
+  {
+    "name": "lia2card.01",
+    "type": "lia2card",
+    "params": []
+  },
+  {
+    "name": "lia2pb.01",
+    "type": "lia2pb",
+    "params": []
+  },
+  {
+    "name": "macro-finder.01",
+    "type": "macro-finder",
+    "params": []
+  },
+  {
+    "name": "nla2bv.01",
+    "type": "nla2bv",
+    "params": []
+  },
+  {
+    "name": "nlsat.01",
+    "type": "nlsat",
+    "params": []
+  },
+  {
+    "name": "nnf.01",
+    "type": "nnf",
+    "params": []
+  },
+  {
+    "name": "normalize-bounds.01",
+    "type": "normalize-bounds",
+    "params": []
+  },
+  {
+    "name": "occf.01",
+    "type": "occf",
+    "params": []
+  },
+  {
+    "name": "pb2bv.01",
+    "type": "pb2bv",
+    "params": []
+  },
+  {
+    "name": "propagate-bv-bounds.01",
+    "type": "propagate-bv-bounds",
+    "params": []
+  },
+  {
+    "name": "propagate-ineqs.01",
+    "type": "propagate-ineqs",
+    "params": []
+  },
+  {
+    "name": "purify-arith.01",
+    "type": "purify-arith",
+    "params": []
+  },
+  {
+    "name": "qe.01",
+    "type": "qe",
+    "params": []
+  },
+  {
+    "name": "qffp.01",
+    "type": "qffp",
+    "params": []
+  },
+  {
+    "name": "qffpbv.01",
+    "type": "qffpbv",
+    "params": []
+  },
+  {
+    "name": "qfnra-nlsat.01",
+    "type": "qfnra-nlsat",
+    "params": []
+  },
+  {
+    "name": "quasi-macro-finder.01",
+    "type": "quasi-macro-finder",
+    "params": []
+  },
+  {
+    "name": "recover-01.01",
+    "type": "recover-01",
+    "params": []
+  },
+  {
+    "name": "reduce-args.01",
+    "type": "reduce-args",
+    "params": []
+  },
+  {
+    "name": "reduce-bv-size.01",
+    "type": "reduce-bv-size",
+    "params": []
+  },
+  {
+    "name": "sat.01",
+    "type": "sat",
+    "params": []
+  },
+  {
+    "name": "sat-preprocess.01",
+    "type": "sat-preprocess",
+    "params": []
+  },
+  {
+    "name": "split-clause.01",
+    "type": "split-clause",
+    "params": []
+  },
+  {
+    "name": "symmetry-reduce.01",
+    "type": "symmetry-reduce",
+    "params": []
+  },
+  {
+    "name": "tseitin-cnf.01",
+    "type": "tseitin-cnf",
+    "params": []
+  },
+  {
+    "name": "unit-subsume-simplify.01",
+    "type": "unit-subsume-simplify",
+    "params": []
   }
 ]

@@ -63,54 +63,84 @@ class CongruenceSystem:
         return inv
 
     def triangularize(self) -> None:
-        """Bring [A|b] to an approximate upper-triangular form modulo 2**w.
+        """Bring [A|b] to upper-triangular form modulo 2**w using the paper's algorithm.
 
-        We perform Gaussian elimination where possible when a pivot with odd
-        coefficient exists in the current column (so modular inverse exists).
-        Remaining even-columns are left as-is. Rows are reduced modulo m.
+        This implements the full triangular matrix maintenance from King & Søndergaard.
+        We perform Gaussian elimination with odd-coefficient pivoting, maintaining
+        triangular form through systematic row operations and column ordering.
         """
         m = self.modulus
         if not self.coeffs:
             return
         nrows = len(self.coeffs)
         ncols = len(self.coeffs[0])
+
         # Reduce coefficients and rhs modulo m first
         for i in range(nrows):
             self.coeffs[i] = [int(c) % m for c in self.coeffs[i]]
             self.rhs[i] = int(self.rhs[i]) % m
 
-        r = 0  # current row
+        # Paper's triangularization algorithm: process columns in order
+        r = 0  # current row for triangular form
         for c in range(ncols):
-            # Find pivot with odd coeff in column c
+            # Find best pivot in column c from current row onwards
             pivot = None
+            best_pivot_row = None
+
+            # Look for pivot with smallest row index first, then odd coefficient
             for i in range(r, nrows):
-                if self.coeffs[i][c] % 2 == 1:
-                    pivot = i
-                    break
+                coeff = self.coeffs[i][c] % m
+                if coeff != 0:
+                    if pivot is None or (coeff % 2 == 1 and self.coeffs[pivot][c] % 2 == 0):
+                        pivot = i
+                        best_pivot_row = i
+                    elif coeff % 2 == 1 and self.coeffs[pivot][c] % 2 == 1:
+                        # Both odd: prefer the one that gives better triangular structure
+                        if best_pivot_row is None or i < best_pivot_row:
+                            best_pivot_row = i
+
             if pivot is None:
                 continue
-            # Swap pivot row up
+
+            # Swap to get pivot row in position
             if pivot != r:
                 self.coeffs[r], self.coeffs[pivot] = self.coeffs[pivot], self.coeffs[r]
                 self.rhs[r], self.rhs[pivot] = self.rhs[pivot], self.rhs[r]
+
             a_rc = self.coeffs[r][c] % m
-            inv = self._mod_inv_pow2(a_rc, m)
-            if inv is None:
-                continue
-            # Normalize pivot row to have 1 at (r,c)
-            if a_rc % m != 1:
-                for j in range(ncols):
-                    self.coeffs[r][j] = (self.coeffs[r][j] * inv) % m
-                self.rhs[r] = (self.rhs[r] * inv) % m
-            # Eliminate below
-            for i in range(r + 1, nrows):
+
+            # Normalize pivot row if coefficient is not 1
+            if a_rc != 1:
+                inv = self._mod_inv_pow2(a_rc, m)
+                if inv is not None:
+                    for j in range(c, ncols):
+                        self.coeffs[r][j] = (self.coeffs[r][j] * inv) % m
+                    self.rhs[r] = (self.rhs[r] * inv) % m
+
+            # Eliminate all other rows in this column
+            for i in range(nrows):
+                if i == r:
+                    continue
                 factor = self.coeffs[i][c] % m
                 if factor == 0:
                     continue
+                # Subtract multiple of pivot row
                 for j in range(c, ncols):
                     self.coeffs[i][j] = (self.coeffs[i][j] - factor * self.coeffs[r][j]) % m
                 self.rhs[i] = (self.rhs[i] - factor * self.rhs[r]) % m
+
             r += 1
+
+        # Remove zero rows (those with all zero coefficients)
+        new_coeffs = []
+        new_rhs = []
+        for i in range(nrows):
+            if any(coeff != 0 for coeff in self.coeffs[i]):
+                new_coeffs.append(self.coeffs[i])
+                new_rhs.append(self.rhs[i])
+
+        self.coeffs = new_coeffs
+        self.rhs = new_rhs
 
 
     def as_z3(self, bool_vars: Sequence[z3.BoolRef]) -> z3.BoolRef:

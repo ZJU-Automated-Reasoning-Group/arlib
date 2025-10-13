@@ -17,10 +17,12 @@ typical bit‑twiddling blocks. It can be strengthened later with triangular
 matrix maintenance and other optimisations described in the paper.
 """
 
-from .system import CongruenceSystem
-from .closure import congruent_closure
+from .congruence_system import CongruenceSystem
+from .congruence_abstraction import congruent_closure
+from .loop_analysis import analyze_python_loop
 
 __all__ = [
     "CongruenceSystem",
     "congruent_closure",
+    "analyze_python_loop",
 ]

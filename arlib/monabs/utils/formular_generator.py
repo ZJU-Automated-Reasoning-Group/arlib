@@ -87,7 +87,6 @@ class FormulaGenerator:
                 self.ints.append(i1 % i2)
 
     def real_from_real(self):
-        # TODO: also use constant
         if len(self.reals) >= 2:
             data = random.sample(self.reals, 2)
             r1 = data[0]

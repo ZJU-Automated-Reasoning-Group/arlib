@@ -14,6 +14,3 @@ OUTPUT
     A single number or an iterable of numbers
 
 '''
-
-# TODO
-# linear vs non-linear

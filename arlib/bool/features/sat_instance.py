@@ -18,7 +18,6 @@ class SATInstance:
 
     def __init__(self, input_cnf: str, verbose=False):
         self.verbose = verbose
-        # FIXME: currently, we do not use satelite for pre-processing
         #  However, we may consider using the one in arlib.bool.cnfsimplifier
         self.preprocess = False
         # TODO: allow using numerical clauses, cnf strings, and pysat CNF objects to
@@ -120,7 +119,6 @@ class SATInstance:
         """
         # also doesnt seem to fully work on osx.
         if self.verbose:
-            # TODO: call SPAS and GSAT?
             print("Local search probing with SAPS and GSAT")
 
         raise NotImplementedError()
