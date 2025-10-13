@@ -15,7 +15,7 @@ from arlib.sampling.utils import get_vars, is_int, is_real
 class LIRASampler(Sampler):
     """
     Sampler for linear integer and real arithmetic formulas.
-    
+
     This class implements a sampler for linear integer and real arithmetic formulas using Z3.
     """
 
@@ -27,10 +27,10 @@ class LIRASampler(Sampler):
     def supports_logic(self, logic: Logic) -> bool:
         """
         Check if this sampler supports the given logic.
-        
+
         Args:
             logic: The logic to check
-            
+
         Returns:
             True if the sampler supports the logic, False otherwise
         """
@@ -39,7 +39,7 @@ class LIRASampler(Sampler):
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
         Initialize the sampler with a formula.
-        
+
         Args:
             formula: The Z3 formula to sample from
         """
@@ -54,10 +54,10 @@ class LIRASampler(Sampler):
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
         Generate samples according to the given options.
-        
+
         Args:
             options: The sampling options
-            
+
         Returns:
             A SamplingResult containing the generated samples
         """
@@ -87,12 +87,27 @@ class LIRASampler(Sampler):
                     if is_int(var):
                         sample[str(var)] = value.as_long()
                     else:  # Real
-                        # Convert to float using as_decimal
+                        # Convert rational numbers to float
                         try:
+                            # Try as_decimal first (works for simple rationals)
                             sample[str(var)] = float(value.as_decimal(10))
                         except:
-                            # Fallback to string conversion
-                            sample[str(var)] = float(str(value))
+                            try:
+                                # Try direct conversion for rationals
+                                if value.is_rational():
+                                    # Use arithmetic to avoid direct comparison
+                                    num = value.numerator()
+                                    den = value.denominator()
+                                    if den != 0:  # This should work since we check is_rational
+                                        sample[str(var)] = float(num) / float(den)
+                                    else:
+                                        sample[str(var)] = float('inf')
+                                else:
+                                    # Fallback to string conversion
+                                    sample[str(var)] = float(str(value))
+                            except:
+                                # Last resort - use 0.0
+                                sample[str(var)] = 0.0
 
                 samples.append(sample)
 
@@ -104,9 +119,25 @@ class LIRASampler(Sampler):
                     if is_int(var):
                         block.append(var != value)
                     else:  # Real
+                        # For reals, convert to float for comparison
+                        try:
+                            # Try as_decimal first
+                            float_value = float(value.as_decimal(10))
+                        except:
+                            try:
+                                # Try rational conversion
+                                if value.is_rational():
+                                    num = value.numerator()
+                                    den = value.denominator()
+                                    float_value = float(num) / float(den) if den != 0 else 0.0
+                                else:
+                                    float_value = 0.0
+                            except:
+                                float_value = 0.0
+
                         # For reals, we add a small delta to avoid numerical issues
                         delta = 0.001
-                        block.append(z3.Or(var < value - delta, var > value + delta))
+                        block.append(z3.Or(var < float_value - delta, var > float_value + delta))
 
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1
@@ -118,7 +149,7 @@ class LIRASampler(Sampler):
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
         Get the sampling methods supported by this sampler.
-        
+
         Returns:
             A set of supported sampling methods
         """
@@ -127,7 +158,7 @@ class LIRASampler(Sampler):
     def get_supported_logics(self) -> Set[Logic]:
         """
         Get the logics supported by this sampler.
-        
+
         Returns:
             A set of supported logics
         """
