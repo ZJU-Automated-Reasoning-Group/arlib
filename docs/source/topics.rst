@@ -1,185 +1,91 @@
-Summer Research, Honours/Master Thesis Project Topics
-==================
+Research Topics and Thesis Projects
+===================================
 
-
-=========
-1. Beyond SMT Solving
-=========
-
-
-
-Parallel Bit-Vector Optimizations
--------
-
-Optimization Modulo Theory (OMT) is an extension of SMT, which is used for checking the 
-satisfiability of logical formulas with respect to background theories such as 
-arithmetic, arrays, and bit vectors. 
-OMT extends SMT by adding optimization capabilities, enabling it to find solutions
-that minimize or maximize a given objective function.
-
-Here, we are interested in OMT(BV) problems, where the solution space is characterized by a
-quantifier-free bit-vector formula.
-Please refer to `arlib/bv/bvopt.py` for single-objective and multi-objectives optimization.
-
-(In some algorithms, we may reduce a single-objective optimization problem to a special 
-multi-objectives optimization problem (e.g., "Bit-vector optimization, TACAS'16"))
-
-Bit-Vector Interpolation
--------
-
-Given two contradictory formulas `A` and `B`, a Craig interpolant `I` is a formula that satisfies the following conditions:
-- `I` is a logical consequence of `A`.
-- `I` and `B` are contradictory
-- `I` contains only the variables that are common to `A` and `B`.
-
-Please refer to `arlib/bv/bvitp.py`.
-
-
-Bit-Vector Model Counting
--------
-
-Model counting is the problem of determining the number of possible solutions 
-(models) to a given formula. 
-
-
-Refer to `arlib/bv/bv_counting`.
-
-Bit-Vector Model Sampling
--------
-
-Given a satisfiable formula `P`, how to generate multiple and diverse solutions `P`?
-
-Parallel CDCL(T) Solving
--------
-
-Develop parallel algorithms for Conflict-Driven Clause Learning with theories.
-Focus on efficient work distribution and conflict clause sharing across multiple threads.
-
-Refer to `arlib/smt/pcdclt`.
-
-Symbolic Abstraction and Refinement
--------
-
-Investigate predicate abstraction techniques and counterexample-guided abstraction refinement (CEGAR).
-Applications include program verification and model checking.
-
-Refer to `arlib/symabs`.
+Arlib offers numerous opportunities for research and thesis projects across multiple areas of automated reasoning.
 
 =========
-2. SMT Solving for Specific Theories
+Core Algorithm Development
 =========
 
-SMT Solving for String Constraints
---------
+**Parallel CDCL(T) Solving** (``arlib/smt/pcdclt``)
+  Develop parallel algorithms for conflict-driven clause learning with theory reasoning. Focus on work distribution, clause sharing, and portfolio solving.
 
-(We have an idea about parallel string constraint solving)
+**Optimization Modulo Theory** (``arlib/optimization``)
+  Extend SMT solving with optimization capabilities. Implement algorithms for OMT over bit-vectors, arithmetic, and mixed theories.
 
-SMT Solving for Galois Field
---------
+**Advanced Model Counting** (``arlib/counting``)
+  Improve counting algorithms for Boolean, arithmetic, and quantifier-free bit-vector formulas. Focus on scalability and approximation techniques.
 
-A Galois Field, also known as a finite field, is a mathematical structure that 
-consists of a finite set of elements and two operations, typically addition 
-and multiplication. Galois Fields are used in many areas of mathematics, 
-computer science, and engineering, such as coding theory, cryptography, and 
-digital signal processing.
-
-Refer to `arlib/smt/ff`.
-
-SMT Solving for Exists-Forall Problems over Bit-Vectors
---------
-
-SMT Solving for Floating-Point Arithmetic
---------
-
-Develop efficient decision procedures for IEEE 754 floating-point constraints.
-Focus on rounding modes, special values (NaN, infinity), and precision handling.
-
-Refer to `arlib/smt/fp`.
+**Symbolic Abstraction** (``arlib/symabs``)
+  Develop new abstraction techniques for infinite state systems. Implement counterexample-guided abstraction refinement (CEGAR).
 
 =========
-3. Learning and AI-Enhanced Reasoning
+Theory-Specific Solving
 =========
 
-LLM-Driven Constraint Solving
---------
+**Finite Field SMT** (``arlib/smt/ff``)
+  Build decision procedures for Galois field constraints. Applications in cryptography and coding theory.
 
-Integrate large language models to guide SMT solver heuristics and strategy selection.
-Explore neural-symbolic approaches for automated reasoning.
+**Floating-Point Arithmetic** (``arlib/smt/fp``)
+  Develop efficient solvers for IEEE 754 floating-point constraints with proper handling of rounding modes and special values.
 
-Refer to `arlib/llm/smto`.
-
-Automata Learning for Constraint Solving
---------
-
-Apply active learning techniques to infer finite automata and symbolic finite automata.
-Applications in string constraint solving and program verification.
-
-Refer to `arlib/automata`.
-
-LLM-Based Abductive Reasoning
---------
-
-Use language models to generate explanations and hypotheses for observed constraints.
-Focus on debugging and root cause analysis in constraint systems.
-
-Refer to `arlib/llm/abduct`.
+**String Constraint Solving**
+  Extend string theory support with automata-based techniques. Implement length constraints and regular language operations.
 
 =========
-4. Advanced Sampling and Enumeration
+AI-Enhanced Reasoning
 =========
 
-Uniform Sampling for Linear Integer Arithmetic
---------
+**LLM-Driven Constraint Solving** (``arlib/llm``)
+  Integrate large language models to guide solver heuristics, strategy selection, and formula preprocessing.
 
-Develop algorithms for generating uniformly distributed solutions over linear integer constraints.
-Applications in testing and probabilistic verification.
+**Machine Learning for Solvers** (``arlib/ml``)
+  Extract features for learned solver selection, clause learning prediction, and variable ordering heuristics.
 
-Refer to `arlib/sampling/linear_ira`.
-
-Non-Linear Real Arithmetic Sampling
---------
-
-Efficient sampling techniques for polynomial constraints over real numbers.
-Focus on volume computation and density estimation.
-
-Refer to `arlib/sampling/nonlinear_ira`.
-
-All-SMT and Solution Enumeration
---------
-
-Enumerate all satisfying assignments or a diverse subset of solutions.
-Applications in combinatorial optimization and test case generation.
-
-Refer to `arlib/allsmt`.
+**Automata Learning** (``arlib/automata``)
+  Apply active learning to infer automata from examples for string constraint solving and program verification.
 
 =========
-5. Quantifier Reasoning
+Advanced Sampling & Enumeration
 =========
 
-Quantifier Elimination for Mixed Theories
---------
+**Uniform Sampling** (``arlib/sampling``)
+  Develop algorithms for uniform solution sampling over complex constraint domains. Applications in probabilistic verification.
 
-Develop efficient QE procedures for combinations of arithmetic, bit-vectors, and arrays.
-Focus on applications in program verification and synthesis.
+**AllSMT Algorithms** (``arlib/allsmt``)
+  Enumerate all solutions efficiently. Focus on diversity metrics and incremental solving techniques.
 
-Refer to `arlib/quant/qe`.
-
-E-Matching and Instantiation Strategies
---------
-
-Improve quantifier instantiation in SMT solvers through better pattern matching
-and trigger selection heuristics.
-
-Refer to `arlib/quant/ematching`.
-
-Constrained Horn Clause Solving
---------
-
-Develop scalable algorithms for solving systems of constrained Horn clauses.
-Applications in program verification and invariant synthesis.
-
-Refer to `arlib/quant/chctools`.
+**Solution Space Analysis**
+  Implement tools for analyzing solution spaces, including backbone computation and minimal unsatisfiable core extraction.
 
 =========
-References
+Quantifier Handling
 =========
+
+**Quantifier Elimination** (``arlib/quant/qe``)
+  Develop QE procedures for mixed theories combining arithmetic, bit-vectors, and arrays.
+
+**E-Matching Optimization** (``arlib/quant/ematching``)
+  Improve quantifier instantiation through better pattern matching and trigger selection.
+
+**CHC Solving** (``arlib/quant/chctools``)
+  Scale algorithms for constrained Horn clause solving. Applications in program verification and synthesis.
+
+=========
+Applications & Tools
+=========
+
+**Interactive Theorem Proving** (``arlib/itp``)
+  Build proof assistant tools with support for multiple theories and automated proof search.
+
+**Program Synthesis** (``arlib/synthesis``)
+  Implement syntax-guided synthesis techniques for bit-vectors, arithmetic, and string domains.
+
+**Abductive Reasoning** (``arlib/abduction``)
+  Develop algorithms for generating explanations and hypotheses from constraint observations.
+
+=========
+Getting Started
+=========
+
+Each module includes examples and documentation. Start with ``arlib/allsmt`` for basic usage patterns, then explore specialized areas based on your interests.

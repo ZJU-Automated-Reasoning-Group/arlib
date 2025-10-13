@@ -6,38 +6,31 @@ Welcome to arlib's Documentation!
 Introduction
 =============
 
-Arlib is a toolkit for playing with various automated reasoning tasks.  Some of its key features include:
+Arlib is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:
 
-* Abductive inference (``arlib/abduction``)
-* AllSMT (``arlib/allsmt``)
-* Backbone computation (``arlib/backbone``)
-* UNSAT core extraction (``arlib/unsat_core``)
-* Exists-forall SMT formulas (``arlib/quant``)
-* General quantified SMT formulas (``arlib/quant``)
-* Quantifier elimination (``arlib/quant/qe``)
-* Sampling solutions of SMT formulas (``arlib/sampling``)
-* Counting the models of SMT formulas (``arlib/counting``)
-* Optimization Modulo Theory (OMT) (``arlib/optimization``)
-* Interpolant generation (``arlib/bool/interpolant``)
-* Symbolic abstraction (``arlib/symabs``)
-* Predicate abstraction (``arlib/symabs/predicate_abstraction``)
-* Monadic predicate abstraction (``arlib/monabs``)
-* Knowledge compilation (``arlib/bool/knowledge_compiler``)
-* (Weighted) MaxSAT (``arlib/bool/maxsat``)
-* QBF solving
-* Finite Field Solving (``arlib/smt/ff``)
-* Formula rewritings/simplifications
-* Probabilistic reasoning (WMC/WMI stubs) (``arlib/prob``)
-* Interactive theorem proving (``arlib/itp``)
-* LLM integration (``arlib/llm``)
-* Automata operations (``arlib/automata``)
-* SyGuS (Syntax-Guided Synthesis) (``arlib/sygus``)
-* PolyHorn (``arlib/quant/polyhorn``)
-* Constrained Horn Clauses (CHC) tools (``arlib/quant/chctools``)
-* Symbolic Finite Automata (SFA) (``arlib/automata/symautomata``)
-* Context-Free Language (CFL) reachability (``arlib/cfl``)
-* Unification algorithms (``arlib/unification``)
-* ...
+* **Abductive Inference** (``arlib/abduction``) - Generate explanations for observations
+* **AllSMT** (``arlib/allsmt``) - Enumerate all satisfying models
+* **Backbone Computation** (``arlib/backbone``) - Extract forced assignments
+* **UNSAT Core Extraction** (``arlib/unsat_core``) - Identify minimal unsatisfiable subsets
+* **Quantifier Reasoning** (``arlib/quant``) - Handle exists-forall and quantified formulas
+* **Quantifier Elimination** (``arlib/quant/qe``) - Eliminate quantifiers from formulas
+* **Solution Sampling** (``arlib/sampling``) - Generate diverse solutions
+* **Model Counting** (``arlib/counting``) - Count satisfying assignments
+* **Optimization Modulo Theory** (``arlib/optimization``) - Solve optimization problems
+* **Interpolant Generation** (``arlib/interpolant``) - Generate Craig interpolants
+* **Symbolic Abstraction** (``arlib/symabs``) - Abstract state spaces
+* **Predicate Abstraction** (``arlib/symabs/predicate_abstraction``) - Abstract with predicates
+* **Monadic Abstraction** (``arlib/monabs``) - Monadic predicate abstraction
+* **Knowledge Compilation** (``arlib/bool/knowledge_compiler``) - Compile to tractable forms
+* **MaxSAT Solving** (``arlib/bool/maxsat``) - Solve maximum satisfiability problems
+* **QBF Solving** - Quantified Boolean formula solving
+* **Finite Field Solving** (``arlib/smt/ff``) - SMT for Galois field constraints
+* **Interactive Theorem Proving** (``arlib/itp``) - Proof assistant framework
+* **LLM Integration** (``arlib/llm``) - Language model enhanced reasoning
+* **Automata Operations** (``arlib/automata``) - Finite automata algorithms
+* **Program Synthesis** (``arlib/synthesis``) - Synthesize programs from specifications
+* **Context-Free Language Reachability** (``arlib/cfl``) - CFL solving algorithms
+* **Unification** (``arlib/unification``) - Term unification algorithms
 
 We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.
 
@@ -63,32 +56,44 @@ The setup script will:
 - Download required solver binaries (CVC5, MathSAT, z3)
 - Run unit tests if available
 
+Quick Start
+-----------
+
+::
+
+  from arlib import *
+
+  # Example: Check satisfiability
+  formula = Bool(True)  # Simple tautology
+  result = smt_solve(formula)
+  print(f"Formula is {'satisfiable' if result else 'unsatisfiable'}")
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
 
    topics
+   applications
    abduction
+   allsmt
+   automata
    backbone
-   cdclt
    cfl
+   chctools
    counting
    ff
-   interpolant
    itp
-   knowledge_compilation
+   llm
    monabs
    optimization
-   quantifiers
+   pcdclt
    polyhorn
-   chc
+   prob
+   quantifiers
    sampling
    smt
    symbolic_abstraction
-   symbolic_finite_automata
-   predicate_abstraction
-   prob
+   symautomata
+   synthesis
    unification
    unsat_core
-   allsmt
-   applications

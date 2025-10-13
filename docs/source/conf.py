@@ -2,12 +2,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "arlib"
-copyright = "2025, rainoftime"
-author = "rainoftime"
+project = "Arlib"
+copyright = "2024-2025, ZJU Automated Reasoning Group"
+author = "ZJU Automated Reasoning Group"
 
 # The full version, including alpha/beta/rc tags
-release = "v0.2"
+release = "v0.3"
 
 # General configuration
 extensions = [
