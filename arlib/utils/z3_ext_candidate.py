@@ -36,10 +36,10 @@ def ground_quantifier_all(qexpr):
     This version preserves:
     - order of the quantifiers
     - which variables are associated with which quantifiers
-    
+
     Args:
         qexpr: A Z3 expression with quantifiers (ForAll or Exists)
-    
+
     Returns:
         A tuple (body, quantifier_info) where:
         - body: The innermost expression with all quantifiers removed
@@ -47,11 +47,11 @@ def ground_quantifier_all(qexpr):
           * quantifier_type is a boolean (True for ForAll, False for Exists)
           * variables is a list of Z3 constants for that quantifier
           * The list is ordered from outermost to innermost quantifier
-    
+
     Example:
         For the formula ForAll x, Exists y, ForAll z, body
         This returns (body, [(True, [x]), (False, [y]), (True, [z])])
-    
+
     Note: This implementation does not preserve patterns in quantifiers.
     Patterns are used for controlling the SMT solver's instantiation
     heuristics and are not part of the logical meaning of the formula.
@@ -85,20 +85,20 @@ def ground_quantifier_all(qexpr):
 def reconstruct_quantified_formula(body, quantifier_info):
     """
     Reconstruct a quantified formula from its body and quantifier information.
-    
+
     Args:
         body: The innermost expression (without quantifiers)
-        quantifier_info: List of tuples (is_forall, var_list) as returned by 
+        quantifier_info: List of tuples (is_forall, var_list) as returned by
                         ground_quantifier_all, ordered from outermost
                         to innermost quantifier
-    
+
     Returns:
         A Z3 expression with the original quantifier structure restored
-    
+
     Example:
         Given body and [(True, [x]), (False, [y]), (True, [z])]
         This returns ForAll x, Exists y, ForAll z, body
-    
+
     Note:
         The reconstructed formula will be semantically equivalent to the original,
         but may have syntactic differences due to how Z3 handles term reordering.
@@ -118,17 +118,17 @@ def reconstruct_quantified_formula(body, quantifier_info):
 def to_dnf_boolean(expr):
     """
     Convert a boolean Z3 expression to DNF (Disjunctive Normal Form).
-    
+
     This function implements a more reliable approach to DNF conversion
     for boolean expressions. It does not use the Tseitin transformation
     and avoids introducing auxiliary variables.
-    
+
     Args:
         expr: A Z3 boolean expression
-        
+
     Returns:
         A Z3 expression in DNF form
-        
+
     Note:
         This function only works for boolean expressions, not for
         expressions involving integers, reals, or other types.
