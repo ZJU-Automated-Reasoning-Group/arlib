@@ -30,9 +30,12 @@ components are:
 
 - Based on the CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
 
-### congruence
+### affine_relation
 
-Automatic Abstraction for Congruences (King & Søndergaard, VMCAI'10
+TODO: check whether the current implementation compute the strongest affine relation implied by a formula (e.g., apply the best abstract transformers, i.e., the alpha_hat operation).
+
+- KS: Automatic Abstraction for Congruences (King & Søndergaard, VMCAI'10)
+- Elder: Abstract Domains of Affine Relations (Elder et al., SAS 11)
 
 ### rangeset
 

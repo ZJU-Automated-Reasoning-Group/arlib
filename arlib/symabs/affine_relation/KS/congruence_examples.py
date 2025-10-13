@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import z3
 
-from arlib.symabs.congruence.congruence_abstraction import congruent_closure
-from arlib.symabs.congruence.loop_analysis import analyze_python_loop, example_parity_loop, example_bit_counting
+from arlib.symabs.affine_relation.KS.congruence_abstraction import congruent_closure
+from arlib.symabs.affine_relation.KS.loop_analysis import analyze_python_loop, example_parity_loop, example_bit_counting
 
 
 def parity_example(width: int = 4) -> None:
