@@ -13,14 +13,14 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Summer Research, Honours/Master Thesis Project Topics" href="topics.html" /> 
+    <link rel="next" title="Research Topics and Thesis Projects" href="topics.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -32,7 +32,7 @@
           
           
           <a href="#" class="icon icon-home">
-            arlib
+            Arlib
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -44,30 +44,27 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symbolic_finite_automata.html">Symbolic Finite Automata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 </ul>
 
         </div>
@@ -76,7 +73,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">arlib</a>
+          <a href="#">Arlib</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -98,38 +95,31 @@
 <h1>Welcome to arlib’s Documentation!<a class="headerlink" href="#welcome-to-arlib-s-documentation" title="Link to this heading"></a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
-<p>Arlib is a toolkit for playing with various automated reasoning tasks.  Some of its key features include:</p>
+<p>Arlib is a comprehensive toolkit for automated reasoning and constraint solving. It provides implementations of various algorithms and tools for:</p>
 <ul class="simple">
-<li><p>Abductive inference (<code class="docutils literal notranslate"><span class="pre">arlib/abduction</span></code>)</p></li>
-<li><p>AllSMT (<code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code>)</p></li>
-<li><p>Backbone computation (<code class="docutils literal notranslate"><span class="pre">arlib/backbone</span></code>)</p></li>
-<li><p>UNSAT core extraction (<code class="docutils literal notranslate"><span class="pre">arlib/unsat_core</span></code>)</p></li>
-<li><p>Exists-forall SMT formulas (<code class="docutils literal notranslate"><span class="pre">arlib/quant</span></code>)</p></li>
-<li><p>General quantified SMT formulas (<code class="docutils literal notranslate"><span class="pre">arlib/quant</span></code>)</p></li>
-<li><p>Quantifier elimination (<code class="docutils literal notranslate"><span class="pre">arlib/quant/qe</span></code>)</p></li>
-<li><p>Sampling solutions of SMT formulas (<code class="docutils literal notranslate"><span class="pre">arlib/sampling</span></code>)</p></li>
-<li><p>Counting the models of SMT formulas (<code class="docutils literal notranslate"><span class="pre">arlib/counting</span></code>)</p></li>
-<li><p>Optimization Modulo Theory (OMT) (<code class="docutils literal notranslate"><span class="pre">arlib/optimization</span></code>)</p></li>
-<li><p>Interpolant generation (<code class="docutils literal notranslate"><span class="pre">arlib/bool/interpolant</span></code>)</p></li>
-<li><p>Symbolic abstraction (<code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code>)</p></li>
-<li><p>Predicate abstraction (<code class="docutils literal notranslate"><span class="pre">arlib/symabs/predicate_abstraction</span></code>)</p></li>
-<li><p>Monadic predicate abstraction (<code class="docutils literal notranslate"><span class="pre">arlib/monabs</span></code>)</p></li>
-<li><p>Knowledge compilation (<code class="docutils literal notranslate"><span class="pre">arlib/bool/knowledge_compiler</span></code>)</p></li>
-<li><p>(Weighted) MaxSAT (<code class="docutils literal notranslate"><span class="pre">arlib/bool/maxsat</span></code>)</p></li>
-<li><p>QBF solving</p></li>
-<li><p>Finite Field Solving (<code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code>)</p></li>
-<li><p>Formula rewritings/simplifications</p></li>
-<li><p>Probabilistic reasoning (WMC/WMI stubs) (<code class="docutils literal notranslate"><span class="pre">arlib/prob</span></code>)</p></li>
-<li><p>Interactive theorem proving (<code class="docutils literal notranslate"><span class="pre">arlib/itp</span></code>)</p></li>
-<li><p>LLM integration (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>)</p></li>
-<li><p>Automata operations (<code class="docutils literal notranslate"><span class="pre">arlib/automata</span></code>)</p></li>
-<li><p>SyGuS (Syntax-Guided Synthesis) (<code class="docutils literal notranslate"><span class="pre">arlib/sygus</span></code>)</p></li>
-<li><p>PolyHorn (<code class="docutils literal notranslate"><span class="pre">arlib/quant/polyhorn</span></code>)</p></li>
-<li><p>Constrained Horn Clauses (CHC) tools (<code class="docutils literal notranslate"><span class="pre">arlib/quant/chctools</span></code>)</p></li>
-<li><p>Symbolic Finite Automata (SFA) (<code class="docutils literal notranslate"><span class="pre">arlib/automata/symautomata</span></code>)</p></li>
-<li><p>Context-Free Language (CFL) reachability (<code class="docutils literal notranslate"><span class="pre">arlib/cfl</span></code>)</p></li>
-<li><p>Unification algorithms (<code class="docutils literal notranslate"><span class="pre">arlib/unification</span></code>)</p></li>
-<li><p>…</p></li>
+<li><p><strong>Abductive Inference</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/abduction</span></code>) - Generate explanations for observations</p></li>
+<li><p><strong>AllSMT</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/allsmt</span></code>) - Enumerate all satisfying models</p></li>
+<li><p><strong>Backbone Computation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/backbone</span></code>) - Extract forced assignments</p></li>
+<li><p><strong>UNSAT Core Extraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/unsat_core</span></code>) - Identify minimal unsatisfiable subsets</p></li>
+<li><p><strong>Quantifier Reasoning</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant</span></code>) - Handle exists-forall and quantified formulas</p></li>
+<li><p><strong>Quantifier Elimination</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/quant/qe</span></code>) - Eliminate quantifiers from formulas</p></li>
+<li><p><strong>Solution Sampling</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/sampling</span></code>) - Generate diverse solutions</p></li>
+<li><p><strong>Model Counting</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/counting</span></code>) - Count satisfying assignments</p></li>
+<li><p><strong>Optimization Modulo Theory</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/optimization</span></code>) - Solve optimization problems</p></li>
+<li><p><strong>Interpolant Generation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/interpolant</span></code>) - Generate Craig interpolants</p></li>
+<li><p><strong>Symbolic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/symabs</span></code>) - Abstract state spaces</p></li>
+<li><p><strong>Predicate Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/symabs/predicate_abstraction</span></code>) - Abstract with predicates</p></li>
+<li><p><strong>Monadic Abstraction</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/monabs</span></code>) - Monadic predicate abstraction</p></li>
+<li><p><strong>Knowledge Compilation</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/bool/knowledge_compiler</span></code>) - Compile to tractable forms</p></li>
+<li><p><strong>MaxSAT Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/bool/maxsat</span></code>) - Solve maximum satisfiability problems</p></li>
+<li><p><strong>QBF Solving</strong> - Quantified Boolean formula solving</p></li>
+<li><p><strong>Finite Field Solving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/smt/ff</span></code>) - SMT for Galois field constraints</p></li>
+<li><p><strong>Interactive Theorem Proving</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/itp</span></code>) - Proof assistant framework</p></li>
+<li><p><strong>LLM Integration</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>) - Language model enhanced reasoning</p></li>
+<li><p><strong>Automata Operations</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/automata</span></code>) - Finite automata algorithms</p></li>
+<li><p><strong>Program Synthesis</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis</span></code>) - Synthesize programs from specifications</p></li>
+<li><p><strong>Context-Free Language Reachability</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/cfl</span></code>) - CFL solving algorithms</p></li>
+<li><p><strong>Unification</strong> (<code class="docutils literal notranslate"><span class="pre">arlib/unification</span></code>) - Term unification algorithms</p></li>
 </ul>
 <p>We welcome any feedback, issues, or suggestions for improvement. Please feel free to open an issue in our repository.</p>
 </section>
@@ -150,33 +140,41 @@
 - Activate the virtual environment and install dependencies from requirements.txt
 - Download required solver binaries (CVC5, MathSAT, z3)
 - Run unit tests if available</p>
+</section>
+<section id="quick-start">
+<h3>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Example: Check satisfiability</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Simple tautology</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">smt_solve</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Formula is </span><span class="si">{</span><span class="s1">&#39;satisfiable&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;unsatisfiable&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chc.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symbolic_finite_automata.html">Symbolic Finite Automata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 </ul>
 </div>
 </section>
@@ -187,13 +185,13 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="topics.html" class="btn btn-neutral float-right" title="Summer Research, Honours/Master Thesis Project Topics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="topics.html" class="btn btn-neutral float-right" title="Research Topics and Thesis Projects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, rainoftime.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

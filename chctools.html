@@ -13,15 +13,15 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0335fd14"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Model Sampling" href="sampling.html" />
-    <link rel="prev" title="PolyHorn: Polynomial Horn Clause Solver" href="polyhorn.html" /> 
+    <link rel="next" title="Model Counting" href="counting.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="cfl.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -33,7 +33,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            arlib
+            Arlib
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -45,20 +45,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="topics.html">Summer Research, Honours/Master Thesis Project Topics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cdclt.html">Parallel SMT CDCL(T) Solving</a></li>
-<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="interpolant.html">Interpolant Generation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="knowledge_compilation.html">Knowledge Compilation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Constrained Horn Clauses (CHC) Tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#core-components">Core Components</a></li>
@@ -73,15 +64,21 @@
 <li class="toctree-l2"><a class="reference internal" href="#related-work-and-references">Related Work and References</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="symbolic_finite_automata.html">Symbolic Finite Automata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="predicate_abstraction.html">Predicate Abstraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 </ul>
 
         </div>
@@ -90,7 +87,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">arlib</a>
+          <a href="index.html">Arlib</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -100,7 +97,7 @@
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Constrained Horn Clauses (CHC) Tools</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/chc.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/chctools.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -405,14 +402,14 @@ python<span class="w"> </span>-m<span class="w"> </span>arlib.quant.chctools.chc
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="polyhorn.html" class="btn btn-neutral float-left" title="PolyHorn: Polynomial Horn Clause Solver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sampling.html" class="btn btn-neutral float-right" title="Model Sampling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cfl.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="counting.html" class="btn btn-neutral float-right" title="Model Counting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, rainoftime.</p>
+    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

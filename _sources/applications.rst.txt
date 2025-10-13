@@ -1,60 +1,57 @@
 Applications
-=================================
+============
 
-TBD: add usage examples
+Arlib supports various applications across testing, verification, synthesis, and optimization.
 
 ==========
 Testing
 ==========
 
-(Uniform) Sampling
--------------------
+**Constrained Random Testing**
+  Generate test cases satisfying logical constraints using ``arlib/sampling`` and ``arlib/allsmt``.
 
-- ``Combinatorial Interation Testing (CIT)``:
-CIT is a combinatorial testing technique that generates test cases by selecting a subset of the input parameters and their values. The goal is to cover all possible combinations of the input parameters. Pairwise testing is a special case of CIT where each test case covers all possible pairs of input parameters.
-When the parameters are constrained by logical formulas, CIT should generate input parameters that satisfy the constraints.
+**Combinatorial Testing**
+  Generate diverse test suites with ``arlib/bool/features`` for covering parameter interactions.
 
-- ``Constrained Random Testing (CRT)``: In hardware verification, CRT is used to generate test cases that satisfy the constraints of the design. This notion can be extended to software testing, where CRT is used to generate test cases that satisfy the constraints of the program.
-
-Satisfiability Testing
-----------------------
-
-- ``Symbolic Execution``
-- Hybrid Fuzzing
-
-
-Optimization Modulo Theory
---------------------------
-
-- Symbolic Execution (Concretizing symbolic indexes)
-
-================
+==========
 Verification
-================
+==========
 
-- ``Predicate Abstraction``: 
-- Bounded Model Checking and K-Induction
-- Symbolic Abstraction
-- ...?
+**Predicate Abstraction**
+  Abstract program states using ``arlib/symabs/predicate_abstraction`` for verification.
 
-================
+**Symbolic Abstraction**
+  Abstract infinite state spaces with ``arlib/symabs`` for model checking.
+
+**Interactive Theorem Proving**
+  Formal verification with ``arlib/itp`` framework supporting multiple theories.
+
+==========
 Synthesis
-================
+==========
 
+**Program Synthesis**
+  Synthesize programs from specifications using ``arlib/synthesis`` (SyGuS, PBE).
 
-================
-Optimizations
-================
+**Syntax-Guided Synthesis**
+  Generate programs matching given grammars with ``arlib/synthesis/sygus_*``.
 
+==========
+Optimization
+==========
 
-- Superoptimization
+**Optimization Modulo Theory**
+  Solve optimization problems over logical theories using ``arlib/optimization``.
 
-================
-Learning
-================
+**MaxSAT Solving**
+  Solve maximum satisfiability problems with ``arlib/bool/maxsat``.
 
-- Symbolic Regression
-- Learning Modulo Theory
+==========
+Learning & AI
+==========
 
+**LLM-Enhanced Reasoning**
+  Integrate large language models with ``arlib/llm`` for constraint solving.
 
-
+**Machine Learning Features**
+  Extract features for ML-based solver selection with ``arlib/ml``.
