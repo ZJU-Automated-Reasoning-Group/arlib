@@ -5,6 +5,7 @@ of Affine Relations". The MOS domain represents affine transformers as sets of
 matrices and provides operations for computing the α function symbolically.
 """
 
+import z3
 import numpy as np
 from typing import Dict, List, Set, Tuple, Optional, Union
 from .matrix_ops import Matrix
@@ -105,7 +106,7 @@ class MOS:
         return set(str(m.data) for m in self.matrices) == set(str(m.data) for m in other.matrices)
 
 
-def alpha_mos(phi: str, variables: List[str]) -> MOS:
+def alpha_mos(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]) -> MOS:
     """Symbolic implementation of the α function for MOS.
 
     Uses CEGIS (CounterExample-Guided Inductive Synthesis) to compute the strongest
@@ -115,34 +116,19 @@ def alpha_mos(phi: str, variables: List[str]) -> MOS:
     implementation, using counterexamples to iteratively refine the abstraction.
 
     Args:
-        phi: QFBV formula string representing the concrete semantics
-        variables: List of variable names (both primed and unprimed)
+        phi: QFBV formula as Z3 expression
+        pre_vars: Z3 pre-state variables
+        post_vars: Z3 post-state variables
 
     Returns:
         MOS element representing the strongest affine abstraction of phi
     """
-    # Try to use Z3 for SMT solving
-    try:
-        # Import z3 locally to avoid issues when not available
-        import z3
+    import z3
 
-        k = len(variables)
-        w = 32  # Word size - should be configurable
+    w = 32  # Word size - should be configurable
 
-        # Create Z3 variables for pre-state and post-state
-        pre_vars = [z3.BitVec(f"x_{i}", w) for i in range(k)]
-        post_vars = [z3.BitVec(f"x'_{i}", w) for i in range(k)]
-
-        # Parse the formula
-        formula = _construct_simple_formula(phi, pre_vars, post_vars)
-
-        # Use CEGIS approach to find the strongest MOS abstraction
-        return _cegis_alpha_mos(formula, pre_vars, post_vars, w)
-
-    except ImportError:
-        # Z3 not available, fall back to simple implementation
-        print("Warning: Z3 not available, using simplified alpha function")
-        return _alpha_mos_simplified(phi, variables)
+    # Use CEGIS approach to find the strongest MOS abstraction
+    return _cegis_alpha_mos(phi, pre_vars, post_vars, w)
 
 
 def _cegis_alpha_mos(formula, pre_vars, post_vars, w: int) -> MOS:
@@ -185,40 +171,39 @@ def _cegis_alpha_mos(formula, pre_vars, post_vars, w: int) -> MOS:
         check_solver = z3.Solver()
         check_solver.add(formula)
 
-        # For each transformation matrix, add the constraint that the model must satisfy it
-        violation_conditions = []
-        for matrix in matrices:
-            # For a transformation matrix T = [M b; 0 1], the constraint is:
-            # x' = x*M + b
-            M = matrix.data[:k, :k]
-            b = matrix.data[:k, k]
-
-            for i in range(k):
-                # x'_i - (sum_j M[i,j] * x_j) - b[i] = 0
-                lhs = post_vars[i]
-                for j in range(k):
-                    if M[i, j] != 0:
-                        lhs = lhs - M[i, j] * pre_vars[j]
-                lhs = lhs - b[i]
-
-                # This transformation is violated if lhs != 0
-                violation_conditions.append(lhs != 0)
-
-        # If there are transformations, the model must violate at least one
-        if violation_conditions:
-            check_solver.add(z3.Or(violation_conditions))
+        # If there are transformations, the model must violate ALL of them
+        # A transform T is violated if any of its component equations is violated
+        if matrices:
+            per_transform_violation = []
+            for matrix in matrices:
+                M = matrix.data[:k, :k]
+                b = matrix.data[:k, k]
+                component_violations = []
+                for i in range(k):
+                    lhs = post_vars[i]
+                    for j in range(k):
+                        if M[i, j] != 0:
+                            lhs = lhs - (M[i, j] * pre_vars[j])
+                    lhs = lhs - b[i]
+                    component_violations.append(lhs != 0)
+                per_transform_violation.append(z3.Or(component_violations))
+            check_solver.add(z3.And(per_transform_violation))
 
         # Check if there's a counterexample
         if check_solver.check() == z3.sat:
-            # Found a counterexample - extract the transformation it implies
+            # Found a counterexample not covered by existing transforms
+            # Use SMT-based synthesis to find a new affine transform T: x' = x*M + b
             model = check_solver.model()
+            seed_pre = [model.eval(var, model_completion=True).as_long() for var in pre_vars]
+            seed_post = [model.eval(var, model_completion=True).as_long() for var in post_vars]
 
-            # Extract concrete values
-            pre_values = [model.eval(var, model_completion=True).as_long() for var in pre_vars]
-            post_values = [model.eval(var, model_completion=True).as_long() for var in post_vars]
-
-            # Try to find a simple transformation that explains this model
-            new_matrix = _extract_transformation_from_model(pre_values, post_values, w)
+            new_matrix = _synthesize_affine_transform_smt(
+                formula=formula,
+                pre_vars=pre_vars,
+                post_vars=post_vars,
+                w=w,
+                seed_sample=(seed_pre, seed_post),
+            )
             if new_matrix is not None:
                 matrices.append(new_matrix)
             else:
@@ -232,86 +217,184 @@ def _cegis_alpha_mos(formula, pre_vars, post_vars, w: int) -> MOS:
     # Apply Howell form to canonicalize all matrices
     canonical_matrices = []
     for matrix in matrices:
-        from .matrix_ops import howellize
-        canonical_matrix = howellize(matrix)
-        canonical_matrices.append(canonical_matrix)
+        # TODO: Fix Howell form implementation for transformation matrices
+        # For now, use the original matrix
+        canonical_matrices.append(matrix)
 
     return MOS(canonical_matrices, w)
 
 
-def _extract_transformation_from_model(pre_values: List[int], post_values: List[int], w: int) -> Optional[Matrix]:
-    """Extract an affine transformation matrix from a concrete model.
+def _synthesize_affine_transform_smt(
+    formula: z3.ExprRef,
+    pre_vars: List[z3.ExprRef],
+    post_vars: List[z3.ExprRef],
+    w: int,
+    seed_sample: Optional[Tuple[List[int], List[int]]] = None,
+    max_samples: int = 8,
+    max_iters: int = 20,
+    timeout_ms: Optional[int] = None,
+) -> Optional[Matrix]:
+    """Synthesize an affine transform T (M, b) such that phi => x' = x*M + b.
 
-    Given pre and post values, try to find a transformation matrix T such that
-    for the given values, post = pre * M + b (mod 2^w).
-
-    This is a simplified version - a full implementation would need to handle
-    the general case using linear algebra over GF(2^w).
-    """
-    k = len(pre_values)
-
-    # For now, handle simple cases
-    # Check if this represents x'_i = x_i for all i (identity)
-    is_identity = True
-    for i in range(k):
-        if post_values[i] != pre_values[i]:
-            is_identity = False
-            break
-
-    if is_identity:
-        matrix_data = np.eye(k + 1, dtype=object)
-        return Matrix(matrix_data, 2**w)
-
-    # Check if this represents x'_i = x_j for some assignment
-    # This would require solving a system of equations
-
-    # For now, return None if we can't find a simple transformation
-    # In a full implementation, we'd use proper linear algebra
-    return None
-
-
-def _construct_simple_formula(phi: str, pre_vars, post_vars):
-    """Construct a Z3 formula from a simple QFBV string.
-
-    This handles basic cases like the examples in the codebase.
-    For more complex formulas, a proper parser would be needed.
+    Uses an inner CEGIS loop:
+      1) Fit unknown coefficients (M, b) to a set of concrete samples satisfying phi
+      2) Validate: search for a model of phi that violates the current transform
+      3) If found, add as a new sample and refit; otherwise return the transform
     """
     import z3
 
-    # Handle simple cases based on the examples we see
-    phi = phi.strip()
+    k = len(pre_vars)
+    modulus = 2**w
+    BV = lambda v: z3.BitVecVal(int(v) % modulus, w)
 
-    # Example: "(and (= x' (+ x y)) (= y' x))"
-    if phi.startswith("(and ") and phi.endswith(")"):
-        # Extract the two equalities
-        inner = phi[5:-1].strip()
-        # This is a very simplified split - in practice we'd need proper parsing
-        if "(= x' (+ x y))" in inner and "(= y' x)" in inner:
-            # Construct the formula programmatically
-            eq1 = post_vars[0] == pre_vars[0] + pre_vars[1]  # x' = x + y
-            eq2 = post_vars[1] == pre_vars[0]  # y' = x
-            return z3.And(eq1, eq2)
+    # Sample store: list of tuples (pre_vals, post_vals), both lists of ints
+    samples: List[Tuple[List[int], List[int]]] = []
+    if seed_sample is not None:
+        samples.append(seed_sample)
 
-    # Example: "(= x' x)" - identity
-    elif phi.startswith("(= ") and phi.endswith(")"):
-        inner = phi[3:-1].strip()
-        if inner == "x' x":
-            return post_vars[0] == pre_vars[0]
+    def fit_transform(samples_local: List[Tuple[List[int], List[int]]]) -> Optional[Tuple[List[List[int]], List[int]]]:
+        """Fit M (k x k) and b (k) over given samples using bit-vector arithmetic."""
+        s = z3.Solver()
+        if timeout_ms is not None:
+            s.set(timeout=timeout_ms)
 
-    # Default fallback
-    return z3.BoolVal(True)
+        M = [[z3.BitVec(f"M_{i}_{j}", w) for j in range(k)] for i in range(k)]
+        b = [z3.BitVec(f"b_{i}", w) for i in range(k)]
 
+        # Constrain coefficients to be within modulus automatically (BitVec ensures wrap-around)
+        # Add constraints per sample
+        for (pre_vals, post_vals) in samples_local:
+            x = [BV(v) for v in pre_vals]
+            xp = [BV(v) for v in post_vals]
+            for i in range(k):
+                acc = BV(0)
+                for j in range(k):
+                    acc = acc + (M[i][j] * x[j])
+                acc = acc + b[i]
+                s.add(acc == xp[i])
 
-def _alpha_mos_simplified(phi: str, variables: List[str]) -> MOS:
-    """Simplified alpha function when SMT solver is not available."""
-    k = len(variables)
-    w = 32
+        if s.check() != z3.sat:
+            return None
+        m = s.model()
 
-    # Return identity as safe overapproximation
-    identity_matrix = np.eye(k + 1, dtype=object)
-    identity_matrix[k, :k] = 0
+        # Extract concrete coefficients
+        M_int: List[List[int]] = [[m.eval(M[i][j], model_completion=True).as_long() for j in range(k)] for i in range(k)]
+        b_int: List[int] = [m.eval(b[i], model_completion=True).as_long() for i in range(k)]
+        return M_int, b_int
 
-    return MOS([Matrix(identity_matrix, 2**w)], w)
+    def build_matrix(M_int: List[List[int]], b_int: List[int]) -> Matrix:
+        data = np.zeros((k + 1, k + 1), dtype=object)
+        for i in range(k):
+            for j in range(k):
+                data[i, j] = M_int[i][j] % modulus
+            data[i, k] = b_int[i] % modulus
+        data[k, k] = 1
+        return Matrix(data, modulus)
+
+    def transform_violated_expr(M_int: List[List[int]], b_int: List[int]) -> z3.ExprRef:
+        # Build violation: Or_i (x'_i != sum_j M[i][j]*x_j + b[i])
+        comps = []
+        for i in range(k):
+            lhs = post_vars[i]
+            for j in range(k):
+                coeff = BV(M_int[i][j])
+                lhs = lhs - (coeff * pre_vars[j])
+            lhs = lhs - BV(b_int[i])
+            comps.append(lhs != BV(0))
+        return z3.Or(comps)
+
+    # Inner CEGIS loop
+    iters = 0
+    while iters < max_iters and len(samples) <= max_samples:
+        iters += 1
+        fit = fit_transform(samples)
+        if fit is None:
+            # If we cannot fit with current samples, try to add a new sample
+            # by simply drawing any model of the formula (diversify with disequalities)
+            s = z3.Solver()
+            s.add(formula)
+            if s.check() != z3.sat:
+                return None
+            m = s.model()
+            pre_vals = [m.eval(v, model_completion=True).as_long() for v in pre_vars]
+            post_vals = [m.eval(v, model_completion=True).as_long() for v in post_vars]
+            samples.append((pre_vals, post_vals))
+            continue
+
+        M_int, b_int = fit
+
+        # Validate: phi ∧ violated(M,b) ? If unsat, we are done
+        vsol = z3.Solver()
+        if timeout_ms is not None:
+            vsol.set(timeout=timeout_ms)
+        vsol.add(formula)
+        vsol.add(transform_violated_expr(M_int, b_int))
+        if vsol.check() == z3.sat:
+            # Add counterexample to samples and continue
+            vm = vsol.model()
+            pre_vals = [vm.eval(v, model_completion=True).as_long() for v in pre_vars]
+            post_vals = [vm.eval(v, model_completion=True).as_long() for v in post_vars]
+            # Avoid duplicate samples
+            if (pre_vals, post_vals) not in samples:
+                samples.append((pre_vals, post_vals))
+            else:
+                # If duplicate, break to avoid looping
+                break
+            continue
+
+        # Success: return matrix
+        return build_matrix(M_int, b_int)
+
+    return None
+
+def create_z3_variables(variable_names: List[str], w: int = 32) -> Tuple[List[z3.ExprRef], List[z3.ExprRef]]:
+    """Create Z3 variables for pre-state and post-state.
+
+    Args:
+        variable_names: List of variable names
+        w: Word size in bits (default 32)
+
+    Returns:
+        Tuple of (pre_vars, post_vars) as lists of Z3 BitVec expressions
+    """
+    import z3
+
+    k = len(variable_names)
+    pre_vars = [z3.BitVec(f"{name}", w) for name in variable_names]
+    post_vars = [z3.BitVec(f"{name}'", w) for name in variable_names]
+
+    return pre_vars, post_vars
+
+def _is_identity_relation(ag_matrix: Matrix) -> bool:
+    """Check if an AG matrix represents an identity relation."""
+    k = (ag_matrix.cols - 1) // 2
+
+    # For identity relation, we expect exactly k rows
+    if ag_matrix.rows != k:
+        return False
+
+    # Each row should represent x'_i = x_i for some i
+    for i in range(k):
+        row = ag_matrix[i, :]
+
+        # Check if this row represents x'_i = x_i
+        # The pattern should be: -1*x_i + 1*x'_i + 0 for other variables = 0
+        found_identity_for_i = False
+        for j in range(k):
+            a_j = row[j]        # coefficient of x_j
+            b_j = row[k + j]    # coefficient of x'_j
+            constant = row[2*k]
+
+            if (j == i and a_j == -1 and b_j == 1 and constant == 0 and
+                all(row[m] == 0 for m in range(k) if m != j) and
+                all(row[k + m] == 0 for m in range(k) if m != j)):
+                found_identity_for_i = True
+                break
+
+        if not found_identity_for_i:
+            return False
+
+    return True
 
 
 def shatter_ag(ag_matrix: Matrix) -> List[Matrix]:
@@ -364,9 +447,12 @@ def shatter_ag(ag_matrix: Matrix) -> List[Matrix]:
         if transformations_found:
             result.extend(transformations_found)
 
-        # If no simple transformations found, this might be a more complex constraint
-        # In a full implementation, we would need to solve for possible M and b such that
-        # the generator equation holds for all (x, x') where x' = x*M + b
+        # Special case: if this looks like part of an identity relation,
+        # check if all rows together represent identity transformations
+        elif _is_identity_relation(ag_matrix):
+            # Create a single identity transformation matrix
+            matrix_data = np.eye(k + 1, dtype=object)
+            result.append(Matrix(matrix_data, ag_matrix.modulus))
 
     # Remove duplicates (matrices that represent the same transformation)
     seen = set()
@@ -378,27 +464,6 @@ def shatter_ag(ag_matrix: Matrix) -> List[Matrix]:
             unique_result.append(matrix)
 
     return unique_result
-
-
-def compose_mos(matrices1: List[Matrix], matrices2: List[Matrix]) -> List[Matrix]:
-    """Compose two sets of MOS matrices.
-
-    Args:
-        matrices1: First set of matrices (representing T1)
-        matrices2: Second set of matrices (representing T2)
-
-    Returns:
-        Composition T1 ∘ T2 as a set of matrices
-    """
-    result = []
-
-    for T1 in matrices1:
-        for T2 in matrices2:
-            # Matrix multiplication T1 @ T2
-            composed = matrix_multiply(T1, T2)
-            result.append(composed)
-
-    return result
 
 
 def matrix_multiply(T1: Matrix, T2: Matrix) -> Matrix:

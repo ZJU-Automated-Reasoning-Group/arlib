@@ -6,6 +6,7 @@ using constraints of the form Σ a_i x_i + Σ a'_i x'_i = b.
 """
 
 import numpy as np
+import z3
 from typing import Dict, List, Set, Tuple, Optional, Union
 from .matrix_ops import Matrix
 
@@ -171,7 +172,7 @@ class KS:
         return np.array_equal(self.matrix.data, other.matrix.data)
 
 
-def alpha_ks(phi: str, variables: List[str]) -> KS:
+def alpha_ks(phi: z3.ExprRef, pre_vars: List[z3.ExprRef], post_vars: List[z3.ExprRef]) -> KS:
     """Alpha function for KS domain.
 
     The KS domain represents two-vocabulary relations, so the alpha function
@@ -179,15 +180,16 @@ def alpha_ks(phi: str, variables: List[str]) -> KS:
     the concrete semantics defined by phi.
 
     Args:
-        phi: QFBV formula representing the concrete semantics
-        variables: List of variable names (both primed and unprimed)
+        phi: QFBV formula as Z3 expression
+        pre_vars: Z3 pre-state variables
+        post_vars: Z3 post-state variables
 
     Returns:
         KS element representing the abstraction of phi
     """
     # First get the MOS abstraction
     from .mos_domain import alpha_mos
-    mos_result = alpha_mos(phi, variables)
+    mos_result = alpha_mos(phi, pre_vars, post_vars)
 
     # Convert MOS to KS
     from .conversions import mos_to_ks

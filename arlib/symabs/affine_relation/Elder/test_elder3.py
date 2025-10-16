@@ -2,8 +2,9 @@
 
 import unittest
 import numpy as np
+import z3
 from .matrix_ops import Matrix, howellize, make_explicit
-from .mos_domain import MOS, alpha_mos
+from .mos_domain import MOS, alpha_mos, create_z3_variables
 from .ks_domain import KS, alpha_ks
 from .ag_domain import AG, alpha_ag
 from .conversions import mos_to_ks, ks_to_mos, ag_to_ks, ks_to_ag, ag_to_mos
@@ -222,11 +223,12 @@ class TestComplexFormulas(unittest.TestCase):
     def test_arithmetic_operations(self):
         """Test formulas with arithmetic operations."""
         variables = ['x', 'y']
-        phi = "(and (= x' x) (= y' y))"  # Simple case for now
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should handle basic formulas
         self.assertIsInstance(mos_result, MOS)
@@ -236,11 +238,12 @@ class TestComplexFormulas(unittest.TestCase):
     def test_conditional_logic(self):
         """Test formulas with conditional logic (if supported)."""
         variables = ['x', 'y']
-        phi = "(and (= x' x) (= y' y))"  # Simple case for now
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should handle basic formulas
         self.assertIsInstance(mos_result, MOS)
@@ -250,11 +253,12 @@ class TestComplexFormulas(unittest.TestCase):
     def test_bitwise_operations(self):
         """Test formulas with bitwise operations."""
         variables = ['x', 'y']
-        phi = "(and (= x' x) (= y' y))"  # Simple case for now
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should handle basic formulas
         self.assertIsInstance(mos_result, MOS)
@@ -269,19 +273,24 @@ class TestPerformanceAndScalability(unittest.TestCase):
         """Test with increasing number of variables."""
         for num_vars in [1, 2]:
             variables = [f'x{i}' for i in range(num_vars)]
-            phi = " and ".join(f"(= x{i}' x{i})" for i in range(num_vars))
-            phi = f"({phi})"
+            pre_vars, post_vars = create_z3_variables(variables)
+            phi = z3.And(*[post_vars[i] == pre_vars[i] for i in range(num_vars)])
 
-            mos_result = alpha_mos(phi, variables)
+            mos_result = alpha_mos(phi, pre_vars, post_vars)
             self.assertIsInstance(mos_result, MOS)
             self.assertFalse(mos_result.is_empty())
 
     def test_large_formulas(self):
         """Test with larger, more complex formulas."""
         variables = ['x', 'y', 'z']
-        phi = "(and (= x' x) (= y' y) (= z' z))"  # Simple case for now
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(
+            post_vars[0] == pre_vars[0],  # x' = x
+            post_vars[1] == pre_vars[1],  # y' = y
+            post_vars[2] == pre_vars[2]   # z' = z
+        )
 
-        mos_result = alpha_mos(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
         self.assertIsInstance(mos_result, MOS)
 
     def test_cegis_convergence(self):
@@ -289,9 +298,10 @@ class TestPerformanceAndScalability(unittest.TestCase):
         # This would require access to internal CEGIS state
         # For now, just test that it terminates
         variables = ['x', 'y']
-        phi = "(and (= x' x) (= y' y))"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[1] == pre_vars[1])  # x' = x, y' = y
 
-        result = alpha_mos(phi, variables)
+        result = alpha_mos(phi, pre_vars, post_vars)
         self.assertIsInstance(result, MOS)
 
 

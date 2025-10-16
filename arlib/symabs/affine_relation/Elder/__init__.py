@@ -22,7 +22,7 @@ Public API:
 - `alpha_ag`: Symbolic implementation of α function for AG
 """
 
-from .mos_domain import MOS, alpha_mos
+from .mos_domain import MOS, alpha_mos, create_z3_variables
 from .ks_domain import KS, alpha_ks
 from .ag_domain import AG, alpha_ag
 from .matrix_ops import howellize, make_explicit
@@ -36,6 +36,7 @@ __all__ = [
     "alpha_mos",
     "alpha_ks",
     "alpha_ag",
+    "create_z3_variables",
     "mos_to_ks",
     "ks_to_mos",
     "ag_to_ks",

@@ -2,8 +2,9 @@
 
 import unittest
 import numpy as np
+import z3
 from .matrix_ops import Matrix
-from .mos_domain import MOS, alpha_mos
+from .mos_domain import MOS, alpha_mos, create_z3_variables
 from .ks_domain import KS
 from .ag_domain import AG
 from .conversions import mos_to_ks, ks_to_mos, ag_to_ks, ks_to_ag, ag_to_mos
@@ -170,9 +171,10 @@ class TestAlphaFunction(unittest.TestCase):
     def test_alpha_mos_simple(self):
         """Test alpha function on simple formula."""
         variables = ['x']
-        phi = "(= x' x)"  # Identity
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = post_vars[0] == pre_vars[0]  # x' = x
 
-        result = alpha_mos(phi, variables)
+        result = alpha_mos(phi, pre_vars, post_vars)
         # Should produce some abstraction (even if simplified)
         self.assertIsInstance(result, MOS)
 

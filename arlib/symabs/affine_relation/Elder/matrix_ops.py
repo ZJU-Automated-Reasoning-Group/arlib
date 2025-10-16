@@ -92,7 +92,7 @@ def howellize(matrix: Matrix) -> Matrix:
     j = 0  # Number of already-Howellized rows
 
     # Algorithm 1: Howellize
-    for i in range(1, 2 * w + 1):
+    for i in range(1, min(2 * w + 1, mat.cols)):
         # Find all rows with leading index i
         R = []
         for r in range(mat.rows):
@@ -125,7 +125,7 @@ def howellize(matrix: Matrix) -> Matrix:
 
         # Zero out entries above r_i for rows already in Howell form
         for h in range(j):
-            if mat[h, i] != 0:
+            if h < mat.rows and mat[h, i] != 0:
                 # Compute d = floor(G_h,i / r_i)
                 d = mat[h, i] // mat[r, i]
                 # G_h = G_h - d * r

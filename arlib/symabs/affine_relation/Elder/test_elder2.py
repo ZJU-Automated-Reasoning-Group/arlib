@@ -2,8 +2,9 @@
 
 import unittest
 import numpy as np
+import z3
 from .matrix_ops import Matrix
-from .mos_domain import MOS, alpha_mos, _cegis_alpha_mos
+from .mos_domain import MOS, alpha_mos, _cegis_alpha_mos, create_z3_variables
 from .ks_domain import KS, alpha_ks
 from .ag_domain import AG, alpha_ag
 from .conversions import mos_to_ks, ks_to_ag, ag_to_mos
@@ -15,9 +16,10 @@ class TestAlphaFunctions(unittest.TestCase):
     def test_alpha_mos_identity(self):
         """Test alpha_mos with identity relation."""
         variables = ['x', 'y']
-        phi = "(= x' x)"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = post_vars[0] == pre_vars[0]  # x' = x
 
-        result = alpha_mos(phi, variables)
+        result = alpha_mos(phi, pre_vars, post_vars)
 
         # Should return a MOS with some transformation
         self.assertIsInstance(result, MOS)
@@ -33,9 +35,10 @@ class TestAlphaFunctions(unittest.TestCase):
     def test_alpha_mos_variable_assignment(self):
         """Test alpha_mos with variable assignment."""
         variables = ['x', 'y']
-        phi = "(and (= x' y) (= y' x))"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0])  # x' = y, y' = x
 
-        result = alpha_mos(phi, variables)
+        result = alpha_mos(phi, pre_vars, post_vars)
 
         # Should return a MOS representing the variable swap
         self.assertIsInstance(result, MOS)
@@ -51,9 +54,10 @@ class TestAlphaFunctions(unittest.TestCase):
     def test_alpha_mos_complex_formula(self):
         """Test alpha_mos with a more complex formula."""
         variables = ['x', 'y']
-        phi = "(and (= x' (+ x y)) (= y' x))"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0] + pre_vars[1], post_vars[1] == pre_vars[0])  # x' = x + y, y' = x
 
-        result = alpha_mos(phi, variables)
+        result = alpha_mos(phi, pre_vars, post_vars)
 
         # Should return a MOS representing x' = x + y, y' = x
         self.assertIsInstance(result, MOS)
@@ -82,10 +86,11 @@ class TestAlphaFunctions(unittest.TestCase):
     def test_alpha_ag_composition(self):
         """Test that alpha_ag correctly composes MOS -> KS -> AG conversion."""
         variables = ['x', 'y']
-        phi = "(= x' x)"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = post_vars[0] == pre_vars[0]  # x' = x
 
-        mos_result = alpha_mos(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should get a valid AG element
         self.assertIsInstance(ag_result, AG)
@@ -97,11 +102,12 @@ class TestAlphaFunctions(unittest.TestCase):
     def test_alpha_consistency(self):
         """Test that alpha functions are consistent across domains."""
         variables = ['x', 'y']
-        phi = "(and (= x' y) (= y' x))"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[1], post_vars[1] == pre_vars[0])  # x' = y, y' = x
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # All should be non-empty and represent valid abstractions
         self.assertFalse(mos_result.is_empty())
@@ -183,11 +189,12 @@ class TestEdgeCases(unittest.TestCase):
     def test_single_variable(self):
         """Test alpha functions with single variable."""
         variables = ['x']
-        phi = "(= x' x)"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = post_vars[0] == pre_vars[0]  # x' = x
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # All should work with single variable
         self.assertFalse(mos_result.is_empty())
@@ -197,11 +204,12 @@ class TestEdgeCases(unittest.TestCase):
     def test_unsatisfiable_formula(self):
         """Test alpha functions with unsatisfiable formula."""
         variables = ['x']
-        phi = "(and (= x' x) (= x' (+ x 1)))"  # Contradiction
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(post_vars[0] == pre_vars[0], post_vars[0] == pre_vars[0] + 1)  # x' = x ∧ x' = x + 1
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should handle unsatisfiable formulas gracefully
         # Current implementation returns identity as safe overapproximation
@@ -212,11 +220,16 @@ class TestEdgeCases(unittest.TestCase):
     def test_complex_nested_formula(self):
         """Test alpha functions with complex nested formulas."""
         variables = ['x', 'y', 'z']
-        phi = "(and (= x' (+ x y)) (= y' (- y z)) (= z' z))"
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = z3.And(
+            post_vars[0] == pre_vars[0] + pre_vars[1],  # x' = x + y
+            post_vars[1] == pre_vars[1] - pre_vars[2],  # y' = y - z
+            post_vars[2] == pre_vars[2]                 # z' = z
+        )
 
-        mos_result = alpha_mos(phi, variables)
-        ks_result = alpha_ks(phi, variables)
-        ag_result = alpha_ag(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
+        ks_result = alpha_ks(phi, pre_vars, post_vars)
+        ag_result = alpha_ag(phi, pre_vars, post_vars)
 
         # Should handle complex formulas
         self.assertIsInstance(mos_result, MOS)
@@ -232,9 +245,10 @@ class TestAlphaFunctionCorrectness(unittest.TestCase):
         import z3
 
         variables = ['x']
-        phi = "(= x' (+ x 1))"  # x' = x + 1
+        pre_vars, post_vars = create_z3_variables(variables)
+        phi = post_vars[0] == pre_vars[0] + 1  # x' = x + 1
 
-        mos_result = alpha_mos(phi, variables)
+        mos_result = alpha_mos(phi, pre_vars, post_vars)
 
         # The abstraction should be a sound overapproximation
         # For any model satisfying phi, it should also satisfy the abstraction

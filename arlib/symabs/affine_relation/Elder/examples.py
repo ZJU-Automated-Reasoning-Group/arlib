@@ -5,8 +5,9 @@ together with the conversion algorithms from Elder et al.'s paper.
 """
 
 import numpy as np
+import z3
 from .matrix_ops import Matrix
-from .mos_domain import MOS, alpha_mos
+from .mos_domain import MOS, alpha_mos, create_z3_variables
 from .ks_domain import KS
 from .ag_domain import AG
 from .conversions import mos_to_ks, ks_to_mos, ag_to_ks, ks_to_ag, ag_to_mos
@@ -152,12 +153,18 @@ def example_alpha_function():
     print("=== Example: Alpha Function ===")
 
     # Simple QFBV formula: (x = y + 1) ∧ (x' = x * 2)
-    # In practice, this would use an SMT solver to extract relations
+    # Using Z3 expressions directly
 
     variables = ['x', 'y']
-    phi = "(and (= x (+ y 1)) (= x' (* x 2)))"
+    pre_vars, post_vars = create_z3_variables(variables)
 
-    mos_result = alpha_mos(phi, variables)
+    # Create the formula using Z3 expressions
+    phi = z3.And(
+        pre_vars[0] == pre_vars[1] + 1,  # x = y + 1
+        post_vars[0] == pre_vars[0] * 2   # x' = x * 2
+    )
+
+    mos_result = alpha_mos(phi, pre_vars, post_vars)
     print(f"Alpha function result: {mos_result}")
     print(f"Concretization: {mos_result.concretize()}")
 
