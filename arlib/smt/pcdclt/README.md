@@ -1,80 +1,119 @@
 # Parallel CDCL(T) SMT Solver
 
-This module implements a parallel CDCL(T) (Conflict-Driven Clause Learning with Theory) SMT solver. It combines Boolean satisfiability solving with theory reasoning in a parallel, process-based approach.
+A parallel implementation of CDCL(T) (Conflict-Driven Clause Learning with Theory) that leverages multi-core processors to accelerate SMT solving.
 
-## Overview
+## The Parallel Solving Idea
 
-The CDCL(T) algorithm extends the CDCL Boolean SAT solving approach with theory reasoning:
+Traditional CDCL(T) checks one Boolean model at a time:
+```
+SAT solver → model₁ → theory check → conflict? → refine → repeat
+```
 
-1. Create a Boolean abstraction of an SMT formula
-2. Solve the Boolean abstraction with a SAT solver
-3. Check if the Boolean models satisfy the theory constraints (T-consistency)
-4. Learn from conflicts and add blocking clauses
-5. Repeat until finding a theory-consistent model or proving unsatisfiability
+**This implementation parallelizes theory checking** by processing multiple candidate models simultaneously:
 
-## Key Components
+```
+                  ┌─→ worker₁: check model₁ ─┐
+SAT solver → ───→ ├─→ worker₂: check model₂ ─┤ → collect results → refine
+                  └─→ workerₙ: check modelₙ ─┘
+```
 
-- `CDCLTSolver`: Abstract base class for CDCL(T) solvers
-- `SequentialCDCLTSolver`: A sequential implementation
-- `ParallelCDCLTSolver`: A process-based parallel implementation
-- `SMTPreprocessor4Process`: Handles preprocessing SMT formulas
-- `BooleanFormulaManager` and `TheoryFormulaManager`: Manage Boolean and theory formulas
-- `SMTLibTheorySolver`: Interface to external theory solvers (like Z3)
+**Key insight**: If the SAT solver can generate many Boolean models cheaply, we can check them in parallel using multiple CPU cores. When any worker finds a theory-consistent model, we immediately return SAT. Otherwise, we learn from all the unsat cores to refine the Boolean search space more aggressively.
 
-## SMT Query Logging
+### Why This Works
 
-The module now supports logging and dumping the SMT queries processed by each theory solver. This is useful for:
+1. **Boolean solving is fast**: Generating multiple SAT models is cheap (microseconds)
+2. **Theory checking is slow**: SMT queries can take milliseconds to seconds
+3. **Embarrassingly parallel**: Checking different models requires no coordination
+4. **Better learning**: Multiple unsat cores per iteration → stronger blocking clauses
 
-- Debugging theory solver interactions
-- Performance profiling
-- Identifying patterns in theory queries
-- Analyzing unsat cores
-
-### Configuration
-
-Logging configuration can be found in `cdclt_config.py`:
+## Quick Start
 
 ```python
-# SMT Query Logging
-LOG_SMT_QUERIES = True         # Set to False to disable logging
-SMT_LOG_DIR = os.path.join(os.getcwd(), "smt_query_logs")  # Default log directory
-SMT_LOG_QUERY_CONTENT = True   # Log the full content of SMT queries
-SMT_LOG_QUERY_RESULTS = True   # Log the results of SMT queries
-SMT_LOG_ASSUMPTIONS = True     # Log assumptions for check-sat-assuming calls
+from arlib.smt.pcdclt import solve
+
+formula = """
+(set-logic QF_LRA)
+(declare-fun x () Real)
+(assert (and (> x 5) (< x 3)))
+"""
+
+result = solve(formula, logic="QF_LRA")  # Uses all CPU cores
 ```
 
-### Log Directory Structure
+## Configuration
 
-When logging is enabled, the following directory structure is created:
-
-```
-smt_query_logs/
-└── run_YYYYMMDD_HHMMSS/
-    ├── worker_0_query_0.smt2      # First query from worker 0
-    ├── worker_0_query_1.smt2      # Second query from worker 0
-    ├── worker_0_summary.log       # Summary log for worker 0
-    ├── worker_1_query_0.smt2      # First query from worker 1
-    └── ...
+```python
+# config.py
+NUM_SAMPLES_PER_ROUND = 10        # Models to check in parallel per iteration
+MAX_T_CHECKING_PROCESSES = 0      # Worker processes (0 = all CPU cores)
+SIMPLIFY_CLAUSES = True           # Simplify learned blocking clauses
 ```
 
-Each query file contains:
-- Metadata about the query (worker ID, timestamp, etc.)
-- The actual SMT query content (if enabled)
-- Assumptions used (if applicable and enabled)
-- The result of the query (if enabled)
+## Algorithm Overview
 
-The summary log files contain statistics about all queries processed by each worker.
+### 1. Preprocess
+- Simplify formula using Z3 tactics
+- Convert to CNF
+- Build Boolean abstraction: theory atoms `(x > 5)` → Boolean vars `p@1`
 
-### Usage Example
+### 2. Main Loop
+```python
+while True:
+    # Sample N Boolean models from SAT solver
+    models = sat_solver.sample_models(NUM_SAMPLES_PER_ROUND)
 
-The logging is enabled by default. To use the logs for debugging or analysis:
+    if no_models:
+        return UNSAT  # Boolean abstraction exhausted
 
-1. Run your SMT solver
-2. Inspect the generated logs in the `smt_query_logs` directory
-3. Use the logs to analyze theory solver behavior
+    # Check all models in parallel
+    results = parallel_theory_check(models)
 
-To disable logging, set `LOG_SMT_QUERIES = False` in `cdclt_config.py`.
+    if any_sat(results):
+        return SAT  # Found theory-consistent model
 
-## Performance Considerations
+    # Learn blocking clauses from all unsat cores
+    for core in results:
+        sat_solver.add_clause(negate(core))
+```
 
-Note that enabling logging, especially with `SMT_LOG_QUERY_CONTENT = True`, may affect performance during solving due to I/O operations. For maximum performance in production, consider disabling logging or limiting what is logged. 
+### 3. Parallel Theory Checking
+- Main process: Distributes models to worker processes via queue
+- Workers: Independent SMT solver instances check models concurrently
+- Early exit: First SAT result terminates all workers immediately
+
+## Example
+
+Formula: `(x > 5) ∧ (x < 3)`
+
+| Iteration | Boolean Models | Theory Results | Learned Clause |
+|-----------|----------------|----------------|----------------|
+| 1 | `{p@1=T, p@2=T}` | UNSAT (core: both) | `¬p@1 ∨ ¬p@2` |
+| 2 | Boolean UNSAT | - | Done: **UNSAT** |
+
+With parallelism (NUM_SAMPLES=3):
+- Iteration 1: Check 3 models simultaneously → Learn 3 blocking clauses → Converge faster
+
+## When Parallel Helps
+
+✅ **Good for:**
+- Complex theories (expensive SMT queries)
+- Large formulas with many satisfying assignments
+- Multi-core machines with available CPU
+
+❌ **Less helpful for:**
+- Simple formulas (preprocessing solves them)
+- Highly constrained problems (few Boolean models to check)
+- Single-core environments
+
+## Components
+
+- **`solver.py`**: Main parallel CDCL(T) loop
+- **`preprocessor.py`**: Formula simplification and Boolean abstraction
+- **`theory_solver.py`**: SMT-LIB interface to external solvers (Z3)
+- **`config.py`**: Parallelism and behavior settings
+
+## Requirements
+
+- Python 3.7+
+- Z3 solver binary (for theory checking)
+- PySAT (for Boolean solving)
