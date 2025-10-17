@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; Arlib Documentation</title>
+  <title>Context-Free Language Reachability &mdash; Arlib Documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -43,17 +43,42 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html">Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Context-Free Language Reachability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cfl-solvers-arlib-cfl-cfl-solver-py">CFL Solvers (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_solver.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py">Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/dtc.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grammar-support-arlib-cfl-grammar-py">Grammar Support (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/grammar.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py">Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/pag_matrix.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#strong-component-reduction-arlib-cfl-sc-solver-py">Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/sc_solver.py</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html">LLM Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
@@ -64,6 +89,16 @@
 <li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#references">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
 </ul>
 
@@ -81,7 +116,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">Context-Free Language Reachability</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/cfl.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -91,7 +126,107 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
+  <section id="context-free-language-reachability">
+<h1>Context-Free Language Reachability<a class="headerlink" href="#context-free-language-reachability" title="Link to this heading"></a></h1>
+</section>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p>The CFL module (<code class="docutils literal notranslate"><span class="pre">arlib/cfl</span></code>) implements algorithms for context-free language (CFL) reachability analysis, a powerful framework for program analysis problems including points-to analysis, interprocedural dataflow analysis, and shape analysis.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>CFL-Reachability Algorithms</strong>: Classical and quantum-inspired dynamic transitive closure</p></li>
+<li><p><strong>Dyck Language Support</strong>: Balanced-parenthesis reachability for call-return matching</p></li>
+<li><p><strong>Graph-Based Analysis</strong>: Efficient graph algorithms for program analysis</p></li>
+<li><p><strong>Matrix-Based Computation</strong>: Matrix formulations for parallel processing</p></li>
+<li><p><strong>Strong Component Reduction</strong>: Optimization via strongly connected components</p></li>
+</ul>
+</section>
+</section>
+<section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
+<section id="cfl-solvers-arlib-cfl-cfl-solver-py">
+<h2>CFL Solvers (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_solver.py</span></code>)<a class="headerlink" href="#cfl-solvers-arlib-cfl-cfl-solver-py" title="Link to this heading"></a></h2>
+<p>Core CFL-reachability solving:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFLSolver</span>
+
+<span class="c1"># Create solver for CFL-reachability</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">CFLSolver</span><span class="p">()</span>
+
+<span class="c1"># Define grammar and graph</span>
+<span class="n">grammar</span> <span class="o">=</span> <span class="n">load_grammar</span><span class="p">(</span><span class="s2">&quot;grammar.txt&quot;</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">load_graph</span><span class="p">(</span><span class="s2">&quot;program_graph.dot&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compute reachability</span>
+<span class="n">reachable</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">grammar</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py">
+<h2>Dynamic Transitive Closure (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/cfl_dtc.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/dtc.py</span></code>)<a class="headerlink" href="#dynamic-transitive-closure-arlib-cfl-cfl-dtc-py-arlib-cfl-dtc-py" title="Link to this heading"></a></h2>
+<p>Dynamic transitive closure algorithms including quantum-inspired methods:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.cfl_dtc</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumDTC</span>
+
+<span class="c1"># Quantum-inspired dynamic transitive closure</span>
+<span class="n">dtc</span> <span class="o">=</span> <span class="n">QuantumDTC</span><span class="p">()</span>
+<span class="n">closure</span> <span class="o">=</span> <span class="n">dtc</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="grammar-support-arlib-cfl-grammar-py">
+<h2>Grammar Support (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/grammar.py</span></code>)<a class="headerlink" href="#grammar-support-arlib-cfl-grammar-py" title="Link to this heading"></a></h2>
+<p>Context-free grammar manipulation:</p>
+<ul class="simple">
+<li><p>Grammar parsing and validation</p></li>
+<li><p>Production rule management</p></li>
+<li><p>Dyck language generation</p></li>
+<li><p>Grammar normalization</p></li>
+</ul>
+</section>
+<section id="matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py">
+<h2>Matrix-Based Algorithms (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/matrix.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/cfl/pag_matrix.py</span></code>)<a class="headerlink" href="#matrix-based-algorithms-arlib-cfl-matrix-py-arlib-cfl-pag-matrix-py" title="Link to this heading"></a></h2>
+<p>Matrix formulations for efficient CFL-reachability:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.pag_matrix</span><span class="w"> </span><span class="kn">import</span> <span class="n">PAGMatrix</span>
+
+<span class="c1"># Program assignment graph as matrix</span>
+<span class="n">pag</span> <span class="o">=</span> <span class="n">PAGMatrix</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">pag</span><span class="o">.</span><span class="n">cfl_reachability</span><span class="p">(</span><span class="n">grammar</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="strong-component-reduction-arlib-cfl-sc-solver-py">
+<h2>Strong Component Reduction (<code class="docutils literal notranslate"><span class="pre">arlib/cfl/sc_solver.py</span></code>)<a class="headerlink" href="#strong-component-reduction-arlib-cfl-sc-solver-py" title="Link to this heading"></a></h2>
+<p>Optimization using strongly connected components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.cfl.sc_solver</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCReducer</span>
+
+<span class="c1"># Reduce problem via SCC decomposition</span>
+<span class="n">reducer</span> <span class="o">=</span> <span class="n">SCReducer</span><span class="p">()</span>
+<span class="n">reduced_result</span> <span class="o">=</span> <span class="n">reducer</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">grammar</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><strong>Points-To Analysis</strong>: Field-sensitive and context-sensitive pointer analysis</p></li>
+<li><p><strong>Call Graph Construction</strong>: Interprocedural control flow analysis</p></li>
+<li><p><strong>Alias Analysis</strong>: May-alias and must-alias analysis</p></li>
+<li><p><strong>Shape Analysis</strong>: Heap shape abstraction</p></li>
+<li><p><strong>Taint Analysis</strong>: Information flow tracking</p></li>
+<li><p><strong>Interprocedural Dataflow</strong>: Summary-based dataflow analysis</p></li>
+</ul>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Reps, T. (1998). <em>Program Analysis via Graph Reachability</em>. Information and Software Technology</p></li>
+<li><p>Yannakakis, M. (1990). <em>Graph-Theoretic Methods in Database Theory</em>. PODS 1990</p></li>
+<li><p>Zhang, Q., Su, Z. (2017). <em>Context-Sensitive Data-Dependence Analysis via Linear Conjunctive Language Reachability</em>. POPL 2017</p></li>
+<li><p>Liu, J., et al. (2024). <em>Dynamic Transitive Closure-Based Static Analysis through the Lens of Quantum Search</em>. TOSEM 2024</p></li>
+</ul>
+</section>
+
 
            </div>
           </div>

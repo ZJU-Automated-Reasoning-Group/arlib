@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Integration &mdash; Arlib Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a74d790d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Monadic Predicate Abstraction" href="monabs.html" />
+    <link rel="prev" title="Interactive Theorem Proving (ITP)" href="itp.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Arlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="topics.html">Research Topics and Thesis Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abduction.html">Abduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="allsmt.html">AllSMT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html">Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automata.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backbone.html">Backbone Computation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html">Context-Free Language Reachability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfl.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chctools.html">Constrained Horn Clauses (CHC) Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="counting.html">Model Counting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html">SMT Solving for Finite Field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ff.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="itp.html">Interactive Theorem Proving (ITP)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LLM Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py">Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/llm/smt2nl.py</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smto-smt-with-oracles-arlib-llm-smto">SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">arlib/llm/smto</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-guided-abduction-arlib-llm-abduct">LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">arlib/llm/abduct</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-interpolant-generation-arlib-llm-interpolant">LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/interpolant</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llm-tools-arlib-llm-llmtool">LLM Tools (<code class="docutils literal notranslate"><span class="pre">arlib/llm/llmtool</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monabs.html">Monadic Predicate Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization Modulo Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pcdclt.html">Parallel SMT CDCL(T) Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polyhorn.html">PolyHorn: Polynomial Horn Clause Solver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prob.html">Probabilistic Reasoning (arlib/prob)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantifiers.html">Playing wth Quantifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Model Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="smt.html">SMT Solving</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symbolic_abstraction.html">Symbolic Abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="symautomata.html">Symbolic Finite Automata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html">Program Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthesis.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html">Unification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#components">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#applications">Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unification.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unsat_core.html">UNSAT Core Extraction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Arlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">LLM Integration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/llm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="llm-integration">
+<h1>LLM Integration<a class="headerlink" href="#llm-integration" title="Link to this heading"></a></h1>
+</section>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p>The LLM module (<code class="docutils literal notranslate"><span class="pre">arlib/llm</span></code>) integrates large language models into automated reasoning workflows, enabling natural language interfaces, LLM-guided solving strategies, and reasoning about programs with unspecified components.</p>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Natural Language to SMT</strong>: Convert natural language constraints to SMT formulas</p></li>
+<li><p><strong>SMTO (SMT + Oracles)</strong>: Solve constraints with LLM-based oracle components</p></li>
+<li><p><strong>LLM-Guided Abduction</strong>: Generate explanations using language models</p></li>
+<li><p><strong>Interpolant Generation</strong>: Synthesize interpolants with LLM assistance</p></li>
+<li><p><strong>UNSAT Core Analysis</strong>: Minimal unsatisfiable core extraction with explanations</p></li>
+</ul>
+</section>
+</section>
+<section id="components">
+<h1>Components<a class="headerlink" href="#components" title="Link to this heading"></a></h1>
+<section id="natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py">
+<h2>Natural Language Translation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/nl2smt.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arlib/llm/smt2nl.py</span></code>)<a class="headerlink" href="#natural-language-translation-arlib-llm-nl2smt-py-arlib-llm-smt2nl-py" title="Link to this heading"></a></h2>
+<p>Bidirectional translation between natural language and SMT-LIB:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm</span><span class="w"> </span><span class="kn">import</span> <span class="n">nl_to_smt</span><span class="p">,</span> <span class="n">smt_to_nl</span>
+
+<span class="c1"># Convert natural language to SMT</span>
+<span class="n">formula</span> <span class="o">=</span> <span class="n">nl_to_smt</span><span class="p">(</span><span class="s2">&quot;x is greater than 5 and less than 10&quot;</span><span class="p">)</span>
+
+<span class="c1"># Convert SMT to natural language description</span>
+<span class="n">description</span> <span class="o">=</span> <span class="n">smt_to_nl</span><span class="p">(</span><span class="n">smt_formula</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="smto-smt-with-oracles-arlib-llm-smto">
+<h2>SMTO: SMT with Oracles (<code class="docutils literal notranslate"><span class="pre">arlib/llm/smto</span></code>)<a class="headerlink" href="#smto-smt-with-oracles-arlib-llm-smto" title="Link to this heading"></a></h2>
+<p>Satisfiability Modulo Theories and Oracles for reasoning about programs with unspecified components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">OraxSolver</span><span class="p">,</span> <span class="n">OracleInfo</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">z3</span>
+
+<span class="c1"># Initialize solver</span>
+<span class="n">solver</span> <span class="o">=</span> <span class="n">OraxSolver</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">&quot;openai&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">)</span>
+
+<span class="c1"># Register blackbox oracle with examples</span>
+<span class="n">oracle</span> <span class="o">=</span> <span class="n">OracleInfo</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;check_password&quot;</span><span class="p">,</span>
+    <span class="n">input_types</span><span class="o">=</span><span class="p">[</span><span class="n">z3</span><span class="o">.</span><span class="n">StringSort</span><span class="p">()],</span>
+    <span class="n">output_type</span><span class="o">=</span><span class="n">z3</span><span class="o">.</span><span class="n">BoolSort</span><span class="p">(),</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Validate password strength&quot;</span><span class="p">,</span>
+    <span class="n">examples</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;arg0&quot;</span><span class="p">:</span> <span class="s2">&quot;weak&quot;</span><span class="p">},</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;arg0&quot;</span><span class="p">:</span> <span class="s2">&quot;Str0ng!Pass&quot;</span><span class="p">},</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">register_oracle</span><span class="p">(</span><span class="n">oracle</span><span class="p">)</span>
+
+<span class="c1"># Solve constraints</span>
+<span class="n">password</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+<span class="n">check_pw</span> <span class="o">=</span> <span class="n">z3</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s1">&#39;check_password&#39;</span><span class="p">,</span> <span class="n">z3</span><span class="o">.</span><span class="n">StringSort</span><span class="p">(),</span> <span class="n">z3</span><span class="o">.</span><span class="n">BoolSort</span><span class="p">())</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">add_constraint</span><span class="p">(</span><span class="n">check_pw</span><span class="p">(</span><span class="n">password</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Whitebox Mode</strong>: Enhanced analysis with source code or documentation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.smto</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhiteboxOracleInfo</span><span class="p">,</span> <span class="n">OracleAnalysisMode</span>
+
+<span class="n">oracle</span> <span class="o">=</span> <span class="n">WhiteboxOracleInfo</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;oracle_func&quot;</span><span class="p">,</span>
+    <span class="n">analysis_mode</span><span class="o">=</span><span class="n">OracleAnalysisMode</span><span class="o">.</span><span class="n">SOURCE_CODE</span><span class="p">,</span>
+    <span class="n">source_code</span><span class="o">=</span><span class="s2">&quot;def oracle_func(x): return x &gt; 0 and x &lt; 100&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="llm-guided-abduction-arlib-llm-abduct">
+<h2>LLM-Guided Abduction (<code class="docutils literal notranslate"><span class="pre">arlib/llm/abduct</span></code>)<a class="headerlink" href="#llm-guided-abduction-arlib-llm-abduct" title="Link to this heading"></a></h2>
+<p>Generate explanatory hypotheses for observations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.abduct</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMAbductor</span>
+
+<span class="n">abductor</span> <span class="o">=</span> <span class="n">LLMAbductor</span><span class="p">()</span>
+<span class="n">explanation</span> <span class="o">=</span> <span class="n">abductor</span><span class="o">.</span><span class="n">abduce</span><span class="p">(</span>
+    <span class="n">background_theory</span><span class="o">=</span><span class="n">theory</span><span class="p">,</span>
+    <span class="n">observation</span><span class="o">=</span><span class="n">observation</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="llm-interpolant-generation-arlib-llm-interpolant">
+<h2>LLM Interpolant Generation (<code class="docutils literal notranslate"><span class="pre">arlib/llm/interpolant</span></code>)<a class="headerlink" href="#llm-interpolant-generation-arlib-llm-interpolant" title="Link to this heading"></a></h2>
+<p>Synthesize Craig interpolants using language models:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.llm.interpolant</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMInterpolant</span>
+
+<span class="n">interpolant</span> <span class="o">=</span> <span class="n">LLMInterpolant</span><span class="p">()</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">formula_a</span><span class="p">,</span> <span class="n">formula_b</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="llm-tools-arlib-llm-llmtool">
+<h2>LLM Tools (<code class="docutils literal notranslate"><span class="pre">arlib/llm/llmtool</span></code>)<a class="headerlink" href="#llm-tools-arlib-llm-llmtool" title="Link to this heading"></a></h2>
+<p>Utilities for LLM integration:</p>
+<ul class="simple">
+<li><p>Multi-provider support (OpenAI, Anthropic, local models)</p></li>
+<li><p>Prompt engineering utilities</p></li>
+<li><p>Response parsing and validation</p></li>
+<li><p>Caching and rate limiting</p></li>
+</ul>
+</section>
+</section>
+<section id="applications">
+<h1>Applications<a class="headerlink" href="#applications" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Natural language specification to formal constraints</p></li>
+<li><p>Reasoning about third-party libraries without specifications</p></li>
+<li><p>LLM-guided solver heuristics and strategy selection</p></li>
+<li><p>Automated explanation generation for verification results</p></li>
+<li><p>Interactive constraint debugging with natural language</p></li>
+</ul>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Link to this heading"></a></h1>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="itp.html" class="btn btn-neutral float-left" title="Interactive Theorem Proving (ITP)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="monabs.html" class="btn btn-neutral float-right" title="Monadic Predicate Abstraction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2025, ZJU Automated Reasoning Group.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
