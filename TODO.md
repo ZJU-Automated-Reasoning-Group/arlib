@@ -1,18 +1,15 @@
 # TODO LIST
 
-## Research 
+## Research
 
 There are many interesting research topics. You are welcome to contribute to the following research topics:
 
-- Parallel CDCL(T): See `arlib/smt/pcdclt`
-- SMT for finite field: See  `arlib/smt/ff`
+- Parallel CDCL(T): See `arlib/smt/pcdclt`. Here we have a new algorithm for parallelizing lazy SMT solving
 - LLM-driven constraint solving: See `arlib/llm`
-- LLM-based abduction: See `arlib/llm`
-
 
 ## Features
 
-### Logic Programming 
+### Logic Programming
 
 - https://github.com/pythological/kanren
 
@@ -23,14 +20,18 @@ There are many interesting research topics. You are welcome to contribute to the
 - Multi-objective optimization support
 - Mixed-integer quadratic programming
 
-### Projection
+
+### Linear Programming
+
+
+### Projection and QE
 
 - Fourier-Motzkin elimination
 - Simplex method
 - Virtual substitution techniques
 - Cylindrical algebraic decomposition
 - ...
-  
+
 ### Advanced Profiling
 
 - https://github.com/viperproject/smt-scope: A tool for visualising, analysing and understanding quantifier instantiations made via E-matching in a run of an SMT solver
@@ -72,4 +73,3 @@ You are welcome to contribute to the following applications:
 - `Security`: vulnerability detection, exploit generation, formal verification of security protocols, deobfuscation (e.g., for MBA)
 - `Planning and Scheduling`: constraint-based AI planning
 - `Optimization`: equality saturation, etc.
-

@@ -3,7 +3,7 @@
 """
 Wrappers for PySAT.
 Currently, we hope to use this as the Boolean solver of the parallel CDCL(T) engine.
-Besides, we may want to integrate some advanced facilities, such as (parallel) uniform sampling.
+Besides, we may want to integrate some advanced facilities, such as (parallel) uniform sampling. Or, use pyunigen package
 """
 import logging
 from enum import Enum
