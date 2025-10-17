@@ -76,7 +76,7 @@ def disjunctive_check_incremental_cached(solver: z3.Solver, cnt_list: List[z3.Ex
         disjunctive_check_incremental_cached(solver, cnt_list, results, new_check_list)
 
 
-def new_conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogorithm: int = 0) -> List:    
+def conjunctive_check_incremental(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogorithm: int = 0) -> List:    
     """
     Perform a conjunctive satisfiability check on a list of constraints under a given precondition.
     This function checks whether the conjunction of a set of constraints (`cnt_list`) is satisfiable 
@@ -110,7 +110,7 @@ def new_conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogo
         for idx in current_subset:
             solver.assert_and_track(cnt_list[idx], str(idx))
         solver_result = solver.check()
-        if solver_result == z3.sat: # 内部没有冲突，检查
+        if solver_result == z3.sat: # no conflicts within the predicates, no need to split
             while True:
                 solver.add(precond)
                 solver_result = solver.check()
@@ -133,9 +133,9 @@ def new_conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogo
                     for idx in current_subset:
                         solver.assert_and_track(cnt_list[idx], str(idx))
                 
-        elif solver_result == z3.unsat: # 内部有冲突，划分
+        elif solver_result == z3.unsat: # conflicts within the predicates, need to split
             solver.pop()
-            unsat_core_indices = {int(str(c)) for c in solver.unsat_core()}
+            unsat_core_indices = {int(c.decl().name()) for c in solver.unsat_core()}
             unsat_set_indices = list(unsat_core_indices)
             sat_set_indices = [i for i in current_subset if i not in unsat_core_indices]
             if len(unsat_set_indices) == 1:
@@ -155,6 +155,89 @@ def new_conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogo
         unary_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
     elif alogorithm == 2:
         disjunctive_check_incremental_cached(solver, cnt_list, results, waiting_list_idx)
+    else:
+        raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
+
+    return results
+
+
+def conjunctive_check(precond: z3.ExprRef, cnt_list: List[z3.ExprRef], alogorithm: int = 0) -> List:    
+    """
+    Perform a conjunctive satisfiability check on a list of constraints under a given precondition.
+    This function checks whether the conjunction of a set of constraints (`cnt_list`) is satisfiable 
+    under a given precondition (`precond`). It uses a Z3 solver to perform the satisfiability checks 
+    and supports different algorithms for handling unsatisfiable cores.
+    Args:
+        precond (z3.ExprRef): The precondition to be added to the solver.
+        cnt_list (List[z3.ExprRef]): A list of Z3 expressions representing the constraints to be checked.
+        alogorithm (int): The algorithm to use for handling unsatisfiable cores. 
+                          Options are:
+                          - 0: Unary check with caching.
+                          - 1: Incremental unary check with caching.
+                          - 2: Incremental disjunctive check with caching.
+    Returns:
+        List: A list of results where each index corresponds to the satisfiability of the respective 
+              constraint in `cnt_list`. A value of `1` indicates satisfiable, `0` indicates unsatisfiable,
+              and `2` indicates unknown.
+    Notes:
+        - Unsatisfiable cores are handled by moving them to a waiting list for further processing 
+          based on the selected algorithm.
+    """
+    results = [None] * len(cnt_list)
+    waiting_list_idx = []
+    queue = [list(range(len(cnt_list)))]
+    i = 0
+    while queue:
+        i += 1
+        current_subset = queue.pop(0)
+        solver_split = z3.Solver()
+        for idx in current_subset:
+            solver_split.assert_and_track(cnt_list[idx], str(idx))
+        solver_result = solver_split.check()
+        if solver_result == z3.sat: # no conflicts within the predicates, no need to split
+            while True:
+                solver_check = z3.Solver()
+                solver_check.add(precond)
+                for idx in current_subset:
+                        solver_check.assert_and_track(cnt_list[idx], str(idx))
+                solver_result = solver_check.check()
+                
+                if solver_result == z3.sat:
+                    # All constraints are satisfiable
+                    for idx in current_subset:
+                        results[idx] = 1
+                    break
+                elif solver_result == z3.unsat:
+                    # Move unsat core to waiting list
+                    unsat_core = solver_check.unsat_core()
+                    for idx in unsat_core:
+                        current_subset.remove(int(str(idx)))
+                        waiting_list_idx.append(int(str(idx)))
+                    if len(current_subset) == 0:
+                        break
+                
+        elif solver_result == z3.unsat: # conflicts within the predicates, need to split
+            unsat_core_indices = {int(c.decl().name()) for c in solver_split.unsat_core()}
+            unsat_set_indices = list(unsat_core_indices)
+            sat_set_indices = [i for i in current_subset if i not in unsat_core_indices]
+            if len(unsat_set_indices) == 1:
+                waiting_list_idx.append(unsat_set_indices[0])
+                if sat_set_indices:
+                    queue.append(sat_set_indices)
+            else:
+                subsets = [[unsat_set_indices[i]] for i in range(len(unsat_set_indices))]
+                for i, sat_item in enumerate(sat_set_indices):
+                    subsets[i % len(unsat_set_indices)].append(sat_item)
+                queue.extend(subsets)
+    
+    solver_fallback = z3.Solver()
+    solver_fallback.add(precond)
+    if alogorithm == 0:
+        unary_check_cached(precond, cnt_list, results, waiting_list_idx)
+    elif alogorithm == 1:
+        unary_check_incremental_cached(solver_fallback, cnt_list, results, waiting_list_idx)
+    elif alogorithm == 2:
+        disjunctive_check_incremental_cached(solver_fallback, cnt_list, results, waiting_list_idx)
     else:
         raise ValueError("Invalid algorithm choice. Choose 0, 1, or 2.")
 
