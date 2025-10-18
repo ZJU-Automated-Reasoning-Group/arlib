@@ -137,20 +137,58 @@ class ModelEvaluator:
                     z3_vars[var_name] = z3.Bool(var_name)
                 elif input_type == z3.StringSort():
                     z3_vars[var_name] = z3.String(var_name)
+                elif z3.is_bv_sort(input_type):
+                    # For bit-vectors, create BitVec variable with appropriate size
+                    z3_vars[var_name] = z3.BitVec(var_name, input_type.size())
+                elif z3.is_fp_sort(input_type):
+                    # For floating points, create FP variable with appropriate sort
+                    z3_vars[var_name] = z3.FP(var_name, input_type)
+                elif z3.is_array_sort(input_type):
+                    # For arrays, create Array variable with appropriate domain and range
+                    z3_vars[var_name] = z3.Array(var_name, input_type.domain(), input_type.range())
                 else:
                     return None
 
             # Constrain inputs
             for var_name, value in inputs.items():
                 if var_name in z3_vars:
-                    if isinstance(value, bool):
+                    input_type = None
+                    for i, oracle_input_type in enumerate(oracle_info.input_types):
+                        if f"arg{i}" == var_name:
+                            input_type = oracle_input_type
+                            break
+
+                    if input_type == z3.BoolSort():
                         solver.add(z3_vars[var_name] == z3.BoolVal(value))
-                    elif isinstance(value, int):
+                    elif input_type == z3.IntSort():
                         solver.add(z3_vars[var_name] == z3.IntVal(value))
-                    elif isinstance(value, float):
+                    elif input_type == z3.RealSort():
                         solver.add(z3_vars[var_name] == z3.RealVal(value))
-                    elif isinstance(value, str):
+                    elif input_type == z3.StringSort():
                         solver.add(z3_vars[var_name] == z3.StringVal(value))
+                    elif z3.is_bv_sort(input_type):
+                        # For bit-vectors, handle different value types
+                        if isinstance(value, int):
+                            solver.add(z3_vars[var_name] == z3.BitVecVal(value, input_type.size()))
+                        elif isinstance(value, str) and value.startswith('#b'):
+                            solver.add(z3_vars[var_name] == z3.BitVecVal(value, input_type.size()))
+                        else:
+                            solver.add(z3_vars[var_name] == z3.BitVecVal(int(value), input_type.size()))
+                    elif z3.is_fp_sort(input_type):
+                        # For floating points
+                        if isinstance(value, float):
+                            solver.add(z3_vars[var_name] == z3.FPVal(value, input_type))
+                        elif isinstance(value, str):
+                            try:
+                                solver.add(z3_vars[var_name] == z3.FPVal(float(value), input_type))
+                            except:
+                                solver.add(z3_vars[var_name] == z3.FPVal(value, input_type))
+                        else:
+                            solver.add(z3_vars[var_name] == z3.FPVal(float(value), input_type))
+                    elif z3.is_array_sort(input_type):
+                        # For arrays, this is complex - simplified implementation
+                        # A full implementation would need sophisticated array handling
+                        pass  # Skip for now
 
             model_str = oracle_info.symbolic_model
 
@@ -163,6 +201,14 @@ class ModelEvaluator:
                 output_var = z3.Bool("output")
             elif oracle_info.output_type == z3.StringSort():
                 output_var = z3.String("output")
+            elif z3.is_bv_sort(oracle_info.output_type):
+                output_var = z3.BitVec("output", oracle_info.output_type.size())
+            elif z3.is_fp_sort(oracle_info.output_type):
+                output_var = z3.FP("output", oracle_info.output_type)
+            elif z3.is_array_sort(oracle_info.output_type):
+                output_var = z3.Array("output",
+                                     oracle_info.output_type.domain(),
+                                     oracle_info.output_type.range())
             else:
                 return None
 

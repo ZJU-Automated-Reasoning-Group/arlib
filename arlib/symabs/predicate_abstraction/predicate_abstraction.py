@@ -7,6 +7,8 @@ OUTPUT: a formula g such that
         (2) g is the strongest consequence of f.
 
      That is, f |= g and or any g' that is a Boolean combination of P, we have g |= g'.
+
+Following CAV'06 paper "SMT Techniques for Fast Predicate Abstraction"
 """
 
 from typing import List, Optional, Set, Dict
