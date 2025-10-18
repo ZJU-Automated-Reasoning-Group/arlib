@@ -1,0 +1,27 @@
+{
+  "pcdclt": {
+    "type": "pcdclt",
+    "params": {
+      "num_samples_per_round": 10,
+      "max_t_checking_processes": 0,
+      "simplify_clauses": true,
+      "worker_shutdown_timeout": 2.0,
+      "enable_query_logging": false
+    }
+  },
+  "z3": {
+    "type": "external",
+    "command": "z3",
+    "args": "-in"
+  },
+  "cvc5": {
+    "type": "external",
+    "command": "cvc5",
+    "args": "-q -i"
+  },
+  "z3-parallel": {
+    "type": "external",
+    "command": "z3",
+    "args": "-in smt.threads=4"
+  }
+}

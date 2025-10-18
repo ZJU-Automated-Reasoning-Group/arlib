@@ -298,6 +298,23 @@ def solve(smt2_string: str, logic: str = "ALL") -> SolverResult:
         else:
             logger.debug("All workers terminated cleanly")
 
+        # Ensure queues and manager are properly cleaned up to avoid hangs
+        try:
+            task_queue.close()
+            task_queue.join_thread()
+        except Exception as e:
+            logger.debug(f"task_queue cleanup error: {e}")
+        try:
+            result_queue.close()
+            result_queue.join_thread()
+        except Exception as e:
+            logger.debug(f"result_queue cleanup error: {e}")
+        try:
+            # Shutdown the manager server process explicitly
+            manager.shutdown()
+        except Exception as e:
+            logger.debug(f"manager shutdown error: {e}")
+
     return result
 
 

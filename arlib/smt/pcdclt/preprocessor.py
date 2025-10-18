@@ -101,7 +101,7 @@ class FormulaAbstraction:
         fml = z3.And(z3.parse_smt2_string(smt2_string))
 
         # Apply preprocessing tactics
-        tactics = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'tseitin-cnf')
+        tactics = z3.Then('simplify', 'elim-uncnstr', 'solve-eqs', 'simplify', 'tseitin-cnf')
         simplified = tactics(fml)
         result_expr = simplified.as_expr()
 
