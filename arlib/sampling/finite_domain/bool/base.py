@@ -1,45 +1,49 @@
 """
-BitVector sampler implementation.
+Boolean sampler implementation.
 
-This module provides a sampler for bit-vector formulas.
+This module provides a sampler for Boolean formulas.
+
+TODO:
+   - Support using pysat solver for parallel sampling
+   - Support pyunigen sampler for uniform sampling
 """
 
 import z3
-from typing import Set, Dict, Any, List
+from typing import Set, Dict, Any, List, Optional
 import random
 
 from arlib.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
-from arlib.sampling.utils import get_vars, is_bv
+from arlib.utils.z3_expr_utils import get_variables, is_bool_sort
 
 
-class BitVectorSampler(Sampler):
+class BooleanSampler(Sampler):
     """
-    Sampler for bit-vector formulas.
-    
-    This class implements a sampler for bit-vector formulas using Z3.
+    Sampler for Boolean formulas.
+
+    This class implements a sampler for Boolean formulas using Z3.
     """
 
-    def __init__(self, **kwargs):
-        """Initialize the bit-vector sampler."""
-        self.formula = None
-        self.variables = []
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the Boolean sampler."""
+        self.formula: Optional[z3.ExprRef] = None
+        self.variables: List[z3.ExprRef] = []
 
     def supports_logic(self, logic: Logic) -> bool:
         """
         Check if this sampler supports the given logic.
-        
+
         Args:
             logic: The logic to check
-            
+
         Returns:
             True if the sampler supports the logic, False otherwise
         """
-        return logic == Logic.QF_BV
+        return logic == Logic.QF_BOOL
 
     def init_from_formula(self, formula: z3.ExprRef) -> None:
         """
         Initialize the sampler with a formula.
-        
+
         Args:
             formula: The Z3 formula to sample from
         """
@@ -47,17 +51,17 @@ class BitVectorSampler(Sampler):
 
         # Extract variables from the formula
         self.variables = []
-        for var in get_vars(formula):
-            if is_bv(var):
+        for var in get_variables(formula):
+            if is_bool_sort(var):
                 self.variables.append(var)
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
         Generate samples according to the given options.
-        
+
         Args:
             options: The sampling options
-            
+
         Returns:
             A SamplingResult containing the generated samples
         """
@@ -73,26 +77,28 @@ class BitVectorSampler(Sampler):
         solver.add(self.formula)
 
         # Generate samples
-        samples = []
-        stats = {"time_ms": 0, "iterations": 0}
+        samples: List[Dict[str, Any]] = []
+        stats: Dict[str, Any] = {"time_ms": 0, "iterations": 0}
 
         for _ in range(options.num_samples):
             if solver.check() == z3.sat:
                 model = solver.model()
 
                 # Convert model to a dictionary
-                sample = {}
+                sample: Dict[str, Any] = {}
                 for var in self.variables:
                     value = model.evaluate(var, model_completion=True)
-                    sample[str(var)] = value.as_long()
+                    sample[str(var)] = bool(value)
 
                 samples.append(sample)
 
                 # Add blocking clause to prevent the same model
-                block = []
+                block: List[z3.ExprRef] = []
                 for var in self.variables:
-                    value = model.evaluate(var, model_completion=True)
-                    block.append(var != value)
+                    if z3.is_true(model[var]):
+                        block.append(var == False)
+                    else:
+                        block.append(var == True)
 
                 solver.add(z3.Or(block))
                 stats["iterations"] += 1
@@ -103,18 +109,18 @@ class BitVectorSampler(Sampler):
 
     def get_supported_methods(self) -> Set[SamplingMethod]:
         """
-        Get the sampling methods supported by this sampler.
-        
+        Return the set of supported sampling methods.
+
         Returns:
-            A set of supported sampling methods
+            Set of supported sampling methods
         """
         return {SamplingMethod.ENUMERATION}
 
     def get_supported_logics(self) -> Set[Logic]:
         """
-        Get the logics supported by this sampler.
-        
+        Return the set of supported logics.
+
         Returns:
-            A set of supported logics
+            Set of supported logics
         """
-        return {Logic.QF_BV}
+        return {Logic.QF_BOOL}

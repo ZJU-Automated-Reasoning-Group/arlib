@@ -35,7 +35,7 @@ import math
 from collections import defaultdict
 
 from arlib.sampling import sample_models_from_formula, Logic, SamplingOptions, SamplingMethod, SamplingResult
-from arlib.sampling.utils.z3_utils import get_vars
+from arlib.utils.z3_expr_utils import get_variables
 
 
 class WMIMethod(str, Enum):
@@ -272,7 +272,7 @@ def _wmi_by_sampling(formula: z3.ExprRef, density: Density, options: WMIOptions)
     """
     try:
         # Extract variables from formula and density
-        formula_vars = set(str(var) for var in get_vars(formula)
+        formula_vars = set(str(var) for var in get_variables(formula)
                           if var.sort().kind() in (z3.Z3_REAL_SORT, z3.Z3_INT_SORT))
 
         # Create sampling options
@@ -360,7 +360,7 @@ def _validate_wmi_inputs(formula: z3.ExprRef, density: Density) -> None:
         raise ValueError("Formula must be a Z3 expression")
 
     # Check that formula involves appropriate theories
-    formula_vars = get_vars(formula)
+    formula_vars = get_variables(formula)
     supported_sort_kinds = (z3.Z3_REAL_SORT, z3.Z3_INT_SORT)
 
     unsupported_vars = []

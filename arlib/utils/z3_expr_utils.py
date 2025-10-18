@@ -48,6 +48,12 @@ Formula classification:
 - is_lit: Check if expression is a literal
 - is_function_symbol: Check if expression is a function symbol
 
+Sort checking:
+- is_bool_sort: Check if expression has Boolean sort
+- is_bv_sort: Check if expression has bit-vector sort
+- is_int_sort: Check if expression has integer sort
+- is_real_sort: Check if expression has real sort
+
 Formula manipulation:
 - negate: Negate a formula
 - big_and: Create conjunction from a list of formulas
@@ -708,6 +714,58 @@ def get_z3_logic(fml: z3.ExprRef) -> str:
         import logging
         logging.warning(f"Error determining logic for expression: {ex}")
         return "ALL"  # Default to most general logic if detection fails
+
+
+def is_bool_sort(expr: z3.ExprRef) -> bool:
+    """
+    Check if a Z3 expression is a Boolean variable.
+
+    Args:
+        expr: The Z3 expression to check
+
+    Returns:
+        True if the expression is a Boolean variable, False otherwise
+    """
+    return z3.is_const(expr) and expr.sort() == z3.BoolSort()
+
+
+def is_bv_sort(expr: z3.ExprRef) -> bool:
+    """
+    Check if a Z3 expression is a bit-vector variable.
+
+    Args:
+        expr: The Z3 expression to check
+
+    Returns:
+        True if the expression is a bit-vector variable, False otherwise
+    """
+    return z3.is_const(expr) and z3.is_bv_sort(expr.sort())
+
+
+def is_int_sort(expr: z3.ExprRef) -> bool:
+    """
+    Check if a Z3 expression is an integer variable.
+
+    Args:
+        expr: The Z3 expression to check
+
+    Returns:
+        True if the expression is an integer variable, False otherwise
+    """
+    return z3.is_const(expr) and expr.sort() == z3.IntSort()
+
+
+def is_real_sort(expr: z3.ExprRef) -> bool:
+    """
+    Check if a Z3 expression is a real variable.
+
+    Args:
+        expr: The Z3 expression to check
+
+    Returns:
+        True if the expression is a real variable, False otherwise
+    """
+    return z3.is_const(expr) and expr.sort() == z3.RealSort()
 
 
 def eval_predicates(model: z3.ModelRef, predicates: List[z3.BoolRef]) -> List[z3.BoolRef]:

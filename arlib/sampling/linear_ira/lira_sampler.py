@@ -9,7 +9,7 @@ from typing import Set, Dict, Any, List
 import random
 
 from arlib.sampling.base import Sampler, Logic, SamplingMethod, SamplingOptions, SamplingResult
-from arlib.sampling.utils import get_vars, is_int, is_real
+from arlib.utils.z3_expr_utils import get_variables, is_int_sort, is_real_sort
 
 
 class LIRASampler(Sampler):
@@ -47,9 +47,12 @@ class LIRASampler(Sampler):
 
         # Extract variables from the formula
         self.variables = []
-        for var in get_vars(formula):
-            if is_int(var) or is_real(var):
+        for var in get_variables(formula):
+            if is_int_sort(var) or is_real_sort(var):
                 self.variables.append(var)
+
+        # Sort variables by name for deterministic ordering
+        self.variables.sort(key=lambda v: str(v))
 
     def sample(self, options: SamplingOptions) -> SamplingResult:
         """
@@ -68,8 +71,11 @@ class LIRASampler(Sampler):
         if options.random_seed is not None:
             random.seed(options.random_seed)
 
-        # Create a solver
+        # Create a solver with specific random seed
         solver = z3.Solver()
+        if options.random_seed is not None:
+            solver.set('random_seed', options.random_seed)
+            solver.set('seed', options.random_seed)
         solver.add(self.formula)
 
         # Generate samples
@@ -84,7 +90,7 @@ class LIRASampler(Sampler):
                 sample = {}
                 for var in self.variables:
                     value = model.evaluate(var, model_completion=True)
-                    if is_int(var):
+                    if is_int_sort(var):
                         sample[str(var)] = value.as_long()
                     else:  # Real
                         # Convert rational numbers to float
@@ -116,7 +122,7 @@ class LIRASampler(Sampler):
                 block = []
                 for var in self.variables:
                     value = model.evaluate(var, model_completion=True)
-                    if is_int(var):
+                    if is_int_sort(var):
                         block.append(var != value)
                     else:  # Real
                         # For reals, convert to float for comparison
