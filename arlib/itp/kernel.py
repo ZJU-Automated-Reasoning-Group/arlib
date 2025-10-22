@@ -15,8 +15,8 @@ logger = logging.getLogger("itp")
 @dataclass(frozen=True)
 class Proof:
     """
-    It is unlikely that users should be accessing the `Proof` constructor directly.
-    This is not ironclad. If you really want the Proof constructor, I can't stop you.
+It is unlikely that users should be accessing the `Proof` constructor directly.
+This is not ironclad. If you really want the Proof constructor, I can't stop you.
     """
 
     thm: smt.BoolRef
@@ -75,23 +75,24 @@ def prove(
         dump=False,
         solver=None,
 ) -> Proof:
-    """Prove a theorem using a list of previously proved lemmas.
+    """
+Prove a theorem using a list of previously proved lemmas.
 
-    In essence `prove(Implies(by, thm))`.
+In essence `prove(Implies(by, thm))`.
 
-    :param thm: The theorem to prove.
-    Args:
-        thm (smt.BoolRef): The theorem to prove.
-        by (list[Proof]): A list of previously proved lemmas.
-        admit     (bool): If True, admit the theorem without proof.
+:param thm: The theorem to prove.
+Args:
+    thm (smt.BoolRef): The theorem to prove.
+    by (list[Proof]): A list of previously proved lemmas.
+    admit     (bool): If True, admit the theorem without proof.
 
-    Returns:
-        Proof: A proof object of thm
+Returns:
+    Proof: A proof object of thm
 
-    >>> prove(smt.BoolVal(True))
-    |- True
-    >>> prove(smt.RealVal(1) >= smt.RealVal(0))
-    |- 1 >= 0
+>>> prove(smt.BoolVal(True))
+|- True
+>>> prove(smt.RealVal(1) >= smt.RealVal(0))
+|- 1 >= 0
     """
     if isinstance(by, Proof):
         by = [by]
@@ -121,13 +122,14 @@ def prove(
 
 
 def axiom(thm: smt.BoolRef, by=["axiom"]) -> Proof:
-    """Assert an axiom.
+    """
+Assert an axiom.
 
-    Axioms are necessary and useful. But you must use great care.
+Axioms are necessary and useful. But you must use great care.
 
-    Args:
-        thm: The axiom to assert.
-        by: A python object explaining why the axiom should exist. Often a string explaining the axiom.
+Args:
+    thm: The axiom to assert.
+    by: A python object explaining why the axiom should exist. Often a string explaining the axiom.
     """
     return Proof(thm, by)
 
@@ -135,7 +137,7 @@ def axiom(thm: smt.BoolRef, by=["axiom"]) -> Proof:
 @dataclass(frozen=True)
 class Defn:
     """
-    A record storing definition. It is useful to record definitions as special axioms because we often must unfold them.
+A record storing definition. It is useful to record definitions as special axioms because we often must unfold them.
     """
 
     name: str
@@ -155,7 +157,7 @@ smt.ExprRef.defn = property(lambda self: defns[self.decl()].ax)
 
 def is_defined(x: smt.ExprRef) -> bool:
     """
-    Determined if expression head is in definitions.
+Determined if expression head is in definitions.
     """
     return smt.is_app(x) and x.decl() in defns
 
@@ -173,16 +175,16 @@ def define(
         name: str, args: list[smt.ExprRef], body: smt.ExprRef, lift_lambda=False
 ) -> smt.FuncDeclRef:
     """
-    Define a non recursive definition. Useful for shorthand and abstraction. Does not currently defend against ill formed definitions.
-    TODO: Check for bad circularity, record dependencies
+Define a non recursive definition. Useful for shorthand and abstraction. Does not currently defend against ill formed definitions.
+TODO: Check for bad circularity, record dependencies
 
-    Args:
-        name: The name of the term to define.
-        args: The arguments of the term.
-        defn: The definition of the term.
+Args:
+    name: The name of the term to define.
+    args: The arguments of the term.
+    defn: The definition of the term.
 
-    Returns:
-        tuple[smt.FuncDeclRef, Proof]: A tuple of the defined term and the proof of the definition.
+Returns:
+    tuple[smt.FuncDeclRef, Proof]: A tuple of the defined term and the proof of the definition.
     """
     sorts = [arg.sort() for arg in args] + [body.sort()]
     f = smt.Function(name, *sorts)
@@ -222,7 +224,7 @@ def define(
 
 def define_fix(name: str, args: list[smt.ExprRef], retsort, fix_lam) -> smt.FuncDeclRef:
     """
-    Define a recursive definition.
+Define a recursive definition.
     """
     sorts = [arg.sort() for arg in args]
     sorts.append(retsort)
@@ -242,26 +244,40 @@ def define_fix(name: str, args: list[smt.ExprRef], retsort, fix_lam) -> smt.Func
 
 def consider(x: smt.ExprRef) -> Proof:
     """
-    The purpose of this is to seed the solver with interesting terms.
-    Axiom schema. We may give a fresh name to any constant. An "anonymous" form of define.
-    Pointing out the interesting terms is sometimes the essence of a proof.
+The purpose of this is to seed the solver with interesting terms.
+Axiom schema. We may give a fresh name to any constant. An "anonymous" form of define.
+Pointing out the interesting terms is sometimes the essence of a proof.
     """
     return axiom(smt.Eq(smt.FreshConst(x.sort(), prefix="consider"), x))
 
 
-"""
-TODO: For better Lemma
+
+#TODO: For better Lemma
+def compose(ab: Proof, bc: Proof) -> Proof:
+    """
+Compose two implications. Useful for chaining implications.
+
+>>> a,b,c = smt.Bools("a b c")
+>>> ab = axiom(smt.Implies(a, b))
+>>> bc = axiom(smt.Implies(b, c))
+>>> compose(ab, bc)
+|= Implies(a, c)
+    """
+    assert isinstance(ab, Proof) and isinstance(bc, Proof)
+    assert smt.is_implies(ab.thm) and smt.is_implies(bc.thm)
+    assert ab.thm.arg(1).eq(bc.thm.arg(0))
+    return axiom(smt.Implies(ab.thm.arg(0), bc.thm.arg(1)), ["compose", ab, bc])
+
+
 def modus_n(n: int, ab: Proof, bc: Proof):
-    ""
-    Plug together two theorems of the form
-    Implies(And(ps), b), Implies(And(qs, b, rs),  c)
-    -----------
-    Implies(And(qs, ps, rs), c)
+    """
+Plug together two theorems of the form
+Implies(And(ps), b), Implies(And(qs, b, rs),  c)
+-----------
+Implies(And(qs, ps, rs), c)
 
-    Useful for backwards chaining.
-
-
-    ""
+Useful for backwards chaining.
+    """
     assert (
         is_proof(ab)
         and is_proof(bc)
@@ -278,13 +294,11 @@ def modus_n(n: int, ab: Proof, bc: Proof):
     assert bb[n].eq(b)
     c = bc.thm.arg(1)
     return axiom(smt.Implies(smt.And(*bb[:n], *aa, *bb[n + 1 :]), c), [ab, bc])
-"""
+
 
 
 def instan(ts: Sequence[smt.ExprRef], pf: Proof) -> Proof:
-    """
-    Instantiate a universally quantified formula.
-    This is forall elimination
+    """ Instantiate a universally quantified formula. This is forall elimination
     """
     assert (
             is_proof(pf)
@@ -298,9 +312,9 @@ def instan(ts: Sequence[smt.ExprRef], pf: Proof) -> Proof:
 
 def instan2(ts: Sequence[smt.ExprRef], thm: smt.BoolRef) -> Proof:
     """
-    Instantiate a universally quantified formula
-    `forall xs, P(xs) -> P(ts)`
-    This is forall elimination
+Instantiate a universally quantified formula
+`forall xs, P(xs) -> P(ts)`
+This is forall elimination
     """
     assert (
             isinstance(thm, smt.QuantifierRef)
@@ -314,10 +328,28 @@ def instan2(ts: Sequence[smt.ExprRef], thm: smt.BoolRef) -> Proof:
     )
 
 
+def specialize(ts: Sequence[smt.ExprRef], thm: smt.BoolRef) -> Proof:
+    """
+Instantiate a universally quantified formula
+`forall xs, P(xs) -> P(ts)`
+This is forall elimination
+    """
+    assert (
+            isinstance(thm, smt.QuantifierRef)
+            and thm.is_forall()
+            and len(ts) == thm.num_vars()
+    )
+
+    return axiom(
+        smt.Implies(thm, smt.substitute_vars(thm.body(), *reversed(ts))),
+        ["specialize", thm, ts],
+    )
+
+
 def forget(ts: Iterable[smt.ExprRef], pf: Proof) -> Proof:
     """
-    "Forget" a term using existentials. This is existential introduction.
-    This could be derived from forget2
+"Forget" a term using existentials. This is existential introduction.
+This could be derived from forget2
     """
     # Hmm. I seem to have rarely been using this
     assert is_proof(pf)
@@ -340,11 +372,24 @@ def forget2(ts: Sequence[smt.ExprRef], thm: smt.QuantifierRef) -> Proof:
     )
 
 
+def exists_elim(ts: Sequence[smt.ExprRef], thm: smt.QuantifierRef) -> Proof:
+    """
+    Existential elimination.
+    `exists xs, P(xs) -> P(ts)`
+    This is exists elimination
+    """
+    assert smt.is_quantifier(thm) and thm.is_exists() and len(ts) == thm.num_vars()
+    return axiom(
+        smt.Implies(thm, smt.substitute_vars(thm.body(), *reversed(ts))),
+        ["exists_elim", thm, ts],
+    )
+
+
 def einstan(thm: smt.QuantifierRef) -> tuple[list[smt.ExprRef], Proof]:
     """
-    Skolemize an existential quantifier.
-    `exists xs, P(xs) -> P(cs)` for fresh cs
-    https://en.wikipedia.org/wiki/Existential_instantiation
+Skolemize an existential quantifier.
+`exists xs, P(xs) -> P(cs)` for fresh cs
+https://en.wikipedia.org/wiki/Existential_instantiation
     """
     # TODO: Hmm. Maybe we don't need to have a Proof? Lessen this to thm.
     assert smt.is_quantifier(thm) and thm.is_exists()
@@ -356,9 +401,57 @@ def einstan(thm: smt.QuantifierRef) -> tuple[list[smt.ExprRef], Proof]:
     )
 
 
+def obtain(thm: smt.QuantifierRef) -> tuple[list[smt.ExprRef], Proof]:
+    """
+Skolemize an existential quantifier.
+`exists xs, P(xs) -> P(cs)` for fresh cs
+https://en.wikipedia.org/wiki/Existential_instantiation
+
+>>> x = smt.Int("x")
+>>> obtain(smt.Exists([x], x >= 0))
+([x!...], |=  Implies(Exists(x, x >= 0), x!... >= 0))
+>>> y = FreshVar("y", smt.IntSort())
+>>> obtain(smt.Exists([x], x >= y))
+([f!...(y!...)], |=  Implies(Exists(x, x >= y!...), f!...(y!...) >= y!...))
+
+    """
+    # TODO: Hmm. Maybe we don't need to have a Proof? Lessen this to thm.
+    assert smt.is_quantifier(thm) and thm.is_exists()
+
+    free_vars = set()
+    todo = [thm.body()]
+    # collect free variables in body
+    while todo:
+        t = todo.pop()
+        if smt.is_const(t):
+            if t.get_id() in _overapproximate_fresh_ids:
+                free_vars.add(t)
+        elif smt.is_app(t):
+            todo.extend(t.children())
+        elif isinstance(t, smt.QuantifierRef):
+            todo.append(t.body())
+        elif smt.is_var(t):
+            continue
+        else:
+            raise Exception("Unexpected term in consts", t)
+    if len(free_vars) == 0:
+        skolems = fresh_const(thm)
+    else:
+        free_vars = list(free_vars)
+        sorts = [v.sort() for v in free_vars]
+        skolems = [
+            smt.FreshFunction(*sorts, thm.var_sort(i))(*free_vars)
+            for i in range(thm.num_vars())
+        ]
+    return skolems, axiom(
+        smt.Implies(thm, smt.substitute_vars(thm.body(), *reversed(skolems))),
+        ["obtain"],
+    )
+
+
 def skolem(pf: Proof) -> tuple[list[smt.ExprRef], Proof]:
     """
-    Skolemize an existential quantifier.
+Skolemize an existential quantifier.
     """
     # TODO: Hmm. Maybe we don't need to have a Proof? Lessen this to thm.
     assert is_proof(pf) and isinstance(pf.thm, smt.QuantifierRef) and pf.thm.is_exists()
@@ -371,9 +464,9 @@ def skolem(pf: Proof) -> tuple[list[smt.ExprRef], Proof]:
 
 def herb(thm: smt.QuantifierRef) -> tuple[list[smt.ExprRef], Proof]:
     """
-    Herbrandize a theorem.
-    It is sufficient to prove a theorem for fresh consts to prove a universal.
-    Note: Perhaps lambdaized form is better? Return vars and lamda that could receive `|- P[vars]`
+Herbrandize a theorem.
+It is sufficient to prove a theorem for fresh consts to prove a universal.
+Note: Perhaps lambdaized form is better? Return vars and lamda that could receive `|- P[vars]`
     """
     assert smt.is_quantifier(thm) and thm.is_forall()
     herbs = fresh_const(thm)
@@ -384,8 +477,7 @@ def herb(thm: smt.QuantifierRef) -> tuple[list[smt.ExprRef], Proof]:
 
 
 def beta_conv(lam: smt.QuantifierRef, *args) -> Proof:
-    """
-    Beta conversion for lambda calculus.
+    """Beta conversion for lambda calculus.
     """
     assert len(args) == lam.num_vars()
     assert smt.is_quantifier(lam) and lam.is_lambda()
@@ -393,7 +485,9 @@ def beta_conv(lam: smt.QuantifierRef, *args) -> Proof:
 
 
 def induct_inductive(x: smt.DatatypeRef, P: smt.QuantifierRef) -> Proof:
-    """Build a basic induction principle for an algebraic datatype"""
+    """
+Build a basic induction principle for an algebraic datatype
+    """
     DT = x.sort()
     assert isinstance(DT, smt.DatatypeSortRef)
     """assert (
@@ -418,14 +512,14 @@ def induct_inductive(x: smt.DatatypeRef, P: smt.QuantifierRef) -> Proof:
 
 def Inductive(name: str) -> smt.Datatype:
     """
-    Declare datatypes with auto generated induction principles. Wrapper around z3.Datatype
+Declare datatypes with auto generated induction principles. Wrapper around z3.Datatype
 
-    >>> Nat = Inductive("Nat")
-    >>> Nat.declare("zero")
-    >>> Nat.declare("succ", ("pred", Nat))
-    >>> Nat = Nat.create()
-    >>> Nat.succ(Nat.zero)
-    succ(zero)
+>>> Nat = Inductive("Nat")
+>>> Nat.declare("zero")
+>>> Nat.declare("succ", ("pred", Nat))
+>>> Nat = Nat.create()
+>>> Nat.succ(Nat.zero)
+succ(zero)
     """
     counter = 0
     n = name
@@ -458,3 +552,76 @@ def Inductive(name: str) -> smt.Datatype:
 
     dt.create = create
     return dt
+
+
+# Schema variables for generalization
+_overapproximate_fresh_ids = set()
+"""
+This set tracks an overapproximation of the ids of schema variables.
+It is an overapproximation because I think it is possible that z3 reuses ids of deleted terms.
+This overapproximation is nevertheless useful for finding an overapproximation of free schema variables in a term. for skolemization
+"""
+
+
+@dataclass(frozen=True)
+class _FreshVarEvidence:
+    """
+    Do not instantiate this class directly.
+    Use `FreshVar`. This class should always be created with a fresh variable.
+    Holding this data type is considered evidence analogous to the `Proof` type that the var was generated freshly
+    and hence is generic / schematic.
+
+    One can prove theorem using this variable as a constant, but once it comes to generalize, you need to supply the evidence
+    That it was originally generated freshly.
+    """
+
+    v: smt.ExprRef
+
+
+def is_fresh_var(v: smt.ExprRef) -> bool:
+    """
+    Check if a variable is a schema variable.
+    Schema variables are generated by FreshVar and have a _FreshVarEvidence attribute.
+
+    >>> is_fresh_var(FreshVar("x", smt.IntSort()))
+    True
+    """
+    if not hasattr(v, "fresh_evidence"):
+        return False
+    else:
+        evidence = getattr(v, "fresh_evidence")
+        return isinstance(evidence, _FreshVarEvidence) and evidence.v.eq(v)
+
+
+def FreshVar(prefix: str, sort: smt.SortRef) -> smt.ExprRef:
+    """
+    Generate a fresh variable. This is distinguished from FreshConst by the fact that it has freshness evidence.
+    This is intended to be used for constants that represent arbitrary terms (implicitly universally quantified).
+    For example, axioms like `c_fresh = t` should never be asserted about bare FreshVars as they imply a probably inconsistent axiom,
+    whereas asserting such an axiom about FreshConst is ok, effectively defining a new rigid constant.
+
+
+    >>> FreshVar("x", smt.IntSort()).fresh_evidence
+    _FreshVarEvidence(v=x!...)
+    """
+    v = smt.FreshConst(sort, prefix=prefix)
+    _overapproximate_fresh_ids.add(v.get_id())
+    v.fresh_evidence = _FreshVarEvidence(
+        v
+    )  # Is cyclic reference a garbage collection problem?
+    return v
+
+
+def generalize(vs: list[smt.ExprRef], pf: Proof) -> Proof:
+    """
+    Generalize a theorem with respect to a list of schema variables.
+    This introduces a universal quantifier for schema variables.
+
+    >>> x = FreshVar("x", smt.IntSort())
+    >>> y = FreshVar("y", smt.IntSort())
+    >>> generalize([x, y], prove(x == x))
+    |= ForAll([x!..., y!...], x!... == x!...)
+    """
+    assert all(is_fresh_var(v) for v in vs)
+    assert isinstance(pf, Proof)
+    return axiom(smt.ForAll(vs, pf.thm), by=["generalize", vs, pf])

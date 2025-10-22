@@ -954,9 +954,9 @@ class ProofState:
         goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         assert isinstance(goal, smt.QuantifierRef) and goal.is_exists()
-        lemma = kd.kernel.forget(ts, goal)
+        lemma = kd.kernel.exists_elim(ts, goal)
         self.add_lemma(lemma)
-        self.goals[-1] = goalctx._replace(ctx=ctx, goal=lemma.thm.arg(0))
+        self.goals[-1] = goalctx._replace(ctx=ctx, goal=lemma.thm.arg(1))
         return self
 
     def rewrite(

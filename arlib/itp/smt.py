@@ -295,7 +295,7 @@ def is_app(self):
 is_app = is_app
 
 ExprRef._cache_kind = None
-orig_kind = ExprRef.kind
+orig_kind = lambda self: self.decl().kind()
 
 
 def expr_kind(self):
