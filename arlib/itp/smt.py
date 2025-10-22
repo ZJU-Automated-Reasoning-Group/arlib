@@ -8,10 +8,12 @@ This is controlled by setting the environment variable KNUCKLE_SOLVER to "cvc5" 
 import os
 from . import config
 
+
 Z3SOLVER = "z3"
 CVC5SOLVER = "cvc5"
 VAMPIRESOLVER = "vampire"
 solver = os.getenv("KNUCKLE_SOLVER")
+
 
 if solver is None or solver == Z3SOLVER:
     solver = "z3"
@@ -19,7 +21,6 @@ if solver is None or solver == Z3SOLVER:
     from z3 import *
 
     _py2expr = z3.z3._py2expr
-
 
     def is_if(x: z3.ExprRef) -> bool:
         """
@@ -29,6 +30,14 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_ITE)
 
+    def is_neg(x: z3.ExprRef) -> bool:
+        """
+        Check if an expression is a negation.
+        >>> x = z3.Int("x")
+        >>> is_neg(-x)
+        True
+        """
+        return z3.is_app_of(x, z3.Z3_OP_UMINUS)
 
     def is_constructor(x: z3.ExprRef) -> bool:
         """
@@ -41,7 +50,6 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_CONSTRUCTOR)
 
-
     def is_accessor(x: z3.ExprRef) -> bool:
         """
         Check if an expression is an accessor.
@@ -52,7 +60,6 @@ if solver is None or solver == Z3SOLVER:
         True
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_ACCESSOR)
-
 
     def is_recognizer(x: z3.ExprRef) -> bool:
         """
@@ -65,7 +72,6 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_DT_IS)
 
-
     def is_power(x: z3.ExprRef) -> bool:
         """
         Check if an expression is a power.
@@ -74,7 +80,6 @@ if solver is None or solver == Z3SOLVER:
         True
         """
         return z3.is_app_of(x, z3.Z3_OP_POWER)
-
 
     def is_uninterp(x: z3.ExprRef) -> bool:
         """
@@ -92,11 +97,10 @@ if solver is None or solver == Z3SOLVER:
         """
         return z3.is_app_of(x, z3.Z3_OP_UNINTERPRETED)
 
-
     Z3Solver = Solver
 elif solver == VAMPIRESOLVER:
     from z3 import *
-    from arlib.itp.solvers import VampireSolver
+    from kdrag.solvers import VampireSolver
 
     Z3Solver = Solver
     Solver = VampireSolver
@@ -108,7 +112,6 @@ elif solver == CVC5SOLVER:
 
     Z3PPObject = object
     FuncDecl = FuncDeclRef
-
 
     class Solver(cvc5.pythonic.Solver):
         def __init__(self):
@@ -129,7 +132,6 @@ elif solver == CVC5SOLVER:
         def unsat_core(self):
             return [cvc5.pythonic.BoolRef(x) for x in self.solver.getUnsatCore()]
 
-
     def Const(name, sort):
         # _to_expr doesn't have a DatatypeRef case
         x = cvc5.pythonic.Const(name, sort)
@@ -137,17 +139,14 @@ elif solver == CVC5SOLVER:
             x = DatatypeRef(x.ast, x.ctx, x.reverse_children)
         return x
 
-
     def Consts(names, sort):
         return [Const(name, sort) for name in names.split()]
-
 
     def _qsort(self):
         if self.is_lambda():
             return ArraySort(self.var_sort(0), self.body().sort())
         else:
             return BoolSort(self.ctx)
-
 
     QuantifierRef.sort = _qsort
 else:
@@ -183,3 +182,236 @@ ExprRef.__add__ = lambda x, y: None
 ExprRef.__sub__ = lambda x, y: None
 
 FuncDeclRef.defn = None
+
+"""
+Caching.
+The CFFI interface to z3 is very costly. Caching calls can help some of that pain.
+"""
+
+
+AstRef._cache_id = None
+get_id_orig = AstRef.get_id
+
+
+def get_id(self):
+    if self._cache_id is None:
+        self._cache_id = get_id_orig(self)
+    return self._cache_id
+
+
+AstRef.get_id = get_id
+ExprRef.get_id = get_id
+FuncDeclRef.get_id = get_id
+
+
+def eq(x, y):
+    return x.get_id() == y.get_id()
+
+
+AstRef.eq = eq
+AstRef.__hash__ = lambda x: hash(x.get_id())
+SortRef.__eq__ = eq
+FuncDeclRef.__eq__ = eq
+SortRef.__ne__ = lambda x, y: not eq(x, y)
+FuncDeclRef.__ne__ = lambda x, y: not eq(x, y)
+
+
+decl_orig = ExprRef.decl
+ExprRef._cache_decl = None
+
+# Caching of decls so they can be tagged with properties
+# TODO: There are other ways of getting decls, so this is not a complete cache.
+decls: dict[int, FuncDeclRef] = {}
+
+
+def decl(self):
+    if self._cache_decl is None:
+        decl = decl_orig(self)
+        self._cache_decl = decl
+    else:
+        decl = self._cache_decl
+    id_ = decl.get_id()
+    if id_ in decls:
+        return decls[id_]
+    else:
+        decls[id_] = decl
+        return decl
+
+
+OldFunction = Function
+
+
+def Function(*args, **kwargs):
+    decl = OldFunction(*args, **kwargs)
+    if decl.get_id() not in decls:
+        decls[decl.get_id()] = decl
+    else:
+        decl = decls[decl.get_id()]
+    return decl
+
+
+ExprRef.decl = decl
+
+ExprRef._cache_args = None
+old_arg = ExprRef.arg
+
+
+def arg(self, i):
+    if self._cache_args is None:
+        self._cache_args = {}
+    a = self._cache_args.get(i, None)
+    if a is None:
+        a = old_arg(self, i)
+        self._cache_args[i] = a  # old_arg(self, i)
+    return a
+
+
+ExprRef.arg = arg
+
+ExprRef._cache_num_args = None
+
+num_args_orig = ExprRef.num_args
+
+
+def num_args(self):
+    if self._cache_num_args is None:
+        self._cache_num_args = num_args_orig(self)
+    return self._cache_num_args
+
+
+ExprRef.num_args = num_args
+
+ExprRef._is_app = None
+
+orig_is_app = is_app
+
+
+def is_app(self):
+    if self._is_app is None:
+        self._is_app = orig_is_app(self)
+    return self._is_app
+
+
+is_app = is_app
+
+ExprRef._cache_kind = None
+orig_kind = ExprRef.kind
+
+
+def expr_kind(self):
+    if self._cache_kind is None:
+        self._cache_kind = orig_kind(self)
+    return self._cache_kind
+
+
+ExprRef.kind = expr_kind
+
+SortRef._cache_kind = None
+orig_sort_kind = SortRef.kind
+
+
+def sort_kind(self):
+    if self._cache_kind is None:
+        self._cache_kind = orig_sort_kind(self)
+    return self._cache_kind
+
+
+SortRef.kind = sort_kind
+
+FuncDeclRef._cache_kind = None
+orig_func_kind = FuncDeclRef.kind
+
+
+def func_kind(self):
+    if self._cache_kind is None:
+        self._cache_kind = orig_func_kind(self)
+    return self._cache_kind
+
+
+FuncDeclRef.kind = func_kind
+
+ExprRef._cache_sort = None
+orig_sort = ExprRef.sort
+
+
+def sort(self):
+    if self._cache_sort is None:
+        self._cache_sort = orig_sort(self)
+    return self._cache_sort
+
+
+ExprRef.sort = sort
+
+"""
+sort_registry is for interning sorts.
+Properties can be naturally tagged onto sorts, which can then be looked up by id.
+"""
+
+sort_registry: dict[int, SortRef] = {}
+_orig_expr_sort = ExprRef.sort
+
+
+def _expr_sort(self):
+    T = _orig_expr_sort(self)
+    tid = T.get_id()
+    return sort_registry.get(tid, T)
+
+
+ExprRef.sort = _expr_sort
+
+
+_IntSort = IntSort
+IntS: SortRef = IntSort()
+sort_registry[IntS.get_id()] = IntS
+
+
+def IntSort(ctx=None) -> SortRef:
+    if ctx is None:
+        return IntS
+    else:
+        return _IntSort(ctx)
+
+
+_BoolSort = BoolSort
+BoolS: SortRef = BoolSort()
+sort_registry[BoolS.get_id()] = BoolS
+
+
+def BoolSort(ctx=None) -> SortRef:
+    if ctx is None:
+        return BoolS
+    else:
+        return _BoolSort(ctx)
+
+
+_RealSort = RealSort
+RealS: SortRef = RealSort()
+sort_registry[RealS.get_id()] = RealS
+
+
+def RealSort(ctx=None) -> SortRef:
+    if ctx is None:
+        return RealS
+    else:
+        return _RealSort(ctx)
+
+
+_DeclareSort = DeclareSort
+
+
+def DeclareSort(name):
+    """
+    Declare a sort with the given name.
+    >>> DeclareSort("MySort")
+    MySort
+    """
+    T = _DeclareSort(name)
+    tid = T.get_id()
+    if tid not in sort_registry:
+        sort_registry[tid] = T
+        return T
+    else:
+        return sort_registry[tid]
+
+
+ExprRef.assumes = None

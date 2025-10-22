@@ -17,7 +17,7 @@ def sympify(e: smt.ExprRef, locals={}) -> sympy.Expr:  # type: ignore
     >>> sympify(smt.RatVal(1,3))
     Fraction(1, 3)
     """
-    return itprag.reflect.eval_(e, sympy_env, locals={})
+    return arlib.itp.reflect.eval_(e, sympy_env, locals={})
 
 
 def replace_rational_with_ratval(expr):

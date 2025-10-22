@@ -104,11 +104,11 @@ class ExpPolyTerminationAnalyzer:
         for trans in transitions:
             if hasattr(trans, 'variables'):
                 all_variables.update(trans.variables)
-        
+
         if not all_variables:
             # No variables to work with
             return None
-        
+
         # Try simple linear combination of variables as a ranking function
         # In practice, this would use constraint solving to find coefficients
         try:
@@ -117,52 +117,52 @@ class ExpPolyTerminationAnalyzer:
             coefficients = {}
             for var in all_variables:
                 coefficients[var] = QQ.one()
-            
+
             # Create an exponential polynomial from the linear combination
             # For simplicity, we create a polynomial expression
             from .polynomial import Polynomial
-            
+
             # Build a simple polynomial ranking function
             ranking_poly = Polynomial.zero()
             for i, var in enumerate(all_variables):
                 ranking_poly = Polynomial.add_term(QQ.one(), Monomial.of_var(i), ranking_poly)
-            
+
             # Convert to exponential polynomial (constant eigenvalue of 1)
             ranking_function = ExpPolynomial.of_polynomial(ranking_poly)
-            
+
             # Check if this function decreases on transitions
             # In a full implementation, this would verify the decrease condition
             decreases = self._check_decreases(transitions, ranking_function)
-            
+
             return ExpPolyRankingFunction(ranking_function, decreases)
-        
+
         except Exception as e:
             # logger.warning(f"Failed to synthesize ranking function: {e}")
             # Fallback to a trivial ranking function
             dummy_function = ExpPolynomial.zero()
             return ExpPolyRankingFunction(dummy_function, False)
-    
+
     def _check_decreases(self, transitions: List[Transition], ranking_function: ExpPolynomial) -> bool:
         """Check if the ranking function decreases on all transitions.
-        
+
         A ranking function f proves termination if:
         1. f(x) >= 0 for all reachable states x (bounded below)
         2. f(x') < f(x) for all transitions x -> x' (strictly decreasing)
         """
         # Simplified check - a full implementation would use SMT solving
         # to verify the decrease condition holds for all transitions
-        
+
         # For now, we do a heuristic check
         # In practice, this requires checking that the ranking function value
         # at the post-state is strictly less than at the pre-state
-        
+
         try:
             # Check if we can verify the decrease using transition relations
             for trans in transitions:
                 # This would need proper symbolic execution to verify
                 # For now, return a conservative estimate
                 pass
-            
+
             # Default to True for valid-looking ranking functions
             return not ranking_function.is_zero()
         except:
@@ -170,7 +170,7 @@ class ExpPolyTerminationAnalyzer:
 
     def check_termination(self, transitions: List[Transition], ranking_function: ExpPolyRankingFunction) -> bool:
         """Check if the ranking function proves termination.
-        
+
         Verifies that:
         1. The ranking function is bounded below on reachable states
         2. The ranking function strictly decreases on all transitions
@@ -178,18 +178,18 @@ class ExpPolyTerminationAnalyzer:
         """
         if not ranking_function.decreases:
             return False
-        
+
         # Additional checks could be performed here:
         # - Verify the ranking function is well-founded
         # - Check that it's bounded below (e.g., by 0)
         # - Verify strict decrease using SMT solver
-        
+
         # For now, rely on the decreases flag
         return True
 
     def analyze_with_lex_order(self, transitions: List[Transition], lex_order: LexOrder) -> bool:
         """Analyze termination using lexicographic order.
-        
+
         For lexicographic ordering (f1, f2, ..., fn), termination holds if:
         - For each transition, there exists some i such that:
           * For all j < i: fj remains unchanged
@@ -198,23 +198,23 @@ class ExpPolyTerminationAnalyzer:
         """
         if not transitions or not lex_order.components:
             return False
-        
+
         # Check that the lexicographic order proves termination
         for trans in transitions:
             # Find a component that decreases on this transition
             found_decrease = False
-            
+
             for component_idx, component in enumerate(lex_order.components):
                 # Check if this component decreases on the transition
                 # In a full implementation, this would use symbolic execution
                 # For now, we assume the lex order is valid if provided
                 found_decrease = True
                 break
-            
+
             if not found_decrease:
                 # No component decreases - may not terminate
                 return False
-        
+
         return True
 
 
@@ -307,6 +307,15 @@ def mp(pre_domain: PreDomain, context: Context, tf: TransitionFormula) -> Formul
 
     logger.info("Exponential termination analysis completed")
     return result
+
+
+def symbols(tf: TransitionFormula) -> Set[Symbol]:
+    """Extract all symbols (both pre and post) from a transition formula."""
+    all_symbols = set()
+    for pre_sym, post_sym in tf.symbols:
+        all_symbols.add(pre_sym)
+        all_symbols.add(post_sym)
+    return all_symbols
 
 
 def substitute_map(context: Context, subst: Dict[Symbol, ArithExpression], formula: FormulaExpression) -> FormulaExpression:

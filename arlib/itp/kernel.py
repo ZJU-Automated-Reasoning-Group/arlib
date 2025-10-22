@@ -260,7 +260,7 @@ def modus_n(n: int, ab: Proof, bc: Proof):
 
     Useful for backwards chaining.
 
-    
+
     ""
     assert (
         is_proof(ab)
@@ -452,7 +452,7 @@ def Inductive(name: str) -> smt.Datatype:
                 if n in names:
                     raise Exception("Duplicate field name", n)
                 names.add(n)
-        itp.induct.register(dt, induct_inductive)
+        itp.notation.induct.register(dt, induct_inductive)
         _datatypes[name] = dt
         return dt
 

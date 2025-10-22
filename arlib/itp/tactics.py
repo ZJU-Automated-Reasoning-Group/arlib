@@ -2,14 +2,93 @@
 Tactics are helpers that organize calls to the kernel. The code of these helpers don't have to be trusted.
 """
 
-import arlib.itp as itp
+import arlib.itp as kd
 import arlib.itp.smt as smt
-import arlib.itp.rewrite
+import arlib.itp.config as config
+import arlib.itp.rewrite as rewrite
 from enum import IntEnum
 import operator as op
 from typing import NamedTuple, Optional, Sequence, Callable
 import pprint
 import time
+from dataclasses import dataclass
+
+
+def FreshVar(name: str, sort: smt.SortRef, assume=None) -> smt.ExprRef:
+    """
+    Create a schema variable with the given name and sort.
+    """
+    v = kd.kernel.FreshVar(name, sort)
+    if assume is not None:
+        v.assume = assume(v)  # type: ignore
+    return v
+
+
+def FreshVars(names: str, sort: smt.SortRef) -> list[smt.ExprRef]:
+    """
+    Create a list of schema variables with the given names and sort.
+    """
+    return [kd.kernel.FreshVar(name, sort) for name in names.split()]
+
+
+def ForAllI(vs: list[smt.ExprRef], pf: kd.kernel.Proof) -> kd.kernel.Proof:
+    """
+    All vs must be FreshVars
+    Combinator name tries to make it clear that this is a
+    smt.ForAll that works on Proofs instead of BoolRefs.
+    """
+    return kd.kernel.generalize(vs, pf)
+
+
+def open_binder(pf: kd.kernel.Proof) -> tuple[list[smt.ExprRef], kd.kernel.Proof]:
+    """
+    Open a proof with schematic variables so that it can be reconstructed.
+
+    >>> x,y,z = smt.Reals("x y z")
+    >>> pf = kd.prove(smt.ForAll([x,y], x + y + 1 > x + y))
+    >>> open_binder(pf)
+    ([x!..., y!...], |= x!... + y!... + 1 > x!... + y!...)
+    """
+    thm = pf.thm
+    assert isinstance(pf, kd.Proof) and isinstance(thm, smt.QuantifierRef)
+    vs = [
+        kd.kernel.FreshVar(thm.var_name(n), thm.var_sort(n))
+        for n in range(thm.num_vars())
+    ]
+    return vs, pf(*vs)
+
+
+def forallI(
+    e: smt.QuantifierRef, cb: Callable[[smt.BoolRef, smt.ExprRef], kd.kernel.Proof]
+) -> kd.kernel.Proof:
+    """
+    Open a forall quantifier but giving a new goal and fresh variables to a callback function.
+
+    >>> x = smt.Int("x")
+    >>> forallI(smt.ForAll([x], x > x - 1), lambda goal, x1: kd.prove(goal))
+    |= ForAll(x, x > x - 1)
+    """
+    assert isinstance(e, smt.QuantifierRef) and e.is_forall(), (
+        "forallI only works on forall quantifiers"
+    )
+    vs, ab = kd.kernel.herb(e)
+    a = cb(ab.thm.arg(0), *vs)
+    return kd.kernel.modus(ab, a)
+
+
+def skolem(pf: kd.kernel.Proof) -> tuple[list[smt.ExprRef], kd.kernel.Proof]:
+    """
+    Skolemize an existential quantifier.
+
+    >>> x = smt.Int("x")
+    >>> pf = kd.prove(smt.Exists([x], x > 0))
+    >>> skolem(pf)
+    ([x!...], |= x!... > 0)
+    """
+    thm = pf.thm
+    assert isinstance(thm, smt.QuantifierRef)
+    skolems, pfab = kd.kernel.obtain(thm)
+    return skolems, kd.kernel.modus(pfab, pf)
 
 
 class Calc:
@@ -50,11 +129,11 @@ class Calc:
         self.lhs = lhs
         self.iterm = lhs  # intermediate term
         self.assume = assume
-        self.lemma = itp.kernel.prove(self._forall(smt.Eq(lhs, lhs)))
+        self.lemma = kd.kernel.prove(self._forall(smt.Eq(lhs, lhs)))
         self.mode = self._Mode.EQ
 
     def _forall(
-            self, body: smt.BoolRef | smt.QuantifierRef
+        self, body: smt.BoolRef | smt.QuantifierRef
     ) -> smt.BoolRef | smt.QuantifierRef:
         if len(self.assume) == 1:
             body = smt.Implies(self.assume[0], body)
@@ -67,8 +146,8 @@ class Calc:
 
     def _lemma(self, rhs, by, **kwargs):
         op = self.mode.op
-        l = itp.kernel.prove(self._forall(op(self.iterm, rhs)), by=by, **kwargs)
-        self.lemma = itp.prove(
+        l = kd.kernel.prove(self._forall(op(self.iterm, rhs)), by=by, **kwargs)
+        self.lemma = kd.prove(
             self._forall(op(self.lhs, rhs)), by=[l, self.lemma], **kwargs
         )
         self.iterm = rhs
@@ -79,7 +158,7 @@ class Calc:
 
     def _set_mode(self, newmode):
         if not self.mode.trans(newmode):
-            raise itp.kernel.LemmaError(
+            raise kd.kernel.LemmaError(
                 "Cannot change from", self.mode, "to", newmode, "in Calc"
             )
         self.mode = newmode
@@ -108,41 +187,49 @@ class Calc:
         return "... " + str(self.mode) + " " + repr(self.iterm)
 
     def qed(self, **kwargs):
-        itp.config.perf_event(
+        config.perf_event(
             "Calc", self.lemma, time.perf_counter() - self.start_time
         )
         return self.lemma
 
 
-def simp_tac(e: smt.ExprRef) -> itp.kernel.Proof:
+def simp_tac(e: smt.ExprRef) -> kd.kernel.Proof:
     """
     Simplify an expression using simp and return the resulting equality as a proof.
 
-    >>> import arlib.itp.theories.nat as nat
+    >>> import kdrag.theories.nat as nat
     >>> simp_tac(nat.Z + nat.S(nat.Z))
-    |- add(Z, S(Z)) == S(Z)
+    |= add(Z, S(Z)) == S(Z)
     """
     trace = []
-    e1 = itp.simp(e, trace=trace)
-    return itp.kernel.prove(smt.Eq(e, e1), by=trace)
+    e1 = kd.simp(e, trace=trace)
+    return kd.kernel.prove(smt.Eq(e, e1), by=trace)
 
 
 simps = {}
 
 
+def auto(shows=None, **kwargs) -> kd.kernel.Proof:
+    # enables shows parameter. Should I just put this in prove? Makes it a bit weird
+    assert shows is not None
+    return kd.prove(shows, **kwargs)
+
+
 def prove(
-        thm: smt.BoolRef,
-        by: Optional[itp.kernel.Proof | Sequence[itp.kernel.Proof]] = None,
-        admit=False,
-        timeout=1000,
-        dump=False,
-        solver=None,
-        # defns=True,
-        # induct=False,
-        # simps=simps,
-        # intros / fix / herb = False
-        unfold=0,
-) -> itp.kernel.Proof:
+    thm: smt.BoolRef,
+    fixes: list[smt.ExprRef] = [],
+    assumes: list[smt.BoolRef] = [],
+    by: Optional[kd.kernel.Proof | Sequence[kd.kernel.Proof]] = None,
+    admit=False,
+    timeout=1000,
+    dump=False,
+    solver=None,
+    # defns=True,
+    # induct=False,
+    # simps=simps,
+    # intros / fix / herb = False
+    unfold: Optional[int | list[smt.FuncDeclRef]] = None,
+) -> kd.kernel.Proof:
     """Prove a theorem using a list of previously proved lemmas.
 
     In essence `prove(Implies(by, thm))`.
@@ -159,52 +246,67 @@ def prove(
         Proof: A proof object of thm
 
     >>> prove(smt.BoolVal(True))
-    |- True
+    |= True
 
     >>> prove(smt.RealVal(1) >= smt.RealVal(0))
-    |- 1 >= 0
+    |= 1 >= 0
 
     >>> x = smt.Int("x")
-    >>> succ = itp.define("succ", [x], x + 1)
+    >>> succ = kd.define("succ", [x], x + 1)
     >>> prove(succ(x) == x + 1, unfold=1)
-    |- succ(x) == x + 1
-    >>> succ2 = itp.define("succ2", [x], succ(succ(x)))
+    |= succ(x) == x + 1
+    >>> succ2 = kd.define("succ2", [x], succ(succ(x)))
     >>> prove(succ2(x) == x + 2, unfold=2)
-    |- succ2(x) == x + 2
+    |= succ2(x) == x + 2
+    >>> prove(succ(x) == x + 1, unfold=[succ])
+    |= succ(x) == x + 1
     """
     start_time = time.perf_counter()
+
+    if assumes:
+        thm = smt.Implies(smt.And(assumes), thm)
+
     if by is None:
         by = []
-    elif isinstance(by, itp.Proof):
+    elif isinstance(by, kd.Proof):
         by = [by]
     elif not isinstance(by, list):
         by = list(by)
 
-    if unfold != 0:
-        assert isinstance(unfold, int)
+    if unfold is None:
+        pass
+    elif isinstance(unfold, int):
         trace = []
         thm1 = thm
         for i in range(unfold):
-            thm1 = itp.rewrite.unfold(thm1, trace=trace)
+            thm1 = kd.rewrite.unfold(thm1, trace=trace)
         # It is arguable if we're better off dumping trace into by or hiding trace
         if not thm.eq(thm1):
-            by.append(itp.kernel.prove(thm == thm1, by=trace, timeout=timeout))  # type: ignore
+            by.extend(trace)
+    elif isinstance(unfold, list):
+        trace = []
+        thm1 = kd.rewrite.unfold(thm, decls=unfold, trace=trace)
+        if not thm.eq(thm1):
+            by.extend(trace)
+
     try:
-        pf = itp.kernel.prove(
+        pf = kd.kernel.prove(
             thm, by, timeout=timeout, dump=dump, solver=solver, admit=admit
         )
-        itp.config.perf_event("prove", thm, time.perf_counter() - start_time)
+        if fixes:
+            pf = kd.kernel.generalize(fixes, pf)
+        config.perf_event("prove", thm, time.perf_counter() - start_time)
         return pf
-    except itp.kernel.LemmaError as e:
+    except kd.kernel.LemmaError as e:
         if time.perf_counter() - start_time > timeout / 1000:
             raise TimeoutError(
                 "Timeout. Maybe you have given `prove` too many or not enough lemmas?"
             )
         elif isinstance(thm, smt.QuantifierRef):
             while isinstance(thm, smt.QuantifierRef) and thm.is_forall():
-                _, thm = itp.utils.open_binder_unhygienic(thm)  # type: ignore
+                _, thm = kd.utils.open_binder_unhygienic(thm)  # type: ignore
             # We anticipate this failing with a better countermodel since we can now see the quantified variables
-            pf = itp.kernel.prove(
+            pf = kd.kernel.prove(
                 thm, by=by, timeout=timeout, dump=dump, solver=solver, admit=admit
             )
             # TODO: Maybe we should herbrandize and just let the quantifier free version work for us.
@@ -217,10 +319,29 @@ def prove(
         raise e
 
 
-def simp(t: smt.ExprRef, by: list[itp.kernel.Proof] = [], **kwargs) -> itp.kernel.Proof:
-    rules = [itp.rewrite.rewrite_of_expr(lem.thm) for lem in by]
-    t1 = itp.rewrite.rewrite_once(t, rules)
+def simp(t: smt.ExprRef, by: list[kd.kernel.Proof] = [], **kwargs) -> kd.kernel.Proof:
+    rules = [kd.rewrite.rewrite_of_expr(lem.thm) for lem in by]
+    t1 = kd.rewrite.rewrite_once(t, rules)
     return prove(smt.Eq(t, t1), by=by, **kwargs)
+
+
+def subst(
+    pf: kd.kernel.Proof, vs: list[smt.ExprRef], subst: list[smt.ExprRef]
+) -> kd.kernel.Proof:
+    """
+    Perform substitution into a forall quantified proof, instantiating into a new context vs
+
+    >>> x,y,z = smt.Reals("x y z")
+    >>> p = kd.prove(smt.ForAll([x,z], smt.And(z == z, x == x)))
+    >>> subst(p, [y, z], [y + 1, z])
+    |= ForAll([y, z], And(z == z, y + 1 == y + 1))
+    """
+    assert isinstance(pf.thm, smt.QuantifierRef)
+    vs1, ab = kd.kernel.herb(
+        smt.ForAll(vs, smt.substitute_vars(pf.thm.body(), *reversed(subst)))
+    )
+    a = kd.kernel.instan([smt.substitute(t, *zip(vs, vs1)) for t in subst], pf)
+    return kd.kernel.modus(ab, a)
 
 
 class Goal(NamedTuple):
@@ -235,9 +356,9 @@ class Goal(NamedTuple):
         ctxrepr = pprint.pformat(self.ctx)
         goalrepr = repr(self.goal)
         if len(ctxrepr) + len(goalrepr) <= 75:
-            goalctx = ctxrepr + " ?|- " + repr(self.goal)
+            goalctx = ctxrepr + " ?|= " + repr(self.goal)
         else:
-            goalctx = ctxrepr + "\n?|- " + repr(self.goal)
+            goalctx = ctxrepr + "\n?|= " + repr(self.goal)
         if len(self.sig) == 0:
             return goalctx
         else:
@@ -246,6 +367,9 @@ class Goal(NamedTuple):
                 return repr(self.sig) + ";\n" + goalctx
             else:
                 return repr(self.sig) + " ; " + goalctx
+
+    # def formula(self) -> smt.BoolRef:
+    #   return kd.QForAll(self.sig, *self.ctx, self.goal)
 
     @classmethod
     def empty(cls) -> "Goal":
@@ -257,42 +381,100 @@ class Goal(NamedTuple):
             ),  # trivial _and_ specially marked
         )
 
+    def to_expr(self):
+        """
+        Convert goal into formula it represents
+
+        >>> x = smt.Int("x")
+        >>> Goal(sig=[x], ctx=[x > 0], goal=x > -1).to_expr()
+        Implies(x > 0, x > -1)
+        >>> Goal(sig=[], ctx=[], goal=x > 0).to_expr()
+        x > 0
+        >>> Goal(sig=[], ctx=[x > 0], goal=x > -1).to_expr()
+        Implies(x > 0, x > -1)
+        """
+        if self.ctx:
+            return kd.QImplies(*self.ctx, self.goal)
+        else:
+            return self.goal
+
+    def proof(self) -> "ProofState":
+        return ProofState(self)
+
     def is_empty(self) -> bool:
         return self == Goal.empty()
 
 
-class Lemma:
+@dataclass
+class LemmaCallback:
+    cb: Callable[[], None]
+    annot: object = None
+
+
+def Lemma(goal: smt.BoolRef, fixes=None, assumes=None) -> "ProofState":
+    return Goal(
+        sig=[] if fixes is None else fixes,
+        ctx=[] if assumes is None else assumes,
+        goal=goal,
+    ).proof()
+
+
+class ProofState:
     """
     A tactic class for interactive proofs.
-    `Lemma` stores a mutational partial proof state that can be changed via tactic methods.
-    Once proof is completed, an actual `itp.Proof` object is constructed by the `Lemma.qed` method.
-    `Lemma` is not part of the trusted code base and bugs in its implementation are not a soundness concern.
-    `Lemma` "merely" orchestrates and infers info for calls to the kernel.
+    `ProofState` stores a mutational partial proof state that can be changed via tactic methods.
+    Once proof is completed, an actual `kd.Proof` object is constructed by the `Lemma.qed` method.
+    `ProofState` is not part of the trusted code base and bugs in its implementation are not a soundness concern.
+    `ProofState` "merely" orchestrates and infers info for calls to the kernel.
     In my experience it is best to run the entire Lemma mutation in a single Jupyter cell while experimenting.
+
+    ProofState can be seen as
+    - A Builder or Factory for kd.Proof objects. `l.qed()` is the analog of a `build` function which calls the constructor `kd.prove` under the hood
+    - A node of a Zipper-like context for a proof tree. In other words a partially complete proof.
 
     """
 
-    def __init__(self, goal: smt.BoolRef):
+    def __init__(self, goal: Goal, _parent=None):
         self.start_time = time.perf_counter()
-        self.lemmas = []
+        self.lemmas: list[dict[int, kd.kernel.Proof]] = [{}]
         self.thm = goal
-        self.goals = [Goal(sig=[], ctx=[], goal=goal)]
+        self.goals: list[Goal | LemmaCallback] = [goal]
         self.pushed = None
+        self._parent = _parent
+
+    def add_lemma(self, lemma: kd.kernel.Proof):
+        """
+        Record a lemma in the current ProofState state.
+        """
+        self.lemmas[-1][lemma.thm.get_id()] = lemma
+
+    def get_lemma(self, thm: smt.BoolRef) -> kd.kernel.Proof:
+        l = self.lemmas[-1].get(thm.get_id())
+        if l is None:
+            return kd.kernel.prove(thm, by=list(self.lemmas[-1].values()))
+        else:
+            return l
+
+    def push_lemmas(self):
+        self.lemmas.append({})
+
+    def pop_lemmas(self):
+        self.lemmas.pop()
 
     def copy(self):
         """
-        Lemma methods mutates the proof state. This can make you a copy.
-        Does not copy the pushed Lemma stack.
+        ProofState methods mutates the proof state. This can make you a copy.
+        Does not copy the pushed ProofState stack.
 
         >>> p,q = smt.Bools("p q")
         >>> l = Lemma(smt.Implies(p,q))
         >>> l1 = l.copy()
         >>> l.intros()
-        [p] ?|- q
+        [p] ?|= q
         >>> l1
-        [] ?|- Implies(p, q)
+        [] ?|= Implies(p, q)
         """
-        lemma_cpy = Lemma(self.thm)
+        lemma_cpy = ProofState(self.thm, _parent=self._parent)
         lemma_cpy.goals = self.goals.copy()
         lemma_cpy.lemmas = self.lemmas.copy()
         lemma_cpy.pushed = None
@@ -300,17 +482,17 @@ class Lemma:
 
     def push(self):
         """
-        Push a copy of the current Lemma state onto a stack.
+        Push a copy of the current ProofState state onto a stack.
         This why you can try things out, and if they fail
 
         >>> p,q = smt.Bools("p q")
         >>> l = Lemma(smt.Implies(p,q))
         >>> l.push()
-        [] ?|- Implies(p, q)
+        [] ?|= Implies(p, q)
         >>> l.intros()
-        [p] ?|- q
+        [p] ?|= q
         >>> l.pop()
-        [] ?|- Implies(p, q)
+        [] ?|= Implies(p, q)
         """
         cpy = self.copy()
         cpy.pushed = self.pushed
@@ -319,7 +501,7 @@ class Lemma:
 
     def pop(self):
         """
-        Pop state off the Lemma stack.
+        Pop state off the ProofState stack.
         """
         assert self.pushed is not None
         self.lemmas = self.pushed.lemmas  # maybe we should store lemmas incrementally?
@@ -331,45 +513,50 @@ class Lemma:
         """
         Search the lemma database for things that may match the current goal.
 
-        >>> import arlib.itp.theories.nat as nat
+        >>> import kdrag.theories.nat as nat
         >>> n = smt.Const("n", nat.Nat)
         >>> l = Lemma(smt.ForAll([n], nat.Z + n == n))
-        >>> ("arlib.itp.theories.nat.add_Z", nat.add_Z) in l.search().keys()
+        >>> ("kdrag.theories.nat.add_Z", nat.add_Z) in l.search().keys()
         True
-        >>> ("arlib.itp.theories.nat.add_S", nat.add_S) in l.search().keys()
+        >>> ("kdrag.theories.nat.add_S", nat.add_S) in l.search().keys()
         False
-        >>> ("arlib.itp.theories.nat.add_S", nat.add_S) in l.search(nat.add).keys()
+        >>> ("kdrag.theories.nat.add_S", nat.add_S) in l.search(nat.add).keys()
         True
         """
         if at is not None:
-            return itp.utils.search(self.top_goal().ctx[at], db=db)
+            return kd.utils.search(self.top_goal().ctx[at], db=db)
         if len(args) == 0:
-            return itp.utils.search(self.top_goal().goal, db=db)
+            return kd.utils.search(self.top_goal().goal, db=db)
         else:
-            return itp.utils.search(*args, db=db)
+            return kd.utils.search(*args, db=db)
 
     def fixes(self) -> list[smt.ExprRef]:
-        """fixes opens a forall quantifier. ?|- forall x, p(x) becomes x ?|- p(x)
+        """fixes opens a forall quantifier. ?|= forall x, p(x) becomes x ?|= p(x)
 
         >>> x,y = smt.Ints("x y")
-        >>> l = Lemma(itp.QForAll([x,y], y >= 0, x + y >= x))
+        >>> l = Lemma(kd.QForAll([x,y], y >= 0, x + y >= x))
         >>> _x, _y = l.fixes()
         >>> l
-        [x!..., y!...] ?|- Implies(y!... >= 0, x!... + y!... >= x!...)
+        [x!..., y!...] ?|= Implies(y!... >= 0, x!... + y!... >= x!...)
         >>> _x, _y
         (x!..., y!...)
         >>> _x.eq(x)
         False
         """
-        goalctx = self.goals[-1]
-        goal = goalctx.goal
+        goalctx = self.top_goal()
+        ctx, goal = goalctx.ctx, goalctx.goal
         if isinstance(goal, smt.QuantifierRef) and goal.is_forall():
-            self.goals.pop()
-            vs, herb_lemma = itp.kernel.herb(goal)
-            self.lemmas.append(herb_lemma)
-            self.goals.append(
-                goalctx._replace(sig=goalctx.sig + vs, goal=herb_lemma.thm.arg(0))
-            )
+            self.pop_goal()
+            vs, herb_lemma = kd.kernel.herb(goal)
+            # self.add_lemma(herb_lemma)
+            newgoal = herb_lemma.thm.arg(0)
+
+            def cb():
+                l = self.get_lemma(smt.Implies(smt.And(ctx), newgoal))
+                self.add_lemma(kd.kernel.compose(l, herb_lemma))
+
+            self.goals.append(LemmaCallback(cb, annot=("fixes", goal)))
+            self.goals.append(goalctx._replace(sig=goalctx.sig + vs, goal=newgoal))
             return vs
         else:
             raise ValueError(f"fixes tactic failed. Not a forall {goal}")
@@ -382,7 +569,7 @@ class Lemma:
         >>> l = Lemma(smt.ForAll([x], x != x + 1))
         >>> _x = l.fix()
         >>> l
-        [x!...] ; [] ?|- x!... != x!... + 1
+        [x!...] ; [] ?|= x!... != x!... + 1
         >>> _x.eq(x)
         False
 
@@ -394,22 +581,23 @@ class Lemma:
 
     def intros(self) -> smt.ExprRef | list[smt.ExprRef] | Goal:
         """
-        intros opens an implication. ?|- p -> q becomes p ?|- q
+        intros opens an implication. ?|= p -> q becomes p ?|= q
 
         >>> p,q,r = smt.Bools("p q r")
         >>> l = Lemma(smt.Implies(p, q))
         >>> l.intros()
-        [p] ?|- q
+        [p] ?|= q
         >>> l = Lemma(smt.Not(q))
         >>> l.intros()
-        [q] ?|- False
+        [q] ?|= False
         """
         goalctx = self.top_goal()
         goal = goalctx.goal
         ctx = goalctx.ctx
+        # TODO: Let's remove this
         if isinstance(goal, smt.QuantifierRef) and goal.is_forall():
             return self.fixes()
-        self.goals.pop()
+        self.pop_goal()
         if smt.is_implies(goal):
             self.goals.append(
                 goalctx._replace(ctx=ctx + [goal.arg(0)], goal=goal.arg(1))
@@ -420,8 +608,18 @@ class Lemma:
                 goalctx._replace(ctx=ctx + [goal.arg(0)], goal=smt.BoolVal(False))
             )
             return self.top_goal()
+        elif smt.is_distinct(goal):
+            if goal.num_args() != 2:
+                raise NotImplementedError("Intros only implemented for two arguments")
+            else:
+                self.goals.append(
+                    goalctx._replace(
+                        ctx=ctx + [goal.arg(0) == goal.arg(1)], goal=smt.BoolVal(False)
+                    )
+                )
+                return self.top_goal()
         elif (
-                smt.is_or(goal) and smt.is_not(goal.arg(0))
+            smt.is_or(goal) and smt.is_not(goal.arg(0))
         ):  # if implies a -> b gets classically unwound to Or(Not(a), b). TODO: Maybe I should remove this
             if goal.num_args() == 2:
                 self.goals.append(
@@ -437,45 +635,68 @@ class Lemma:
         else:
             raise ValueError("Intros failed.")
 
-    def simp(self, at=None, unfold=False):
+    def assumes(self, hyp: smt.BoolRef):
+        """
+
+        >>> p,q = smt.Bools("p q")
+        >>> l = Lemma(smt.Implies(p, q))
+        >>> l.assumes(p)
+        [p] ?|= q
+        """
+        goalctx = self.intros()
+        assert isinstance(goalctx, Goal)
+        if goalctx.ctx[-1].eq(hyp):
+            return goalctx
+        else:
+            raise ValueError("hypotheses does not match", hyp, goalctx.ctx[-1])
+
+    def simp(self, at=None, unfold=False, path=None) -> "ProofState":
         """
         Use built in z3 simplifier. May be useful for boolean, arithmetic, lambda, and array simplifications.
 
         >>> x,y = smt.Ints("x y")
         >>> l = Lemma(x + y == y + x)
         >>> l.simp()
-        [] ?|- True
+        [] ?|= True
         >>> l = Lemma(x == 3 + y + 7)
         >>> l.simp()
-        [] ?|- x == 10 + y
+        [] ?|= x == 10 + y
         >>> l = Lemma(smt.Lambda([x], x + 1)[3] == y)
         >>> l.simp()
-        [] ?|- 4 == y
+        [] ?|= 4 == y
+        >>> l = Lemma(1 + ((2 + smt.IntVal(4)) + 3))
+        >>> l.simp(path=[1,0])
+        [] ?|= 1 + 6 + 3
         """
         goalctx = self.top_goal()
         if at is None:
             oldgoal = goalctx.goal
             if unfold:
-                newgoal = itp.rewrite.simp(oldgoal, trace=self.lemmas)
+                trace = []
+                newgoal = kd.rewrite.simp(oldgoal, trace=trace)
+                for l in trace:
+                    self.add_lemma(l)
             else:
-                newgoal = smt.simplify(oldgoal)
-                self.lemmas.append(itp.kernel.prove(oldgoal == newgoal))
-            if newgoal.eq(oldgoal):
-                raise ValueError(
-                    "Simplify failed. Goal is already simplified.", oldgoal
-                )
+                newgoal = kd.utils.pathmap(smt.simplify, oldgoal, path)
+                self.add_lemma(kd.kernel.prove(smt.Eq(oldgoal, newgoal)))
+            # if newgoal.eq(oldgoal):
+            #    raise ValueError(
+            #        "Simplify failed. Goal is already simplified.", oldgoal
+            #    )
             self.goals[-1] = goalctx._replace(goal=newgoal)
         else:
             oldctx = goalctx.ctx
+            if at < 0:
+                at = len(oldctx) + at
             old = oldctx[at]
-            new = smt.simplify(old)
+            new = kd.utils.pathmap(smt.simplify, old, path)
             if new.eq(old):
                 raise ValueError("Simplify failed. Ctx is already simplified.")
-            self.lemmas.append(itp.kernel.prove(old == new))
+            self.add_lemma(kd.kernel.prove(old == new))
             self.goals[-1] = goalctx._replace(
-                ctx=oldctx[:at] + [new] + oldctx[at + 1:]
+                ctx=oldctx[:at] + [new] + oldctx[at + 1 :]
             )
-        return self.top_goal()
+        return self
 
     def cases(self, t):
         """
@@ -483,27 +704,27 @@ class Lemma:
         We consider whether Bools are True or False
         We consider the different constructors for datatypes
 
-        >>> import arlib.itp.theories.nat as nat
+        >>> import kdrag.theories.nat as nat
         >>> x = smt.Const("x", nat.Nat)
         >>> l = Lemma(smt.BoolVal(True))
         >>> l.cases(x)
-        [is(Z, x) == True] ?|- True
+        [is(Z, x) == True] ?|= True
         >>> l.auto() # next case
-        [is(S, x) == True] ?|- True
+        [is(S, x) == True] ?|= True
         """
         goalctx = self.top_goal()
         ctx = goalctx.ctx
         goal = goalctx.goal
         if t.sort() == smt.BoolSort():
-            self.goals.pop()
-            self.goals.append(
-                goalctx._replace(ctx=ctx + [t == smt.BoolVal(True)], goal=goal)
-            )
+            self.pop_goal()
             self.goals.append(
                 goalctx._replace(ctx=ctx + [t == smt.BoolVal(False)], goal=goal)
             )
+            self.goals.append(
+                goalctx._replace(ctx=ctx + [t == smt.BoolVal(True)], goal=goal)
+            )
         elif isinstance(t, smt.DatatypeRef):
-            self.goals.pop()
+            self.pop_goal()
             dsort = t.sort()
             for i in reversed(range(dsort.num_constructors())):
                 self.goals.append(
@@ -518,30 +739,32 @@ class Lemma:
 
     def auto(self, **kwargs):
         """
-        `auto` discharges a goal using z3. It forwards all parameters to `itp.prove`
+        `auto` discharges a goal using z3. It forwards all parameters to `kd.prove`
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
-        self.lemmas.append(itp.prove(smt.Implies(smt.And(ctx), goal), **kwargs))
-        self.goals.pop()
+        self.add_lemma(kd.prove(smt.Implies(smt.And(ctx), goal), **kwargs))
+        self.pop_goal()
         return self.top_goal()
 
-    def einstan(self, n):
+    def obtain(self, n):
         """
-        einstan opens an exists quantifier in context and returns the fresh eigenvariable.
-        `[exists x, p(x)] ?|- goal` becomes `p(x) ?|- goal`
+        obtain opens an exists quantifier in context and returns the fresh eigenvariable.
+        `[exists x, p(x)] ?|= goal` becomes `p(x) ?|= goal`
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
+        if n < 0:
+            n = len(ctx) + n
         formula = ctx[n]
         if isinstance(formula, smt.QuantifierRef) and formula.is_exists():
-            self.goals.pop()
-            fs, einstan_lemma = itp.kernel.einstan(formula)
-            self.lemmas.append(einstan_lemma)
+            self.pop_goal()
+            fs, obtain_lemma = kd.kernel.obtain(formula)
+            self.add_lemma(obtain_lemma)
             self.goals.append(
                 goalctx._replace(
                     sig=goalctx.sig + fs,
-                    ctx=ctx[:n] + [einstan_lemma.thm.arg(1)] + ctx[n + 1:],
+                    ctx=ctx[:n] + [obtain_lemma.thm.arg(1)] + ctx[n + 1 :],
                     goal=goal,
                 )
             )
@@ -550,30 +773,30 @@ class Lemma:
             else:
                 return fs
         else:
-            raise ValueError("Einstan failed. Not an exists")
+            raise ValueError("obtain failed. Not an exists")
 
-    def instan(self, n, *ts):
+    def specialize(self, n, *ts):
         """
         Instantiate a universal quantifier in the context.
 
         >>> x,y = smt.Ints("x y")
         >>> l = Lemma(smt.Implies(smt.ForAll([x],x == y), True))
         >>> l.intros()
-        [ForAll(x, x == y)] ?|- True
-        >>> l.instan(0, smt.IntVal(42))
-        [ForAll(x, x == y), 42 == y] ?|- True
+        [ForAll(x, x == y)] ?|= True
+        >>> l.specialize(0, smt.IntVal(42))
+        [ForAll(x, x == y), 42 == y] ?|= True
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         thm = goalctx.ctx[n]
         if isinstance(thm, smt.QuantifierRef) and thm.is_forall():
-            l = itp.kernel.instan2(ts, thm)
-            self.lemmas.append(l)
+            l = kd.kernel.specialize(ts, thm)
+            self.add_lemma(l)
             self.goals[-1] = goalctx._replace(ctx=goalctx.ctx + [l.thm.arg(1)])
-            return self.top_goal()
+            return self
         else:
-            raise ValueError("Instan failed. Not a forall", thm)
+            raise ValueError("Specialize failed. Not a forall", thm)
 
-    def ext(self):
+    def ext(self, at=None):
         """
         Apply extensionality to a goal
 
@@ -582,29 +805,22 @@ class Lemma:
         >>> _ = l.ext()
         """
         goalctx = self.top_goal()
-        goal = goalctx.goal
-        if smt.is_eq(goal):
-            lhs, rhs = goal.arg(0), goal.arg(1)
-            if smt.is_array_sort(lhs):
-                self.goals.pop()
-                ext_ind = smt.Ext(lhs, rhs)
-                x = smt.FreshConst(ext_ind.sort())
-                newgoal = smt.Eq(lhs[x], rhs[x])
-                self.lemmas.append(
-                    itp.kernel.prove(
-                        smt.Implies(x == ext_ind, smt.Eq(lhs, rhs) == newgoal)
-                    )
-                )
-                self.goals.append(
-                    goalctx._replace(ctx=goalctx.ctx + [x == ext_ind], goal=newgoal)
-                )
-                return x
-            else:
-                raise ValueError("Ext failed. Goal is not an array equality", goal)
+        if at is None:
+            target = goalctx.goal
         else:
-            raise ValueError("Ext failed. Goal is not an equality", goal)
+            target = goalctx.ctx[at]
+        if smt.is_eq(target):
+            lhs = target.arg(0)
+            if kd.utils.is_func(lhs):
+                return self.rw(
+                    kd.kernel.ext(kd.utils.domain(lhs), kd.utils.range_(lhs)), at=at
+                )
+            else:
+                raise ValueError("Ext failed. Target is not an array equality", target)
+        else:
+            raise ValueError("Ext failed. Target is not an equality", target)
 
-    def split(self, at=None):
+    def split(self, at=None) -> "ProofState":
         """
         `split` breaks apart an `And` or bi-implication `==` goal.
         The optional keyword at allows you to break apart an And or Or in the context
@@ -612,35 +828,43 @@ class Lemma:
         >>> p = smt.Bool("p")
         >>> l = Lemma(smt.And(True,p))
         >>> l.split()
-        [] ?|- True
+        [] ?|= True
         >>> l.auto() # next goal
-        [] ?|- p
+        [] ?|= p
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         if at is None:
             if smt.is_and(goal):
-                self.goals.pop()
-                self.goals.extend(
-                    [
-                        goalctx._replace(ctx=ctx, goal=c)
-                        for c in reversed(goal.children())
+                self.pop_goal()
+                children = goal.children()
+                self.push_lemmas()
+
+                def cb():
+                    subproofs = [
+                        self.get_lemma(smt.Implies(smt.And(ctx), g)) for g in children
                     ]
+                    self.pop_lemmas()
+                    self.add_lemma(kd.kernel.andI(subproofs))
+
+                self.goals.append(LemmaCallback(cb, annot=("split", goal)))
+                self.goals.extend(
+                    [goalctx._replace(ctx=ctx, goal=c) for c in reversed(children)]
                 )
             elif smt.is_eq(goal):
-                self.goals.pop()
-                self.goals.append(
-                    goalctx._replace(
-                        ctx=ctx, goal=smt.Implies(goal.arg(0), goal.arg(1))
-                    )
-                )
+                self.pop_goal()
                 self.goals.append(
                     goalctx._replace(
                         ctx=ctx, goal=smt.Implies(goal.arg(1), goal.arg(0))
                     )
                 )
+                self.goals.append(
+                    goalctx._replace(
+                        ctx=ctx, goal=smt.Implies(goal.arg(0), goal.arg(1))
+                    )
+                )
             elif smt.is_distinct(goal):
-                self.goals.pop()
+                self.pop_goal()
                 for i in range(goal.num_args()):
                     for j in range(i):
                         self.goals.append(
@@ -651,43 +875,48 @@ class Lemma:
                         )
             else:
                 raise ValueError("Unexpected case in goal for split tactic", goal)
-            return self.top_goal()
+            return self
         else:
             if at < 0:
                 at = len(ctx) + at
             if smt.is_or(ctx[at]):
-                self.goals.pop()
+                self.pop_goal()
                 for c in ctx[at].children():
                     self.goals.append(
-                        goalctx._replace(ctx=ctx[:at] + [c] + ctx[at + 1:], goal=goal)
+                        goalctx._replace(ctx=ctx[:at] + [c] + ctx[at + 1 :], goal=goal)
                     )
             elif smt.is_and(ctx[at]):
-                self.goals.pop()
+                self.pop_goal()
                 self.goals.append(
                     goalctx._replace(
-                        ctx=ctx[:at] + ctx[at].children() + ctx[at + 1:], goal=goal
+                        ctx=ctx[:at] + ctx[at].children() + ctx[at + 1 :], goal=goal
                     )
                 )
             else:
                 raise ValueError("Split failed")
-            return self.top_goal()
+            return self
 
     def left(self, n=0):
         """
         Select the left case of an `Or` goal.
+        Since we're working classically, the other cases are negated and added to the context.
 
-        >>> p,q = smt.Bools("p q")
+        >>> p,q,r = smt.Bools("p q r")
         >>> l = Lemma(smt.Or(p,q))
         >>> l.left()
-        [] ?|- p
+        [Not(q)] ?|= p
+        >>> l = Lemma(smt.Or(p,q,r))
+        >>> l.left(1)
+        [Not(p), Not(r)] ?|= q
         """
-        # TODO: consider adding Not(right) to context since we're classical?
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         if smt.is_or(goal):
-            if n is None:
-                n = 0
-            self.goals[-1] = goalctx._replace(ctx=ctx, goal=goal.arg(n))
+            children = goal.children()
+            newgoal = children.pop(n)
+            self.goals[-1] = goalctx._replace(
+                ctx=ctx + list(map(smt.Not, children)), goal=newgoal
+            )
             return self.top_goal()
         else:
             raise ValueError("Left failed. Not an or")
@@ -695,58 +924,74 @@ class Lemma:
     def right(self):
         """
         Select the right case of an `Or` goal.
+        Since we're working classically, the other cases are negated and added to the context.
 
         >>> p,q = smt.Bools("p q")
         >>> l = Lemma(smt.Or(p,q))
         >>> l.right()
-        [] ?|- q
+        [Not(p)] ?|= q
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         if smt.is_or(goal):
+            children = goal.children()
             self.goals[-1] = goalctx._replace(
-                ctx=ctx, goal=goal.arg(goal.num_args() - 1)
+                ctx=ctx + list(map(smt.Not, children[:-1])), goal=children[-1]
             )
             return self.top_goal()
         else:
             raise ValueError("Right failed. Not an or")
 
-    def exists(self, *ts):
+    def exists(self, *ts) -> "ProofState":
         """
         Give terms `ts` to satisfy an exists goal
-        `?|- exists x, p(x)` becomes `?|- p(ts)`
+        `?|= exists x, p(x)` becomes `?|= p(ts)`
 
         >>> x,y = smt.Ints("x y")
         >>> Lemma(smt.Exists([x], x == y)).exists(y)
-        [] ?|- y == y
+        [] ?|= y == y
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         assert isinstance(goal, smt.QuantifierRef) and goal.is_exists()
-        lemma = itp.kernel.forget2(ts, goal)
-        self.lemmas.append(lemma)
+        lemma = kd.kernel.forget(ts, goal)
+        self.add_lemma(lemma)
         self.goals[-1] = goalctx._replace(ctx=ctx, goal=lemma.thm.arg(0))
-        return self.top_goal()
+        return self
 
-    def rewrite(self, rule: itp.kernel.Proof | int, at=None, rev=False):
+    def rewrite(
+        self, rule: kd.kernel.Proof | int, at=None, rev=False, **kwargs
+    ) -> "ProofState":
         """
         `rewrite` allows you to apply rewrite rule (which may either be a Proof or an index into the context) to the goal or to the context.
+
+        >>> x = kd.FreshVar("x", smt.RealSort())
+        >>> pf = kd.prove(smt.Implies(x >= 0, smt.Sqrt(x) ** 2 == x)).forall([x])
+        >>> l = Lemma(smt.Implies(x >= 0, smt.Sqrt(x + 2)**2 == x + 2))
+        >>> l.intros()
+        [x!... >= 0] ?|= ((x!... + 2)**(1/2))**2 == x!... + 2
+        >>> l.rewrite(pf,by=[])
+        [x!... >= 0, x!... + 2 >= 0] ?|= x!... + 2 == x!... + 2
         """
-        goalctx = self.goals[-1]
+        goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         if isinstance(rule, int):
             rulethm = ctx[rule]
-        elif itp.kernel.is_proof(rule):
+        elif kd.kernel.is_proof(rule):
             rulethm = rule.thm
         else:
             raise ValueError(
                 "Rewrite tactic failed. Not a proof or context index", rule
             )
         if isinstance(rulethm, smt.QuantifierRef) and rulethm.is_forall():
-            vs, body = itp.utils.open_binder(rulethm)
+            vs, body = kd.utils.open_binder(rulethm)
         else:
             vs = []
             body = rulethm
+        if smt.is_implies(body):
+            cond, body = body.children()
+        else:
+            cond = None
         if smt.is_eq(body):
             lhs, rhs = body.arg(0), body.arg(1)
             if rev:
@@ -761,35 +1006,40 @@ class Lemma:
             raise ValueError(
                 "Rewrite tactic failed. `at` is not an index into the context"
             )
-        t_subst = itp.utils.pmatch_rec(vs, lhs, target)
+        t_subst = kd.utils.pmatch_rec(vs, lhs, target)
         if t_subst is None:
             raise ValueError(
-                f"Rewrite tactic failed to apply lemma {rulethm} to goal {goal}"
+                f"Rewrite tactic failed to apply lemma {rulethm} to target {target}"
             )
         else:
-            self.goals.pop()
+            self.pop_goal()
             lhs1, subst = t_subst
             rhs1 = smt.substitute(rhs, *[(v, t) for v, t in subst.items()])
             target: smt.BoolRef = smt.substitute(target, (lhs1, rhs1))
             if isinstance(rulethm, smt.QuantifierRef) and rulethm.is_forall():
-                self.lemmas.append(itp.kernel.instan2([subst[v] for v in vs], rulethm))
-            if not isinstance(rule, int) and itp.kernel.is_proof(rule):
-                self.lemmas.append(rule)
+                self.add_lemma(kd.kernel.specialize([subst[v] for v in vs], rulethm))
+            if not isinstance(rule, int) and kd.kernel.is_proof(rule):
+                self.add_lemma(rule)
             if at is None:
                 self.goals.append(goalctx._replace(ctx=ctx, goal=target))
             else:
                 if at == -1:
                     at = len(ctx) - 1
                 self.goals.append(
-                    goalctx._replace(ctx=ctx[:at] + [target] + ctx[at + 1:], goal=goal)
+                    goalctx._replace(ctx=ctx[:at] + [target] + ctx[at + 1 :], goal=goal)
                 )
-            return self.top_goal()
+            if cond is not None:
+                return self.have(
+                    smt.substitute(cond, *[(v, t) for v, t in subst.items()]), **kwargs
+                )
+            else:
+                return self
 
-    def rw(self, rule: itp.kernel.Proof | int, at=None, rev=False):
+    def rw(self, rule: kd.kernel.Proof | int, at=None, rev=False, **kwargs):
         """
         shorthand for rewrite
         """
-        return self.rewrite(rule, at=at, rev=rev)
+        return self.rewrite(rule, at=at, rev=rev, **kwargs)
 
     def symm(self):
         """
@@ -797,7 +1047,7 @@ class Lemma:
 
         >>> x,y = smt.Ints("x y")
         >>> Lemma(x == y).symm()
-        [] ?|- y == x
+        [] ?|= y == x
         """
         ctxgoal = self.top_goal()
         if smt.is_eq(ctxgoal.goal):
@@ -813,8 +1063,8 @@ class Lemma:
         # TODO: consider allow `by` keyword to reference context`
         ctxgoal = self.top_goal()
         if smt.is_eq(ctxgoal.goal):
-            self.lemmas.append(
-                itp.kernel.prove(
+            self.add_lemma(
+                kd.kernel.prove(
                     smt.Implies(smt.And(ctxgoal.ctx), ctxgoal.goal.arg(1) == rhs),
                     **kwargs,
                 )
@@ -829,93 +1079,156 @@ class Lemma:
         Try to show newgoal is sufficient to prove current goal
         """
         goalctx = self.top_goal()
-        self.lemmas.append(
-            itp.prove(
+        self.add_lemma(
+            kd.prove(
                 smt.Implies(smt.And(goalctx.ctx + [newgoal]), goalctx.goal), **kwargs
             )
         )
         self.goals[-1] = goalctx._replace(goal=newgoal)
         return self.top_goal()
 
-    def unfold(self, *decls: smt.FuncDeclRef, at=None):
+    def beta(self, at=None):
+        """
+        Perform beta reduction on goal or context
+
+        >>> x = smt.Int("x")
+        >>> l = Lemma(smt.Lambda([x], x + 1)[3] == 4)
+        >>> l.beta()
+        [] ?|= 3 + 1 == 4
+        >>> l = Lemma(smt.Implies(smt.Lambda([x], x + 1)[3] == 5, True))
+        >>> l.intros()
+        [Lambda(x, x + 1)[3] == 5] ?|= True
+        >>> l.beta(at=0)
+        [3 + 1 == 5] ?|= True
+        """
+        goalctx = self.top_goal()
+        if at is None:
+            oldgoal = goalctx.goal
+            newgoal = kd.rewrite.beta(oldgoal)
+            if newgoal.eq(oldgoal):
+                raise ValueError(
+                    "Beta tactic failed. Goal is already beta reduced.", oldgoal
+                )
+            self.add_lemma(kd.kernel.prove(smt.Eq(oldgoal, newgoal)))
+            self.goals[-1] = goalctx._replace(goal=newgoal)
+        else:
+            oldctx = goalctx.ctx
+            old = oldctx[at]
+            new = kd.rewrite.beta(old)
+            if new.eq(old):
+                raise ValueError(
+                    "Beta tactic failed. Ctx is already beta reduced.", old
+                )
+            self.add_lemma(kd.kernel.prove(old == new))
+            self.goals[-1] = goalctx._replace(
+                ctx=oldctx[:at] + [new] + oldctx[at + 1 :]
+            )
+        return self.top_goal()
+
+    def unfold(self, *decls: smt.FuncDeclRef, at=None) -> "ProofState":
         """
         Unfold all definitions once. If declarations are given, only those are unfolded.
 
-        >>> import arlib.itp.theories.nat as nat
+        >>> import kdrag.theories.nat as nat
         >>> l = Lemma(nat.Z + nat.Z == nat.Z)
         >>> l
-        [] ?|- add(Z, Z) == Z
+        [] ?|= add(Z, Z) == Z
         >>> l.unfold(nat.double) # does not unfold add
-        [] ?|- add(Z, Z) == Z
+        [] ?|= add(Z, Z) == Z
         >>> l.unfold()
-        [] ?|- If(is(Z, Z), Z, S(add(pred(Z), Z))) == Z
+        [] ?|= If(is(Z, Z), Z, S(add(pred(Z), Z))) == Z
         """
+        assert all(isinstance(d, smt.FuncDeclRef) for d in decls)
         goalctx = self.top_goal()
         decls1 = None if len(decls) == 0 else decls
         if at is None:
             e = goalctx.goal
-            e2 = itp.rewrite.unfold(e, decls=decls1, trace=self.lemmas)
-            self.goals.pop()
+            trace = []
+            e2 = kd.rewrite.unfold(e, decls=decls1, trace=trace)
+            for lem in trace:
+                self.add_lemma(lem)
+            self.pop_goal()
             self.goals.append(goalctx._replace(goal=e2))
         else:
             e = goalctx.ctx[at]
-            e2 = itp.rewrite.unfold(e, decls=decls, trace=self.lemmas)
-            self.goals.pop()
+            trace = []
+            e2 = kd.rewrite.unfold(e, decls=decls, trace=trace)
+            self.add_lemma(kd.prove(e == e2, by=trace))
+            self.pop_goal()
             if at == -1:
                 at = len(goalctx.ctx) - 1
             self.goals.append(
-                goalctx._replace(ctx=goalctx.ctx[:at] + [e2] + goalctx.ctx[at + 1:])
+                goalctx._replace(ctx=goalctx.ctx[:at] + [e2] + goalctx.ctx[at + 1 :])
             )
 
-        return self.top_goal()
+        return self
 
-    def apply(self, pf: itp.kernel.Proof | int):
+    def apply(self, pf: kd.kernel.Proof | int):
         """
         `apply` matches the conclusion of a proven clause
 
         >>> x,y = smt.Ints("x y")
-        >>> l = itp.Lemma(smt.Implies(smt.Implies(x == 7, y == 3), y == 3))
+        >>> l = kd.Lemma(smt.Implies(smt.Implies(x == 7, y == 3), y == 3))
         >>> l.intros()
-        [Implies(x == 7, y == 3)] ?|- y == 3
+        [Implies(x == 7, y == 3)] ?|= y == 3
         >>> l.apply(0)
-        [Implies(x == 7, y == 3)] ?|- x == 7
+        [Implies(x == 7, y == 3)] ?|= x == 7
 
-        >>> mylemma = itp.prove(itp.QForAll([x], x > 1, x > 0))
-        >>> itp.Lemma(x > 0).apply(mylemma)
-        [] ?|- x > 1
+        >>> mylemma = kd.prove(kd.QForAll([x], x > 1, x > 0))
+        >>> kd.Lemma(x > 0).apply(mylemma)
+        [] ?|= x > 1
+
+        >>> p,q = smt.Bools("p q")
+        >>> l = kd.Lemma(smt.Implies(smt.Not(p), q))
+        >>> l.intros()
+        [Not(p)] ?|= q
+        >>> l.apply(0)
+        [Not(q)] ?|= p
         """
         goalctx = self.top_goal()
         ctx, goal = goalctx.ctx, goalctx.goal
         if isinstance(pf, int):
             thm = ctx[pf]
-        elif isinstance(pf, itp.Proof):
+            if smt.is_not(thm):
+                # Not(p) is spiritually a `p -> False`
+                self.pop_goal()
+                newctx = ctx.copy()
+                newctx.pop(pf)
+                newctx.append(smt.Not(goal))
+                self.goals.append(goalctx._replace(ctx=newctx, goal=thm.arg(0)))
+                return self.top_goal()
+        elif isinstance(pf, kd.Proof):
             thm = pf.thm
         else:
             raise ValueError("Apply tactic failed. Not a proof or context index", thm)
-        rule = itp.rewrite.rule_of_expr(thm)
-        substgoal = itp.rewrite.backward_rule(rule, goal)
+        rule = kd.rewrite.rule_of_expr(thm)
+        substgoal = kd.rewrite.backward_rule(rule, goal)
         if substgoal is None:
-            raise ValueError(f"Apply tactic failed to apply lemma {pf} to goal {goal} ")
+            raise ValueError(
+                f"Apply tactic failed to apply lemma {thm} to goal {goal} "
+            )
         else:
             subst, newgoal = substgoal
-            if isinstance(pf, itp.Proof) and len(rule.vs) > 0:
-                pf1 = itp.kernel.instan([subst[v] for v in rule.vs], pf)
-                self.lemmas.append(pf1)
+            if isinstance(pf, kd.Proof) and len(rule.vs) > 0:
+                pf1 = kd.kernel.instan([subst[v] for v in rule.vs], pf)
+                self.add_lemma(pf1)
+            elif isinstance(pf, kd.Proof) and len(rule.vs) == 0:
+                self.add_lemma(pf)
             elif isinstance(pf, int) and len(rule.vs) > 0:
-                pf1 = itp.kernel.instan2([subst[v] for v in rule.vs], ctx[pf])
-                self.lemmas.append(pf1)
+                pf1 = kd.kernel.specialize([subst[v] for v in rule.vs], ctx[pf])
+                self.add_lemma(pf1)
             self.goals[-1] = goalctx._replace(ctx=ctx, goal=newgoal)
             return self.top_goal()
 
     def induct(
-            self,
-            x: smt.ExprRef,
-            using: Optional[
-                Callable[
-                    [smt.ExprRef, Callable[[smt.ExprRef, smt.BoolRef], smt.BoolRef]],
-                    itp.kernel.Proof,
-                ]
-            ] = None,
+        self,
+        x: smt.ExprRef,
+        using: Optional[
+            Callable[
+                [smt.ExprRef, Callable[[smt.ExprRef, smt.BoolRef], smt.BoolRef]],
+                kd.kernel.Proof,
+            ]
+        ] = None,
     ):
         """
         Apply an induction lemma instantiated on x.
@@ -925,63 +1238,230 @@ class Lemma:
             indlem = x.induct(smt.Lambda([x], goal))
         else:
             indlem = using(x, smt.Lambda([x], goal))
-        self.lemmas.append(indlem)
+        self.add_lemma(indlem)
         self.apply(indlem)
         if smt.is_and(self.top_goal().goal):
             # self.split()
-            goalctx = self.goals.pop()
+            goalctx = self.pop_goal()
             self.goals.extend(
                 [goalctx._replace(goal=c) for c in reversed(goalctx.goal.children())]
             )
+        return self.top_goal()
+
+    def contra(self):
+        """
+        Prove the goal by contradiction.
+
+        >>> p = smt.Bool("p")
+        >>> l = Lemma(p)
+        >>> l.contra()
+        [Not(p)] ?|= False
+        """
+        goalctx = self.pop_goal()
+        self.goals.append(
+            goalctx._replace(
+                ctx=goalctx.ctx + [smt.Not(goalctx.goal)], goal=smt.BoolVal(False)
+            )
+        )
         return self.top_goal()
 
     def clear(self, n: int):
         """
         Remove a hypothesis from the context
         """
-        ctxgoal = self.goals[-1]
-        ctxgoal.ctx.pop(n)
+        ctxgoal = self.pop_goal()
+        ctx = ctxgoal.ctx.copy()
+        ctx.pop(n)
+        self.goals.append(ctxgoal._replace(ctx=ctx))
         return self.top_goal()
 
     def generalize(self, *vs: smt.ExprRef):
         """
         Put variables forall quantified back on goal. Useful for strengthening induction hypotheses.
         """
-        goalctx = self.goals.pop()
-        self.lemmas.append(itp.kernel.instan2(vs, smt.ForAll(vs, goalctx.goal)))
+        goalctx = self.top_goal()
+        self.pop_goal()
+        self.add_lemma(kd.kernel.specialize(vs, smt.ForAll(vs, goalctx.goal)))
         self.goals.append(goalctx._replace(goal=smt.ForAll(vs, goalctx.goal)))
         return self.top_goal()
 
-    def show(self, thm: smt.BoolRef):
+    def revert(self, n: int):
         """
-        To document the current goal
+        Move a hypothesis back onto the goal as an implication.
+        >>> p,q = smt.Bools("p q")
+        >>> l = Lemma(smt.Implies(p, q))
+        >>> l.intros()
+        [p] ?|= q
+        >>> l.revert(0)
+        [] ?|= Implies(p, q)
         """
+        goalctx = self.top_goal()
+        ctx = goalctx.ctx.copy()
+        hyp = ctx.pop(n)
+        self.pop_goal()
+        self.goals.append(
+            goalctx._replace(ctx=ctx, goal=smt.Implies(hyp, goalctx.goal))
+        )
+        return self.top_goal()
+
+    def sublemma(self) -> "ProofState":
+        """
+        Create a sub ProofState for the current goal. This is useful to break up a proof into smaller lemmas.
+        The goal is the same but the internally held `kd.Proof` database is cleared, making it easier for z3
+        On calling `'l.qed()`, the sublemma will propagate it's `kd.Proof`  back to it's parent.
+
+        >>> l1 = Lemma(smt.BoolVal(True))
+        >>> l2 = l1.sublemma()
+        >>> l2
+        [] ?|= True
+        >>> l2.auto()
+        Nothing to do!
+        >>> l1
+        [] ?|= True
+        >>> l2.qed()
+        |= True
+        >>> l1
+        Nothing to do. Hooray!
+        >>> l1.qed()
+        |= True
+        """
+        goalctx = self.top_goal()
+        return ProofState(goalctx, _parent=self)
+
+    def sub(self) -> "ProofState":
+        return self.sublemma()
+
+    def __enter__(self) -> "ProofState":
+        """
+        On entering a `with` block, return self.
+        This marks that at the exit of the `with` block, qed will be automatically called
+        and `kd.Proof` propagated back to a parent
+        """
+        if len(self.goals) != 1 or len(self.lemmas[-1]) != 0:
+            raise ValueError(
+                "Entered a non-fresh ProofState. Did you forget to call l.subproof?"
+            )
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        On exiting a `with` block, if no exception occurred, call qed and propagate the proof to the parent
+        """
+        if exc_type is not None:
+            return False  # propagate exception
+        else:
+            if len(self.goals) == 0:
+                self.qed()
+            else:
+                print("Goal", self.top_goal())
+
+    def show(self, thm: smt.BoolRef, **kwargs) -> "ProofState":
+        """
+        Documents the current goal and discharge it if by keyword is used
+
+        >>> x = smt.Int("x")
+        >>> l = Lemma(smt.Implies(x > 0, smt.And(x > -2, x > -1)))
+        >>> l.intros()
+        [x > 0] ?|= And(x > -2, x > -1)
+        >>> l.split()
+        [x > 0] ?|= x > -2
+        >>> with l.show(x > -2).sub() as sub1:
+        ...     _ = sub1.auto()
+        >>> l
+        [x > 0] ?|= x > -1
+        >>> l.show(x > -1, by=[])
+        Nothing to do. Hooray!
+        >>> l.qed()
+        |= Implies(x > 0, And(x > -2, x > -1))
+        """
+        # TODO: maybe search through goal stack?
         goal = self.top_goal().goal
         if not thm.eq(goal):
             raise ValueError("Goal does not match", thm, goal)
-        return self.top_goal()
+        if len(kwargs) != 0:
+            self.auto(**kwargs)
+        return self
 
-    def assumption(self):
+    def exact(self, pf: kd.kernel.Proof):
+        """
+        Exact match of goal with given proof
+
+        >>> p = smt.Bool("p")
+        >>> l = Lemma(smt.Implies(p, p))
+        >>> l.exact(kd.prove(smt.BoolVal(True)))
+        Traceback (most recent call last):
+            ...
+        ValueError: Exact tactic failed. Given: True Expected: Implies(p, p)
+        >>> l.exact(kd.prove(smt.Implies(p, p)))
+        Nothing to do!
+        """
+        goalctx = self.top_goal()
+        goalexpr = goalctx.to_expr()
+        if pf.thm.eq(goalexpr):
+            self.add_lemma(pf)
+            self.pop_goal()
+            return self.top_goal()
+        else:
+            raise ValueError(
+                "Exact tactic failed. Given:", pf.thm, "Expected:", goalexpr
+            )
+
+    def assumption(self) -> Goal:
         """
         Exact match of goal in the context
         """
-        goalctx = self.goals.pop()
+        goalctx = self.pop_goal()
         goal, ctx = goalctx.goal, goalctx.ctx
         if any([goal.eq(h) for h in ctx]):
             return self.top_goal()
         else:
             raise ValueError("Assumption tactic failed", goal, ctx)
 
-    def have(self, conc: smt.BoolRef, **kwargs):
+    def have(self, conc: smt.BoolRef, **kwargs) -> "ProofState":
         """
         Prove the given formula and add it to the current context
+
+        >>> x = smt.Int("x")
+        >>> l = Lemma(smt.Implies(x > 0, x > -2))
+        >>> l.intros()
+        [x > 0] ?|= x > -2
+        >>> l.have(x > -1, by=[])
+        [x > 0, x > -1] ?|= x > -2
+        >>> l.have(x > 42)
+        [x > 0, x > -1] ?|= x > 42
         """
-        goalctx = self.goals.pop()
-        self.lemmas.append(
-            itp.kernel.prove(smt.Implies(smt.And(goalctx.ctx), conc), **kwargs)
-        )
+        assert isinstance(conc, smt.BoolRef)
+        goalctx = self.pop_goal()
         self.goals.append(goalctx._replace(ctx=goalctx.ctx + [conc]))
-        return self.top_goal()
+        newgoal = goalctx._replace(goal=conc)
+        self.goals.append(newgoal)
+        if len(kwargs) != 0:
+            self.auto(**kwargs)
+            # self.add_lemma(
+            #    kd.kernel.prove(smt.Implies(smt.And(goalctx.ctx), conc), **kwargs)
+            # )
+        return self
+
+    def case(self, thm=None) -> "ProofState":
+        """
+        To make more readable proofs, `case` lets you state which case you are currently in from a `cases`
+        It is basically an alias for `have` followed by `clear(-1)`.
+
+        >>> p = smt.Bool("p")
+        >>> l = Lemma(smt.Or(p, smt.Not(p)))
+        >>> _ = l.cases(p)
+        >>> l.case(p)
+        [p == True] ?|= Or(p, Not(p))
+        >>> _ = l.auto()
+        >>> l.case(smt.Not(p))
+        [p == False] ?|= Or(p, Not(p))
+        """
+        if thm is None:
+            return self
+        else:
+            self.have(thm, by=[])  # self.assumption()?
+            self.clear(-1)
+            return self
 
     def admit(self) -> Goal:
         """
@@ -989,40 +1469,148 @@ class Lemma:
 
         >>> l = Lemma(smt.BoolVal(False)) # a false goal
         >>> _ = l.admit()
+        Admitting lemma False
         >>> l.qed()
-        |- False
+        |= False
         """
-        goalctx = self.goals.pop()
-        self.lemmas.append(itp.kernel.prove(goalctx.goal, admit=True))
+        goalctx = self.pop_goal()
+        self.add_lemma(kd.kernel.prove(goalctx.goal, admit=True))
         return self.top_goal()
 
+    def repeat(self, f: Callable[[], Goal]) -> Goal:
+        """
+        >>> p = smt.Bool("p")
+        >>> l = Lemma(smt.Implies(p, smt.Implies(p, p)))
+        >>> l.intros()
+        [p] ?|= Implies(p, p)
+        >>> l = Lemma(smt.Implies(p, smt.Implies(p, p)))
+        >>> l.repeat(lambda: l.intros())
+        [p, p] ?|= p
+
+        """
+        g = f()
+        while True:
+            try:
+                g = f()
+            except Exception as _:
+                return g
+
     # TODO
-    # def search():
     # def suggest():
     # def llm():
     # def calc
 
+    def pop_goal(self) -> Goal:
+        goal = self.top_goal()  # to clear possible LemmaCallback
+        self.goals.pop()
+        return goal
+
     def top_goal(self) -> Goal:
+        while len(self.goals) > 0 and isinstance(self.goals[-1], LemmaCallback):
+            lc = self.goals.pop()
+            assert isinstance(lc, LemmaCallback)  # for type checker
+            try:
+                lc.cb()
+            except Exception as e:
+                raise ValueError("LemmaCallback failed", lc.annot) from e
         if len(self.goals) == 0:
             return Goal.empty()  # kind of hacky
-        return self.goals[-1]
+        res = self.goals[-1]
+        assert isinstance(res, Goal)
+        return res
 
     def __repr__(self):
         if len(self.goals) == 0:
             return "Nothing to do. Hooray!"
         return repr(self.top_goal())
 
-    def qed(self, **kwargs) -> itp.kernel.Proof:
+    def qed(self, **kwargs) -> kd.kernel.Proof:
         """
         return the actual final `Proof` of the lemma that was defined at the beginning.
         """
-
+        for lam_cb in reversed(self.goals):
+            if isinstance(lam_cb, LemmaCallback):
+                try:
+                    lam_cb.cb()
+                except Exception as e:
+                    raise ValueError("LemmaCallback failed", lam_cb.annot) from e
+        thm = self.thm.to_expr()
+        pf0 = self.lemmas[-1].get(thm.get_id())
+        if pf0 is not None:
+            return pf0
         if "by" in kwargs:
-            kwargs["by"].extend(self.lemmas)
+            kwargs["by"].extend(self.lemmas[-1].values())
         else:
-            kwargs["by"] = self.lemmas
-        pf = itp.kernel.prove(self.thm, **kwargs)
-        itp.config.perf_event(
-            "Lemma", self.thm, time.perf_counter() - self.start_time
+            kwargs["by"] = list(self.lemmas[-1].values())
+        pf = kd.kernel.prove(thm, **kwargs)
+        config.perf_event(
+            "ProofState", self.thm, time.perf_counter() - self.start_time
         )
+        if self._parent is not None:
+            self._parent.exact(pf)
         return pf
+
+
+_TRUE = kd.kernel.prove(smt.BoolVal(True))
+
+
+def Theorem(
+    goal: smt.BoolRef,
+) -> Callable[[Callable[[ProofState], None]], kd.kernel.Proof]:
+    """
+    A decorator to create a theorem from a function that takes a `ProofState` as argument.
+
+    >>> x = smt.Int("x")
+    >>> @Theorem(x + 1 > x)
+    ... def mytheorem(l: ProofState):
+    ...     "An example theorem"
+    ...     l.auto()
+    >>> mytheorem
+    |= x + 1 > x
+    >>> mytheorem.__doc__
+    'An example theorem'
+    """
+
+    def res(f: Callable[[ProofState], None]) -> kd.kernel.Proof:
+        l = kd.Lemma(goal)
+        f(l)
+        pf = l.qed()
+        # To override metadata of the returned proof
+        # Proof is frozen, so this is a bit fishy
+        # @functools.update_wrapper had assumptions about return type being a function
+        object.__setattr__(pf, "__doc__", getattr(f, "__doc__", None))
+        object.__setattr__(pf, "__module__", getattr(f, "__module__", None))
+        object.__setattr__(pf, "__name__", getattr(f, "__name__", None))
+        object.__setattr__(pf, "__qualname__", getattr(f, "__qualname__", None))
+        return pf
+
+    return res
+
+
+def PTheorem(
+    goal: smt.BoolRef,
+):
+    """
+    A decorator to create a theorem from a function that takes a `ProofState` as argument.
+
+    >>> x = smt.Int("x")
+    >>> @Theorem(x + 1 > x)
+    ... def mytheorem(l: ProofState):
+    ...     "An example theorem"
+    ...     l.auto()
+    >>> mytheorem
+    |= x + 1 > x
+    >>> mytheorem.__doc__
+    'An example theorem'
+    """
+
+    def res(f: Callable[[ProofState], None]) -> None:
+        l = kd.Lemma(goal)
+        f(l)
+        if len(l.goals) == 0:
+            l.qed()
+            print("Lemma Complete! Change PTheorem to Theorem")
+        else:
+            print("Next Goal:\n", l.top_goal())
+
+    return res

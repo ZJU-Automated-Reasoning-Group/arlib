@@ -53,7 +53,7 @@ class EPTerm:
 
         # Iterate through exponential polynomial vector components
         for ep_poly, dim in ExpPolynomialVector.enum(ep_vec):
-                for poly, base in ExpPolynomial.enum(ep_poly):
+            for poly, base in ExpPolynomial.enum(ep_poly):
                 for coeff, degree in Polynomial.QQX.enum(poly):
                     key = (base, degree)
                     if key not in result._terms:
@@ -67,58 +67,58 @@ class EPTerm:
         """Check if EPTerm is eventually positive.
 
         Args:
-                term_of_dim: Function to convert dimension to arithmetic term
+            term_of_dim: Function to convert dimension to arithmetic term
 
         Returns:
-                Formula expressing that the EPTerm is eventually positive
+            Formula expressing that the EPTerm is eventually positive
         """
-        zero = mk_zero(self.context)
+        zero = mk_real(self.context, QQ.zero())
         terms = []
 
         for (eigenvalue, degree), vec in self._terms.items():
-                # Convert vector to linear term
-                term = self._vec_to_term(vec, term_of_dim)
-                terms.append(mk_lt(self.context, zero, term))
+            # Convert vector to linear term
+            term = self._vec_to_term(vec, term_of_dim)
+            terms.append(mk_lt(self.context, zero, term))
 
         if not terms:
-                return mk_false()
+            return mk_false()
 
         return mk_or(self.context, terms)
 
     def eventually_nonnegative(self, term_of_dim: Callable[[int], ArithExpression]) -> FormulaExpression:
         """Check if EPTerm is eventually nonnegative."""
-        zero = mk_zero(self.context)
+        zero = mk_real(self.context, QQ.zero())
         terms = []
 
         for (eigenvalue, degree), vec in self._terms.items():
-                # Convert vector to linear term
-                term = self._vec_to_term(vec, term_of_dim)
+            # Convert vector to linear term
+            term = self._vec_to_term(vec, term_of_dim)
 
-                # For nonnegative, we need the term >= 0
-                # If there are multiple terms, we need to check each one >= 0
-                if eigenvalue >= 0:  # Non-negative eigenvalue
+            # For nonnegative, we need the term >= 0
+            # If there are multiple terms, we need to check each one >= 0
+            if eigenvalue >= 0:  # Non-negative eigenvalue
                 terms.append(mk_leq(self.context, zero, term))
-                else:
+            else:
                 # For negative eigenvalues, need even degree for nonnegativity
                 if degree % 2 == 0:
                     terms.append(mk_leq(self.context, zero, term))
 
         if not terms:
-                return mk_true()
+            return mk_true()
 
         return mk_or(self.context, terms)
 
     def is_zero(self, term_of_dim: Callable[[int], ArithExpression]) -> FormulaExpression:
         """Check if EPTerm is identically zero."""
-        zero = mk_zero(self.context)
+        zero = mk_real(self.context, QQ.zero())
         terms = []
 
         for (eigenvalue, degree), vec in self._terms.items():
-                term = self._vec_to_term(vec, term_of_dim)
-                terms.append(mk_eq(self.context, zero, term))
+            term = self._vec_to_term(vec, term_of_dim)
+            terms.append(mk_eq(self.context, zero, term))
 
         if not terms:
-                return mk_true()
+            return mk_true()
 
         return mk_and(self.context, terms)
 
@@ -127,11 +127,11 @@ class EPTerm:
         terms = []
 
         for i in range(len(vec)):
-                if i == const_dim:
+            if i == const_dim:
                 # Constant term
                 if vec[i] != 0:
                     terms.append(mk_real(self.context, vec[i]))
-                else:
+            else:
                 # Variable term
                 coeff = vec[i]
                 if coeff != 0:
@@ -139,19 +139,19 @@ class EPTerm:
                     terms.append(var_term)
 
         if not terms:
-                return mk_zero(self.context)
+            return mk_real(self.context, QQ.zero())
         elif len(terms) == 1:
-                return terms[0]
+            return terms[0]
         else:
-                return mk_add(self.context, terms)
+            return mk_add(self.context, terms)
 
     def __str__(self) -> str:
         if not self._terms:
-                return "EPTerm(empty)"
+            return "EPTerm(empty)"
 
         terms = []
         for (eigenvalue, degree), vec in self._terms.items():
-                terms.append(f"λ^{degree}*{eigenvalue}: {vec}")
+            terms.append(f"λ^{degree}*{eigenvalue}: {vec}")
         return f"EPTerm({', '.join(terms)})"
 
 
@@ -162,7 +162,7 @@ class XSeq:
     def seq_of_exp(modulus: int, eigenvalue: QQ) -> UltimatelyPeriodicSequence[QQ]:
         """Create sequence of eigenvalue^k mod modulus."""
         def unfold_func(power: QQ) -> QQ:
-                return (power * eigenvalue) % QQ(modulus)
+            return (power * eigenvalue) % QQ(modulus)
 
         seq = UltimatelyPeriodicSequence.unfold(unfold_func, QQ(1))
         return seq.periodic_approx()
@@ -173,7 +173,7 @@ class XSeq:
         # Get LCM of denominators in coefficients
         lcm_denoms = QQ.one()
         for coeff, _ in poly.enum():
-                lcm_denoms = lcm_denoms.lcm(QQ.denominator(coeff))
+            lcm_denoms = lcm_denoms.lcm(QQ.denominator(coeff))
 
         # Scale polynomial by LCM of denominators
         scaled_poly = poly * QQ(lcm_denoms)
@@ -182,8 +182,8 @@ class XSeq:
         # Generate sequence for i in 0..(modulus-1)
         seq_values = []
         for i in range(modulus_scaled):
-                # Evaluate polynomial at i
-                try:
+            # Evaluate polynomial at i
+            try:
                 # Use the polynomial evaluation method
                 from fractions import Fraction
                 values = {0: Fraction(i)}  # Assume univariate for now
@@ -191,7 +191,7 @@ class XSeq:
                 # result mod modulus, then convert back to QQ with denominator lcm_denoms
                 mod_result = result % Fraction(modulus_scaled)
                 seq_values.append(QQ(mod_result) / QQ(lcm_denoms))
-                except:
+            except:
                 # Fallback for evaluation issues
                 seq_values.append(QQ.zero())
 
@@ -216,21 +216,21 @@ class XSeq:
 
         # Add each term in the exponential polynomial
         for poly, base in ExpPolynomial.enum(exp_poly):
-                # Convert base to integer for modulus computation
-                try:
+            # Convert base to integer for modulus computation
+            try:
                 base_int = int(base)
                 if base_int < 0:
                     raise ValueError("Negative base in exponential polynomial")
-                except:
+            except:
                 raise ValueError(f"Non-integer base {base} in exponential polynomial")
 
-                base_mod = base_int % modulus
-                current_seq = XSeq.seq_of_single_base_exp_polynomial(modulus, poly, QQ(base_mod))
+            base_mod = base_int % modulus
+            current_seq = XSeq.seq_of_single_base_exp_polynomial(modulus, poly, QQ(base_mod))
 
-                def add_mod(x: QQ, y: QQ) -> QQ:
+            def add_mod(x: QQ, y: QQ) -> QQ:
                 return (x + y) % QQ(modulus)
 
-                result = UltimatelyPeriodicSequence.map2(add_mod, result, current_seq)
+            result = UltimatelyPeriodicSequence.map2(add_mod, result, current_seq)
 
         return result
 
@@ -242,14 +242,14 @@ class XSeq:
         positive_cf = XSeq._handle_positive_cf(closed_form_vec)
 
         def make_predicate(ep_vec: ExpPolynomialVector) -> FormulaExpression:
-                ep_term = EPTerm.of_ep_vec(ep_vec)
-                if op == "Pos":
+            ep_term = EPTerm.of_ep_vec(ep_vec)
+            if op == "Pos":
                 return ep_term.eventually_positive(term_of_dim)
-                elif op == "Nonneg":
+            elif op == "Nonneg":
                 return ep_term.eventually_nonnegative(term_of_dim)
-                elif op == "Zero":
+            elif op == "Zero":
                 return ep_term.is_zero(term_of_dim)
-                else:
+            else:
                 raise ValueError(f"Unknown comparison operator: {op}")
 
         return UltimatelyPeriodicSequence.map(make_predicate, positive_cf)
@@ -259,9 +259,9 @@ class XSeq:
                            term_of_dim: Callable[[int], ArithExpression]) -> UltimatelyPeriodicSequence[FormulaExpression]:
         """Compute characteristic sequence of divides atom (q | dividend)."""
         def make_divides_formula(k: QQ) -> FormulaExpression:
-                # dividend_xseq is the sequence of dividend values mod divisor
-                dividend_seqs = []
-                for exppoly, dim in ExpPolynomialVector.enum(closed_form_dividend):
+            # dividend_xseq is the sequence of dividend values mod divisor
+            dividend_seqs = []
+            for exppoly, dim in ExpPolynomialVector.enum(closed_form_dividend):
                 term = term_of_dim(dim)
                 seq = XSeq.seq_of_exp_polynomial(divisor, exppoly)
 
@@ -271,23 +271,23 @@ class XSeq:
                 scaled_seq = UltimatelyPeriodicSequence.map(scale_by_term, seq)
                 dividend_seqs.append(scaled_seq)
 
-                # Sum all dividend components
-                if dividend_seqs:
+            # Sum all dividend components
+            if dividend_seqs:
                 dividend_sum = dividend_seqs[0]
                 for seq in dividend_seqs[1:]:
                     def add_dividends(x: ArithExpression, y: ArithExpression) -> ArithExpression:
                         return mk_add(context, [x, y])
                     dividend_sum = UltimatelyPeriodicSequence.map2(add_dividends, dividend_sum, seq)
-                else:
+            else:
                 dividend_sum = UltimatelyPeriodicSequence.from_list([mk_real(context, QQ.zero())])
 
-                # Create divides condition: dividend ≡ 0 mod divisor
-                def make_divides_condition(dividend_val: ArithExpression) -> FormulaExpression:
+            # Create divides condition: dividend ≡ 0 mod divisor
+            def make_divides_condition(dividend_val: ArithExpression) -> FormulaExpression:
                 divisor_term = mk_real(context, QQ(divisor))
                 remainder = mk_mod(context, dividend_val, divisor_term)
                 return mk_eq(context, remainder, mk_real(context, QQ.zero()))
 
-                return UltimatelyPeriodicSequence.map(make_divides_condition, dividend_sum)
+            return UltimatelyPeriodicSequence.map(make_divides_condition, dividend_sum)
 
     @staticmethod
     def _handle_positive_cf(closed_form_vec: ExpPolynomialVector) -> UltimatelyPeriodicSequence[ExpPolynomialVector]:
@@ -295,26 +295,26 @@ class XSeq:
         # Check if any entry has negative base
         has_negative_base = False
         for entry, _ in ExpPolynomialVector.enum(closed_form_vec):
-                for _, base in ExpPolynomial.enum(entry):
+            for _, base in ExpPolynomial.enum(entry):
                 if base < 0:
                     has_negative_base = True
                     break
-                if has_negative_base:
+            if has_negative_base:
                 break
 
         if has_negative_base:
-                # Create even and odd cases
-                cf_even = ExpPolynomialVector.map(
+            # Create even and odd cases
+            cf_even = ExpPolynomialVector.map(
                 lambda _ : lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 0),
                 closed_form_vec
-                )
-                cf_odd = ExpPolynomialVector.map(
+            )
+            cf_odd = ExpPolynomialVector.map(
                 lambda _ : lambda ep: ExpPolynomial.compose_left_affine(ep, 2, 1),
                 closed_form_vec
-                )
-                return UltimatelyPeriodicSequence.from_list([cf_even, cf_odd])
+            )
+            return UltimatelyPeriodicSequence.from_list([cf_even, cf_odd])
         else:
-                return UltimatelyPeriodicSequence.from_list([closed_form_vec])
+            return UltimatelyPeriodicSequence.from_list([closed_form_vec])
 
 
 # Matrix operations for DTA analysis
@@ -357,7 +357,7 @@ def int_eigenspace(dim: int, matrix: QQMatrix) -> QQMatrix:
     integer_eigenvectors = []
     for eigenvalue, eigenvector in eigenpairs:
         if QQ.denominator(eigenvalue) == QQ.one():  # Integer eigenvalue
-                integer_eigenvectors.append(eigenvector)
+            integer_eigenvectors.append(eigenvector)
 
     if not integer_eigenvectors:
         # Return empty matrix if no integer eigenvalues
@@ -379,7 +379,7 @@ def closed_form(sim_symbols: List[Symbol], linterm: QQVector, ep_mat: ExpPolynom
     for i, symbol in enumerate(sim_symbols):
         coeff = QQVector.coeff(dim_of_sym(symbol), linterm)
         if coeff != 0:
-                ep_vec = ExpPolynomialVector.add_term(ExpPolynomial.scalar(coeff), i, ep_vec)
+            ep_vec = ExpPolynomialVector.add_term(ExpPolynomial.scalar(coeff), i, ep_vec)
 
     # Add constant term
     const_coeff = QQVector.coeff(const_dim, linterm)
@@ -423,69 +423,69 @@ class DTA:
 
         Uses DTA-based termination analysis to determine if all execution
         paths eventually reach a final state.
-        
+
         Algorithm:
         1. Check for cycles that don't reach final states
         2. Verify that all paths from initial states reach final states
         3. Use ranking functions on cycles to prove termination
         """
         if not self.states or not self.initial_states:
-                return True  # Empty DTA terminates trivially
-        
+            return True  # Empty DTA terminates trivially
+
         if not self.final_states:
-                # No final states - check if there are any transitions
-                return len(self.transitions) == 0
-        
+            # No final states - check if there are any transitions
+            return len(self.transitions) == 0
+
         # Check if there are unreachable cycles (cycles that don't lead to final states)
         # This is a simplified reachability analysis
-        
+
         # Find all states reachable from initial states
         reachable = set(self.initial_states)
         worklist = list(self.initial_states)
-        
+
         while worklist:
-                current = worklist.pop()
-                for (from_state, to_state) in self.transitions.keys():
+            current = worklist.pop()
+            for (from_state, to_state) in self.transitions.keys():
                 if from_state == current and to_state not in reachable:
                     reachable.add(to_state)
                     worklist.append(to_state)
-        
+
         # Check if any final states are reachable
         final_reachable = reachable & self.final_states
         if not final_reachable:
-                # No final states are reachable - may not terminate
-                return False
-        
+            # No final states are reachable - may not terminate
+            return False
+
         # Check for non-terminating cycles
         # A cycle is non-terminating if it doesn't eventually reach a final state
         for state in reachable:
-                if state in self.final_states:
+            if state in self.final_states:
                 continue  # Final states are OK
-            
-                # Check if this state can reach a final state
-                can_reach_final = self._can_reach_final(state, set())
-                if not can_reach_final:
+
+            # Check if this state can reach a final state
+            can_reach_final = self._can_reach_final(state, set())
+            if not can_reach_final:
                 # Found a state that can't reach a final state - may not terminate
                 return False
-        
+
         return True
-    
+
     def _can_reach_final(self, state: str, visited: Set[str]) -> bool:
         """Check if a state can reach any final state."""
         if state in self.final_states:
-                return True
-        
+            return True
+
         if state in visited:
-                return False  # Cycle detected
-        
+            return False  # Cycle detected
+
         visited.add(state)
-        
+
         # Check all transitions from this state
         for (from_state, to_state) in self.transitions.keys():
-                if from_state == state:
+            if from_state == state:
                 if self._can_reach_final(to_state, visited.copy()):
                     return True
-        
+
         return False
 
     def __str__(self) -> str:
@@ -502,9 +502,9 @@ class TerminationResult:
 
     def __str__(self) -> str:
         if self.terminates:
-                return "Terminates"
+            return "Terminates"
         else:
-                return "May not terminate"
+            return "May not terminate"
 
 
 class DTAAnalyzer:
@@ -516,9 +516,9 @@ class DTAAnalyzer:
 
     def analyze_transitions(self, transitions: List[Transition]) -> TerminationResult:
         """Analyze a list of transitions for termination.
-        
+
         Constructs a DTA from the given transitions and analyzes it for termination.
-        
+
         Algorithm:
         1. Extract variables and create states for different program locations
         2. Build DTA transitions from program transitions
@@ -528,7 +528,7 @@ class DTAAnalyzer:
         # Extract variables from transitions
         variables = set()
         for trans in transitions:
-                if hasattr(trans, 'variables'):
+            if hasattr(trans, 'variables'):
                 variables.update(trans.variables)
 
         # Create DTA
@@ -543,22 +543,22 @@ class DTAAnalyzer:
         # In a real implementation, this would be based on program locations
         state_map = {"init": initial_state}
         state_counter = 0
-        
+
         for i, trans in enumerate(transitions):
-                # Create states for this transition
-                source_state = f"q_{i}_pre"
-                target_state = f"q_{i}_post"
-            
-                if source_state not in state_map:
+            # Create states for this transition
+            source_state = f"q_{i}_pre"
+            target_state = f"q_{i}_post"
+
+            if source_state not in state_map:
                 dta.add_state(source_state)
                 state_map[f"trans_{i}_pre"] = source_state
-            
-                if target_state not in state_map:
+
+            if target_state not in state_map:
                 dta.add_state(target_state)
                 state_map[f"trans_{i}_post"] = target_state
-            
-                # Add transition
-                if hasattr(trans, 'formula'):
+
+            # Add transition
+            if hasattr(trans, 'formula'):
                 from .transitionFormula import TransitionFormula, linearize
                 tf = TransitionFormula(
                     formula=trans.formula,
@@ -566,32 +566,32 @@ class DTAAnalyzer:
                     exists=getattr(trans, 'exists', lambda x: False)
                 )
                 dta.add_transition(source_state, target_state, tf)
-            
-                state_counter += 1
-        
+
+            state_counter += 1
+
         # Add final state for terminating configurations
         final_state = "q_final"
         dta.add_state(final_state)
         dta.set_final(final_state)
-        
+
         # Connect last states to final state
         # In a real implementation, this would be based on post-conditions
         for state in dta.states:
-                if state not in dta.final_states and "post" in state:
+            if state not in dta.final_states and "post" in state:
                 # This is a simplification - real implementation would check
                 # if the state satisfies termination conditions
                 pass
-        
+
         # Check if DTA terminates
         terminates = dta.is_terminating()
-        
+
         # Try to synthesize a ranking function as witness
         ranking_function = None
         if terminates:
-                # Optionally synthesize a ranking function as a witness
-                # This would use techniques from terminationExp or terminationLLRF
-                pass
-        
+            # Optionally synthesize a ranking function as a witness
+            # This would use techniques from terminationExp or terminationLLRF
+            pass
+
         return TerminationResult(terminates, ranking_function, dta)
 
     def eventually_positive(self, ep_term: EPTerm) -> bool:
@@ -603,23 +603,23 @@ class DTAAnalyzer:
         - or lambda < -1 and d even (oscillating but growing)
         """
         if ep_term.eigenvalue > 1:
-                return True
+            return True
         elif ep_term.eigenvalue == 1 and ep_term.degree >= 1:
-                return True
+            return True
         elif ep_term.eigenvalue < -1 and ep_term.degree % 2 == 0:
-                return True
+            return True
         else:
-                return False
+            return False
 
     def eventually_nonnegative(self, ep_term: EPTerm) -> bool:
         """Check if an exponential-polynomial term is eventually nonnegative."""
         if ep_term.eigenvalue >= 1:
-                return True
+            return True
         elif ep_term.eigenvalue >= 0:
-                return True
+            return True
         else:
-                # For negative eigenvalues, need even degree for nonnegativity
-                return ep_term.degree % 2 == 0
+            # For negative eigenvalues, need even degree for nonnegativity
+            return ep_term.degree % 2 == 0
 
 
 def create_dta_analyzer(context: Context) -> DTAAnalyzer:
@@ -653,114 +653,115 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
         logger.info("Transition formula is UNSAT - terminating trivially")
         return mk_false()
 
-        # Get rational abstraction using DLTS
-        try:
-                from .solvablePolynomial import DLTSPeriodicRationalAbstraction, simplify_dlts
+    # Get rational abstraction using DLTS
+    try:
+        from .solvablePolynomial import DLTSPeriodicRationalAbstraction, simplify_dlts
 
-                qdlts_abs = DLTSPeriodicRationalAbstraction.abstract_rational(context, tf_linear)
-                qdlts_abs = simplify_dlts(context, qdlts_abs, scale=True)
+        qdlts_abs = DLTSPeriodicRationalAbstraction.abstract_rational(context, tf_linear)
+        qdlts_abs = simplify_dlts(context, qdlts_abs, scale=True)
 
-                # Get the LTS module for partial linear maps
-                from .lts import PartialLinearMap as PLM
+        # Get the LTS module for partial linear maps
+        from .lts import PartialLinearMap as PLM
 
-                # Get omega domain and dynamics matrix
-                omega_domain, tr = PLM.iteration_sequence(qdlts_abs.dlts)
+        # Get omega domain and dynamics matrix
+        omega_domain, tr = PLM.iteration_sequence(qdlts_abs.dlts)
 
-                dim = len(qdlts_abs.simulation)
+        dim = len(qdlts_abs.simulation)
 
-                logger.info(f"DTA analysis: dimension={dim}, omega_domain_size={len(omega_domain)}")
+        logger.info(f"DTA analysis: dimension={dim}, omega_domain_size={len(omega_domain)}")
 
-                # Compute basis for omega domain (constraints Ax = 0)
-                g = constraints_to_generators(dim, QQMatrix.of_rows(omega_domain))
+        # Compute basis for omega domain (constraints Ax = 0)
+        g = constraints_to_generators(dim, QQMatrix.of_rows(omega_domain))
 
-                # Compute restriction of dynamics to omega domain
-                tr_omega = inv_subspace_restriction(tr, g)
-                if tr_omega is None:
-                logger.warning("Could not compute subspace restriction")
-                return mk_true()  # Conservative - may not terminate
+        # Compute restriction of dynamics to omega domain
+        tr_omega = inv_subspace_restriction(tr, g)
+        if tr_omega is None:
+            logger.warning("Could not compute subspace restriction")
+            return mk_true()  # Conservative - may not terminate
 
-                # Compute integer eigenspace basis
-                z = int_eigenspace(QQMatrix.nb_columns(g), tr_omega)
-                gz = QQMatrix.mul(g, z)
+        # Compute integer eigenspace basis
+        z = int_eigenspace(QQMatrix.nb_columns(g), tr_omega)
+        gz = QQMatrix.mul(g, z)
 
-                # Compute restriction to integer eigenspace
-                tr_z = inv_subspace_restriction(tr, gz)
-                if tr_z is None:
-                logger.warning("Could not compute integer eigenspace restriction")
-                return mk_true()  # Conservative - may not terminate
-                # Create symbols for integer domain dimensions
-                gz_symbols = []
-                for i in range(QQMatrix.nb_columns(gz)):
-                gz_symbols.append(mk_symbol(context, f"dta<{i}>", Type.INT))
-                # Create simulation constraints: GZ * z_symbols = simulation_terms
-                sim_constraints = []
-                for i in range(len(qdlts_abs.simulation)):
-                gz_term = QQMatrix.row(gz, i)
-                # Convert row vector to linear term
-                gz_linear_term = QQVector.from_list([QQMatrix.get(gz_term, i, j) for j in range(QQMatrix.nb_columns(gz_term))])
-                sim_term = mk_const(context, gz_symbols[i]) if i < len(gz_symbols) else mk_real(context, QQ.zero())
+        # Compute restriction to integer eigenspace
+        tr_z = inv_subspace_restriction(tr, gz)
+        if tr_z is None:
+            logger.warning("Could not compute integer eigenspace restriction")
+            return mk_true()  # Conservative - may not terminate
+        # Create symbols for integer domain dimensions
+        gz_symbols = []
+        for i in range(QQMatrix.nb_columns(gz)):
+            gz_symbols.append(mk_symbol(context, f"dta<{i}>", Type.INT))
+        # Create simulation constraints: GZ * z_symbols = simulation_terms
+        sim_constraints = []
+        for i in range(len(qdlts_abs.simulation)):
+            gz_term = QQMatrix.row(gz, i)
+            # Convert row vector to linear term
+            gz_linear_term = QQVector.from_list([QQMatrix.get(gz_term, i, j) for j in range(QQMatrix.nb_columns(gz_term))])
+            sim_term = mk_const(context, gz_symbols[i]) if i < len(gz_symbols) else mk_real(context, QQ.zero())
 
-                # Create equality constraint
-                sim_constraints.append(mk_eq(context, qdlts_abs.simulation[i], sim_term))
+            # Create equality constraint
+            sim_constraints.append(mk_eq(context, qdlts_abs.simulation[i], sim_term))
 
-                gz_symbols_set = set(gz_symbols)
+        gz_symbols_set = set(gz_symbols)
 
-                # Create guard formula with simulation constraints
-                guard = mk_and(context, [tf.formula] + sim_constraints)
+        # Create guard formula with simulation constraints
+        guard = mk_and(context, [tf.formula] + sim_constraints)
 
-                # Apply model-based projection to eliminate non-integer-domain symbols
-                guard = mbp(context, guard, lambda s: s in gz_symbols_set)
+        # Apply model-based projection to eliminate non-integer-domain symbols
+        guard = mbp(context, guard, lambda s: s in gz_symbols_set)
 
-                # Simplify using DDA and eliminate floor
-                guard = simplify_dda(context, guard)
-                guard = eliminate_floor(context, guard)
+        # Simplify using DDA and eliminate floor
+        guard = simplify_dda(context, guard)
+        guard = eliminate_floor(context, guard)
 
-                # Compute exponential of restricted matrix
-                tr_z_exp = ExpPolynomialVector.exponentiate_rational(tr_z)
-                if tr_z_exp is None:
-                logger.warning("Could not compute matrix exponential")
-                return mk_true()  # Conservative - may not terminate
+        # Compute exponential of restricted matrix
+        tr_z_exp = ExpPolynomialVector.exponentiate_rational(tr_z)
+        if tr_z_exp is None:
+            logger.warning("Could not compute matrix exponential")
+            return mk_true()  # Conservative - may not terminate
 
-                # Create term mapping function for dimensions
-                def term_of_dim(i: int) -> ArithExpression:
-                if i == const_dim:
+        # Create term mapping function for dimensions
+        def term_of_dim(i: int) -> ArithExpression:
+            if i == const_dim:
                 return mk_one(context)
-                else:
+            else:
                 return mk_const(context, gz_symbols[i])
 
-                # Create algebra for formula evaluation
-                def algebra(op):
-                if op == "Tru":
+        # Create algebra for formula evaluation
+        def algebra(op):
+            if op == "Tru":
                 return UltimatelyPeriodicSequence.from_list([mk_true()])
-                elif op == "Fls":
+            elif op == "Fls":
                 return UltimatelyPeriodicSequence.from_list([mk_false()])
-                elif op == "And":
+            elif op == "And":
                 return lambda xs: UltimatelyPeriodicSequence.mapn(lambda *args: mk_and(context, args), xs)
-                elif op == "Or":
+            elif op == "Or":
                 return lambda xs: UltimatelyPeriodicSequence.mapn(lambda *args: mk_or(context, args), xs)
-                elif op == "Not":
+            elif op == "Not":
                 return lambda x: UltimatelyPeriodicSequence.map(lambda f: mk_not(context, f), x)
-                elif op == "Atom":
+            elif op == "Atom":
                 return lambda atom: _handle_atom(context, atom, tr_z_exp, term_of_dim)
-                else:
+            else:
                 raise ValueError(f"Unsupported operation: {op}")
 
-                # Evaluate the guard formula using the algebra
-                xseq = Formula.eval(context, algebra, guard)
+        # Evaluate the guard formula using the algebra
+        xseq = evaluate_formula_with_algebra(context, algebra, guard)
 
-                # Add simulation constraints to the period
-                period_constraints = sim_constraints + [xseq.period]
+        # Add simulation constraints to the period
+        period_constraints = sim_constraints + [xseq.period]
 
-                # Apply MBP again to eliminate remaining non-integer-domain symbols
-                result = mk_and(context, period_constraints)
-                result = mbp(context, result, lambda s: s not in gz_symbols_set)
-                result = mk_not(context, result)
+        # Apply MBP again to eliminate remaining non-integer-domain symbols
+        result = mk_and(context, period_constraints)
+        result = mbp(context, result, lambda s: s not in gz_symbols_set)
+        result = mk_not(context, result)
 
-                logger.info("DTA analysis completed")
-                return result
+        logger.info("DTA analysis completed")
+        return result
 
-                except Exception as e:            logger.error(f"DTA analysis failed: {e}")
-                return mk_true()  # Conservative - may not terminate
+    except Exception as e:
+        logger.error(f"DTA analysis failed: {e}")
+        return mk_true()  # Conservative - may not terminate
 
 
 def _handle_atom(context: Context, atom, tr_z_exp, term_of_dim):
@@ -771,35 +772,35 @@ def _handle_atom(context: Context, atom, tr_z_exp, term_of_dim):
     simplified = simplify_integer_atom(context, atom.op, atom.left, atom.right)
 
     if simplified[0] == "CompareZero":
-                op, vec = simplified[1], simplified[2]
-                # Compute closed form of the vector
-                cf = closed_form([], vec.negate(), tr_z_exp)  # Empty symbols list for now
+        op, vec = simplified[1], simplified[2]
+        # Compute closed form of the vector
+        cf = closed_form([], vec.negate(), tr_z_exp)  # Empty symbols list for now
 
-                # Map comparison operators
-                if op == "Eq":
-                predicate = "Zero"
-                elif op == "Leq":
-                predicate = "Nonneg"
-                elif op == "Lt":
-                predicate = "Pos"
-                else:
-                raise ValueError(f"Unsupported comparison: {op}")
+        # Map comparison operators
+        if op == "Eq":
+            predicate = "Zero"
+        elif op == "Leq":
+            predicate = "Nonneg"
+        elif op == "Lt":
+            predicate = "Pos"
+        else:
+            raise ValueError(f"Unsupported comparison: {op}")
 
-                return XSeq.seq_of_compare_atom(context, predicate, cf, term_of_dim)
+        return XSeq.seq_of_compare_atom(context, predicate, cf, term_of_dim)
 
     elif simplified[0] == "Divides":
-                divisor, vec = simplified[1], simplified[2]
-                cf = closed_form([], vec, tr_z_exp)
-                return XSeq.seq_of_divides_atom(context, divisor, cf, term_of_dim)
+        divisor, vec = simplified[1], simplified[2]
+        cf = closed_form([], vec, tr_z_exp)
+        return XSeq.seq_of_divides_atom(context, divisor, cf, term_of_dim)
 
     elif simplified[0] == "NotDivides":
-                divisor, vec = simplified[1], simplified[2]
-                cf = closed_form([], vec, tr_z_exp)
-                seq = XSeq.seq_of_divides_atom(context, divisor, cf, term_of_dim)
-                return UltimatelyPeriodicSequence.map(lambda f: mk_not(context, f), seq)
+        divisor, vec = simplified[1], simplified[2]
+        cf = closed_form([], vec, tr_z_exp)
+        seq = XSeq.seq_of_divides_atom(context, divisor, cf, term_of_dim)
+        return UltimatelyPeriodicSequence.map(lambda f: mk_not(context, f), seq)
 
     else:
-                raise ValueError(f"Unsupported atom type: {simplified[0]}")
+        raise ValueError(f"Unsupported atom type: {simplified[0]}")
 
 
 # Import additional functions needed
@@ -820,3 +821,41 @@ def eliminate_floor(context: Context, formula: FormulaExpression) -> FormulaExpr
     """Eliminate floor operations from formula."""
     # Simplified - in practice would use floor elimination
     return formula
+
+
+def evaluate_formula_with_algebra(context: Context, algebra: Callable, formula: FormulaExpression) -> Any:
+    """Evaluate a formula using an algebra for structural recursion.
+
+    Args:
+        context: SRK context
+        algebra: Function mapping operators to their semantic interpretations
+        formula: Formula to evaluate
+
+    Returns:
+        Result of evaluating the formula through the algebra
+    """
+    from .syntax import TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq
+
+    # Recursively evaluate the formula structure
+    if isinstance(formula, TrueExpr):
+        return algebra("Tru")
+    elif isinstance(formula, FalseExpr):
+        return algebra("Fls")
+    elif isinstance(formula, And):
+        # Recursively evaluate all conjuncts
+        evaluated_args = [evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args]
+        return algebra("And")(evaluated_args)
+    elif isinstance(formula, Or):
+        # Recursively evaluate all disjuncts
+        evaluated_args = [evaluate_formula_with_algebra(context, algebra, arg) for arg in formula.args]
+        return algebra("Or")(evaluated_args)
+    elif isinstance(formula, Not):
+        # Recursively evaluate the negated formula
+        evaluated_arg = evaluate_formula_with_algebra(context, algebra, formula.arg)
+        return algebra("Not")(evaluated_arg)
+    elif isinstance(formula, (Eq, Lt, Leq)):
+        # Atomic formulas - handle through the Atom operator
+        return algebra("Atom")(formula)
+    else:
+        # For other formula types, treat as atoms
+        return algebra("Atom")(formula)

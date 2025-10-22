@@ -3,7 +3,7 @@ Reflecting and reifying SMT expressions from/into Python values.
 """
 
 import arlib.itp.smt as smt
-import arlib.itp as itp
+import arlib.itp as kd
 import typing
 import fractions
 import functools
@@ -123,7 +123,7 @@ class KnuckleClosure:
 
     def __call__(self, *args):
         # TODO: Should I open binder more eagerly before call?
-        vs, body = itp.utils.open_binder(self.lam)
+        vs, body = kd.utils.open_binder(self.lam)
         return eval_(
             body,
             globals=self.globals,
@@ -152,7 +152,7 @@ def eval_(e: smt.ExprRef, globals={}, locals={}, default=__default_error):
     >>> x = smt.Int("x")
     >>> eval_(smt.Lambda([x], x + 1)[3])
     4
-    >>> R = itp.Struct("R", ("x", itp.Z), ("y", smt.BoolSort()))
+    >>> R = kd.Struct("R", ("x", kd.Z), ("y", smt.BoolSort()))
     >>> eval_(R(42, True).x)
     42
     >>> eval_(R(42,True).is_R)
@@ -242,8 +242,8 @@ def eval_(e: smt.ExprRef, globals={}, locals={}, default=__default_error):
             # eval all children
             children = list(map(lambda x: worker(x, locals), e.children()))
             decl = e.decl()
-            if decl in itp.kernel.defns:
-                defn = itp.kernel.defns[e.decl()]
+            if decl in kd.kernel.defns:
+                defn = kd.kernel.defns[e.decl()]
                 # Fresh vars and add to context?
                 # e1 = z3.substitute(defn.body, *zip(defn.args, e.children()))
                 f = worker(smt.Lambda(defn.args, defn.body), locals)
@@ -327,6 +327,8 @@ def eval_(e: smt.ExprRef, globals={}, locals={}, default=__default_error):
                 return functools.reduce(operator.add, children)
             elif smt.is_mul(e):
                 return functools.reduce(operator.mul, children)
+            elif smt.is_neg(e):
+                return -children[0]
             elif smt.is_sub(e):
                 return children[0] - children[1]
             elif smt.is_div(e):
@@ -354,7 +356,7 @@ def reify(s: smt.SortRef, x: object) -> smt.ExprRef:
     >>> reify(smt.IntSort(), 42).sort()
     Int
     >>> x = smt.Int("x")
-    >>> itp.utils.alpha_eq(reify(smt.ArraySort(smt.IntSort(), smt.IntSort()), lambda x: x + 1), smt.Lambda([x], x + 1))
+    >>> kd.utils.alpha_eq(reify(smt.ArraySort(smt.IntSort(), smt.IntSort()), lambda x: x + 1), smt.Lambda([x], x + 1))
     True
     >>> reify(smt.RealSort(), fractions.Fraction(10,16))
     5/8
@@ -507,18 +509,21 @@ def _reflect_expr(expr: ast.expr, globals=None, locals=None) -> smt.ExprRef:
                     return smt.And(*acc)
                 else:
                     return acc[0]
-            case ast.Call(ast.Name(id_, _ctx), args, keywords):
+            case ast.Call(func, args, keywords):
                 assert keywords == []
-                f = _lookup(id_, globals=globals, locals=locals)
+                f = rec(func)
+                assert isinstance(f, Callable)
                 return f(*map(rec, args))
             case ast.IfExp(test, body, orelse):
                 return smt.If(rec(test), rec(body), rec(orelse))
             case ast.Name(id_, _ctx):
-                return _lookup(id_, locals, globals)
+                return _lookup(id_, locals=locals, globals=globals)
             case ast.Attribute(value, attr, _ctx):
                 return getattr(rec(value), attr)
             case x:
-                raise ValueError("Could not interpret expression", ast.dump(x))
+                raise ValueError(
+                    "Could not interpret expression", ast.unparse(x), ast.dump(x)
+                )
 
     return rec(expr)
 
@@ -532,16 +537,16 @@ def _calling_globals_locals():
     raise ValueError("No calling site found")
 
 
-def reflect_expr_string(expr: str, globals=None, locals=None) -> smt.ExprRef:
+def expr(expr: str, globals=None, locals=None) -> smt.ExprRef:
     """
     Turn a string of a python expression into a z3 expressions.
     Globals are inferred to be current scope if not given.
 
-    >>> reflect_expr_string("x + 1", globals={"x": smt.Int("x")})
+    >>> expr("x + 1", globals={"x": smt.Int("x")})
     x + 1
     >>> x = smt.Int("x")
     >>> f = smt.Function("f", smt.IntSort(), smt.IntSort())
-    >>> reflect_expr_string("f(x) + 1 if 0 < x < 5 < 7 else x * x")
+    >>> expr("f(x) + 1 if 0 < x < 5 < 7 else x * x")
     If(And(0 < x, 5 > x, 5 < 7), f(x) + 1, x*x)
 
     """
@@ -592,10 +597,10 @@ def _reflect_stmts(stmts: list[ast.stmt], globals=None, locals=None) -> smt.Expr
             )
 
 
-def _sort_of_annotation(ann, env):
+def _sort_of_annotation(ann, globals={}, locals={}):
     match ann:
         case ast.Name(id_):
-            s = eval(id_, env)
+            s = eval(id_, globals, locals)
             if isinstance(s, smt.SortRef):
                 return s
             elif isinstance(s, type):
@@ -605,9 +610,16 @@ def _sort_of_annotation(ann, env):
             else:
                 raise NotImplementedError(f"Name {id_}")
         case ast.Constant(value):
-            s = eval(value.replace('"', ""), env)
-            assert isinstance(s, smt.SortRef)
-            return s
+            assert isinstance(value, str)
+            s = eval(value.replace('"', ""), globals, locals)
+            if isinstance(s, type):
+                return sort_of_type(s)
+            elif kd.utils.is_func(s):
+                raise NotImplementedError("Subsort types not yet supported")
+            elif isinstance(s, smt.SortRef):
+                return s
+            else:
+                raise ValueError(f"Constant {value} is not a supported type or sort")
         case _:
             raise NotImplementedError(f"Annotation {ast.dump(ann)}")
 
@@ -629,7 +641,7 @@ def reflect(f, globals=None) -> smt.FuncDeclRef:
     >>> foo.__wrapped__(3)
     6
     >>> foo.defn
-    |- ForAll(x, foo(x) == x + 3)
+    |= ForAll(x, foo(x) == x + 3)
 
     >>> @reflect
     ... def bar(x : int, y : str) -> int:
@@ -640,10 +652,14 @@ def reflect(f, globals=None) -> smt.FuncDeclRef:
     ...     else:
     ...        return bar(x - 1, y)
     >>> bar.defn
-    |- ForAll([x, y],
+    |= ForAll([x, y],
            bar(x, y) ==
            If(4 < x, x + 3, If(y == "fred", 14, bar(x - 1, y))))
-
+    >>> @reflect
+    ... def inc_7(n: "int") -> "int":
+    ...    return n + 1
+    >>> inc_7(6)
+    inc_7(6)
     """
     module = ast.parse(inspect.getsource(f))
     assert isinstance(module, ast.Module) and len(module.body) == 1
@@ -654,31 +670,106 @@ def reflect(f, globals=None) -> smt.FuncDeclRef:
     if globals is None:
         globals, _ = _calling_globals_locals()
     # infer arguments from type annotations.
-    args = [
-        smt.Const(arg.arg, _sort_of_annotation(arg.annotation, globals))
-        for arg in fun.args.args
-    ]
+    args = []
+    # We add arguments to locals in order to support dependent types.
+    for arg in fun.args.args:
+        v = smt.Const(
+            arg.arg, _sort_of_annotation(arg.annotation, globals=globals, locals=locals)
+        )
+        args.append(v)
+        locals[v.decl().name()] = v
+
+    # args = [
+    #    smt.Const(
+    #        arg.arg, _sort_of_annotation(arg.annotation, locals=locals, globals=globals)
+    #    )
+    # ]
     if fun.returns is None:
         raise ValueError(f"Function {fun.name} must have a return type annotation")
     # insert self name into locals so that recursive calls work.
     z3fun = smt.Function(
         fun.name,
         *[arg.sort() for arg in args],
-        _sort_of_annotation(fun.returns, globals),
+        _sort_of_annotation(fun.returns, globals=globals, locals=locals),
     )
     locals[fun.name] = z3fun
-    for arg in args:
-        locals[arg.decl().name()] = arg
     # Actually interpret body.
     body = _reflect_stmts(fun.body, globals=globals, locals=locals)
-    z3fun1 = itp.define(fun.name, args, body)
+    z3fun1 = kd.define(fun.name, args, body)
     # Check that types work out.
     if z3fun.range() != z3fun1.range():
         raise ValueError(
-            f"Function {fun.name} has return type {_sort_of_annotation(fun.returns, globals)} but body evaluates to {body.sort()}"
+            f"Function {fun.name} has return type {_sort_of_annotation(fun.returns, globals=globals, locals=locals)} but body evaluates to {body.sort()}"
         )
     # This should never fail.
     assert z3fun.arity() == z3fun1.arity() and all(
         z3fun.domain(i) == z3fun1.domain(i) for i in range(z3fun.arity())
     )
     return functools.update_wrapper(z3fun1, f)  # type: ignore
+
+
+def datatype(s: str, locals=None, globals=None) -> smt.DatatypeSortRef:
+    """
+    Use python type syntax to define an algebraic datatype datatype.
+    Fields can be specified positionally or by name.
+    Reads the inner types from current environment.
+
+    >>> Int = smt.IntSort()
+    >>> Real = smt.RealSort()
+    >>> Foo = datatype("type Foo = Biz | Bar | Baz(Int, Int, smt.IntSort()) | Boz(x = Int, y = Int)")
+    >>> Foo.Baz.domain(1)
+    Int
+    >>> Foo.x.range()
+    Int
+    """
+
+    if locals is None or globals is None:
+        frame = inspect.currentframe()
+        if frame is None or frame.f_back is None:
+            raise ValueError("No calling site found")
+        f_back = frame.f_back
+        locals = f_back.f_locals if locals is None else locals
+        globals = f_back.f_globals if globals is None else globals
+    mod = ast.parse(s)
+    body = mod.body
+    if len(body) != 1:
+        raise ValueError(f"Expected a single type alias, got {ast.unparse(mod)}")
+    type_alias = body[0]
+    if not isinstance(type_alias, ast.TypeAlias):
+        raise ValueError(f"Expected a single type alias, got {ast.unparse(body[0])}")
+    dt = kd.Inductive(type_alias.name.id)
+    todo = [type_alias.value]
+    while todo:
+        match todo.pop():
+            case ast.BinOp(op=ast.BitOr(), left=left, right=right):
+                todo.append(right)
+                todo.append(left)
+            case ast.Name(id=name):
+                dt.declare(name)
+            case ast.Call(func=ast.Name(id=name), args=args, keywords=[]):
+                dt.declare(
+                    name,
+                    *[
+                        (
+                            f"{name}_{n}",
+                            _reflect_expr(arg, locals=locals, globals=globals),
+                        )
+                        for n, arg in enumerate(args)
+                    ],
+                )
+            case ast.Call(func=ast.Name(id=name), args=[], keywords=keywords):
+                dt.declare(
+                    name,
+                    *[
+                        (
+                            kw.arg,
+                            _reflect_expr(kw.value, locals=locals, globals=globals),
+                        )
+                        for kw in keywords
+                    ],
+                )
+            case _:
+                raise ValueError(
+                    f"Unexpected subexpression: {ast.unparse(type_alias.value)}"
+                )
+    return dt.create()
