@@ -41,10 +41,17 @@ def Truth(pf: kd.Proof) -> tuple[smt.ExprRef, kd.Proof, kd.Proof, kd.Proof]:
 
     >>> p = kd.prove(smt.BoolVal(True))
     >>> Truth(p)
-    (Sexp("(declare-fun F (Bool) Bool) (assert (F true)) "),
-    |= truth(Sexp("(declare-fun F (Bool) Bool) (assert (F true)) ")),
-    |= has_interp(Sexp("(declare-fun F (Bool) Bool) (assert (F true)) "),  True),
-    |= interp(Sexp("(declare-fun F (Bool) Bool) (assert (F true)) ")) == True)
+    (Sexp("(declare-fun F (Bool) Bool)
+    (assert (F true))
+    "), |- truth(Sexp("(declare-fun F (Bool) Bool)
+    (assert (F true))
+    ")), |- has_interp(Sexp("(declare-fun F (Bool) Bool)
+    (assert (F true))
+    "),
+               True), |- interp(Sexp("(declare-fun F (Bool) Bool)
+    (assert (F true))
+    ")) ==
+    True)
     """
     assert isinstance(pf, kd.Proof)
     q, hi, i = Quote(pf.thm)
@@ -105,8 +112,13 @@ def parse(s: str) -> smt.ExprRef:
 
     >>> parse("(a b (c d))")
     List(Unit(List(Concat(Unit(Atom("a")),
-                        Concat(Unit(Atom("b")),
-                                Unit(List(Concat(Unit(Atom("c")),
-                                        Unit(Atom("d"))))))))))
+                          Concat(Unit(Atom("b")),
+                                 Unit(List(Concat(Unit(Atom("c")),
+                                            Unit(Atom("d"))))))))))
     """
     return of_sexp(sexp_parse.parse(s))
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
