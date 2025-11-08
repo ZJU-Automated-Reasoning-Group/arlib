@@ -11,13 +11,13 @@ import sys
 import argparse
 import random
 
-from .syntax import Context, Symbol, Type, ExpressionBuilder, mk_symbol, mk_const
-from .smt import SMTInterface, SMTResult
-from .srkSimplify import Simplifier, make_simplifier
-from .abstract import SignDomain, AbstractValue
-from .polyhedron import Polyhedron, Constraint
-from .linear import QQVector
-from .qQ import QQ
+from arlib.srk.syntax import Context, Symbol, Type, ExpressionBuilder, mk_symbol, mk_const
+from arlib.srk.smt import SMTInterface, SMTResult
+from arlib.srk.srkSimplify import Simplifier, make_simplifier
+from arlib.srk.abstract import SignDomain, AbstractValue
+from arlib.srk.polyhedron import Polyhedron, Constraint
+from arlib.srk.linear import QQVector
+from arlib.srk.qQ import QQ
 from fractions import Fraction
 
 

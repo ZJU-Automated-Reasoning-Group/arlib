@@ -10,10 +10,10 @@ from typing import List, Optional, Union, Tuple, Any, Dict, IO
 from fractions import Fraction
 import re
 
-from .srkSmtlib2Defs import *
-from .syntax import Context, Symbol as SRKSymbol, Type
-from . import zZ
-from . import qQ
+from arlib.srk.srkSmtlib2Defs import *
+from arlib.srk.syntax import Context, Symbol as SRKSymbol, Type
+from arlib.srk import zZ
+from arlib.srk import qQ
 
 # SMT-LIB 2 keywords and reserved words
 SMTLIB2_KEYWORDS = {
@@ -487,7 +487,7 @@ def is_valid_smtlib2_model(model_text: str) -> bool:
 # Test function for comprehensive functionality
 def test_smtlib2_functionality():
     """Comprehensive test of SMT-LIB 2 functionality."""
-    from .syntax import Context
+    from arlib.srk.syntax import Context
 
     print("Testing SMT-LIB 2 parser...")
 

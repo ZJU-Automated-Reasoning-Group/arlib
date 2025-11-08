@@ -10,12 +10,12 @@ from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable
 from fractions import Fraction
 from dataclasses import dataclass, field
 
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
     ExpressionBuilder, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
     Add, Mul, Var, Const, Ite
 )
-from .cache import LRUCache
+from arlib.srk.cache import LRUCache
 
 __all__ = [
     # Main classes

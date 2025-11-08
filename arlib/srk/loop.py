@@ -20,6 +20,7 @@ from enum import Enum
 V = TypeVar('V')
 G = TypeVar('G')
 
+
 class GraphProtocol(Protocol[V]):
     """Protocol defining the interface for graphs used in loop analysis."""
 

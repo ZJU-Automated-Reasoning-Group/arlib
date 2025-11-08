@@ -13,16 +13,16 @@ from enum import Enum
 import itertools
 import logging
 
-from .syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_one, mk_lt, mk_leq, mk_eq, mk_and, mk_or, mk_not, mk_add, mk_mul, mk_mod, mk_real, mk_const, mk_true, mk_false
-from .polynomial import Polynomial, Monomial
-from .linear import QQVector, QQMatrix, dim_of_sym, const_dim
-from .expPolynomial import ExpPolynomial, ExpPolynomialVector
-from .transition import Transition
-from .transitionFormula import TransitionFormula, linearize
-from .sequence import UltimatelyPeriodicSequence, PeriodicSequence
-from .qQ import QQ
-from .smt import SMTInterface, SMTResult, is_sat
-from .sparseMap import SparseMap
+from arlib.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_one, mk_lt, mk_leq, mk_eq, mk_and, mk_or, mk_not, mk_add, mk_mul, mk_mod, mk_real, mk_const, mk_true, mk_false
+from arlib.srk.polynomial import Polynomial, Monomial
+from arlib.srk.linear import QQVector, QQMatrix, dim_of_sym, const_dim
+from arlib.srk.expPolynomial import ExpPolynomial, ExpPolynomialVector
+from arlib.srk.transition import Transition
+from arlib.srk.transitionFormula import TransitionFormula, linearize
+from arlib.srk.sequence import UltimatelyPeriodicSequence, PeriodicSequence
+from arlib.srk.qQ import QQ
+from arlib.srk.smt import SMTInterface, SMTResult, is_sat
+from arlib.srk.sparseMap import SparseMap
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -655,13 +655,13 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
 
     # Get rational abstraction using DLTS
     try:
-        from .solvablePolynomial import DLTSPeriodicRationalAbstraction, simplify_dlts
+        from arlib.srk.solvablePolynomial import DLTSPeriodicRationalAbstraction, simplify_dlts
 
         qdlts_abs = DLTSPeriodicRationalAbstraction.abstract_rational(context, tf_linear)
         qdlts_abs = simplify_dlts(context, qdlts_abs, scale=True)
 
         # Get the LTS module for partial linear maps
-        from .lts import PartialLinearMap as PLM
+        from arlib.srk.lts import PartialLinearMap as PLM
 
         # Get omega domain and dynamics matrix
         omega_domain, tr = PLM.iteration_sequence(qdlts_abs.dlts)
@@ -766,7 +766,7 @@ def mp(context: Context, tf: TransitionFormula) -> FormulaExpression:
 
 def _handle_atom(context: Context, atom, tr_z_exp, term_of_dim):
     """Handle atomic formulas in DTA algebra."""
-    from .srkSimplify import simplify_integer_atom
+    from arlib.srk.srkSimplify import simplify_integer_atom
 
     # Simplify the atom to determine its structure
     simplified = simplify_integer_atom(context, atom.op, atom.left, atom.right)
@@ -807,7 +807,7 @@ def _handle_atom(context: Context, atom, tr_z_exp, term_of_dim):
 def mbp(context: Context, formula: FormulaExpression, is_symbol_relevant: Callable[[Symbol], bool]) -> FormulaExpression:
     """Model-based projection for quantifier elimination."""
     # This is a simplified version - in practice would use full MBP algorithm
-    from .quantifier import mbp as quantifier_mbp
+    from arlib.srk.quantifier import mbp as quantifier_mbp
     return quantifier_mbp(context, formula, is_symbol_relevant)
 
 
@@ -834,7 +834,7 @@ def evaluate_formula_with_algebra(context: Context, algebra: Callable, formula: 
     Returns:
         Result of evaluating the formula through the algebra
     """
-    from .syntax import TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq
+    from arlib.srk.syntax import TrueExpr, FalseExpr, And, Or, Not, Eq, Lt, Leq
 
     # Recursively evaluate the formula structure
     if isinstance(formula, TrueExpr):

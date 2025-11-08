@@ -11,9 +11,9 @@ from typing import Dict, List, Set, Tuple, Optional, Callable, TypeVar, Generic,
 from dataclasses import dataclass
 from enum import Enum
 
-from .syntax import Context, Symbol, Expression, Type, mk_true, mk_and, mk_leq, mk_geq, mk_var, mk_const, mk_symbol, mk_eq
-from .srkZ3 import Z3Result, optimize_box
-from .interval import Interval
+from arlib.srk.syntax import Context, Symbol, Expression, Type, mk_true, mk_and, mk_leq, mk_geq, mk_var, mk_const, mk_symbol, mk_eq
+from arlib.srk.srkZ3 import Z3Result, optimize_box
+from arlib.srk.interval import Interval
 
 
 T = TypeVar('T')
@@ -223,7 +223,7 @@ class BoxAbstractDomain:
 
     def post(self, x: Dict[int, Interval], transition: Any) -> Dict[int, Interval]:
         """Compute the post-image of x under a transition.
-        
+
         The post-image is computed by:
         1. Constraining input intervals with transition guard
         2. Computing output intervals for each transformed variable
@@ -231,11 +231,11 @@ class BoxAbstractDomain:
         """
         if "__bottom__" in x:
             return self.bottom()
-        
+
         # If no transition provided, return unchanged
         if transition is None:
             return x
-        
+
         # Try to extract guard and transformation from transition
         try:
             # If transition is a label with weight
@@ -252,17 +252,17 @@ class BoxAbstractDomain:
                     # Extract guard and transformations
                     if hasattr(tr, 'guard') and hasattr(tr, 'transform'):
                         return self._post_with_transition(x, tr)
-            
+
             # If transition has guard/transform directly
             elif hasattr(transition, 'guard') and hasattr(transition, 'transform'):
                 return self._post_with_transition(x, transition)
-            
+
         except Exception:
             pass
-        
+
         # Default: return input unchanged (safe over-approximation)
         return x
-    
+
     def _post_with_transition(self, x: Dict[int, Interval], tr: Any) -> Dict[int, Interval]:
         """Helper to compute post-image with a concrete transition formula using Z3 optimization.
 
@@ -435,10 +435,10 @@ class BoxAbstractDomain:
     def is_maximal(self, x: Dict[int, Interval]) -> bool:
         """Check if x is a maximal element (top)."""
         return "__bottom__" not in x and len(x) == 0
-    
+
     def widen(self, x: Dict[int, Interval], y: Dict[int, Interval]) -> Dict[int, Interval]:
         """Apply widening operator to two interval stores.
-        
+
         Widening extrapolates bounds to ensure termination of fixpoint iteration.
         For each variable:
         - If lower bound decreases: set to -∞
@@ -448,22 +448,22 @@ class BoxAbstractDomain:
             return y
         if "__bottom__" in y:
             return x
-        
+
         result = {}
         all_vars = set(x.keys()) | set(y.keys())
-        
+
         for var in all_vars:
             if var == "__bottom__":
                 continue
-                
+
             ivl_x = x.get(var, Interval.top())
             ivl_y = y.get(var, Interval.top())
-            
+
             # Apply widening on intervals
             widened = ivl_x.widen(ivl_y)
             if widened != Interval.top():
                 result[var] = widened
-        
+
         return result
 
 
@@ -481,7 +481,7 @@ def make_query(transition_system: TransitionSystem[T],
 
 def remove_temporaries(ts: TransitionSystem[T]) -> TransitionSystem[T]:
     """Remove temporary variables from transitions.
-    
+
     This function removes edges that represent temporary variable assignments
     and connects their predecessors directly to their successors.
     """
@@ -496,28 +496,28 @@ def remove_temporaries(ts: TransitionSystem[T]) -> TransitionSystem[T]:
 def forward_invariants_ivl(ts: TransitionSystem[T],
                           entry: int) -> List[Tuple[int, Expression]]:
     """Compute interval invariants for loop headers using box abstract domain.
-    
+
     This performs forward abstract interpretation using intervals to compute
     invariants at each vertex in the transition system.
     """
     from .syntax import mk_true
-    
+
     # Find loop headers (vertices with back edges)
     loop_headers = _find_loop_headers(ts, entry)
-    
+
     if not loop_headers:
         return []
-    
+
     # Perform forward interval analysis
     # This is a simplified implementation
     invariants: List[Tuple[int, Expression]] = []
-    
+
     # For each loop header, we'd compute interval invariants
     # For now, return true for each loop header as a safe approximation
     for header in loop_headers:
         # Safe over-approximation: true invariant at each loop header
         invariants.append((header, mk_true))
-    
+
     return invariants
 
 
@@ -562,15 +562,15 @@ def forward_invariants_ivl_pa(pre_invariants: List[Expression],
                              ts: TransitionSystem[T],
                              entry: int) -> List[Tuple[int, Expression]]:
     """Compute interval-and-predicate invariants.
-    
+
     This combines interval analysis with predicate abstraction using
     the provided pre-invariants as predicates.
     """
     from .syntax import mk_and
-    
+
     # First compute interval invariants
     ivl_invariants = forward_invariants_ivl(ts, entry)
-    
+
     # For now, return the interval invariants combined with pre-invariants
     # A full implementation would refine these using the predicates
     return ivl_invariants
@@ -579,34 +579,34 @@ def forward_invariants_ivl_pa(pre_invariants: List[Expression],
 def simplify(predicate: Callable[[int], bool],
              ts: TransitionSystem[T]) -> TransitionSystem[T]:
     """Simplify a transition system by removing vertices that don't satisfy the predicate.
-    
+
     Args:
         predicate: Function that returns True for vertices to keep
         ts: Transition system to simplify
-        
+
     Returns:
         New transition system with only vertices satisfying the predicate
     """
     # Create new transition system
     new_ts = TransitionSystem[T]()
-    
+
     # Add vertices that satisfy the predicate
     for vertex in ts.vertices:
         if predicate(vertex):
             new_ts = new_ts.add_vertex(vertex)
-    
+
     # Add edges between remaining vertices
     for from_v in new_ts.vertices:
         for to_v, label in ts.successors(from_v):
             if to_v in new_ts.vertices:
                 new_ts = new_ts.add_edge(from_v, to_v, label)
-    
+
     return new_ts
 
 
 def loop_headers_live(ts: TransitionSystem[T]) -> List[Tuple[int, Set[Symbol[T]]]]:
     """Compute loop headers and their live variables.
-    
+
     A live variable at a loop header is one that may affect the behavior
     of the loop or the program after the loop exits.
     """
@@ -616,26 +616,26 @@ def loop_headers_live(ts: TransitionSystem[T]) -> List[Tuple[int, Set[Symbol[T]]
         if not ts.predecessors(v):
             entry = v
             break
-    
+
     if entry is None:
         # No entry found, pick first vertex
         if ts.vertices:
             entry = next(iter(ts.vertices))
         else:
             return []
-    
+
     # Find loop headers
     loop_headers = _find_loop_headers(ts, entry)
-    
+
     # For each loop header, compute live variables
     result: List[Tuple[int, Set[Symbol[T]]]] = []
-    
+
     for header in loop_headers:
         # Would perform liveness analysis here
         # For now, return empty set of live variables
         live_vars: Set[Symbol[T]] = set()
         result.append((header, live_vars))
-    
+
     return result
 
 

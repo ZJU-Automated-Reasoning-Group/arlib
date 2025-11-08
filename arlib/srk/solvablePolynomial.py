@@ -13,7 +13,7 @@ import logging
 from enum import Enum
 
 # Import from other SRK modules
-from .syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, mk_and, mk_or, mk_leq, mk_lt, mk_ite, mk_not, mk_true, mk_false, mk_if, destruct, expr_typ, symbols, substitute_const
+from arlib.srk.syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, mk_and, mk_or, mk_leq, mk_lt, mk_ite, mk_not, mk_true, mk_false, mk_if, destruct, expr_typ, symbols, substitute_const
 from .polynomial import Monomial, QQX
 from .linear import QQVector, QQMatrix, QQ
 from .interval import Interval

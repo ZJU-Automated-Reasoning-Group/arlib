@@ -6,6 +6,7 @@ import tempfile
 from typing import Optional
 import pysmt.parsing
 from pysmt.fnode import FNode
+from z3 import ExprRef
 from arlib.global_params import global_config
 
 logger = logging.getLogger(__name__)

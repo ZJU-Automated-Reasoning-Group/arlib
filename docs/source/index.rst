@@ -92,6 +92,7 @@ Quick Start
    quantifiers
    sampling
    smt
+   srk
    symbolic_abstraction
    symautomata
    synthesis

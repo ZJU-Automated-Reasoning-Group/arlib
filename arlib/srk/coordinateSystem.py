@@ -15,10 +15,10 @@ import functools
 import logging
 
 # Import from other SRK modules
-from .syntax import Context, Symbol, Expression, Type, mk_const, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_floor, mk_app, typ_symbol, Var
-from .linear import QQVector
-from .polynomial import Polynomial, Monomial
-from .qQ import QQ
+from arlib.srk.syntax import Context, Symbol, Expression, Type, mk_const, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_floor, mk_app, typ_symbol, Var
+from arlib.srk.linear import QQVector
+from arlib.srk.polynomial import Polynomial, Monomial
+from arlib.srk.qQ import QQ
 
 # Set up logging
 logger = logging.getLogger(__name__)

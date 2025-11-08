@@ -16,6 +16,7 @@ from typing import TypeVar, Protocol, Generic, Any, Optional, Callable
 
 T = TypeVar('T')
 
+
 class Semigroup(Protocol[T]):
     """Protocol for semigroup algebraic structure."""
 

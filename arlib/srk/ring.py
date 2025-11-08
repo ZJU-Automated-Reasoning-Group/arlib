@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 import math
 
-from .algebra import Ring
-from .util import IntSet
+from arlib.srk.algebra import Ring
+from arlib.srk.util import IntSet
 
 T = TypeVar('T')
 U = TypeVar('U')

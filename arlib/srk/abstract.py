@@ -28,10 +28,10 @@ from enum import Enum
 from dataclasses import dataclass, field
 from fractions import Fraction
 
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Type, Expression, make_expression_builder
 )
-from .linear import QQVector, QQMatrix
+from arlib.srk.linear import QQVector, QQMatrix
 
 
 class AbstractValue(Enum):

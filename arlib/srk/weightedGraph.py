@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from fractions import Fraction
 
-from .util import IntSet
-from .compressedWeightedForest import CompressedWeightedForest
+from arlib.srk.util import IntSet
+from arlib.srk.compressedWeightedForest import CompressedWeightedForest
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -236,38 +236,38 @@ def path_weight(wg: WeightedGraph[T], src: Vertex) -> Callable[[Vertex], T]:
     # Initialize path weights
     weights: Dict[Vertex, T] = {}
     worklist: Set[Vertex] = {src}
-    
+
     # Source has weight 'one' (identity element)
     weights[src] = wg.algebra.one
-    
+
     # Process worklist until convergence
     max_iterations = len(wg.vertices()) * len(wg.vertices())  # Prevent infinite loops
     iteration = 0
-    
+
     while worklist and iteration < max_iterations:
         iteration += 1
         current = worklist.pop()
         current_weight = weights.get(current, wg.algebra.zero)
-        
+
         # Update successors
         for successor in wg.successors(current):
             edge_weight = wg.edge_weight(current, successor)
             # New weight through current vertex
             new_weight = wg.algebra.mul(current_weight, edge_weight)
-            
+
             # Add to existing weight (using semiring addition)
             old_weight = weights.get(successor, wg.algebra.zero)
             combined_weight = wg.algebra.add(old_weight, new_weight)
-            
+
             # Update if changed
             if successor not in weights or combined_weight != old_weight:
                 weights[successor] = combined_weight
                 worklist.add(successor)
-    
+
     def compute_path_weight(target: Vertex) -> T:
         """Get computed path weight to target."""
         return weights.get(target, wg.algebra.zero)
-    
+
     return compute_path_weight
 
 
@@ -276,7 +276,7 @@ def omega_path_weight(wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vert
 
     This computes the weight of infinite paths starting from src,
     which is useful for finding cycles and infinite behaviors.
-    
+
     The algorithm:
     1. Find all cycles reachable from src
     2. Compute their omega weights
@@ -285,10 +285,10 @@ def omega_path_weight(wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vert
     # Find strongly connected components reachable from src
     reachable = _find_reachable(wg, src)
     sccs = _find_sccs_in_vertices(wg, reachable)
-    
+
     # Initialize omega weight as the zero element in the omega algebra
     result = omega.omega(wg.algebra.zero)
-    
+
     # For each SCC with more than one vertex or a self-loop
     for scc in sccs:
         if len(scc) > 1 or (len(scc) == 1 and wg.mem_edge(list(scc)[0], list(scc)[0])):
@@ -299,7 +299,7 @@ def omega_path_weight(wg: WeightedGraph[T], omega: OmegaAlgebra[T, U], src: Vert
                 omega_cycle = omega.omega(cycle_weight)
                 # Combine with result
                 result = omega.omega_add(result, omega_cycle)
-    
+
     return result
 
 
@@ -307,14 +307,14 @@ def _find_reachable(wg: WeightedGraph[T], src: Vertex) -> Set[Vertex]:
     """Find all vertices reachable from src."""
     reachable = set()
     worklist = [src]
-    
+
     while worklist:
         current = worklist.pop()
         if current in reachable:
             continue
         reachable.add(current)
         worklist.extend(wg.successors(current))
-    
+
     return reachable
 
 
@@ -322,7 +322,7 @@ def _find_sccs_in_vertices(wg: WeightedGraph[T], vertices: Set[Vertex]) -> List[
     """Find strongly connected components within a set of vertices."""
     # Build subgraph
     subgraph = {v: wg.successors(v) & vertices for v in vertices}
-    
+
     # Use Tarjan's algorithm for SCC
     index_counter = [0]
     stack: List[Vertex] = []
@@ -330,21 +330,21 @@ def _find_sccs_in_vertices(wg: WeightedGraph[T], vertices: Set[Vertex]) -> List[
     index: Dict[Vertex, int] = {}
     on_stack: Set[Vertex] = set()
     sccs: List[Set[Vertex]] = []
-    
+
     def strongconnect(v: Vertex) -> None:
         index[v] = index_counter[0]
         lowlinks[v] = index_counter[0]
         index_counter[0] += 1
         stack.append(v)
         on_stack.add(v)
-        
+
         for w in subgraph.get(v, set()):
             if w not in index:
                 strongconnect(w)
                 lowlinks[v] = min(lowlinks[v], lowlinks[w])
             elif w in on_stack:
                 lowlinks[v] = min(lowlinks[v], index[w])
-        
+
         if lowlinks[v] == index[v]:
             scc = set()
             while True:
@@ -354,11 +354,11 @@ def _find_sccs_in_vertices(wg: WeightedGraph[T], vertices: Set[Vertex]) -> List[
                 if w == v:
                     break
             sccs.append(scc)
-    
+
     for v in vertices:
         if v not in index:
             strongconnect(v)
-    
+
     return sccs
 
 
@@ -366,27 +366,27 @@ def _find_cycle_weight(wg: WeightedGraph[T], scc: Set[Vertex]) -> T:
     """Find the weight of a cycle in an SCC."""
     if not scc:
         return wg.algebra.zero
-    
+
     # Pick an arbitrary vertex from the SCC
     start = next(iter(scc))
-    
+
     # If there's a self-loop, use it
     if wg.mem_edge(start, start):
         return wg.edge_weight(start, start)
-    
+
     # Otherwise, find any cycle through start
     # Use DFS to find a path back to start
     visited = set()
     path_weight = {start: wg.algebra.one}
-    
+
     def dfs(current: Vertex, weight: T) -> Optional[T]:
         if current in visited:
             if current == start:
                 return weight
             return None
-        
+
         visited.add(current)
-        
+
         for successor in wg.successors(current):
             if successor in scc:
                 edge_w = wg.edge_weight(current, successor)
@@ -394,10 +394,10 @@ def _find_cycle_weight(wg: WeightedGraph[T], scc: Set[Vertex]) -> T:
                 result = dfs(successor, new_weight)
                 if result is not None:
                     return result
-        
+
         visited.remove(current)
         return None
-    
+
     # Try to find a cycle from start
     for first_succ in wg.successors(start):
         if first_succ in scc:
@@ -405,7 +405,7 @@ def _find_cycle_weight(wg: WeightedGraph[T], scc: Set[Vertex]) -> T:
             cycle_w = dfs(first_succ, edge_w)
             if cycle_w is not None:
                 return cycle_w
-    
+
     return wg.algebra.zero
 
 

@@ -15,9 +15,9 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from abc import ABC, abstractmethod
 
-from .syntax import Context, ArithExpression
-from .polynomial import Polynomial, QQX
-from .linear import QQVector, QQMatrix
+from arlib.srk.syntax import Context, ArithExpression
+from arlib.srk.polynomial import Polynomial, QQX
+from arlib.srk.linear import QQVector, QQMatrix
 
 
 class ExpPolynomial:

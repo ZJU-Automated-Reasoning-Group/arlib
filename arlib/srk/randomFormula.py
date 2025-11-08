@@ -11,7 +11,7 @@ from fractions import Fraction
 import random
 
 # Import from other SRK modules
-from .syntax import Context, Symbol, Expression, Formula, ArithTerm, Type, mk_var, mk_const, mk_real, mk_add, mk_mul, mk_leq, mk_and, mk_or, mk_exists, mk_forall
+from arlib.srk.syntax import Context, Symbol, Expression, Formula, ArithTerm, Type, mk_var, mk_const, mk_real, mk_add, mk_mul, mk_leq, mk_and, mk_or, mk_exists, mk_forall
 
 
 # Configuration variables (module-level, similar to OCaml refs)

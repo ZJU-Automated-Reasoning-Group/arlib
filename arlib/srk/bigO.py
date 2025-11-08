@@ -13,7 +13,7 @@ from enum import Enum
 from dataclasses import dataclass
 
 from fractions import Fraction as QQ
-from .syntax import Context
+from arlib.srk.syntax import Context
 
 
 class ComplexityClass(Enum):

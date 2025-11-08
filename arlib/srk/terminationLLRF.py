@@ -13,15 +13,15 @@ from fractions import Fraction
 import itertools
 import logging
 
-from .syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_eq, mk_and, mk_not, mk_const, mk_sub, mk_true, mk_false, rewrite, nnf_rewriter
-from .polynomial import Polynomial, Monomial
-from .linear import QQVector, QQMatrix, QQ
-from .transition import Transition
-from .transitionFormula import TransitionFormula, linearize
-from .coordinateSystem import CoordinateSystem
-from .abstract import AbstractDomain
-from .apron import SrkApron
-from .polyhedron import Polyhedron
+from arlib.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_eq, mk_and, mk_not, mk_const, mk_sub, mk_true, mk_false, rewrite, nnf_rewriter
+from arlib.srk.polynomial import Polynomial, Monomial
+from arlib.srk.linear import QQVector, QQMatrix, QQ
+from arlib.srk.transition import Transition
+from arlib.srk.transitionFormula import TransitionFormula, linearize
+from arlib.srk.coordinateSystem import CoordinateSystem
+from arlib.srk.abstract import AbstractDomain
+from arlib.srk.apron import SrkApron
+from arlib.srk.polyhedron import Polyhedron
 # from .smt import SMTInterface, SMTResult, entails  # Commented out due to import issues
 
 T = TypeVar('T')
@@ -121,75 +121,75 @@ class LLRFAnalyzer:
                     if var not in var_set:
                         all_variables.append(var)
                         var_set.add(var)
-        
+
         if not all_variables:
             return None
-        
+
         num_vars = len(all_variables)
-        
+
         # Try to synthesize components incrementally
         components = []
         remaining_transitions = transitions.copy()
-        
+
         for component_idx in range(max_components):
             # Try to find a linear ranking function that decreases on some transitions
             lrf = self._synthesize_single_lrf(remaining_transitions, num_vars)
-            
+
             if lrf is None:
                 break
-            
+
             components.append(lrf)
-            
+
             # Remove transitions that are handled by this component
             # In a full implementation, this would check which transitions
             # are provably decreasing and remove them
             remaining_transitions = self._filter_handled_transitions(
                 remaining_transitions, lrf
             )
-            
+
             if not remaining_transitions:
                 # All transitions handled
                 break
-        
+
         if components:
             return LLRF(components)
         else:
             return None
-    
+
     def _synthesize_single_lrf(self, transitions: List[Transition], num_vars: int) -> Optional[LinearRankingFunction]:
         """Synthesize a single linear ranking function.
-        
+
         Uses a template approach where we try simple heuristics:
         - Sum of all variables
         - Individual variables
         - Simple linear combinations
         """
         from .qQ import QQ
-        
+
         # Try template: sum of all variables
         coeffs = [QQ.one() for _ in range(num_vars)]
         lrf = LinearRankingFunction(QQVector.of_list(coeffs), QQ.zero())
-        
+
         if self._check_lrf_validity(lrf, transitions):
             return lrf
-        
+
         # Try template: individual variables
         for i in range(num_vars):
             coeffs = [QQ.zero() for _ in range(num_vars)]
             coeffs[i] = QQ.one()
             lrf = LinearRankingFunction(QQVector.of_list(coeffs), QQ.zero())
-            
+
             if self._check_lrf_validity(lrf, transitions):
                 return lrf
-        
+
         # Could not find a simple LRF
         return None
-    
+
     def _check_lrf_validity(self, lrf: LinearRankingFunction, transitions: List[Transition]) -> bool:
         """Check if an LRF is valid (decreases on at least one transition)."""
         # Simplified check - in practice would use SMT solving
         return True  # Conservative assumption
-    
+
     def _filter_handled_transitions(self, transitions: List[Transition], lrf: LinearRankingFunction) -> List[Transition]:
         """Filter out transitions that are handled by the LRF."""
         # Simplified - in practice would check which transitions decrease
@@ -197,7 +197,7 @@ class LLRFAnalyzer:
 
     def check_termination(self, transitions: List[Transition], llrf: LLRF) -> bool:
         """Check if the LLRF proves termination on all transitions.
-        
+
         Verification algorithm:
         1. For each transition, verify lexicographic decrease
         2. Check that all components are bounded below
@@ -205,39 +205,39 @@ class LLRFAnalyzer:
         """
         if not llrf or not llrf.components:
             return False
-        
+
         # Check that the LLRF decreases on all transitions
         for transition in transitions:
             if not self._check_lex_decrease(transition, llrf):
                 return False
-        
+
         # Check that all components are bounded below
         # For linear functions, this requires checking that they can't decrease indefinitely
         for component in llrf.components:
             if not self._is_bounded_below(component):
                 return False
-        
+
         return True
-    
+
     def _check_lex_decrease(self, transition: Transition, llrf: LLRF) -> bool:
         """Check if LLRF lexicographically decreases on a transition.
-        
+
         For lex order (f1, f2, ..., fn), decrease means:
         - ∃i: (∀j<i: fj(x') = fj(x)) ∧ (fi(x') < fi(x))
         """
         # Simplified check - in practice would use symbolic execution
         # For now, use the built-in method
         return llrf.decreases_on_transition(transition)
-    
+
     def _is_bounded_below(self, lrf: LinearRankingFunction) -> bool:
         """Check if a linear ranking function is bounded below.
-        
+
         A linear function c^T*x + d is bounded below on reachable states if:
         - There exists a lower bound L such that c^T*x + d >= L for all reachable x
         """
         # Simplified check - linear functions with non-negative coefficients
         # and non-negative constant are bounded below by the constant
-        
+
         # In practice, this requires analyzing reachability constraints
         # For now, assume bounded below if it looks reasonable
         return True  # Conservative assumption

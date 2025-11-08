@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 import enum
 import logging
 
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
     TermExpression, Var, Const, Add, Mul, Eq, Lt, Leq, And, Or, Not,
     TrueExpr, FalseExpr, Ite, Forall, Exists, App, Select, Store, mk_real, mk_true, mk_false,

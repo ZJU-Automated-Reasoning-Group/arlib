@@ -16,13 +16,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ply'))
 import arlib.utils.ply.yacc as yacc
 
 # Import the lexer
-from .srkLex import tokens, make_lexer
-from .srkAst import SimplifyingContext
-from .syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, Const
-from .syntax import mk_symbol, mk_const, mk_real, mk_add, mk_mul, mk_neg, mk_div
-from .syntax import mk_eq, mk_leq, mk_lt, mk_geq, mk_and, mk_or, mk_not, mk_ite
-from .syntax import mk_forall, mk_exists
-from .qQ import QQ
+from arlib.srk.srkLex import tokens, make_lexer
+from arlib.srk.srkAst import SimplifyingContext
+from arlib.srk.syntax import Context, Symbol, Expression, FormulaExpression, ArithExpression, Type, Const
+from arlib.srk.syntax import mk_symbol, mk_const, mk_real, mk_add, mk_mul, mk_neg, mk_div
+from arlib.srk.syntax import mk_eq, mk_leq, mk_lt, mk_geq, mk_and, mk_or, mk_not, mk_ite
+from arlib.srk.syntax import mk_forall, mk_exists
+from arlib.srk.qQ import QQ
 
 # Global context for parsing
 Ctx = SimplifyingContext()

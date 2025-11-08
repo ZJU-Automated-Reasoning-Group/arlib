@@ -10,15 +10,15 @@ from typing import Dict, List, Set, Tuple, Optional, Union, Any, Callable
 from fractions import Fraction
 from dataclasses import dataclass, field
 
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Type, FormulaExpression, ArithExpression,
     mk_real, mk_const, mk_add, mk_mul, mk_leq, mk_lt, mk_eq, mk_and, mk_or,
     mk_not, mk_true, mk_false, mk_neg, symbols
 )
-from .polynomial import Polynomial, Monomial
-from .linear import QQVector, QQMatrix, QQVectorSpace
-from .qQ import QQ
-from .log import logf
+from arlib.srk.polynomial import Polynomial, Monomial
+from arlib.srk.linear import QQVector, QQMatrix, QQVectorSpace
+from arlib.srk.qQ import QQ
+from arlib.srk.log import logf
 
 
 @dataclass(frozen=True)

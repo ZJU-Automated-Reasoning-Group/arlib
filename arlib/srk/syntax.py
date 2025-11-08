@@ -30,7 +30,7 @@ from fractions import Fraction
 import itertools
 
 # Import QQ for rational number operations
-from .qQ import QQ
+from arlib.srk.qQ import QQ
 
 # Type variables for generic types
 T = TypeVar('T')
@@ -534,8 +534,8 @@ class Store(Expression):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Store):
             return False
-        return (self.array == other.array and 
-                self.index == other.index and 
+        return (self.array == other.array and
+                self.index == other.index and
                 self.value == other.value)
 
     def __hash__(self) -> int:
@@ -1685,29 +1685,29 @@ def substitute_const(subst: Dict[Symbol, Expression], expr: Expression) -> Expre
 def prenex(srk: Context, phi: Expression) -> Expression:
     """
     Convert a formula to prenex normal form.
-    
+
     Moves all quantifiers to the front of the formula, preserving logical equivalence.
-    
+
     Args:
         srk: Context
         phi: Formula to convert to prenex form
-        
+
     Returns:
         Formula in prenex normal form
     """
     def negate_prefix(prefix):
         """Negate quantifier prefix (exists <-> forall)."""
-        return [(('Forall' if q[0] == 'Exists' else 'Exists'), name, typ) 
+        return [(('Forall' if q[0] == 'Exists' else 'Exists'), name, typ)
                 for q, name, typ in prefix]
-    
+
     def combine(phis):
         """Combine multiple formulas with their quantifier prefixes."""
         if not phis:
             return ([], [])
-        
+
         result_prefix = []
         result_phis = []
-        
+
         for qf_pre, phi in phis:
             depth = len(result_prefix)
             depth0 = len(qf_pre)
@@ -1715,24 +1715,24 @@ def prenex(srk: Context, phi: Expression) -> Expression:
             adjusted_phi = _adjust_variable_indices(phi, depth, depth0)
             result_prefix.extend(qf_pre)
             result_phis.append(adjusted_phi)
-        
+
         return (result_prefix, result_phis)
-    
+
     def _adjust_variable_indices(expr, old_depth, new_depth):
         """Adjust variable indices to avoid conflicts when combining formulas."""
         # This is a simplified implementation - in practice, this would need
         # to properly handle variable renaming to avoid capture
         return expr
-    
+
     def process(expr):
         """Process expression to extract quantifier prefix and matrix."""
         match = destruct(expr)
-        
+
         if not match:
             return ([], expr)
-        
+
         op, *args = match
-        
+
         if op == 'True':
             return ([], mk_true())
         elif op == 'False':
@@ -1759,11 +1759,11 @@ def prenex(srk: Context, phi: Expression) -> Expression:
             cond_prefix, cond_matrix = process(cond)
             then_prefix, then_matrix = process(then_branch)
             else_prefix, else_matrix = process(else_branch)
-            
+
             # Combine all three branches
             all_prefixes = [cond_prefix, then_prefix, else_prefix]
             qf_pre, matrices = combine(all_prefixes)
-            
+
             if len(matrices) == 3:
                 cond_m, then_m, else_m = matrices
                 return (qf_pre, mk_ite(cond_m, then_m, else_m))
@@ -1773,10 +1773,10 @@ def prenex(srk: Context, phi: Expression) -> Expression:
         else:
             # For other cases, return as-is
             return ([], expr)
-    
+
     # Process the formula
     qf_pre, matrix = process(phi)
-    
+
     # Reconstruct the formula with quantifiers at the front
     result = matrix
     for qf in reversed(qf_pre):  # Process in reverse order
@@ -1785,5 +1785,5 @@ def prenex(srk: Context, phi: Expression) -> Expression:
             result = mk_exists(name, typ, result)
         elif qt == 'Forall':
             result = mk_forall(name, typ, result)
-    
+
     return result

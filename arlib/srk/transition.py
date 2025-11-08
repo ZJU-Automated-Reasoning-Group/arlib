@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 from fractions import Fraction
 from enum import Enum
 
-from .syntax import Context, Symbol, Expression, make_expression_builder, symbols
-from .linear import QQVector, QQMatrix
+from arlib.srk.syntax import Context, Symbol, Expression, make_expression_builder, symbols
+from arlib.srk.linear import QQVector, QQMatrix
 
 
 class TransitionResult(Enum):

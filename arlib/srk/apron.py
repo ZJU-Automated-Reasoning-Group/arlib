@@ -10,8 +10,8 @@ from typing import Dict, List, Set, Tuple, Optional, Union, Any
 from dataclasses import dataclass, field
 from fractions import Fraction
 
-from .syntax import Context, Symbol, Type, FormulaExpression, ArithExpression
-from .linear import QQVector, QQMatrix
+from arlib.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression
+from arlib.srk.linear import QQVector, QQMatrix
 
 
 class ApronManager:
@@ -349,19 +349,19 @@ def with_apron_monitoring(operation: str):
 # Additional functions that were being imported from srkApron
 class SrkApron:
     """SRK-specific Apron wrapper class."""
-    
+
     def __init__(self, context: Context, domain_type: str = "interval"):
         self.context = context
         self.analysis = make_apron_analysis(context, domain_type)
-    
+
     def is_available(self) -> bool:
         """Check if Apron is available."""
         return self.analysis.is_available()
-    
+
     def set_dimensions(self, int_vars: List[Symbol], real_vars: List[Symbol]) -> None:
         """Set dimensions for analysis."""
         self.analysis.set_dimensions(int_vars, real_vars)
-    
+
     def create_domain(self) -> ApronDomain:
         """Create an Apron domain."""
         return self.analysis.create_domain()
@@ -369,13 +369,13 @@ class SrkApron:
 
 def formula_of_property(apron_value: Any) -> FormulaExpression:
     """Convert Apron property to formula expression.
-    
+
     This function converts an Apron abstract value back to a logical formula.
     For now, this is a placeholder implementation.
     """
     if not apron_available():
         raise ApronUnavailableError("Apron library not available")
-    
+
     # Placeholder implementation - would need to convert Apron constraints to formulas
     from .syntax import TrueExpr
     return TrueExpr()
@@ -383,13 +383,13 @@ def formula_of_property(apron_value: Any) -> FormulaExpression:
 
 def widen(apron_value1: Any, apron_value2: Any) -> Any:
     """Perform widening operation on two Apron abstract values.
-    
+
     This function performs the widening operation between two Apron abstract values.
     For now, this is a placeholder implementation.
     """
     if not apron_available():
         raise ApronUnavailableError("Apron library not available")
-    
+
     try:
         import apron
         # Perform widening operation

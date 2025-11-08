@@ -13,13 +13,13 @@ from fractions import Fraction
 import itertools
 import logging
 
-from .syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_const, mk_leq, mk_and, mk_or, mk_not, mk_exists, mk_real
-from .polynomial import Polynomial, Monomial
-from .linear import QQVector, QQMatrix, QQ
-from .expPolynomial import ExpPolynomial, ExpPolynomialVector
-from .transition import Transition
-from .transitionFormula import TransitionFormula
-from .qQ import QQ
+from arlib.srk.syntax import Context, Symbol, Type, FormulaExpression, ArithExpression, mk_symbol, mk_const, mk_leq, mk_and, mk_or, mk_not, mk_exists, mk_real
+from arlib.srk.polynomial import Polynomial, Monomial
+from arlib.srk.linear import QQVector, QQMatrix, QQ
+from arlib.srk.expPolynomial import ExpPolynomial, ExpPolynomialVector
+from arlib.srk.transition import Transition
+from arlib.srk.transitionFormula import TransitionFormula
+from arlib.srk.qQ import QQ
 
 T = TypeVar('T')
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Dict, List, Set, Tuple, Optional, Union, Any
 from fractions import Fraction
 
-from .linear import QQVector, QQMatrix, QQ
+from arlib.srk.linear import QQVector, QQMatrix, QQ
 
 
 # Utility functions for creating vectors and matrices
@@ -127,11 +127,11 @@ def linterm_of(srk_context, term) -> QQVector:
 # Linear algebra utility functions
 def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
     """Solve Ax = b for x using Gaussian elimination with back substitution.
-    
+
     Args:
         A: Coefficient matrix (m x n)
         b: Right-hand side vector (m-dimensional)
-        
+
     Returns:
         Solution vector x if it exists, None otherwise
     """
@@ -140,23 +140,23 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
 
     m = len(A.rows)  # Number of rows
     n = max((max(row.dimensions()) for row in A.rows if row.dimensions()), default=0) + 1  # Number of columns
-    
+
     # Create augmented matrix [A | b]
     # We'll use column n as the augmented column
     augmented_rows = []
     for i, row in enumerate(A.rows):
         new_row = row.set(n, b.get(i, QQ(0)))
         augmented_rows.append(new_row)
-    
+
     # Convert to mutable list for Gaussian elimination
     matrix = list(augmented_rows)
-    
+
     # Forward elimination with partial pivoting
     pivot_row = 0
     for col in range(n):
         if pivot_row >= m:
             break
-            
+
         # Find pivot (row with largest absolute value in current column)
         max_val = QQ(0)
         max_row = -1
@@ -165,31 +165,31 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
             if val > max_val:
                 max_val = val
                 max_row = row_idx
-        
+
         if max_row == -1:
             # No pivot found, skip this column
             continue
-        
+
         # Swap rows to bring pivot to current position
         if max_row != pivot_row:
             matrix[pivot_row], matrix[max_row] = matrix[max_row], matrix[pivot_row]
-        
+
         # Get pivot coefficient
         pivot_coeff = matrix[pivot_row].get(col, QQ(0))
         if pivot_coeff == 0:
             continue
-        
+
         # Normalize pivot row
         matrix[pivot_row] = matrix[pivot_row] * (QQ(1) / pivot_coeff)
-        
+
         # Eliminate column in rows below
         for row_idx in range(pivot_row + 1, m):
             factor = matrix[row_idx].get(col, QQ(0))
             if factor != 0:
                 matrix[row_idx] = matrix[row_idx] - (matrix[pivot_row] * factor)
-        
+
         pivot_row += 1
-    
+
     # Check for inconsistency (0 = non-zero)
     for row_idx in range(pivot_row, m):
         # Check if left side is zero but right side is non-zero
@@ -197,33 +197,33 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
         right_nonzero = matrix[row_idx].get(n, QQ(0)) != 0
         if left_zero and right_nonzero:
             return None  # Inconsistent system
-    
+
     # Back substitution
     solution_entries = {}
-    
+
     # Process rows from bottom to top
     for row_idx in range(min(pivot_row, m) - 1, -1, -1):
         row = matrix[row_idx]
-        
+
         # Find the leading variable (first non-zero column)
         leading_col = None
         for col in range(n):
             if row.get(col, QQ(0)) != 0:
                 leading_col = col
                 break
-        
+
         if leading_col is None:
             continue
-        
+
         # Compute value for this variable
         rhs = row.get(n, QQ(0))  # Right-hand side
-        
+
         # Subtract known variables
         for col in range(leading_col + 1, n):
             coeff = row.get(col, QQ(0))
             if coeff != 0 and col in solution_entries:
                 rhs -= coeff * solution_entries[col]
-        
+
         # Solve for the leading variable
         leading_coeff = row.get(leading_col, QQ(0))
         if leading_coeff != 0:
@@ -231,12 +231,12 @@ def solve_linear_system(A: QQMatrix, b: QQVector) -> Optional[QQVector]:
         else:
             # Free variable, set to 0
             solution_entries[leading_col] = QQ(0)
-    
+
     return QQVector(solution_entries)
 
 
 # Export functions
 __all__ = [
-    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list', 
+    'zero_vector', 'unit_vector', 'identity_matrix', 'vector_from_list',
     'matrix_from_lists', 'mk_vector', 'mk_matrix', 'linterm_of', 'solve_linear_system'
 ]

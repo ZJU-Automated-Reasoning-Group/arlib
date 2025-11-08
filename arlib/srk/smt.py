@@ -12,7 +12,7 @@ from enum import Enum
 from dataclasses import dataclass
 from fractions import Fraction
 
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Type, Expression, FormulaExpression, ArithExpression,
     TermExpression, Var, Const, Eq, Lt, Leq, And, Or, Not, TrueExpr, FalseExpr,
     Ite, Forall, Exists, Add, Mul, App, Select, Store
@@ -35,7 +35,7 @@ class SMTModel:
     def get_value(self, symbol: Symbol) -> Union[Fraction, bool, Dict, Any, None]:
         """Get the value of a symbol in the model."""
         return self.interpretations.get(symbol)
-    
+
     def get_array_value(self, symbol: Symbol, index: int) -> Union[Fraction, bool, None]:
         """Get the value of an array element at a specific index."""
         val = self.interpretations.get(symbol)
@@ -372,7 +372,7 @@ class Z3Solver(SMTSolver):
                 # Create an uninterpreted function in Z3
                 func_name = str(expr.symbol)
                 arg_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
-                
+
                 # Determine result type based on expression type
                 # For simplicity, assume boolean result for predicates
                 arg_sorts = [arg.sort() for arg in arg_z3]
@@ -450,7 +450,7 @@ class Z3Solver(SMTSolver):
                     # Default to function application
                     func_name = str(expr.symbol)
                     arg_z3 = [self._srk_to_z3_expr_with_env(arg, env) for arg in expr.args]
-                    
+
                     # Determine result type based on expression type
                     arg_sorts = [arg.sort() for arg in arg_z3]
                     if hasattr(expr, 'typ') and expr.typ == Type.BOOL:
@@ -533,9 +533,9 @@ class Z3Solver(SMTSolver):
             srk_symbol = self._z3_symbol_map.get(z3_sym)
             if not srk_symbol:
                 continue
-                
+
             val = model.eval(z3_sym, model_completion=True)
-            
+
             if srk_symbol.typ == Type.BOOL:
                 interpretations[srk_symbol] = self.z3.is_true(val)
             elif srk_symbol.typ in (Type.INT, Type.REAL):
@@ -674,11 +674,11 @@ def get_model(formula: FormulaExpression, context: Optional[Context] = None) -> 
 
 def mk_solver(context: Context, theory: str = "QF_LRA") -> SMTInterface:
     """Create an SMT solver for the given theory.
-    
+
     Args:
         context: The SRK context
         theory: The SMT-LIB theory (e.g., "QF_LRA", "QF_LIRA", "QF_NRA")
-    
+
     Returns:
         SMT solver interface
     """
@@ -689,11 +689,11 @@ def mk_solver(context: Context, theory: str = "QF_LRA") -> SMTInterface:
 
 def is_sat(context: Context, formula: FormulaExpression) -> SMTResult:
     """Check if a formula is satisfiable.
-    
+
     Args:
         context: The SRK context
         formula: The formula to check
-    
+
     Returns:
         SMTResult indicating sat, unsat, or unknown
     """
@@ -709,40 +709,40 @@ Unknown = SMTResult.UNKNOWN
 
 class Solver:
     """Wrapper class for SMT solver operations.
-    
+
     This provides a simpler interface that matches the usage in other modules.
     """
-    
+
     def __init__(self, solver: SMTInterface):
         self.solver = solver
-    
+
     @staticmethod
     def add(solver: SMTInterface, formulas: List[FormulaExpression]) -> None:
         """Add formulas to the solver."""
         solver.solver.add(formulas)
-    
+
     @staticmethod
     def check(solver: SMTInterface, assumptions: List[FormulaExpression]) -> SMTResult:
         """Check satisfiability with assumptions."""
         if assumptions:
             return solver.solver.check(assumptions)
         return solver.solver.check()
-    
+
     @staticmethod
     def get_model(solver: SMTInterface) -> Optional[SMTModel]:
         """Get the current model."""
         return solver.solver.get_model()
-    
-    @staticmethod  
+
+    @staticmethod
     def push(solver: SMTInterface) -> None:
         """Push a new scope."""
         solver.solver.push()
-    
+
     @staticmethod
     def pop(solver: SMTInterface, levels: int = 1) -> None:
         """Pop scopes."""
         solver.solver.pop(levels)
-    
+
     @staticmethod
     def reset(solver: SMTInterface) -> None:
         """Reset the solver."""

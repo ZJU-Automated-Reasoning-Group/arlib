@@ -13,15 +13,15 @@ from fractions import Fraction
 import logging
 
 # Import from other SRK modules
-from .syntax import (
+from arlib.srk.syntax import (
     Context, Symbol, Expression, FormulaExpression, ArithExpression, Type,
-    mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq, 
+    mk_const, mk_symbol, mk_real, mk_add, mk_mul, mk_div, mk_mod, mk_eq,
     mk_and, mk_or, mk_leq, mk_lt, mk_sub, mk_neg, mk_app, mk_ite, mk_false,
     rewrite, destruct, expr_typ, symbols, ArithTerm
 )
-from .interval import Interval
-from .qQ import QQ, equal as QQ_equal
-from .log import logf
+from arlib.srk.interval import Interval
+from arlib.srk.qQ import QQ, equal as QQ_equal
+from arlib.srk.log import logf
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -78,35 +78,35 @@ class SymbolicInterval:
     def mul_interval(self, ivl: Interval, x: 'SymbolicInterval') -> 'SymbolicInterval':
         """Multiply a symbolic interval by a concrete interval."""
         srk = x.context
-        
+
         if Interval.is_nonnegative(ivl):
             upper_bound = Interval.upper(ivl)
             if upper_bound is not None and upper_bound != QQ.zero:
                 upper = [mk_mul([mk_real(upper_bound), term]) for term in x.upper]
             else:
                 upper = []
-                
+
             lower_bound = Interval.lower(ivl)
             if lower_bound is not None and lower_bound != QQ.zero:
                 lower = [mk_mul([mk_real(lower_bound), term]) for term in x.lower]
             else:
                 lower = []
-                
+
             return SymbolicInterval(srk, lower, upper, ivl * x.interval)
-            
+
         elif Interval.is_nonpositive(ivl):
             upper_bound = Interval.upper(ivl)
             if upper_bound is not None and upper_bound != QQ.zero:
                 upper = [mk_mul([mk_real(upper_bound), term]) for term in x.lower]
             else:
                 upper = []
-                
+
             lower_bound = Interval.lower(ivl)
             if lower_bound is not None and lower_bound != QQ.zero:
                 lower = [mk_mul([mk_real(lower_bound), term]) for term in x.upper]
             else:
                 lower = []
-                
+
             return SymbolicInterval(srk, lower, upper, ivl * x.interval)
         else:
             # Mixed signs - conservative
@@ -166,7 +166,7 @@ class SymbolicInterval:
         srk = self.context
         lower_y = Interval.lower(other.interval)
         upper_y = Interval.upper(other.interval)
-        
+
         if lower_y is not None and upper_y is not None:
             if Interval.elem(QQ.zero, other.interval):
                 # Division by interval containing zero
@@ -200,7 +200,7 @@ class SymbolicInterval:
         """Compute modulo of two symbolic intervals."""
         srk = self.context
         ivl = Interval.modulo(self.interval, other.interval)
-        
+
         if Interval.equal(ivl, Interval.bottom()):
             return SymbolicInterval.bottom(srk)
         elif Interval.elem(QQ.zero, other.interval):
@@ -208,10 +208,10 @@ class SymbolicInterval:
         else:
             # y is either strictly positive or strictly negative
             y = other if Interval.is_positive(other.interval) else other.negate()
-            
+
             one_minus = lambda x: mk_sub(mk_real(QQ.one), x)
             minus_one = lambda x: mk_sub(x, mk_real(QQ.one))
-            
+
             if Interval.is_nonnegative(self.interval):
                 return SymbolicInterval(
                     srk,
@@ -286,7 +286,7 @@ class NonlinearOperations:
             # Check if already registered in context
             if not hasattr(self.context, '_named_symbols'):
                 self.context._named_symbols = {}
-            
+
             if name not in self.context._named_symbols:
                 # Register new symbol
                 sym = mk_symbol(name, typ)
@@ -331,7 +331,7 @@ class NonlinearOperations:
 
     def uninterpret_rewriter(self, expr: Expression) -> Expression:
         """Convert nonlinear operations to uninterpreted functions.
-        
+
         Converts division, modulo, and multiplication to uninterpreted functions,
         following the OCaml implementation.
         """
@@ -340,15 +340,15 @@ class NonlinearOperations:
         mod_sym = self.get_mod_symbol()
         imul_sym = self.get_imul_symbol()
         imod_sym = self.get_imod_symbol()
-        
+
         # Destruct the expression to check its type
         try:
             expr_info = destruct(expr)
             if expr_info is None:
                 return expr
-                
+
             expr_type, expr_data = expr_info
-            
+
             # Handle division: x / y -> x * inv(y) or mul(x, inv(y))
             if expr_type == 'Div':
                 x, y = expr_data
@@ -359,16 +359,16 @@ class NonlinearOperations:
                     if k != QQ.zero:
                         # division by constant -> scalar mul
                         return mk_mul([mk_real(QQ.inverse(k)), x])
-                
+
                 # Check if x is real constant
                 x_info = destruct(x)
                 if x_info and x_info[0] == 'Real':
                     # Real constant / y -> x * inv(y)
                     return mk_mul([x, mk_app(inv_sym, [y])])
-                    
+
                 # General case: mul(x, inv(y))
                 return mk_app(mul_sym, [x, mk_app(inv_sym, [y])])
-                
+
             # Handle modulo: x % y -> mod(x, y) or imod(x, y)
             elif expr_type == 'Mod':
                 x, y = expr_data
@@ -376,36 +376,36 @@ class NonlinearOperations:
                 y_info = destruct(y)
                 x_typ = expr_typ(x)
                 y_typ = expr_typ(y)
-                
+
                 if y_info and y_info[0] == 'Real':
                     k = y_info[1]
                     zz_val = QQ.to_zz(k) if hasattr(QQ, 'to_zz') else None
                     if k != QQ.zero and zz_val is not None and x_typ == Type.INT:
                         # Keep as interpreted mod for integer constant
                         return expr
-                
+
                 # Convert to uninterpreted
                 if x_typ == Type.INT and y_typ == Type.INT:
                     return mk_app(imod_sym, [x, y])
                 else:
                     return mk_app(mod_sym, [x, y])
-                    
+
             # Handle multiplication: convert to uninterpreted mul/imul
             elif expr_type == 'Mul':
                 terms = expr_data
                 # Separate coefficient from non-constant terms
                 coeff = QQ.one
                 non_const_terms = []
-                
+
                 for term in terms:
                     term_info = destruct(term)
                     if term_info and term_info[0] == 'Real':
                         coeff = QQ.mul(coeff, term_info[1])
                     else:
                         non_const_terms.append(term)
-                
+
                 coeff_term = mk_real(coeff)
-                
+
                 if len(non_const_terms) == 0:
                     return coeff_term
                 elif len(non_const_terms) == 1:
@@ -421,15 +421,15 @@ class NonlinearOperations:
                         else:
                             product = mk_app(mul_sym, [term, product])
                     return mk_mul([coeff_term, product])
-                    
+
         except Exception:
             pass
-            
+
         return expr
 
     def interpret_rewriter(self, expr: Expression) -> Expression:
         """Convert uninterpreted functions back to interpreted operations.
-        
+
         Recognizes uninterpreted function applications and converts them back
         to their interpreted forms.
         """
@@ -438,33 +438,33 @@ class NonlinearOperations:
         mod_sym = self.get_mod_symbol()
         imul_sym = self.get_imul_symbol()
         imod_sym = self.get_imod_symbol()
-        
+
         try:
             expr_info = destruct(expr)
             if expr_info is None:
                 return expr
-                
+
             expr_type, expr_data = expr_info
-            
+
             # Handle function applications
             if expr_type == 'App':
                 func, args = expr_data
-                
+
                 # mul(x, y) or imul(x, y) -> x * y
                 if (func == mul_sym or func == imul_sym) and len(args) == 2:
                     return mk_mul(args)
-                    
+
                 # inv(x) -> 1 / x
                 elif func == inv_sym and len(args) == 1:
                     return mk_div(mk_real(QQ.one), args[0])
-                    
+
                 # mod(x, y) or imod(x, y) -> x % y
                 elif (func == mod_sym or func == imod_sym) and len(args) == 2:
                     return mk_mod(args[0], args[1])
-                    
+
         except Exception:
             pass
-            
+
         return expr
 
     def uninterpret(self, expr: Expression) -> Expression:
@@ -477,7 +477,7 @@ class NonlinearOperations:
 
     def mk_log(self, base: ArithExpression, x: ArithExpression) -> ArithExpression:
         """Create a logarithm expression.
-        
+
         Handles special cases:
         - log_b(1) = 0 when b > 1
         - log_b(b) = 1 when b > 1
@@ -485,11 +485,11 @@ class NonlinearOperations:
         """
         pow_sym = self.get_pow_symbol()
         log_sym = self.get_log_symbol()
-        
+
         try:
             base_info = destruct(base)
             x_info = destruct(x)
-            
+
             # log_b(1) = 0 when b > 1
             if base_info and base_info[0] == 'Real' and x_info and x_info[0] == 'Real':
                 b = base_info[1]
@@ -498,7 +498,7 @@ class NonlinearOperations:
                     return mk_real(QQ.zero)
                 elif QQ.lt(QQ.one, b) and QQ.equal(x_val, b):
                     return mk_real(QQ.one)
-            
+
             # log_b(b^t) = t (when bases match)
             if x_info and x_info[0] == 'App':
                 func, args = x_info[1]
@@ -507,16 +507,16 @@ class NonlinearOperations:
                     # Check if bases match
                     if base == base_arg:  # TODO: proper expression equality
                         return exp_arg
-                        
+
         except Exception:
             pass
-        
+
         # General case: create log application
         return mk_app(log_sym, [base, x])
 
     def mk_pow(self, base: ArithExpression, x: ArithExpression) -> ArithExpression:
         """Create a power expression.
-        
+
         Handles special cases:
         - 1^x = 1
         - (-b)^x = ite(x%2==0, b^x, -b^x) for b < 0
@@ -528,16 +528,16 @@ class NonlinearOperations:
         """
         log_sym = self.get_log_symbol()
         pow_sym = self.get_pow_symbol()
-        
+
         try:
             base_info = destruct(base)
-            
+
             # 1^x = 1
             if base_info and base_info[0] == 'Real':
                 b = base_info[1]
                 if QQ.equal(b, QQ.one):
                     return mk_real(QQ.one)
-                    
+
                 # (-b)^x for negative base
                 if QQ.lt(b, QQ.zero):
                     pos_base = mk_real(QQ.negate(b))
@@ -548,14 +548,14 @@ class NonlinearOperations:
                         pos_pow,
                         mk_neg(pos_pow)
                     )
-                    
+
                 # (1/b)^x when 0 < b < 1
                 if QQ.lt(QQ.zero, b) and QQ.lt(b, QQ.one):
                     inv_base = mk_div(mk_real(QQ.one), base)
                     return mk_div(mk_real(QQ.one), self.mk_pow(inv_base, x))
-            
+
             x_info = destruct(x)
-            
+
             # b^power when power is a constant
             if x_info and x_info[0] == 'Const':
                 power_symbol = x_info[1]
@@ -565,7 +565,7 @@ class NonlinearOperations:
                     try:
                         power_value = float(power_symbol.name.replace('real_', ''))
                         power = Fraction(power_value)
-                        
+
                         # Handle special cases for real constants
                         if QQ_equal(power, QQ.zero()):
                             # x^0 = 1
@@ -573,7 +573,7 @@ class NonlinearOperations:
                         elif QQ_equal(power, QQ.one()):
                             # x^1 = x
                             return base
-                        
+
                         power_int = QQ.to_int(power) if hasattr(QQ, 'to_int') else None
                         if power_int is not None:
                             # Use syntax.mk_pow for integer powers
@@ -584,17 +584,17 @@ class NonlinearOperations:
                                 pass
                     except Exception:
                         pass
-            
+
             # b^(sum) = product of b^term
             if x_info and x_info[0] == 'Add':
                 terms = x_info[1]
                 return mk_mul([self.mk_pow(base, term) for term in terms])
-            
+
             # b^(-x) = 1 / b^x
             if x_info and x_info[0] == 'Neg':
                 negated_x = x_info[1]
                 return mk_div(mk_real(QQ.one), self.mk_pow(base, negated_x))
-            
+
             # b^log_b(t) = t
             if x_info and x_info[0] == 'App':
                 func, args = x_info[1]
@@ -602,16 +602,16 @@ class NonlinearOperations:
                     log_base, log_arg = args
                     if base == log_base:  # TODO: proper expression equality
                         return log_arg
-                        
+
         except Exception:
             pass
-        
+
         # General case: create pow application
         return mk_app(pow_sym, [base, x])
 
     def linearize(self, formula: FormulaExpression) -> FormulaExpression:
         """Compute a linear approximation of a nonlinear formula.
-        
+
         Converts nonlinear terms to uninterpreted functions, purifies the formula,
         finds bounds using optimization, and creates linear constraints.
         """
@@ -619,7 +619,7 @@ class NonlinearOperations:
         # - srkSimplify.purify for term extraction
         # - srkZ3.optimize_box for finding intervals
         # - abstract.affine_hull for affine constraints
-        
+
         # Import dependencies (may not be fully implemented yet)
         try:
             from . import srkSimplify
@@ -629,21 +629,21 @@ class NonlinearOperations:
             # Dependencies not available, return original formula
             logf("linearize: dependencies not available, returning original formula", level='warn')
             return formula
-        
+
         # Convert to uninterpreted form
         uninterp_phi = self.uninterpret(formula)
-        
+
         # Purify to extract nonlinear terms
         try:
             lin_phi, nonlinear = srkSimplify.purify(uninterp_phi)
         except:
             # Purify not implemented, return original
             return formula
-        
+
         if not nonlinear or len(nonlinear) == 0:
             # No nonlinear terms
             return formula
-        
+
         # Get symbols that appear in nonlinear terms
         symbol_list = []
         for sym, expr in nonlinear.items():
@@ -651,17 +651,17 @@ class NonlinearOperations:
             for s in expr_symbols:
                 if s.typ in [Type.INT, Type.REAL] and s not in symbol_list:
                     symbol_list.append(s)
-        
+
         # Create objectives
         objectives = [mk_const(sym) for sym in symbol_list]
-        
+
         # Use Z3 to find intervals
         try:
             result = srkZ3.optimize_box(lin_phi, objectives)
         except:
             logf("linearize: optimization failed", level='warn')
             return lin_phi
-        
+
         if result == 'Unsat':
             return mk_false()
         elif result == 'Unknown':
@@ -669,14 +669,14 @@ class NonlinearOperations:
             return lin_phi
         elif not isinstance(result, list):
             return lin_phi
-        
+
         # Build symbolic intervals and constraints
         # This is a simplified version - full implementation would match OCaml more closely
         return lin_phi
 
     def optimize_box(self, phi: FormulaExpression, objectives: List[ArithExpression]) -> Union[List[Interval], str]:
         """Find bounding intervals for objectives within a formula.
-        
+
         Uses Z3 optimization to find concrete bounds for each objective.
         """
         try:
@@ -684,22 +684,22 @@ class NonlinearOperations:
             from . import srkZ3
         except ImportError:
             return "Unknown"
-        
+
         # Simplify terms first
         phi = self.simplify_terms(phi)
-        
+
         # Create objective symbols
         objective_symbols = []
         objective_eqs = []
-        
+
         for obj in objectives:
             sym = mk_symbol("obj_" + str(id(obj)), expr_typ(obj))
             objective_symbols.append(mk_const(sym))
             objective_eqs.append(mk_eq(obj, mk_const(sym)))
-        
+
         # Linearize the combined formula
         lin_phi = self.linearize(mk_and([phi] + objective_eqs))
-        
+
         # Use Z3 to optimize
         try:
             return srkZ3.optimize_box(lin_phi, objective_symbols)
@@ -708,19 +708,19 @@ class NonlinearOperations:
 
     def simplify_terms_rewriter(self, expr: Expression) -> Expression:
         """Rewrite rule for simplifying power and log terms.
-        
+
         Converts pow/log applications to their simplified forms.
         """
         pow_sym = self.get_pow_symbol()
         log_sym = self.get_log_symbol()
-        
+
         try:
             expr_info = destruct(expr)
             if expr_info is None:
                 return expr
-                
+
             expr_type, expr_data = expr_info
-            
+
             # pow(x, y) -> mk_pow(x, y)
             if expr_type == 'App':
                 func, args = expr_data
@@ -728,7 +728,7 @@ class NonlinearOperations:
                     return self.mk_pow(args[0], args[1])
                 elif func == log_sym and len(args) == 2:
                     return self.mk_log(args[0], args[1])
-                    
+
         except Exception:
             pass
 
