@@ -2,6 +2,8 @@
 Trigger selection for E-matching
 
 Take as input an SMT-LIB formula, and add a set of possible triggers?
+
+FIXME: by LLM, to be tested
 """
 from typing import List, Set, Tuple, Dict, Any, Optional
 import z3

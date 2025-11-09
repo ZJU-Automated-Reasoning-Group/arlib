@@ -95,14 +95,6 @@ The implementation faithfully follows the paper's inference rules:
 4. **UNBOUNDED-FAIL Rule**: Handle cases where objectives are bounded
 5. **BOUNDED Rule**: Strengthen the over-approximation O
 
-## Integration with OMT Infrastructure
-
-SYMBA integrates with arlib's existing OMT infrastructure:
-
-- Uses the same solver factory pattern as other OMT engines
-- Compatible with Z3 and other SMT solvers supported by arlib
-- Can be used as a drop-in replacement for other optimization algorithms
-- Supports the same timeout and configuration options
 
 ## Examples
 
@@ -143,16 +135,3 @@ Tests cover:
 - Currently optimized for linear real arithmetic (LRA)
 - Integer constraints may require special handling
 - Performance may degrade with very large search spaces
-- Complex non-linear objectives may not be handled optimally
-
-## References
-
-Based on:
-- Li, Y., Albarghouthi, A., Kincaid, Z., Gurinkel, A., & Chechik, M. (2014). Symbolic Optimization with SMT Solvers. In Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL '14).
-
-## Future Work
-
-- Support for non-linear arithmetic theories
-- Integration with other abstract domains
-- Parallel optimization for multiple objectives
-- Advanced Pareto front analysis and visualization
