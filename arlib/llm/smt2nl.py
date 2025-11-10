@@ -6,16 +6,16 @@ natural language descriptions.
 
 Examples:
     python smt2nl.py "(assert (> x 5))"
-    # Output: "(x > 5)"
+    # Output: "x is greater than 5"
 
     python smt2nl.py "(assert (and (> x 5) (<= y 10)))"
-    # Output: "((x > 5) ∧ (y ≤ 10))"
+    # Output: "both x is greater than 5 and y is less than or equal to 10"
 
     python smt2nl.py "(assert (= (+ x y) (* z 2)))"
     # Output: "((x + y) equals (z × 2))"
 
     python smt2nl.py "(assert (> x 5)) (assert (< y 10))"
-    # Output: "(x > 5) ∧ (y < 10)"
+    # Output: "x is greater than 5 ∧ y is less than 10"
 
     # Bit-vectors, strings, arrays, floats supported
     # Interactive mode: python smt2nl.py
@@ -78,6 +78,32 @@ class SMT2NLConverter:
             'seq.prefixof': 'prefixOf', 'seq.suffixof': 'suffixOf',
         }
 
+        self.unary_phrases = {
+            'not': 'not {arg}',
+            '-': 'the negation of {arg}',
+            'abs': 'the absolute value of {arg}',
+            'fp.neg': 'the negation of {arg}',
+            'fp.abs': 'the absolute value of {arg}',
+        }
+
+        self.binary_phrases = {
+            '=': '{left} equals {right}',
+            '!=': '{left} does not equal {right}',
+            'distinct': '{left} and {right} are distinct',
+            '>': '{left} is greater than {right}',
+            '>=': '{left} is greater than or equal to {right}',
+            '<': '{left} is less than {right}',
+            '<=': '{left} is less than or equal to {right}',
+            '=>': 'if {left}, then {right}',
+            'iff': '{left} if and only if {right}',
+            'xor': 'either {left} or {right}, but not both',
+        }
+
+        self.nary_prefaces = {
+            'and': ('All of the following hold: ', 'and'),
+            'or': ('At least one of the following holds: ', 'or'),
+        }
+
     def parse_sexpr(self, s: str) -> Union[str, List[Any]]:
         """Parse S-expression into nested list structure."""
         s = s.strip()
@@ -114,6 +140,14 @@ class SMT2NLConverter:
         if not expr: return ""
         op, *args = expr
 
+        if isinstance(op, list):
+            if op and op[0] == '_':
+                op = f"(_ {' '.join(str(part) for part in op[1:])})"
+            else:
+                op_text = self.convert_expr(op)
+                arg_texts = [self.convert_expr(a) for a in args]
+                return f"{op_text}({', '.join(arg_texts)})" if args else op_text
+
         # Special forms
         if op == 'assert': return self.convert_expr(args[0]) if args else ""
         if op == 'let':
@@ -133,10 +167,58 @@ class SMT2NLConverter:
             if len(parts) >= 2:
                 op = parts[0] + f"[{':'.join(parts[1:])}]"
 
+        if len(args) == 1 and isinstance(args[0], list):
+            inner = args[0]
+            if op in self.binary_phrases and len(inner) == 2:
+                left, right = inner
+                return self.binary_phrases[op].format(
+                    left=self.convert_expr(left),
+                    right=self.convert_expr(right),
+                )
+
         # Operators
+        if op == 'select' and len(args) == 2:
+            array = self.convert_expr(args[0])
+            index = self.convert_expr(args[1])
+            return f"the element of {array} at index {index}"
+
+        if op == 'store' and len(args) >= 3:
+            array = self.convert_expr(args[0])
+            index = self.convert_expr(args[1])
+            value = self.convert_expr(args[2])
+            return f"{array} with index {index} set to {value}"
+
+        if op.startswith('extract[') and len(args) == 1:
+            range_text = op[8:-1]
+            hi, _, lo = range_text.partition(':')
+            target = self.convert_expr(args[0])
+            if hi and lo:
+                return f"the bits from {hi} down to {lo} of {target}"
+            return f"an extract of {target}"
+
+        if op in self.unary_phrases and len(args) == 1:
+            arg_text = self.convert_expr(args[0])
+            return self.unary_phrases[op].format(arg=arg_text)
+
+        if op in self.binary_phrases and len(args) == 2:
+            left = self.convert_expr(args[0])
+            right = self.convert_expr(args[1])
+            return self.binary_phrases[op].format(left=left, right=right)
+
+        if op in self.nary_prefaces and args:
+            preface, conj = self.nary_prefaces[op]
+            parts = [self.convert_expr(a) for a in args]
+            if len(parts) == 2:
+                if op == 'and':
+                    return f"both {parts[0]} and {parts[1]}"
+                if op == 'or':
+                    return f"either {parts[0]} or {parts[1]}"
+            body = self._join_with_conjunction(parts, conj)
+            return f"{preface}{body}" if preface else body
+
         if op in self.ops:
             sym = self.ops[op]
-            if len(args) == 1: return f"{sym}{self.convert_expr(args[0])}"
+            if len(args) == 1: return f"{sym} {self.convert_expr(args[0])}"
             if len(args) == 2:
                 l, r = self.convert_expr(args[0]), self.convert_expr(args[1])
                 if op in ['select']: return f"{l}[{r}]"
@@ -182,6 +264,16 @@ class SMT2NLConverter:
                 exprs.append(self.convert_expr(tokens[i]))
                 i += 1
         return ' ∧ '.join(exprs) if len(exprs) > 1 else exprs[0] if exprs else ""
+
+    def _join_with_conjunction(self, parts: List[str], conj: str) -> str:
+        cleaned = [p for p in parts if p]
+        if not cleaned:
+            return ""
+        if len(cleaned) == 1:
+            return cleaned[0]
+        if len(cleaned) == 2:
+            return f"{cleaned[0]} {conj} {cleaned[1]}"
+        return f"{', '.join(cleaned[:-1])}, {conj} {cleaned[-1]}"
 
 
 def main():

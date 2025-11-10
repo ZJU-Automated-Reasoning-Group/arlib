@@ -6,8 +6,8 @@ input-output examples using version space algebra.
 
 import time
 from typing import List, Dict, Any, Optional, Tuple, Set
-from ..vsa.vsa import VSAlgebra, VersionSpace
-from ..vsa.expressions import Expression, Theory, Variable
+from .vsa import VSAlgebra, VersionSpace
+from .expressions import Expression, Theory, Variable
 from .expression_generators import (
     generate_expressions_for_theory,
     get_theory_from_variables

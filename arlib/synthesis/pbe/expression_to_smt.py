@@ -6,7 +6,7 @@ to SMT format for use with Arlib's SMT solvers.
 
 import z3
 from typing import Dict, Any, List, Set, Tuple
-from ..vsa.expressions import (
+from .expressions import (
     Expression, Theory, Variable, Constant, BinaryExpr, UnaryExpr,
     BinaryOp, UnaryOp, IfExpr, LoopExpr, FunctionCallExpr
 )

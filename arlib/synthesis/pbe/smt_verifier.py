@@ -6,7 +6,7 @@ for expressions in the Version Space Algebra.
 
 import z3
 from typing import Dict, Any, List, Optional, Set, Tuple
-from ..vsa.expressions import Expression, Theory, Variable
+from .expressions import Expression, Theory, Variable
 from .expression_to_smt import SMTConverter, expression_to_smt
 
 

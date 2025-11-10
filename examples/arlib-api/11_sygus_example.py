@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import z3
-from arlib.synthesis.sygus_pbe import StringSyGuSPBE
+from arlib.synthesis.cvc5.sygus_pbe import StringSyGuSPBE
 from arlib.utils.z3_plus_smtlib_solver import Z3SolverPlus
 
 def string_syn():

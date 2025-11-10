@@ -3,7 +3,7 @@ Tests for the String SyGuS PBE solver
 """
 
 import unittest
-from arlib.synthesis.sygus_pbe import StringSyGuSPBE
+from arlib.synthesis.cvc5.sygus_pbe import StringSyGuSPBE
 
 class TestStringSyGuSPBE(unittest.TestCase):
     """Test cases for StringSyGuSPBE"""

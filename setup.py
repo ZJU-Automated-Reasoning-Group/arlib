@@ -17,7 +17,7 @@ URL = ' https://github.com/ZJU-Automated-Reasoning-Group/arlib'
 EMAIL = 'rainoftime@gmail.com'
 AUTHOR = 'rainoftime'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.0.1'
+VERSION = '0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [

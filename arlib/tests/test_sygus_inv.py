@@ -6,7 +6,7 @@ from unittest import TestCase
 import tempfile
 import shutil
 
-from arlib.synthesis.sygus_inv import SygusInv
+from arlib.synthesis.cvc5.sygus_inv import SygusInv
 from arlib.global_params.paths import global_config
 
 

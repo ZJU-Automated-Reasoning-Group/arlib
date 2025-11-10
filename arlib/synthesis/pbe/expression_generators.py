@@ -5,7 +5,7 @@ for LIA, BV, and String theories.
 """
 
 from typing import List, Set, Dict, Any
-from ..vsa.expressions import (
+from .expressions import (
     Expression, Theory, Variable, Constant, BinaryExpr, UnaryExpr,
     BinaryOp, UnaryOp, IfExpr, FunctionCallExpr, var, const, add, sub, mul, eq, lt, concat, bv_and, length
 )

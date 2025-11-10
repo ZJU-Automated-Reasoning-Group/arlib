@@ -69,8 +69,8 @@ Algebraic manipulation of program spaces:
 
 .. code-block:: python
 
-   from arlib.synthesis.vsa import VersionSpace, VSAlgebra
-   from arlib.synthesis.vsa.expressions import var, const, add
+   from arlib.synthesis.pbe.vsa import VersionSpace, VSAlgebra
+   from arlib.synthesis.pbe.expressions import var, const, add
 
    # Create expressions
    x = var("x", Theory.LIA)
@@ -100,7 +100,7 @@ Synthesize algebraic properties for functional programs:
    spyro = Spyro()
    properties = spyro.synthesize(spec_file)
 
-SMT-Based PBE (``arlib/synthesis/smt_integration``)
+SMT-Based PBE (``arlib/synthesis/pbe/``)
 ----------------------------------------------------
 
 Integration with SMT solvers for synthesis:

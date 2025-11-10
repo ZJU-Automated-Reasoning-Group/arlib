@@ -4,7 +4,7 @@ This module demonstrates the usage of the PBE solver with different theories.
 """
 
 from .pbe_solver import PBESolver, SynthesisResult
-from ..vsa.expressions import Theory
+from .expressions import Theory
 
 
 def test_lia_examples():
@@ -105,7 +105,7 @@ def test_counterexample_generation():
     solver = PBESolver()
 
     # Create some simple expressions manually for testing
-    from ..vsa.expressions import var, const, add, mul, Theory
+    from .expressions import var, const, add, mul, Theory
 
     x = var("x", Theory.LIA)
     y = var("y", Theory.LIA)
@@ -130,7 +130,7 @@ def test_version_space_operations():
     solver = PBESolver()
 
     # Create some simple expressions manually for testing
-    from ..vsa.expressions import var, const, add, mul, sub, Theory
+    from .expressions import var, const, add, mul, sub, Theory
 
     x = var("x", Theory.LIA)
 
@@ -145,7 +145,7 @@ def test_version_space_operations():
     ]
 
     # Create version space
-    from ..vsa.vsa import VersionSpace
+    from .vsa import VersionSpace
     vs = VersionSpace(set(expressions))
 
     # Create algebra and filter with example
@@ -155,7 +155,7 @@ def test_version_space_operations():
                 mul(var("x", Theory.LIA), const(2, Theory.LIA)),
                 sub(var("x", Theory.LIA), const(1, Theory.LIA))]
 
-    from ..vsa.vsa import VSAlgebra
+    from .vsa import VSAlgebra
     algebra = VSAlgebra(Theory.LIA, expression_generator)
     filtered_vs = algebra.filter_consistent(vs, examples)
 

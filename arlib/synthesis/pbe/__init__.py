@@ -1,14 +1,11 @@
-"""Programming by Example (PBE) Solver.
+"""SMT Integration for Program Synthesis.
 
-This module provides a PBE solver that uses Version Space Algebra
-to synthesize programs from input-output examples across multiple theories.
+This module provides integration between Version Space Algebra
+and Arlib's existing SMT solvers for enhanced synthesis capabilities.
 """
 
-from .pbe_solver import PBESolver
-from .expression_generators import (
-    generate_lia_expressions,
-    generate_bv_expressions,
-    generate_string_expressions
-)
+from .smt_pbe_solver import SMTPBESolver
+from .expression_to_smt import expression_to_smt, smt_to_expression
+from .smt_verifier import SMTVerifier
 
-__all__ = ['PBESolver', 'generate_lia_expressions', 'generate_bv_expressions', 'generate_string_expressions']
+__all__ = ['SMTPBESolver', 'expression_to_smt', 'smt_to_expression', 'SMTVerifier']

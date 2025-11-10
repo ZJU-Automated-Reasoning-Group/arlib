@@ -6,13 +6,13 @@ SMT solvers for improved verification and counterexample generation.
 
 import time
 from typing import List, Dict, Any, Optional, Tuple
-from ..vsa.vsa import VSAlgebra, VersionSpace
-from ..vsa.expressions import Expression, Theory
-from ..pbe.expression_generators import (
+from .vsa import VSAlgebra, VersionSpace
+from .expressions import Expression, Theory
+from .expression_generators import (
     generate_expressions_for_theory,
     get_theory_from_variables
 )
-from ..pbe.pbe_solver import SynthesisResult
+from .pbe_solver import SynthesisResult
 from .smt_verifier import SMTVerifier
 from .expression_to_smt import expression_to_smt
 
