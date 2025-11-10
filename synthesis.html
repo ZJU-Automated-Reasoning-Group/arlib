@@ -90,7 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#programming-by-example-arlib-synthesis-pbe">Programming by Example (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe</span></code>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#version-space-algebra-arlib-synthesis-vsa">Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/vsa</span></code>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#spyro-property-synthesis-arlib-synthesis-spyro">Spyro: Property Synthesis (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/spyro</span></code>)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#smt-based-pbe-arlib-synthesis-smt-integration">SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/smt_integration</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smt-based-pbe-arlib-synthesis-pbe">SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe/</span></code>)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#applications">Applications</a></li>
@@ -189,8 +189,8 @@
 <section id="version-space-algebra-arlib-synthesis-vsa">
 <h2>Version Space Algebra (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/vsa</span></code>)<a class="headerlink" href="#version-space-algebra-arlib-synthesis-vsa" title="Link to this heading"></a></h2>
 <p>Algebraic manipulation of program spaces:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.vsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionSpace</span><span class="p">,</span> <span class="n">VSAlgebra</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.vsa.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">var</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">add</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.pbe.vsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionSpace</span><span class="p">,</span> <span class="n">VSAlgebra</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">arlib.synthesis.pbe.expressions</span><span class="w"> </span><span class="kn">import</span> <span class="n">var</span><span class="p">,</span> <span class="n">const</span><span class="p">,</span> <span class="n">add</span>
 
 <span class="c1"># Create expressions</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">var</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">Theory</span><span class="o">.</span><span class="n">LIA</span><span class="p">)</span>
@@ -220,8 +220,8 @@
 </pre></div>
 </div>
 </section>
-<section id="smt-based-pbe-arlib-synthesis-smt-integration">
-<h2>SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/smt_integration</span></code>)<a class="headerlink" href="#smt-based-pbe-arlib-synthesis-smt-integration" title="Link to this heading"></a></h2>
+<section id="smt-based-pbe-arlib-synthesis-pbe">
+<h2>SMT-Based PBE (<code class="docutils literal notranslate"><span class="pre">arlib/synthesis/pbe/</span></code>)<a class="headerlink" href="#smt-based-pbe-arlib-synthesis-pbe" title="Link to this heading"></a></h2>
 <p>Integration with SMT solvers for synthesis:</p>
 <ul class="simple">
 <li><p>Expression encoding to SMT</p></li>
