@@ -1,0 +1,111 @@
+Taken from http://pan.cin.ufpe.br/coral/CommandLineArgs.html
+
+Command line options
+Here are listed the options to CORAL. There are others, but they are disabled/not in use right now.
+
+General Options
+--inputCONS cons
+Path condition to be solved (when using the command-line interface)
+
+--solver solver
+Solver to be used (when using the command-line interface). Choose between "PSO_OPT4J", "RANDOM" and "AVM". Default is "PSO_OPT4J".
+
+--rangeLO lo
+Lower bound of search interval. lo must be an integer. Default is -100.
+
+--rangeHI hi
+Upper bound of search interval. hi must be an integer. Default is 100.
+
+--flexibleRange=boolean
+Added support for "flexible" range inference. If enabled, the bounds of a variable can be bigger than the limits of the search interval (rangeLO/rangeHI). Ex:
+
+  PC = x < 3000; range.HI = 100
+  range of 'x' with flexibleRange=false: [-100,100]
+  range of 'x' with flexibleRange=true:  [-100,3000]
+Default value is true.
+
+--seed num
+Seed to be used by the RNG. num must be a "long". Default value is 464655.
+
+--radianSize num
+Controls what values are used by the search when CORAL infers the domain of a variable as RADIAN. For more details, look here (section 4.2). Allowed values of num are '0' (smaller set of values) and '1' (bigger set). Default is '0'.
+
+--degreeSize num
+Controls what values are used by the search when CORAL infers the domain of a variable as DEGREE. For more details, look here (section 4.2). Allowed values of num are '0' (smaller set of values) and '1' (bigger set). Default is '0'.
+
+--normValue max
+Norm constant. Look here for details (section 4.1, "Fitness Functions"). Default is 100.
+
+--showConcreteValues boolean
+Show concrete value of symbolic variables in the output of SymLiteral.toString(). Default is 'false'.
+
+--pcCanonicalization boolean
+Canonicalize the query rewriting its variables. Ex:
+
+AND(((1-$V12) <= 0),($V12 == $V14)) ==> AND(((1-$V1) <= 0),($V1 == $V2))
+Default is 'true'.
+
+Random Solver
+--nIterationsRANDOM iter
+Max number of generations executed by the random solver. iter must be an integer. Default is 360000.
+
+PSO Solver
+--nParticlesPSO num
+Number of particles in the population created by the PSO solver. num must be an integer. Default is 55.
+
+--nIterationsPSO iter
+Max number of iterations executed by the PSO solver. iter must be an integer. Default is 600.
+
+--perturbationPSO noise
+Perturbation ratio used in the otimization process. noise must be an double. Default is 200.
+
+--maxHit max
+Max number of failed tentatives to solve one clause before incrementing its weight. max must be an integer. Default is 50.
+
+--radianSearchLimit max
+Max number of iterations using values from the selected fractions of pi for variables inferred as "RADIAN"). Default is 150.
+
+--maxInsertedIndividuals max
+Max number of individuals of previous runs or generated with help from interval solvers inserted in the population of a new search. Default is 10.
+
+AVM Solver
+--nIterationsAVM max
+Max number of iterations executed by the AVM solver. max must be an integer. Default is 20000.
+
+Interval Solver
+--enableIntervalBasedSolver boolean
+Seed the initial population and update the bounds of variables with the box reported by the interval solver. Default is 'false'.
+
+--intervalSolver solver
+Which interval-based solver you want to use. Allowed values for solver are 'realpaver' and 'icos'. Default is "realpaver".
+
+--realPaverLocation path
+Path to realPaver executable.
+
+--icosLocation path
+Path to icos-clp executable.
+
+--icosArgs args
+Arguments to be sent to ICOS. Default is "G=/tmp/icoslogs";
+
+--simplifyUsingIntervalSolver boolean
+Try to simplify the constraint using the box reported by the interval-based solver. Default is 'true'.
+
+--intervalSolverPrecision precision
+Precision used by the interval solver (1E-precision). precision must be an integer. Default is 3.
+
+--intervalSolverTimeout timeout
+Max time for the interval solver to answer the query (in ms). timeout must be an integer. Default is 2000.
+
+Optimizations
+--removeSimpleEqualities boolean
+Use an equality decision procedure to simplify the constraint before calling a solver. Default is 'true'.
+
+--toggleValueInference boolean
+Infers ranges for the variables based on the context they appear. Default is 'true'
+
+--reportTimeUnsolved boolean
+Report average time spent on unsolved constraints. Default is 'false'.
+
+--cacheSolutions flag
+Cache solutions of previous queries. Default is 'false'
