@@ -4,7 +4,7 @@
 Demo of the basic functionality - just getting pairwise/n-wise combinations
 """
 
-from arlib.allpairspy import AllPairs
+from arlib.tests.allpairspy import AllPairs
 
 
 parameters = [
@@ -17,6 +17,6 @@ parameters = [
 # sample parameters are is taken from
 # http://www.stsc.hill.af.mil/consulting/sw_testing/improvement/cst.html
 
-print("TRIPLEWISE:")
-for i, pairs in enumerate(AllPairs(parameters, n=3)):
+print("PAIRWISE:")
+for i, pairs in enumerate(AllPairs(parameters)):
     print(f"{i:2d}: {pairs}")

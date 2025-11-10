@@ -4,7 +4,7 @@
 Demo of filtering capabilities
 """
 
-from arlib.allpairspy import AllPairs
+from arlib.tests.allpairspy import AllPairs
 
 
 def is_valid_combination(row):

@@ -4,7 +4,7 @@
 
 from collections import OrderedDict
 
-from arlib.allpairspy import AllPairs
+from arlib.tests.allpairspy import AllPairs
 
 
 class Test_pairewise_OrderedDict:

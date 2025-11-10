@@ -5,7 +5,7 @@ Another demo of filtering capabilities.
 Demonstrates how to use named parameters
 """
 
-from arlib.allpairspy import AllPairs
+from arlib.tests.allpairspy import AllPairs
 
 
 def is_valid_combination(values, names):

@@ -5,7 +5,7 @@ Demo of the basic functionality - just getting pairwise combinations
 and skipping previously tested pairs.
 """
 
-from arlib.allpairspy import AllPairs
+from arlib.tests.allpairspy import AllPairs
 
 
 parameters = [

@@ -1,0 +1,5 @@
+(set-logic QF_FP)
+(declare-fun x () Float32)
+(declare-fun y () Float32)
+(assert (= x (fp.add RNE y (fp #b0 #b01111111 #b00000000000000000000000))))
+(check-sat)
