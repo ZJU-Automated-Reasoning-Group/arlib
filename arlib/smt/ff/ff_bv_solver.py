@@ -97,13 +97,16 @@ class FFBVSolver:
         if isinstance(e, FieldAdd):
             wide = z3.BitVecVal(0, self.kw)
             for arg in e.args:
-                wide = wide + self._to_wide(self._tr(arg))
+                wide = self._mod_p(wide + self._to_wide(self._tr(arg)))
+                # prepare for next iteration in wide format
+                wide = self._to_wide(wide)
             return self._mod_p(wide)
 
         if isinstance(e, FieldMul):
             wide = z3.BitVecVal(1, self.kw)
             for arg in e.args:
-                wide = wide * self._to_wide(self._tr(arg))
+                wide = self._mod_p(wide * self._to_wide(self._tr(arg)))
+                wide = self._to_wide(wide)
             return self._mod_p(wide)
 
         if isinstance(e, FieldEq):
@@ -122,7 +125,8 @@ class FFBVSolver:
             wide = self._to_wide(self._tr(e.args[0]))
             for arg in e.args[1:]:
                 sub = self._to_wide(self._tr(arg))
-                wide = wide + (self.p_wide_bv - sub)
+                wide = self._mod_p(wide + (self.p_wide_bv - sub))
+                wide = self._to_wide(wide)
             return self._mod_p(wide)
 
         if isinstance(e, FieldNeg):

@@ -3,7 +3,8 @@
 ff_regress.py  –  Regression test driver for finite-field solvers
 
 Usage:
-    python ff_regress.py bv <benchmark_dir>    # Test BV encoding solver
+    python ff_regress.py bv <benchmark_dir>    # Test BV encoding solver (wide-BV)
+    python ff_regress.py bv2 <benchmark_dir>   # Test BV bridge solver (Int/BV bridge)
     python ff_regress.py int <benchmark_dir>   # Test integer encoding solver
     python ff_regress.py both <benchmark_dir>  # Test both solvers
 """
@@ -25,6 +26,7 @@ if __name__ == "__main__":
 try:
     from arlib.smt.ff.ff_parser import parse_ff_file
     from arlib.smt.ff.ff_bv_solver import FFBVSolver
+    from arlib.smt.ff.ff_bv_solver2 import FFBVBridgeSolver
     from arlib.smt.ff.ff_int_solver import FFIntSolver
     from arlib.smt.ff.ff_ast import (
         FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
@@ -33,6 +35,7 @@ except ImportError:
     # Fallback to relative imports when used as a module
     from .ff_parser import parse_ff_file
     from .ff_bv_solver import FFBVSolver
+    from .ff_bv_solver2 import FFBVBridgeSolver
     from .ff_int_solver import FFIntSolver
     from .ff_ast import (
         FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst, ParsedFormula
@@ -59,6 +62,8 @@ def run_demo(solver_type: str = "bv"):
     formula = tiny_demo()
     if solver_type == "bv":
         solver = FFBVSolver()
+    elif solver_type == "bv2":
+        solver = FFBVBridgeSolver()
     elif solver_type == "int":
         solver = FFIntSolver()
     else:
@@ -114,6 +119,8 @@ def solve_single(file_path: str, solver_type: str) -> str:
         formula = parse_ff_file(file_path)
         if solver_type == "bv":
             solver = FFBVSolver()
+        elif solver_type == "bv2":
+            solver = FFBVBridgeSolver()
         elif solver_type == "int":
             solver = FFIntSolver()
         else:
@@ -129,11 +136,11 @@ def regress(dir_path: str, solver_type: str = "bv", timeout: float = 5.0) -> Non
 
     Args:
         dir_path: Directory containing .smt2 files
-        solver_type: "bv", "int", or "both"
+        solver_type: "bv", "bv2", "int", or "both"
         timeout: Timeout per test in seconds (default 5.0)
     """
-    if solver_type not in ("bv", "int", "both"):
-        print(f"Unknown solver type: {solver_type}. Use 'bv', 'int', or 'both'")
+    if solver_type not in ("bv", "bv2", "int", "both"):
+        print(f"Unknown solver type: {solver_type}. Use 'bv', 'bv2', 'int', or 'both'")
         return
 
     stats = {"total": 0, "passed": 0, "failed": 0, "parse_errors": 0, "timeouts": 0}
@@ -209,9 +216,9 @@ if __name__ == "__main__":
         regress(sys.argv[2], sys.argv[1], float(sys.argv[3]))
     else:
         print("Usage:")
-        print("  python ff_regress.py demo [bv|int]")
-        print("  python ff_regress.py <bv|int|both> <benchmark_dir> [timeout]")
+        print("  python ff_regress.py demo [bv|bv2|int]")
+        print("  python ff_regress.py <bv|bv2|int|both> <benchmark_dir> [timeout]")
         print("\nExamples:")
         print("  python ff_regress.py demo bv")
-        print("  python ff_regress.py bv benchmarks/smtlib2/ff/")
+        print("  python ff_regress.py bv2 benchmarks/smtlib2/ff/")
         print("  python ff_regress.py both benchmarks/smtlib2/ff/ 10")
