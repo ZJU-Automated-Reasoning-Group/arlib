@@ -7,271 +7,231 @@ If you meet a new construct the parser will raise  SyntaxError(...)
 so you immediately see what to extend.
 """
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import List, Dict, Set, Tuple, Union, Optional
-import re, itertools, logging
+import re, pathlib
+from typing import List, Dict, Tuple, Any, Union
+from .ff_ast import (
+    FieldExpr, FieldAdd, FieldMul, FieldNeg, FieldEq, FieldVar, FieldConst,
+    FieldSub, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula
+)
 
-logger = logging.getLogger(__name__)
+Token = str
+Sexp  = Union[Token, List['Sexp']]
 
-# ----------------------------------------------------------------------
-#                            AST nodes
-# ----------------------------------------------------------------------
-@dataclass
-class FieldExpr:  # abstract
-    def collect_vars(self) -> Set[str]: raise NotImplementedError
+token_re = re.compile(r"\(|\)|[^\s()]+")
 
-@dataclass
-class BoolExpr:   # abstract
-    def collect_vars(self) -> Set[str]: raise NotImplementedError
+CONST_HASH_RE = re.compile(r"#f(\d+)m(\d+)")
+CONST_AS_RE   = re.compile(r"ff(\d+)")
 
-# ----------  Boolean ---------------------------------------------------
-@dataclass
-class BoolVar(BoolExpr):
-    name: str
-    def collect_vars(self) -> Set[str]: return {self.name}
+class FFParserError(Exception):
+    pass
 
-@dataclass
-class BoolConst(BoolExpr):
-    value: bool
-    def collect_vars(self) -> Set[str]: return set()
+def tokenize(txt:str)->List[Token]:
+    # Remove comments (lines starting with ;)
+    lines = txt.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        # Remove comment portion if present
+        comment_pos = line.find(';')
+        if comment_pos >= 0:
+            line = line[:comment_pos]
+        cleaned_lines.append(line)
+    txt = '\n'.join(cleaned_lines)
+    return token_re.findall(txt)
 
-@dataclass
-class BoolNot(BoolExpr):
-    arg: BoolExpr
-    def collect_vars(self) -> Set[str]: return self.arg.collect_vars()
+def parse_sexp(tokens:List[Token], idx:int=0)->Tuple[Sexp,int]:
+    if idx >= len(tokens):
+        raise FFParserError("unexpected EOF")
+    tok = tokens[idx]
+    if tok == '(':  # list
+        lst: List[Sexp] = []
+        idx += 1
+        while idx < len(tokens) and tokens[idx] != ')':
+            elem, idx = parse_sexp(tokens, idx)
+            lst.append(elem)
+        if idx >= len(tokens):
+            raise FFParserError("unmatched '('")
+        return lst, idx+1  # skip ')'
+    elif tok == ')':
+        raise FFParserError("unmatched ')'")
+    else:
+        return tok, idx+1
 
-@dataclass
-class BoolAnd(BoolExpr):
-    args: List[BoolExpr]
-    def collect_vars(self) -> Set[str]:
-        return set().union(*(a.collect_vars() for a in self.args))
+def parse_file(path:str)->List[Sexp]:
+    txt = pathlib.Path(path).read_text()
+    tokens = tokenize(txt)
+    sexps: List[Sexp] = []
+    idx = 0
+    while idx < len(tokens):
+        sx, idx = parse_sexp(tokens, idx)
+        sexps.append(sx)
+    return sexps
 
-@dataclass
-class BoolOr(BoolExpr):
-    args: List[BoolExpr]
-    def collect_vars(self) -> Set[str]:
-        return set().union(*(a.collect_vars() for a in self.args))
+# ---------------- interpretation to AST -----------------------------
 
-@dataclass
-class BoolImplies(BoolExpr):
-    left: BoolExpr
-    right: BoolExpr
-    def collect_vars(self) -> Set[str]:
-        return self.left.collect_vars() | self.right.collect_vars()
+def build_formula(sexps:List[Sexp])->ParsedFormula:
+    p: int | None = None
+    sort_alias: Dict[str,int] = {}
+    variables: Dict[str,str] = {}
+    assertions: List[FieldExpr] = []
+    expected_status: str | None = None
 
-# ----------  Field -----------------------------------------------------
-@dataclass
-class FieldVar(FieldExpr):
-    name: str
-    def collect_vars(self) -> Set[str]: return {self.name}
+    def ensure_p(newp:int):
+        nonlocal p
+        if p is None:
+            p = newp
+        elif p != newp:
+            raise FFParserError(f"mixed field sizes {p} vs {newp}")
 
-@dataclass
-class FieldConst(FieldExpr):
-    value: int                 # canonical repr 0 … p-1
-    def collect_vars(self) -> Set[str]: return set()
+    def parse_constant(tok:Token, sort_name:str|None=None)->FieldConst:
+        # try #fXmP
+        m = CONST_HASH_RE.fullmatch(tok)
+        if m:
+            val = int(m.group(1))
+            mod = int(m.group(2))
+            ensure_p(mod)
+            return FieldConst(val % mod)
+        # generic ffN constant (ff0, ff1, ff2, etc.)
+        m2 = CONST_AS_RE.fullmatch(tok)
+        if m2:
+            val = int(m2.group(1))
+            if sort_name is None:
+                raise FFParserError("ffN constant without sort context")
+            mod = sort_alias.get(sort_name)
+            if mod is None:
+                raise FFParserError(f"unknown sort {sort_name}")
+            ensure_p(mod)
+            return FieldConst(val % mod)
+        raise FFParserError(f"unrecognized constant {tok}")
 
-@dataclass
-class FieldAdd(FieldExpr):
-    args: List[FieldExpr]
-    def collect_vars(self) -> Set[str]:
-        return set().union(*(a.collect_vars() for a in self.args))
-
-@dataclass
-class FieldMul(FieldExpr):
-    args: List[FieldExpr]
-    def collect_vars(self) -> Set[str]:
-        return set().union(*(a.collect_vars() for a in self.args))
-
-@dataclass
-class FieldEq(BoolExpr):       # equality is Boolean!
-    left: FieldExpr
-    right: FieldExpr
-    def collect_vars(self) -> Set[str]:
-        return self.left.collect_vars() | self.right.collect_vars()
-
-@dataclass
-class FieldITE(FieldExpr):
-    cond: BoolExpr
-    then_e: FieldExpr
-    else_e: FieldExpr
-    def collect_vars(self)->Set[str]:
-        return self.cond.collect_vars()|self.then_e.collect_vars()|self.else_e.collect_vars()
-
-# ----------------------------------------------------------------------
-@dataclass
-class ParsedFormula:
-    field_size: int
-    variables : Dict[str, int]       # name → p   (one field only)
-    ff_assertions   : List[FieldExpr]
-    bool_assertions : List[BoolExpr]
-
-# ======================================================================
-class FFParser:
-    _FF_LITERAL_RE = re.compile(r"#f(\d+)m(\d+)$")   # #f16m17
-
-    # ------------- tokenisation --------------------------------------
-    def _tokenise(self, text:str) -> List[str]:
-        # strip comments
-        text = re.sub(r";[^\n]*", "", text)
-        # add spaces around parentheses
-        text = text.replace("(", " ( ").replace(")", " ) ")
-        return text.split()
-
-    # ------------- simple S-expression reader ------------------------
-    def _read_sexp(self, toks:List[str], pos:int=0) -> Tuple[Union[str,List],int]:
-        if pos>=len(toks):
-            raise SyntaxError("unexpected EOF")
-        tok = toks[pos]
-        if tok == '(':
-            lst = []
-            pos += 1
-            while pos < len(toks) and toks[pos] != ')':
-                node, pos = self._read_sexp(toks, pos)
-                lst.append(node)
-            if pos >= len(toks):
-                raise SyntaxError("missing ')'")
-            return lst, pos+1
-        if tok == ')':
-            raise SyntaxError("unexpected ')'")
-        return tok, pos+1
-
-    # ------------- public entry point --------------------------------
-
-    # --- inside class FFParser  -------------------------------------------
-
-    def parse_formula(self, smt: str) -> ParsedFormula:
-        toks = self._tokenise(smt)
-        sexps, pos = [], 0
-        while pos < len(toks):
-            s, pos = self._read_sexp(toks, pos)
-            sexps.append(s)
-
-        field_size: Optional[int] = None
-        variables : Dict[str, int] = {}
-        ff_asserts: List[FieldExpr]  = []
-        bool_asserts: List[BoolExpr] = []
-
-        # commands we ignore completely -------------------------------↓
-        SKIP_CMDS = {
-            'set-logic', 'set-info', 'check-sat', 'check-sat-assuming',
-            'exit', 'get-model', 'get-value', 'get-proof', 'get-unsat-core'
-        }
-
-        # pass 1 – gather variable and field information --------------
-        for s in sexps:
-            if not (isinstance(s, list) and s):
-                continue
-            head = s[0]
-            if head in SKIP_CMDS:
-                continue
-            if head in ('declare-fun', 'declare-const'):
-                name = s[1]
-                sort = s[-1]
-                if sort == 'Bool':
-                    continue
-                if isinstance(sort, list) and sort[:2] == ['_', 'FiniteField']:
-                    p = int(sort[2])
-                    field_size = field_size or p
-                    if p != field_size:
-                        raise SyntaxError("several different fields not supported")
-                    variables[name] = p
+    def interp(sx:Sexp, env:Dict[str,FieldExpr]) -> FieldExpr:
+        # env for let bindings
+        if isinstance(sx, str):
+            if sx in env:
+                return env[sx]
+            if sx in variables:
+                sort_type = variables[sx]
+                if sort_type == 'bool':
+                    return BoolVar(sx)
                 else:
-                    raise SyntaxError(f"unknown sort {sort}")
-
-        # literal-only field size fallback ----------------------------
-        if field_size is None:
-            m = self._FF_LITERAL_RE.search(smt)
+                    return FieldVar(sx)
+            # maybe constant symbolic token? parse const if constant
+            m = CONST_HASH_RE.fullmatch(sx)
             if m:
-                field_size = int(m.group(2))
-        if field_size is None:
-            raise SyntaxError("could not determine field size")
-
-        # pass 2 – translate assertions ------------------------------
-        for s in sexps:
-            if not (isinstance(s, list) and s):
-                continue
-            head = s[0]
-            if head in SKIP_CMDS or head.startswith('set-'):
-                continue
-            if head == 'assert':
-                bool_asserts.append(self._to_bool(s[1], field_size, variables))
-            elif head in ('declare-fun', 'declare-const', 'define-sort'):
-                continue
-            else:
-                raise SyntaxError(f"unsupported top-level command {head}")
-
-        return ParsedFormula(field_size, variables, ff_asserts, bool_asserts)
-
-    # ---------------- expression translation -------------------------
-    def _to_bool(self, e, p:int, vars:Dict[str,int]) -> BoolExpr:
-        if isinstance(e,str):
-            if e in ('true','false'):
-                return BoolConst(e=='true')
-            # Boolean variable?
-            return BoolVar(e)
-
+                return parse_constant(sx)
+            if sx.startswith('ff'):
+                # will resolve once we know sort? unsupported here
+                raise FFParserError(f"bare ff constant {sx} not allowed")
+            raise FFParserError(f"unknown symbol {sx}")
         # list
-        head, *args = e
-        if head == 'not':
-            return BoolNot(self._to_bool(args[0],p,vars))
-        if head == 'and':
-            return BoolAnd([self._to_bool(a,p,vars) for a in args])
-        if head == 'or':
-            return BoolOr([self._to_bool(a,p,vars) for a in args])
-        if head == '=>':
-            a1,a2 = args
-            return BoolImplies(self._to_bool(a1,p,vars),
-                                self._to_bool(a2,p,vars))
-        if head == '=':            # (= <field> <field>)
-            if len(args)!=2:
-                raise SyntaxError("= arity")
-            return FieldEq(self._to_field(args[0],p,vars),
-                           self._to_field(args[1],p,vars))
-        raise SyntaxError(f"unknown boolean op {head}")
-
-    def _to_field(self, e, p:int, vars:Dict[str,int]) -> FieldExpr:
-        if isinstance(e,str):
-            # variable?
-            if e in vars: return FieldVar(e)
-            # finite-field literal  #fXmP
-            m = self._FF_LITERAL_RE.fullmatch(e)
-            if m:
-                val, mod = int(m.group(1)), int(m.group(2))
-                if mod != p:
-                    raise SyntaxError("mixing different fields")
-                return FieldConst(val % p)
-            raise SyntaxError(f"unbound symbol {e}")
-
-        head,*args = e
+        if not sx:
+            raise FFParserError("empty list")
+        head = sx[0]
         if head == 'ff.add':
-            return FieldAdd([self._to_field(a,p,vars) for a in args])
+            return FieldAdd(*[interp(a, env) for a in sx[1:]])
         if head == 'ff.mul':
-            return FieldMul([self._to_field(a,p,vars) for a in args])
-        if head == 'ite':          # (ite <bool> <field> <field>)
-            b, t, f = args
-            return FieldITE(self._to_bool(b,p,vars),
-                            self._to_field(t,p,vars),
-                            self._to_field(f,p,vars))
-        raise SyntaxError(f"unknown field op {head}")
+            return FieldMul(*[interp(a, env) for a in sx[1:]])
+        if head == 'ff.neg':
+            if len(sx)!=2:
+                raise FFParserError("ff.neg takes 1 arg")
+            return FieldNeg(interp(sx[1], env))
+        if head == '=':
+            if len(sx)!=3:
+                raise FFParserError("= takes 2 args")
+            return FieldEq(interp(sx[1], env), interp(sx[2], env))
+        if head == 'or':
+            return BoolOr(*[interp(a, env) for a in sx[1:]])
+        if head == 'and':
+            return BoolAnd(*[interp(a, env) for a in sx[1:]])
+        if head == 'not':
+            if len(sx)!=2:
+                raise FFParserError("not takes 1 arg")
+            return BoolNot(interp(sx[1], env))
+        if head == '=>':
+            if len(sx)!=3:
+                raise FFParserError("=> takes 2 args")
+            return BoolImplies(interp(sx[1], env), interp(sx[2], env))
+        if head == 'ite':
+            if len(sx)!=4:
+                raise FFParserError("ite takes 3 args")
+            return BoolIte(interp(sx[1], env), interp(sx[2], env), interp(sx[3], env))
+        if head == 'let':
+            # pattern: (let ((name val) ...) body)
+            bindings = sx[1]
+            body = sx[2]
+            new_env = env.copy()
+            for pair in bindings:
+                if not (isinstance(pair, list) and len(pair)==2 and isinstance(pair[0], str)):
+                    raise FFParserError("malformed let binding")
+                new_env[pair[0]] = interp(pair[1], env)
+            return interp(body, new_env)
+        if head == 'as':
+            # constant ascription: (as ff2 F)
+            if len(sx)!=3:
+                raise FFParserError("as form length")
+            const_tok = sx[1]
+            sort_tok  = sx[2]
+            if isinstance(const_tok, str) and isinstance(sort_tok, str):
+                return parse_constant(const_tok, sort_tok)
+            raise FFParserError("unexpected as args")
+        raise FFParserError(f"unsupported head {head}")
 
-# ----------------------------------------------------------------------
-#                           quick self-test
-# ----------------------------------------------------------------------
-if __name__ == "__main__":
-    SAMPLE = """
-    (set-logic QF_FF)
-    ; simple example
-    (declare-fun x () (_ FiniteField 17))
-    (declare-fun y () (_ FiniteField 17))
-    (declare-fun b () Bool)
-    (assert (=> (and (= x #f1m17) b)
-                (or (= y (ff.add x #f16m17))
-                    (= y (ff.mul x x)))))
-    (check-sat)
-    """
+    for top in sexps:
+        if not isinstance(top, list):
+            continue
+        if not top:
+            continue
+        tag = top[0]
+        if tag == 'set-logic' or tag == 'set-option':
+            continue
+        if tag == 'set-info':
+            # Extract status from (set-info :status 'unsat) or (set-info :status 'sat)
+            if len(top) >= 3 and top[1] == ':status':
+                status_val = top[2]
+                # Handle quoted symbols - tokenizer produces "'unsat'" as a single token
+                if isinstance(status_val, str):
+                    # Remove surrounding quotes if present (both single and double quotes)
+                    status_val = status_val.strip("'\"").strip()
+                    if status_val in ('sat', 'unsat'):
+                        expected_status = status_val
+            continue
+        if tag == 'define-sort':
+            # (define-sort F () (_ FiniteField 5))
+            name = top[1]
+            sort_body = top[3]
+            if isinstance(sort_body, list) and sort_body[0]=='_' and sort_body[1]=='FiniteField':
+                mod = int(sort_body[2])
+                sort_alias[name] = mod
+                ensure_p(mod)
+            continue
+        if tag == 'declare-fun':
+            # (declare-fun x () (_ FiniteField 5)) or (declare-fun a () Bool)
+            vname = top[1]
+            sort_body = top[3]
+            if isinstance(sort_body, list) and sort_body[0]=='_' and sort_body[1]=='FiniteField':
+                mod = int(sort_body[2])
+                ensure_p(mod)
+                variables[vname] = 'ff'
+            elif isinstance(sort_body, str) and sort_body in sort_alias:
+                ensure_p(sort_alias[sort_body])
+                variables[vname]='ff'
+            elif isinstance(sort_body, str) and sort_body == 'Bool':
+                variables[vname] = 'bool'
+            else:
+                raise FFParserError("unsupported sort in declare-fun")
+            continue
+        if tag == 'assert':
+            expr = top[1]
+            assertions.append( interp(expr, {}) )
+            continue
+        if tag == 'check-sat':
+            continue
+        # ignore others
+    if p is None:
+        raise FFParserError("no finite field found")
+    return ParsedFormula(p, variables, assertions, expected_status)
 
-    pf = FFParser().parse_formula(SAMPLE)
-    print("Field size :", pf.field_size)
-    print("Variables  :", list(pf.variables.keys()))
-    print("#Bool asserts:", len(pf.bool_assertions))
-    print("AST         :", pf.bool_assertions[0])
+# convenience wrapper
+
+def parse_ff_file(path:str)->ParsedFormula:
+    sexps = parse_file(path)
+    return build_formula(sexps)

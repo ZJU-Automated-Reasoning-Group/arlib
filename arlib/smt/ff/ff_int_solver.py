@@ -7,39 +7,10 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 import math, sys, pathlib
 import z3
-
-# ---------- minimal AST (replace with your real classes) -------------
-class FieldExpr:
-     pass
-
-class FieldAdd(FieldExpr):
-    def __init__(self,*args):
-        self.args = list(args)
-
-class FieldMul(FieldExpr):
-    def __init__(self,*args):
-        self.args = list(args)
-
-class FieldEq (FieldExpr):
-    def __init__(self,l,r):
-        self.left = l
-        self.right = r
-
-class FieldVar(FieldExpr):
-    def __init__(self,name):
-        self.name = name
-
-class FieldConst(FieldExpr):
-    def __init__(self,val):
-        self.value = val
-
-class ParsedFormula:
-    def __init__(self, field_size:int,
-                       variables:Dict[str,str],
-                       assertions:List[FieldExpr]):
-        self.field_size  = field_size
-        self.variables   = variables
-        self.assertions  = assertions
+from .ff_ast import (
+    FieldExpr, FieldAdd, FieldMul, FieldEq, FieldVar, FieldConst,
+    FieldSub, FieldNeg, FieldPow, FieldDiv, BoolOr, BoolAnd, BoolNot, BoolImplies, BoolIte, BoolVar, ParsedFormula
+)
 # ---------------------------------------------------------------------
 
 def _is_prime(n:int)->bool:
@@ -74,15 +45,31 @@ class FFIntSolver:
         self.p = p
 
     def _declare_vars(self, varmap:Dict[str,str])->None:
-        for v in varmap:
+        for v, sort_type in varmap.items():
             if v in self.vars: continue
-            iv = z3.Int(v)
-            self.vars[v] = iv
-            self.solver.add(z3.And(iv >= 0, iv < self.p))
+            if sort_type == 'bool':
+                self.vars[v] = z3.Bool(v)
+            else:  # 'ff' or finite field
+                iv = z3.Int(v)
+                self.vars[v] = iv
+                self.solver.add(z3.And(iv >= 0, iv < self.p))
 
     # ---------------- translation helpers --------------------------
     def _mod(self, term:z3.IntRef)->z3.IntRef:
         return term % self.p             # ← portable remainder
+
+    def _pow_mod(self, base:z3.IntRef, exp:int)->z3.IntRef:
+        """Return (base ** exp) mod p using square-and-multiply."""
+        result = z3.IntVal(1)
+        b = base
+        e = exp
+        while e > 0:
+            if e & 1:
+                result = self._mod(result * b)
+            e >>= 1
+            if e:
+                b = self._mod(b * b)
+        return result
 
     def _tr(self, e:FieldExpr)->z3.ExprRef:
         if isinstance(e, FieldAdd):
@@ -108,43 +95,40 @@ class FFIntSolver:
                 raise ValueError("constant outside field range")
             return z3.IntVal(e.value)
 
+        if isinstance(e, FieldSub):
+            res = self._tr(e.args[0])
+            for arg in e.args[1:]:
+                res = self._mod(res - self._tr(arg))
+            return res
+
+        if isinstance(e, FieldNeg):
+            return self._mod(- self._tr(e.arg))
+
+        if isinstance(e, FieldPow):
+            base_int = self._tr(e.base)
+            return self._pow_mod(base_int, e.exponent)
+
+        if isinstance(e, FieldDiv):
+            # num * denom^{p-2}  mod p   (for prime p)
+            inv = self._pow_mod(self._tr(e.denom), self.p - 2)
+            return self._mod(self._tr(e.num) * inv)
+
+        if isinstance(e, BoolOr):
+            return z3.Or(*[self._tr(a) for a in e.args])
+
+        if isinstance(e, BoolAnd):
+            return z3.And(*[self._tr(a) for a in e.args])
+
+        if isinstance(e, BoolNot):
+            return z3.Not(self._tr(e.arg))
+
+        if isinstance(e, BoolImplies):
+            return z3.Implies(self._tr(e.antecedent), self._tr(e.consequent))
+
+        if isinstance(e, BoolIte):
+            return z3.If(self._tr(e.cond), self._tr(e.then_expr), self._tr(e.else_expr))
+
+        if isinstance(e, BoolVar):
+            return self.vars[e.name]
+
         raise TypeError(f"unknown AST node {type(e).__name__}")
-
-# ---------------- tiny demo ------------------------------------------
-def tiny_demo()->ParsedFormula:
-    p = 17
-    vars = {"x":"ff","m":"ff","z":"ff"}
-    f1 = FieldEq(FieldAdd(FieldMul(FieldVar("m"), FieldVar("x")),
-                          FieldConst(16), FieldVar("z")),
-                 FieldConst(0))
-    f2 = FieldEq(FieldMul(FieldVar("z"), FieldVar("x")), FieldConst(0))
-    return ParsedFormula(p, vars, [f1, f2])
-
-def run_demo()->None:
-    s = FFIntSolver()
-    res = s.check(tiny_demo())
-    print("Result:", res)
-    if res == z3.sat:
-        print("Model:", s.model())
-
-# ---------------------------------------------------------------------
-def regress(dir_path:str)->None:
-    for f in pathlib.Path(dir_path).rglob("*.smt2"):
-        txt = f.read_text()
-        expect = "unknown"
-        if "; EXPECT: sat"   in txt: expect="sat"
-        if "; EXPECT: unsat" in txt: expect="unsat"
-        formula = tiny_demo()           # placeholder parser
-        s = FFIntSolver()
-        got = str(s.check(formula))
-        ok  = (expect=="unknown") or (got==expect)
-        print(f"{f.name:<30} expect={expect:7}  got={got:7}  {'✓' if ok else '✗'}")
-
-# ---------------------------------------------------------------------
-if __name__ == "__main__":
-    if len(sys.argv)==2 and sys.argv[1]=="demo":
-        run_demo()
-    elif len(sys.argv)==3 and sys.argv[1]=="regress":
-        regress(sys.argv[2])
-    else:
-        print("Usage:\n  ff_int_solver.py demo\n  ff_int_solver.py regress <dir>")
