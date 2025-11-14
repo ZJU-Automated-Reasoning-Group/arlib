@@ -7,62 +7,117 @@ SMT Solving for Finite Field
 Overview
 ================
 
+Finite field arithmetic is fundamental to many cryptographic protocols.
 
-Finite filed arithmetic is a fundamental component of many cryptographic protocols.
+
+Theory Reference: Finite Fields
+===============================
+
+.. note::
+  Currently, only finite fields of prime order p are supported.
+   Such a field is isomorphic to the integers modulo p.
+
+Semantics
+^^^^^^^^^
+
+We interpret field sorts as prime fields and field terms as integers modulo :math:`p`. In the following, let:
+
+* ``N`` be an integer numeral and :math:`N` be its integer
+* ``p`` be a prime numeral and :math:`p` be its prime
+* ``F`` be an SMT field sort (of order :math:`p`)
+* ``x`` and ``y`` be SMT field terms (of the same sort ``F``) with interpretations :math:`x` and :math:`y`
+
++-----------------------+--------------------------------------------+----------------------------------------------+
+| SMT construct         | Semantics                                  | Notes                                        |
++=======================+============================================+==============================================+
+| ``(_ FiniteField p)`` | the field of order :math:`p`               | represented as the integers modulo :math:`p` |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(as ffN F)``        | the integer :math:`(N \bmod p)`            |                                              |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(ff.add x y)``      | the integer :math:`((x + y) \bmod p)`      | NB: ``ff.add`` is an n-ary operator          |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(ff.mul x y)``      | the integer :math:`((x \times y) \bmod p)` | NB: ``ff.mul`` is an n-ary operator          |
++-----------------------+--------------------------------------------+----------------------------------------------+
+| ``(= x y)``           | the Boolean :math:`x = y`                  |                                              |
++-----------------------+--------------------------------------------+----------------------------------------------+
 
 
-Recent works have significantly advanced SMT solving for finite fields, including:
+Syntax
+^^^^^^
 
-* MCSat-based techniques in Yices2
-* Split Gröbner Bases approaches
-* Non-linear reasoning methods
++----------------------+----------------------------------------------+
+| SMT construct        | SMT-LIB syntax                                |
++======================+==============================================+
+| Logic String         | use `FF` for finite fields                    |
+|                      |                                              |
+|                      | ``(set-logic QF_FF)``                        |
++----------------------+----------------------------------------------+
+| Sort                 | ``(_ FiniteField <Prime Order>)``            |
++----------------------+----------------------------------------------+
+| Constants            | ``(declare-const X (_ FiniteField 7))``      |
++----------------------+----------------------------------------------+
+| Finite Field Value   | ``(as ff3 (_ FiniteField 7))``               |
++----------------------+----------------------------------------------+
+| Addition             | ``(ff.add x y)``                             |
++----------------------+----------------------------------------------+
+| Multiplication       | ``(ff.mul x y)``                             |
++----------------------+----------------------------------------------+
+| Equality             | ``(= x y)``                                  |
++----------------------+----------------------------------------------+
+
+
+Examples
+^^^^^^^^
+
+.. code:: smtlib
+
+  (set-logic QF_FF)
+  (set-info :status unsat)
+  (define-sort F () (_ FiniteField 3))
+  (declare-const x F)
+  (assert (= (ff.mul x x) (as ff-1 F)))
+  (check-sat)
+  ; unsat
+
+.. code:: smtlib
+
+  (set-logic QF_FF)
+  (set-info :status sat)
+  (define-sort F () (_ FiniteField 3))
+  (declare-const x F)
+  (assert (= (ff.mul x x) (as ff0 F)))
+  (check-sat)
+  ; sat: (= x (as ff0 F)) is the only model
+
+
+Experimental Extensions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Experimental features (may be removed in the future):
+
+* ``ff.bitsum``: n-ary operator for bitsums: ``(ff.bitsum x0 x1 x2)`` = :math:`x_0 + 2x_1 + 4x_2`
+* ``ff.neg``: unary negation
 
 ================
 Implementation
 ================
 
-Arlib provides a flexible implementation for SMT solving over finite fields in the ``arlib/smt/ff`` module. It supports multiple encoding strategies:
+Arlib provides SMT solving over finite fields in the ``arlib/smt/ff`` module with two encoding strategies:
 
-* **Bit-vector encoding** (``ff_bv_solver.py``): Translates finite field operations to bit-vector constraints
-* **Integer encoding** (``ff_int_solver.py``): Uses modular arithmetic via integer constraints
+* **Bit-vector encoding** (``ff_bv_solver.py``): Encodes field elements as bit-vectors (width log₂(field_size)) with modular constraints
+* **Integer encoding** (``ff_int_solver.py``): Encodes field elements as integers in [0, field_size-1] with explicit modulo operations
 
-The core components include:
-
-* Formula parsing and representation (``ff_parser.py``)
-* Translation to bit-vector formulas using Z3
-* Translation to integer arithmetic with modular operations
-* Support for standard finite field operations (addition, multiplication, equality)
-
-
-**Bit-vector Encoding**
-
-The bit-vector approach represents finite field elements as fixed-width bit-vectors:
-
-* Field elements are encoded as bit-vectors with width log₂(field_size)
-* Field operations are translated to bit-vector operations with modular constraints
-* Range constraints ensure values stay within the field bounds
-
-**Integer Encoding**
-
-The integer encoding represents field elements as integers with modular arithmetic:
-
-* Field elements are constrained to the range [0, field_size-1]
-* Field operations are translated to integer operations with explicit modulo operations
-* This approach leverages integers and non-linear arithmetic reasoning in SMT solvers
+Core components include formula parsing (``ff_parser.py``) and translation to bit-vector or integer arithmetic.
 
 ================
 Usage Example
 ================
 
-Here's a simple example of using the finite field solver:
-
 .. code-block:: python
 
     from arlib.smt.ff.ff_bv_solver import solve_qfff
-    
-    # Example formula in SMT-LIB format
+
     smt_input = """
-    (set-info :smt-lib-version 2.6)
     (set-logic QF_FF)
     (declare-fun x () (_ FiniteField 17))
     (declare-fun y () (_ FiniteField 17))
@@ -70,11 +125,7 @@ Here's a simple example of using the finite field solver:
     (assert (= (ff.mul x y) #f5m17))
     (check-sat)
     """
-    
-    # Solve the formula
-    solve_qfff(smt_input)
-
-This will solve the system of equations x + y = 3 and x * y = 5 in the finite field GF(17).
+    solve_qfff(smt_input)  # Solves x + y = 3 and x * y = 5 in GF(17)
 
 References
 ==========
@@ -91,17 +142,10 @@ References
     Satisfiability modulo finite fields.
     In *Computer Aided Verification (CAV)*.
 
-* Hader, T., Kaufmann, D., & Kovács, L. (2023).
-    SMT solving over finite field arithmetic.
-    In *Logic for Programming, Artificial Intelligence and Reasoning (LPAR)*.
+* Hader, T., Kaufmann, D., & Kovács, L. (2023). SMT solving over finite field arithmetic. In *LPAR*.
 
+* Hader, T. (2022). Non-linear SMT-reasoning over finite fields. Master's thesis, TU Wien.
 
-* Hader, T. (2022).
-    Non-linear SMT-reasoning over finite fields.
-    Master's thesis, TU Wien.
-
-* Hader, T., & Kovács, L. (2022).
-    Non-linear SMT-reasoning over finite fields.
-    In *SMT Workshop*. Extended Abstract.
+* Hader, T., & Kovács, L. (2022). Non-linear SMT-reasoning over finite fields. In *SMT Workshop*.
 
 .. _MCSat-based Finite Field Reasoning in the Yices2 SMT Solver: https://arxiv.org/pdf/2402.17927

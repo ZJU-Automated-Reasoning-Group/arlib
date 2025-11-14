@@ -1,5 +1,3 @@
-; from CVC5
-; REQUIRES: cocoa
 ; EXPECT: unsat
 ; Tests the ff rewriter
 (set-info :smt-lib-version 2.6)
